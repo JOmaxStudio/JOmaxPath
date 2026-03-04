@@ -4392,8 +4392,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════════════════
 //  SUPABASE AUTH & SYNC
 // ══════════════════════════════════════════════════════
-const SUPA_URL = 'https://qgbbdhxaqwsvgqjuoidx.supabase.co';
-const SUPA_KEY = 'sb_publishable_B6JDb5KjoBWfpgOtr2W3xA_M9DpVYU9';
+const SUPA_URL = 'https://fcoitcesjyjkfcqwrblm.supabase.co';
+const SUPA_KEY = 'sb_publishable_TNIAnxpoDBZjmSPcua6SnQ_m8hTX2sj';
 
 // Supabase init — defensiu, protegit si el CDN falla
 let supa = null;
