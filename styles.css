@@ -33,7 +33,7 @@
     pointer-events:none;
     z-index:0;
   }
-  .container { max-width:1100px; margin:0 auto; padding:40px 20px; position:relative; z-index:1; }
+  .container { max-width:1400px; margin:0 auto; padding:40px 16px; position:relative; z-index:1; }
   .side-deco { position:fixed; top:0; bottom:0; width:3px; z-index:0; pointer-events:none; }
   .side-deco-left  { left:0;  background:linear-gradient(to bottom, transparent 0%, rgba(0,180,216,0.45) 30%, rgba(124,58,237,0.3) 60%, rgba(0,191,165,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,180,216,0.18); }
   .side-deco-right { right:0; background:linear-gradient(to bottom, transparent 0%, rgba(0,191,165,0.4) 30%, rgba(124,58,237,0.25) 60%, rgba(0,180,216,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,191,165,0.15); }
@@ -137,7 +137,7 @@
   .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 
   /* DAY CARDS */
-  .week-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:16px; margin-bottom:50px; }
+  .week-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr)); gap:12px; margin-bottom:50px; }
   .day-card {
     background:var(--card); border:1px solid var(--border);
     border-radius:16px; overflow:hidden; transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;
