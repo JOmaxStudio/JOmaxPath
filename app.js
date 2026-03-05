@@ -2283,22 +2283,25 @@ function setEstudiSubmode(sub) {
   const btn = document.getElementById('estudi-sub-'+sub);
   if(btn) btn.classList.add('active');
   const hints = {
-    pla: '📅 Adjunta un PDF o enganxa la teoria · indica la data de l\'examen i Julians crearà un pla d\'estudi personalitzat',
-    resum: '🗒️ Adjunta o enganxa la teoria · Julians en farà un resum estructurat amb els conceptes clau i explicacions clares',
-    practica: '🧪 Julians et preguntarà sobre la teoria · preguntes, exercicis i examen de prova per consolidar el que has après'
+    pla: '📅 Indica la data de l\'examen i adjunta el PDF o enganxa la teoria',
+    resum: '🗒️ Adjunta el PDF o enganxa la teoria per obtenir un resum estructurat',
+    practica: '🧪 Adjunta la teoria o escriu el tema per practicar amb preguntes'
   };
   const hint = document.getElementById('estudi-hint');
-  if(hint) hint.textContent = hints[sub]||'';
-  // Update placeholder
-  const inp = document.getElementById('ai-chat-input');
-  if(inp) {
-    const ph = {
-      pla: 'Indica la data de l\'examen (ex: 15 de juny)...',
-      resum: 'Enganxa aquí la teoria o adjunta un PDF...',
-      practica: 'Digues quin tipus de pràctica vols...'
-    };
-    inp.placeholder = ph[sub] || 'Pregunta a Julians...';
+  if(hint) {
+    hint.textContent = hints[sub]||'';
+    hint.classList.add('visible');
+    // Amaga el hint després de 6 segons
+    clearTimeout(hint._timer);
+    hint._timer = setTimeout(()=>hint.classList.remove('visible'), 6000);
   }
+  const placeholders = {
+    pla: 'Data de l\'examen + teoria, o adjunta un PDF...',
+    resum: 'Enganxa la teoria aquí, o adjunta un PDF...',
+    practica: 'Quin tema o tipus de pràctica vols?'
+  };
+  const inp = document.getElementById('ai-chat-input');
+  if(inp) inp.placeholder = placeholders[sub] || 'Escriu o adjunta un document...';
 }
 
 
@@ -3725,6 +3728,10 @@ async function sendAI() {
   if(aiMode === 'estudi') {
     const input = document.getElementById('ai-chat-input');
     const userMsg = input.value.trim();
+    const hasDoc = !!attachedDoc;
+
+    // Necessitem almenys text o document
+    if(!userMsg && !hasDoc) return;
     input.value = '';
 
     if(!getAPIKey()) {
@@ -3739,26 +3746,36 @@ async function sendAI() {
     if(!aiChats[aiCurrentChatId]) createNewChat(false);
     const chat = aiChats[aiCurrentChatId];
 
-    let docContent = null;
-
-    if(attachedDoc) {
-      // Extreure text del document
-      if(attachedDoc.isPDF) {
-        try { docContent = await extractPDFText(attachedDoc.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el PDF]'; }
-      } else {
-        try { docContent = await extractDocxText(attachedDoc.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el document]'; }
-      }
-      const displayMsg = (userMsg || '📎 Processa aquest document per al mode estudi') + '\n\n📄 *' + attachedDoc.name + '* (' + attachedDoc.size + ')';
-      chat.messages.push({ role: 'user', text: displayMsg });
-      if(chat.messages.length === 1) chat.title = ('Estudi: ' + attachedDoc.name).substring(0, 32);
-      clearAttachment();
-    } else if(userMsg) {
-      chat.messages.push({ role: 'user', text: userMsg });
-      if(chat.messages.length === 1) chat.title = userMsg.substring(0, 32);
-    }
-
+    // Afegir missatge de l\'usuari a l\'historial
+    const displayMsg = (userMsg ? userMsg : '📎 Analitza aquest document') +
+      (hasDoc ? '\n\n📄 *' + attachedDoc.name + '* (' + attachedDoc.size + ')' : '');
+    chat.messages.push({ role: 'user', text: displayMsg });
+    if(chat.messages.length === 1) chat.title = (hasDoc ? 'Estudi: ' + attachedDoc.name : userMsg).substring(0, 32);
     localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
     renderAISidebar(); renderAIMessages();
+
+    // Desactivar botó i mostrar indicador d\'extracció
+    document.getElementById('ai-chat-send').disabled = true;
+    let docContent = null;
+    if(hasDoc) {
+      const box = document.getElementById('ai-messages');
+      const extractEl = document.createElement('div');
+      extractEl.className = 'ai-msg thinking';
+      extractEl.id = 'estudi-extract-indicator';
+      extractEl.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Llegint document...</span>';
+      box.appendChild(extractEl); box.scrollTop = box.scrollHeight;
+
+      const docRef = attachedDoc;
+      clearAttachment();
+      if(docRef.isPDF) {
+        try { docContent = await extractPDFText(docRef.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el PDF]'; }
+      } else {
+        try { docContent = await extractDocxText(docRef.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el document]'; }
+      }
+      document.getElementById('estudi-extract-indicator')?.remove();
+    }
+
+    document.getElementById('ai-chat-send').disabled = false;
     return sendAIEstudi(userMsg, docContent);
   }
 
