@@ -1,4 +1,4 @@
-/* SortMind app.js */
+/* JOmaxPath app.js */
 // ══════════════════════════════════════════════════════
 //  DATA
 // ══════════════════════════════════════════════════════
@@ -17,7 +17,7 @@ const LOGO_B64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAA
           return (m.home||'').toUpperCase().indexOf(t)>=0 || (m.away||'').toUpperCase().indexOf(t)>=0;
         });
       });
-      if(hasOld) { localStorage.removeItem('matches_v1'); console.log('[SortMind] Partits antics eliminats'); }
+      if(hasOld) { localStorage.removeItem('matches_v1'); console.log('[JOmaxPath] Partits antics eliminats'); }
     }
   } catch(e) {}
 })();
@@ -129,7 +129,7 @@ let streakData  = JSON.parse(localStorage.getItem('streak_v2') || '{"days":{},"b
 let victoriesData = JSON.parse(localStorage.getItem('victories_v2') || '{}');
 let aiChats     = JSON.parse(localStorage.getItem('julians_chats_v2') || '{}');
 let progData    = JSON.parse(localStorage.getItem('prog_v2') || '{"chapter":1,"total":10,"unit":"Fase","title":"El meu projecte","labels":{}}');
-let profileData = JSON.parse(localStorage.getItem('profile_v2') || '{"name":"SortMind","sub":"El teu planificador personal"}');
+let profileData = JSON.parse(localStorage.getItem('profile_v2') || '{"name":"JOmaxPath","sub":"El teu planificador personal"}');
 let goalData    = JSON.parse(localStorage.getItem('goal_v2') || '{"icon":"\uD83C\uDFAF","title":"El teu objectiu principal","desc":"Escriu aqui el teu gran objectiu. Cada pas que facis tapropa una mica mes."}');
 let motoData    = JSON.parse(localStorage.getItem('moto_v2') || '{"text":"El millor moment per começar\\nera ahir. El segon millor és ara.","sub":"LA TEVA FRASE · EL TEU CAMÍ"}');
 
@@ -277,7 +277,7 @@ function applyViewMode(mode) {
 //  PROFILE, GOAL, MOTO
 // ══════════════════════════════════════════════════════
 function renderProfile() {
-  document.getElementById('header-name').textContent = profileData.name || 'SortMind';
+  document.getElementById('header-name').textContent = profileData.name || 'JOmaxPath';
   document.getElementById('header-sub').textContent  = profileData.sub  || 'El teu planificador personal';
 }
 function renderGoal() {
@@ -1719,7 +1719,7 @@ function getAITools() {
       input_schema: {
         type:'object',
         properties:{
-          name:{type:'string',description:'Nom principal (ex: SortMind)'},
+          name:{type:'string',description:'Nom principal (ex: JOmaxPath)'},
           sub:{type:'string',description:'Subtítol (ex: 17 anys · Mollerussa · Futur fundador)'}
         }
       }
@@ -2057,7 +2057,7 @@ function executeAITool(name, input) {
       const weekDays2 = Array.from({length:7},(_,i)=>{ const d=new Date(now2); const dow=now2.getDay(); d.setDate(now2.getDate()-(dow===0?6:dow-1)+i); d.setHours(12,0,0,0); return toLocalDateKey(d); });
       const timedCtx2 = timedEvents.filter(e=>weekDays2.includes(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||a.start.localeCompare(b.start)).map(e=>`${e.date} ${e.start}-${e.end}: ${e.title}`).join(' | ')||'cap';
       return [
-        `📊 DADES ACTUALS DE SORTMIND:`,
+        `📊 DADES ACTUALS DE JOMAXPATH:`,
         `Avui: ${today}`,
         `Progrés: ${progData.unit||'Cap'} ${progData.chapter}/${progData.total} (${progData.title||'Curs'})`,
         `Ratxa: ${streakCount} dies 🔥`,
@@ -2091,7 +2091,7 @@ function buildCalendarContext() {
   const weekMap = weekDays.map((dk,i) => dayNames[i]+'='+dk).join(', ');
   const nextWeekDays = Array.from({length:7},(_,i)=>{ const d2=new Date(now); const dow2=now.getDay(); d2.setDate(now.getDate()-(dow2===0?6:dow2-1)+7+i); d2.setHours(12,0,0,0); return toLocalDateKey(d2); });
   const nextWeekMap = nextWeekDays.map((dk,i) => dayNames[i]+'='+dk).join(', ');
-  return `CONTEXT SORTMIND (avui=${today}, dia=${dayNames[dayIdx]}):\nUsuari: Julià Domingo, 17 anys, Mollerussa\nObjectiu: ${goalData.title} — ${goalData.desc}\nProgrés: ${progData.unit||'Capítol'} ${progData.chapter}/${progData.total} (${progData.title})\nRatxa programació: ${streakCount} dies 🔥\nDATES SETMANA ACTUAL: ${weekMap}\nDATES SETMANA QUE VE: ${nextWeekMap}\nREGLA DATES: Usa SEMPRE les dates exactes del mapa de dalt. Si l'usuari diu "divendres" → busca Divendres=XXXX al mapa i usa exactament aquella data.\nTasques pendents: ${pending.join(', ')||'cap'}\nEvents avui: ${todayEvs.join(', ')||'cap'}\nEvents horaris setmana: ${timedCtx}`;
+  return `CONTEXT JOMAXPATH (avui=${today}, dia=${dayNames[dayIdx]}):\nUsuari: Julià Domingo, 17 anys, Mollerussa\nObjectiu: ${goalData.title} — ${goalData.desc}\nProgrés: ${progData.unit||'Capítol'} ${progData.chapter}/${progData.total} (${progData.title})\nRatxa programació: ${streakCount} dies 🔥\nDATES SETMANA ACTUAL: ${weekMap}\nDATES SETMANA QUE VE: ${nextWeekMap}\nREGLA DATES: Usa SEMPRE les dates exactes del mapa de dalt. Si l'usuari diu "divendres" → busca Divendres=XXXX al mapa i usa exactament aquella data.\nTasques pendents: ${pending.join(', ')||'cap'}\nEvents avui: ${todayEvs.join(', ')||'cap'}\nEvents horaris setmana: ${timedCtx}`;
 }
 
 // ── Render functions ──────────────────────────────────
@@ -2202,7 +2202,7 @@ function renderAIMessages() {
   const chips = document.getElementById('ai-chips');
   const chat = aiChats[aiCurrentChatId];
   if(!chat||!chat.messages.length){
-    box.innerHTML='<div class="ai-msg-empty">Hola! Soc <strong>Julians</strong>, el teu assistent personal de <strong>SortMind</strong>. 🧠<br><br>Puc ajudar-te a:<br><br><em>«Afegeix deep work avui de 17 a 19»</em><br><em>«Genera la meva setmana òptima»</em><br><em>«Afegeix examen de mates dijous»</em><br><br>Gestiono tasques, calendari, horari i molt més!</div>';
+    box.innerHTML='<div class="ai-msg-empty">Hola! Soc <strong>Julians</strong>, el teu assistent personal de <strong>JOmaxPath</strong>. 🧠<br><br>Puc ajudar-te a:<br><br><em>«Afegeix deep work avui de 17 a 19»</em><br><em>«Genera la meva setmana òptima»</em><br><em>«Afegeix examen de mates dijous»</em><br><br>Gestiono tasques, calendari, horari i molt més!</div>';
     if(chips) { chips.style.display='flex'; chips.style.opacity='1'; }
     return;
   }
@@ -2303,7 +2303,7 @@ async function sendAIBase() {
   try {
     const mode = AI_MODES[aiMode]||AI_MODES.rapid;
 
-    const systemPrompt = `Ets Julians, l'assistent personal de l'Julià Domingo a SortMind. Parles SEMPRE en català.
+    const systemPrompt = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
 
 REGLA CRÍTICA: Quan l'usuari demani afegir, crear, editar o eliminar qualsevol cosa (tasca, event, examen, entrenament...), HAS D'USAR OBLIGATÒRIAMENT l'eina corresponent. MAI responguis dient que ho has fet sense haver cridat l'eina realment.
 
@@ -2659,7 +2659,7 @@ function pomoTick() {
       if(pomoData.lastDate!==today){pomoData.today=0;pomoData.week=0;pomoData.lastDate=today;}
       pomoData.today++; pomoData.total++;
       localStorage.setItem('pomo_v1',JSON.stringify(pomoData));
-      if(Notification.permission==='granted') new Notification('SortMind 🍅',{body:`${pomoFocusMins}min session done! +${pomoFocusMins*2} XP`});
+      if(Notification.permission==='granted') new Notification('JOmaxPath 🍅',{body:`${pomoFocusMins}min session done! +${pomoFocusMins*2} XP`});
       pomoPhase = (pomoSessionsDone%pomoSessions===0)?'long-break':'break';
       pomoCurrent = (pomoPhase==='long-break'?pomoFocusMins*2:pomoBreakMins)*60;
     } else {
@@ -3483,7 +3483,7 @@ async function sendAI() {
   try {
     const mode = AI_MODES[aiMode] || AI_MODES.rapid;
     
-    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent de l'Julià Domingo a SortMind. Parles sempre en català.
+    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent de l'Julià Domingo a JOmaxPath. Parles sempre en català.
 ${buildCalendarContext()}
 
 L'usuari t'ha adjuntat un document. La teva feina és:
@@ -3767,7 +3767,7 @@ const INFO_CONTENT = {
     title: 'INICI — Com funciona?',
     body: `<strong>La teva pàgina principal</strong> concentra tot el que necessites veure cada dia:
     <ul>
-      <li><strong>Títol SortMind</strong> — Prem l'engranatge ⚙️ per personalitzar el nom i subtítol.</li>
+      <li><strong>Títol JOmaxPath</strong> — Prem l'engranatge ⚙️ per personalitzar el nom i subtítol.</li>
       <li><strong>Frase motivadora</strong> — Es canvia automàticament cada dia. Prem ↻ per veure-ne una altra.</li>
       <li><strong>Dashboard d'avui</strong> — Mostra tasques pendents, events del dia i pomodoros fets. S'actualitza cada minut.</li>
       <li><strong>Objectiu principal</strong> — El teu "per qué". Edita'l a Configuració → Objectiu.</li>
@@ -3808,7 +3808,7 @@ const INFO_CONTENT = {
   julians: {
     icon: '🧠',
     title: 'JULIANS AI — Com funciona?',
-    body: `El teu <strong>assistent personal intel·ligent</strong> que coneix tot SortMind:
+    body: `El teu <strong>assistent personal intel·ligent</strong> que coneix tot JOmaxPath:
     <ul>
       <li><strong>Modos de resposta:</strong><br>
         <span class="tip-chip">⚡ Ràpid</span> Resposta immediata i concisa.<br>
@@ -4000,11 +4000,11 @@ document.addEventListener('keydown', e => {
 const _baseRenderProfile = typeof renderProfile === 'function' ? renderProfile : null;
 function renderProfile() {
   const nameEl = document.getElementById('header-name');
-  if(nameEl) nameEl.textContent = profileData.name || 'SortMind';
+  if(nameEl) nameEl.textContent = profileData.name || 'JOmaxPath';
   const subEl = document.getElementById('header-sub');
   if(subEl) {
     subEl.innerHTML = (profileData.sub || '17 anys · Mollerussa · Futur fundador') + 
-      ' <span class="sortmind-version">v2.0</span>';
+      ' <span class="jomaxpath-version">v2.0</span>';
   }
 }
 
@@ -4171,7 +4171,7 @@ const LANG_STRINGS = {
     lang_label:'Language',
   }
 };
-let currentLang = localStorage.getItem('sortmind_lang') || 'ca';
+let currentLang = localStorage.getItem('jomaxpath_lang') || 'ca';
 
 function getMonthNames() {
   return {
@@ -4185,7 +4185,7 @@ function t(key) { return (LANG_STRINGS[currentLang]||LANG_STRINGS.ca)[key] || ke
 
 function applyLanguage(lang) {
   currentLang = lang;
-  localStorage.setItem('sortmind_lang', lang);
+  localStorage.setItem('jomaxpath_lang', lang);
 
   // === 1. Translate all [data-i18n] elements ===
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -4206,11 +4206,11 @@ function applyLanguage(lang) {
   bnavItems.forEach((el,i) => { if(navKeys[i]) el.textContent = t(navKeys[i]); });
 
   // === 3. Header tag ===
-  const tag = document.querySelector('.sortmind-tag');
+  const tag = document.querySelector('.jomaxpath-tag');
   if(tag) tag.textContent = t('header_tag');
 
   // === 4. Header subtitle ===
-  const hsub = document.querySelector('.sortmind-hero-title');
+  const hsub = document.querySelector('.jomaxpath-hero-title');
   if(hsub) hsub.textContent = t('header_sub_title');
 
   // === 5. Page ID-based titles ===
@@ -4610,7 +4610,7 @@ async function loadFromSupabase() {
         customMatches = [];
         localStorage.removeItem('matches_v1');
         setTimeout(() => saveToSupabase(), 800);
-        console.log('[SortMind] Partits antics eliminats automàticament');
+        console.log('[JOmaxPath] Partits antics eliminats automàticament');
       } else {
         customMatches = rawM;
       }
@@ -4909,7 +4909,7 @@ function checkAndFireNotifications() {
     var notifTime = ev.time.substring(0,5);
     var fireKey = todayKey + '_' + (ev.id || ev.text);
     if(notifTime === hhmm && !firedNotifs[fireKey]) {
-      new Notification('SortMind 📅', { body: ev.text || 'Event', icon: '' });
+      new Notification('JOmaxPath 📅', { body: ev.text || 'Event', icon: '' });
       firedNotifs[fireKey] = 1;
       // Clean old fired notifs (keep only today)
       Object.keys(firedNotifs).forEach(function(k){ if(!k.startsWith(todayKey)) delete firedNotifs[k]; });
@@ -4923,7 +4923,7 @@ function checkAndFireNotifications() {
     var notifTime = (ev.start||'').substring(0,5);
     var fireKey = todayKey + '_timed_' + ev.id;
     if(notifTime === hhmm && !firedNotifs[fireKey]) {
-      new Notification('SortMind ⏰', { body: (ev.title||'Event') + (ev.end ? ' — fins les ' + ev.end : '') });
+      new Notification('JOmaxPath ⏰', { body: (ev.title||'Event') + (ev.end ? ' — fins les ' + ev.end : '') });
       firedNotifs[fireKey] = 1;
       localStorage.setItem('fired_notifs_v1', JSON.stringify(firedNotifs));
     }
@@ -4936,7 +4936,7 @@ function checkAndFireNotifications() {
     examList.filter(function(e){ return !e.done && e.date === tomorrowKey; }).forEach(function(ex) {
       var fireKey = 'exam_tmrw_' + ex.id;
       if(hhmm === '20:00' && !firedNotifs[fireKey]) {
-        new Notification('SortMind 📝', { body: 'Demà: ' + ex.name });
+        new Notification('JOmaxPath 📝', { body: 'Demà: ' + ex.name });
         firedNotifs[fireKey] = 1;
         localStorage.setItem('fired_notifs_v1', JSON.stringify(firedNotifs));
       }
