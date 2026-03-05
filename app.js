@@ -2349,10 +2349,18 @@ ${mode.suffix}`;
     // ── Missatges d'historial — filtrant buits/nulls ──
     const historyMsgs = chat.messages.slice(-16)
       .filter(m => m.text && String(m.text).trim().length > 0)
-      .map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: String(m.text)
-      }));
+      .map(m => {
+        let content = String(m.text);
+        // Eliminar contingut de documents de l'historial per no sobrepassar tokens
+        if(content.includes('--- CONTINGUT DEL DOCUMENT:')) {
+          const idx = content.indexOf('--- CONTINGUT DEL DOCUMENT:');
+          content = content.substring(0, idx).trim() + '
+[document processat anteriorment]';
+        }
+        // Truncar missatges molt llargs
+        if(content.length > 2000) content = content.substring(0, 2000) + '...[retallat]';
+        return { role: m.role === 'user' ? 'user' : 'assistant', content };
+      });
 
     const tools = getAITools();
 
