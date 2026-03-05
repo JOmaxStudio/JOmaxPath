@@ -2369,7 +2369,7 @@ ${mode.suffix}`;
     ];
 
     const reqBody1 = {
-      model: 'llama-3.3-70b-specdec',
+      model: isCasual ? 'llama-3.1-8b-instant' : 'llama-3.3-70b-versatile',
       max_tokens: mode.max_tokens,
       temperature: mode.temperature||0.3,
       messages: groqMsgs1
@@ -2449,7 +2449,7 @@ ${mode.suffix}`;
           'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
-          model:'llama-3.3-70b-specdec',
+          model:'llama-3.3-70b-versatile',
           max_tokens: mode.max_tokens,
           temperature: mode.temperature||0.3,
           messages: msgs2
@@ -3563,7 +3563,7 @@ ${mode.suffix}`;
         'Authorization': 'Bearer ' + getAPIKey()
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-specdec',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: Math.max(mode.max_tokens, 2000),
         tools,
         tool_choice: 'auto',
@@ -3620,7 +3620,7 @@ ${mode.suffix}`;
           'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-specdec',
+          model: 'llama-3.3-70b-versatile',
           max_tokens: Math.max(mode.max_tokens, 2000),
           tools,
           tool_choice: 'auto',
