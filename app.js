@@ -2303,10 +2303,7 @@ async function sendAIBase() {
   try {
     const mode = AI_MODES[aiMode]||AI_MODES.rapid;
 
-    // Detectar conversa casual (sense necessitat d'eines)
-    const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit)/i.test(text);
-
-    const systemPromptFull = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
+    const systemPrompt = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
 
 REGLA CRÍTICA: Quan l'usuari demani afegir, crear, editar o eliminar qualsevol cosa (tasca, event, examen, entrenament...), HAS D'USAR OBLIGATÒRIAMENT l'eina corresponent. MAI responguis dient que ho has fet sense haver cridat l'eina realment.
 
@@ -2349,37 +2346,30 @@ COLORS per add_timed_event: tec-purple=deepwork/estudi, tec-blue=classes/reunion
 ${buildCalendarContext()}
 ${mode.suffix}`;
 
-    // Prompt curt per a converses casuals (estalvia tokens)
-    const systemPromptCasual = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català. Ets proper, intel·ligent i directe. Avui és ${new Date().toLocaleDateString('ca-ES')}.`;
-    const systemPrompt = isCasual ? systemPromptCasual : systemPromptFull;
-
-    // ── Missatges d'historial — filtrant buits/nulls ──
-    const historyMsgs = chat.messages.slice(-16)
+    // ── Missatges d'historial — filtrant buits/nulls i documents llargs ──
+    const historyMsgs = chat.messages.slice(-12)
       .filter(m => m.text && String(m.text).trim().length > 0)
       .map(m => {
-        let content = String(m.text);
-        // Eliminar contingut de documents de l'historial per no sobrepassar tokens
-        if(content.includes('--- CONTINGUT DEL DOCUMENT:')) {
-          const idx = content.indexOf('--- CONTINGUT DEL DOCUMENT:');
-          content = content.substring(0, idx).trim() + '\n[document processat anteriorment]';
-        }
-        // Truncar missatges molt llargs
-        if(content.length > 2000) content = content.substring(0, 2000) + '...[retallat]';
-        return { role: m.role === 'user' ? 'user' : 'assistant', content };
+        let cnt = String(m.text);
+        if(cnt.length > 1500) cnt = cnt.substring(0, 1500) + '...[retallat]';
+        return { role: m.role === 'user' ? 'user' : 'assistant', content: cnt };
       });
 
-    // Conversa casual: sense eines (estalvia ~2000 tokens per crida)
+    // Conversa casual: prompt curt + sense eines (estalvia ~4000 tokens)
+    const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa al|afegeix al|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit)/i.test(text);
     const tools = isCasual ? [] : getAITools();
+    const activePrompt = isCasual
+      ? "Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català. Ets proper i directe."
+      : systemPrompt;
 
     // ── PRIMERA CRIDA GROQ ──
     const groqMsgs1 = [
-      {role:'system', content: systemPrompt},
+      {role:'system', content: activePrompt},
       ...historyMsgs
     ];
-    console.log('[Julians] Crida 1 →', groqMsgs1.length, 'msgs,', tools.length, 'eines, casual:', isCasual);
 
     const reqBody1 = {
-      model:'llama-3.3-70b-specdec',
+      model: 'llama-3.3-70b-specdec',
       max_tokens: mode.max_tokens,
       temperature: mode.temperature||0.3,
       messages: groqMsgs1
@@ -2400,8 +2390,14 @@ ${mode.suffix}`;
     if(!resp1.ok) {
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
-      const rawErr = JSON.stringify(data1?.error || data1).substring(0, 300);
-      let err = `⚠️ Error ${resp1.status}: ${rawErr}`;
+      const _ec = data1?.error?.code || '';
+      const _em = String(data1?.error?.message || '');
+      let err;
+      if(_ec === 'rate_limit_exceeded' || _em.includes('rate_limit')) {
+        err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
+      } else {
+        err = '⚠️ Error Groq (' + resp1.status + '): ' + (_em || JSON.stringify(data1?.error)).substring(0, 200);
+      }
       chat.messages.push({role:'assistant', text:err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
       renderAIMessages(); return;
@@ -3540,7 +3536,7 @@ ${mode.suffix}`;
     
     const tools = getAITools();
     
-    // Groq no suporta PDFs binaris — extreiem el text amb pdf.js
+    // Extreiem el text del document per enviar-lo a Groq com a text
     let docTextContent = '';
     if(doc.isPDF) {
       typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Extraient text del PDF...</span>`;
@@ -3550,13 +3546,11 @@ ${mode.suffix}`;
     } else {
       docTextContent = userContent.find(b => b.type === 'document')?.source?.data || '';
     }
-
-    // Limitar a ~12.000 caràcters per no superar el límit de tokens de Groq
-    const MAX_DOC_CHARS = 12000;
-    if(docTextContent.length > MAX_DOC_CHARS) {
-      docTextContent = docTextContent.substring(0, MAX_DOC_CHARS) + '\n\n[... document retallat per límit de tokens ...]';
+    // Limitar tokens enviats a Groq
+    if(docTextContent.length > 12000) {
+      docTextContent = docTextContent.substring(0, 12000) + '\n[... document retallat per limit de tokens ...]';
     }
-
+    
     const groqDocMsgs = [
       {role:'system', content: systemPrompt},
       {role:'user', content: instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent}
@@ -3577,22 +3571,19 @@ ${mode.suffix}`;
       })
     });
     const data1 = await resp1.json();
-    console.log('[JOmaxPath-DOC] Resposta Groq:', JSON.stringify(data1).substring(0, 500));
     
     if(!resp1.ok) {
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
-      let err = '⚠️ Error processant el document.';
       const errCode = data1?.error?.code || '';
-      const errMsg  = String(data1?.error?.message || '');
-      // Mostrar error real a l'usuari per depurar
-      err = `⚠️ Error ${resp1.status} — codi: "${errCode}" — ${errMsg.substring(0, 300)}`;
+      const errMsg = String(data1?.error?.message || '');
+      let err;
       if(errCode === 'rate_limit_exceeded' || errMsg.includes('rate_limit')) {
-        err = '⏳ Límit d\'ús assolit. Torna a provar en uns minuts.';
-      } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('length')) {
-        err = '⚠️ El document és massa llarg. Prova amb un PDF més curt o amb menys pàgines.';
-      } else if(errMsg) {
-        err = '⚠️ Error Groq: ' + errMsg.substring(0, 200);
+        err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
+      } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token')) {
+        err = '⚠️ El document és massa llarg. Prova amb un PDF més curt.';
+      } else {
+        err = '⚠️ Error Groq: ' + (errMsg || JSON.stringify(data1?.error)).substring(0, 200);
       }
       chat.messages.push({role:'assistant', text: err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
@@ -3661,10 +3652,16 @@ ${mode.suffix}`;
 /* ══ */
 
 // ══════════════════════════════════════════════════════
+//  DOCX TEXT EXTRACTOR
+//  DOCX is a ZIP file. word/document.xml has the text.
+//  We decode base64 → Uint8Array, find document.xml,
+//  strip XML tags → plain text.
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
 //  PDF TEXT EXTRACTOR (via pdf.js CDN)
 // ══════════════════════════════════════════════════════
 async function extractPDFText(base64) {
-  // Load pdf.js dynamically if not already loaded
   if(!window.pdfjsLib) {
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -3676,36 +3673,20 @@ async function extractPDFText(base64) {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
-
-  // Decode base64 → Uint8Array
   const binaryStr = atob(base64);
   const bytes = new Uint8Array(binaryStr.length);
   for(let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-
   const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
   let fullText = '';
   for(let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items.map(item => item.str).join(' ');
-    fullText += `[Pàgina ${i}]\n${pageText}\n\n`;
-    // Stop if we already have enough text
-    if(fullText.length > 15000) {
-      fullText += '[... més pàgines no incloses per límit de tokens ...]';
-      break;
-    }
+    fullText += '[Pagina ' + i + ']\n' + content.items.map(item => item.str).join(' ') + '\n\n';
+    if(fullText.length > 15000) { fullText += '[... mes pagines no incloses ...]'; break; }
   }
-  return fullText.trim() || '[PDF sense text extret - pot ser una imatge escanejada]';
+  return fullText.trim() || '[PDF sense text extret]';
 }
 
-/* ══ */
-
-// ══════════════════════════════════════════════════════
-//  DOCX TEXT EXTRACTOR
-//  DOCX is a ZIP file. word/document.xml has the text.
-//  We decode base64 → Uint8Array, find document.xml,
-//  strip XML tags → plain text.
-// ══════════════════════════════════════════════════════
 async function extractDocxText(base64) {
   // Decode base64 to bytes
   const bin = atob(base64);
