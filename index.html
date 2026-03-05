@@ -349,11 +349,17 @@
             <!-- Panel submodes Estudi -->
             <div id="estudi-panel" style="display:none;">
               <div class="estudi-submode-row">
-                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">📅 Pla d'estudi</button>
-                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">🗒️ Resum</button>
-                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">🧪 Pràctica</button>
+                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">
+                  <span class="esub-icon">📅</span><span class="esub-label">Pla d'estudi</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">
+                  <span class="esub-icon">🗒️</span><span class="esub-label">Resum</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">
+                  <span class="esub-icon">🧪</span><span class="esub-label">Pràctica</span>
+                </button>
               </div>
-              <div id="estudi-hint" class="estudi-hint">📅 Adjunta un PDF o enganxa la teoria · indica la data de l'examen i Julians crearà un pla d'estudi personalitzat</div>
+              <div id="estudi-hint" class="estudi-hint"></div>
             </div>
             <div class="ai-chat-messages" id="ai-messages"></div>
             <div class="ai-chip-row" id="ai-chips"></div>
