@@ -125,7 +125,7 @@ let timedEvents = JSON.parse(localStorage.getItem('timed_events_v1') || '[]');
 let examList    = JSON.parse(localStorage.getItem('exams_v3') || '[]');
 let stickyNotes = JSON.parse(localStorage.getItem('sticky_notes_v2') || '[]');
 let dayBadges   = JSON.parse(localStorage.getItem('day_badges_v2') || '{}');
-let streakData  = JSON.parse(localStorage.getItem('streak_v2') || '{"days":{},"best":0,"label":"dies consecutius programant"}');
+let streakData  = JSON.parse(localStorage.getItem('streak_v2') || '{"days":{},"best":0,"label":"dies consecutius"}');
 let victoriesData = JSON.parse(localStorage.getItem('victories_v2') || '{}');
 let aiChats     = JSON.parse(localStorage.getItem('julians_chats_v2') || '{}');
 let progData    = JSON.parse(localStorage.getItem('prog_v2') || '{"chapter":1,"total":10,"unit":"Fase","title":"El meu projecte","labels":{}}');
@@ -372,7 +372,7 @@ function renderStreak() {
 function editStreakLabel() {
   const lbl = document.getElementById('streak-label-txt');
   if(!lbl) return;
-  const current = streakData.label || 'dies consecutius programant';
+  const current = streakData.label || 'dies consecutius';
   lbl.outerHTML = `<div id="streak-label-edit-wrap">
     <input id="streak-label-input" type="text" value="${current}" maxlength="40" placeholder="dies consecutius..."/>
     <button id="streak-label-save" onclick="saveStreakLabel()">✓</button>
@@ -4224,12 +4224,13 @@ const INFO_CONTENT = {
   },
   streak: {
     icon: '🔥',
-    title: 'RATXA DE PROGRAMACIÓ',
-    body: `El teu <strong>comptador de dies consecutius</strong> programant (inspirat en GitHub/Duolingo):
+    get title() { return 'RATXA — ' + (streakData.label || 'dies consecutius').toUpperCase(); },
+    body: `El teu <strong>comptador de dies consecutius</strong> (inspirat en GitHub/Duolingo):
     <ul>
-      <li><strong>Cada dia que programes</strong> prem "✓ SESSIÓ FETA" per marcar-lo.</li>
+      <li><strong>Clica el títol</strong> per canviar el nom de la ratxa (ex: Lectura, Gimnàs, Idiomes...).</li>
+      <li><strong>Cada dia que ho fas</strong> prem "✓ SESSIÓ FETA" per marcar-lo.</li>
       <li><strong>La ratxa</strong> es calcula des de l'últim dia consecutiu fins avui.</li>
-      <li><strong>Grid de 21 dies</strong> — Visualitza els últims 21 dies. Verd = programat.</li>
+      <li><strong>Grid de 21 dies</strong> — Visualitza els últims 21 dies. Verd = fet.</li>
       <li><strong>Millor ratxa</strong> — Es guarda el teu rècord personal.</li>
       <li><strong>Clica qualsevol punt</strong> del grid per marcar/desmarcar un dia manualment.</li>
       <li><strong>↺ Desfer</strong> — Si t'has equivocat, desfés la sessió d'avui.</li>
@@ -4438,7 +4439,7 @@ const LANG_STRINGS = {
     btn_add:'+ AFEGIR', btn_add_match:'+ AFEGIR PARTIT',
     btn_save:'💾 GUARDAR', btn_cancel:'Cancel·lar', btn_today:'↩ AVUI',
     // Misc
-    streak_label:'dies consecutius programant',
+    streak_label:'dies consecutius',
     add_task:'+ AFEGIR',
     pomo_focus:'FOCUS', pomo_break:'DESCANS', pomo_long:'DESCANS LLARG',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REPRENDRE', pomo_reset:'↺ RESET',
