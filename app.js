@@ -2361,8 +2361,7 @@ ${mode.suffix}`;
         // Eliminar contingut de documents de l'historial per no sobrepassar tokens
         if(content.includes('--- CONTINGUT DEL DOCUMENT:')) {
           const idx = content.indexOf('--- CONTINGUT DEL DOCUMENT:');
-          content = content.substring(0, idx).trim() + '
-[document processat anteriorment]';
+          content = content.substring(0, idx).trim() + '\n[document processat anteriorment]';
         }
         // Truncar missatges molt llargs
         if(content.length > 2000) content = content.substring(0, 2000) + '...[retallat]';
