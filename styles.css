@@ -1880,108 +1880,121 @@
   #fs-center { min-width:100vw; }
 }
 
+
+
 /* ═══════════════════════════════════════════
-   MODE ESTUDI
+   MODE ESTUDI — Disseny premium
 ═══════════════════════════════════════════ */
-.estudi-btn {
-  background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(6,182,212,0.12)) !important;
-  border-color: rgba(16,185,129,0.45) !important;
-  color: #6ee7b7 !important;
-}
-.estudi-btn.active {
-  background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(6,182,212,0.25)) !important;
-  border-color: #10b981 !important;
-  color: #fff !important;
-  box-shadow: 0 0 14px rgba(16,185,129,0.35) !important;
-}
-#estudi-panel {
-  padding: 8px 14px 2px;
-  border-top: 1px solid rgba(16,185,129,0.15);
-  background: rgba(16,185,129,0.04);
-  animation: fadeIn 0.2s ease;
-}
-.estudi-submode-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.estudi-sub-btn {
-  flex: 1;
-  min-width: 90px;
-  padding: 7px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(16,185,129,0.3);
-  background: rgba(16,185,129,0.08);
+
+/* Botó Estudi a la fila de modes */
+#mode-estudi {
+  background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.1));
+  border-color: rgba(16,185,129,0.35);
   color: #6ee7b7;
-  font-size: 11px;
-  font-family: 'Space Mono', monospace;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
 }
-.estudi-sub-btn:hover {
-  background: rgba(16,185,129,0.18);
-  border-color: rgba(16,185,129,0.6);
+#mode-estudi::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(16,185,129,0.08), transparent);
+  animation: shimmer 2.5s infinite;
 }
-.estudi-sub-btn.active {
-  background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(6,182,212,0.2));
-  border-color: #10b981;
+#mode-estudi.active {
+  background: linear-gradient(135deg, rgba(16,185,129,0.32), rgba(6,182,212,0.22));
+  border-color: rgba(16,185,129,0.8);
   color: #fff;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(16,185,129,0.25);
+  box-shadow: 0 0 16px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
-.estudi-hint {
-  font-size: 11px;
-  color: rgba(110,231,183,0.65);
-  margin-top: 7px;
-  margin-bottom: 4px;
-  line-height: 1.5;
-  padding: 6px 10px;
-  background: rgba(16,185,129,0.06);
-  border-radius: 8px;
-  border-left: 2px solid rgba(16,185,129,0.4);
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }
 
-/* Missatges especials d'estudi */
-.estudi-pla-card {
-  background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.06));
-  border: 1px solid rgba(16,185,129,0.25);
+/* Panel submodes */
+#estudi-panel {
+  margin: 0 12px 4px;
   border-radius: 14px;
-  padding: 14px 16px;
-  margin: 6px 0;
+  background: linear-gradient(135deg, rgba(16,185,129,0.07), rgba(6,182,212,0.04));
+  border: 1px solid rgba(16,185,129,0.18);
+  padding: 10px;
+  animation: slideDown 0.25s cubic-bezier(.4,0,.2,1);
 }
-.estudi-session {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(16,185,129,0.15);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 6px 0;
-  cursor: pointer;
-  transition: all 0.2s;
+@keyframes slideDown {
+  from { opacity:0; transform: translateY(-8px); }
+  to   { opacity:1; transform: translateY(0); }
 }
-.estudi-session:hover {
-  background: rgba(16,185,129,0.08);
-  border-color: rgba(16,185,129,0.35);
+
+/* Fila de 3 sub-botons */
+.estudi-submode-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
 }
-.estudi-action-row {
+
+.estudi-sub-btn {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-.estudi-action-btn {
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(16,185,129,0.4);
-  background: rgba(16,185,129,0.12);
-  color: #6ee7b7;
-  font-size: 11px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 6px 8px;
+  border-radius: 11px;
+  border: 1px solid rgba(16,185,129,0.2);
+  background: rgba(255,255,255,0.03);
+  color: rgba(110,231,183,0.7);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
   font-family: 'Sora', sans-serif;
+  position: relative;
+  overflow: hidden;
 }
-.estudi-action-btn:hover {
-  background: rgba(16,185,129,0.25);
+.estudi-sub-btn:hover {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.45);
+  color: #a7f3d0;
+  transform: translateY(-1px);
+}
+.estudi-sub-btn.active {
+  background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(6,182,212,0.15));
+  border-color: rgba(16,185,129,0.7);
   color: #fff;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.estudi-sub-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 30px; height: 2px;
+  background: #10b981;
+  border-radius: 2px 2px 0 0;
+}
+.esub-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.esub-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* Hint dinàmic */
+.estudi-hint {
+  display: none;
+}
+.estudi-hint.visible {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(110,231,183,0.6);
+  line-height: 1.5;
+  padding: 7px 10px;
+  background: rgba(16,185,129,0.05);
+  border-radius: 9px;
+  border: 1px solid rgba(16,185,129,0.12);
 }
