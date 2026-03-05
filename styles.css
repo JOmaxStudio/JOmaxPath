@@ -1879,3 +1879,109 @@
   .fs-side, .fs-divider { display:none !important; }
   #fs-center { min-width:100vw; }
 }
+
+/* ═══════════════════════════════════════════
+   MODE ESTUDI
+═══════════════════════════════════════════ */
+.estudi-btn {
+  background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(6,182,212,0.12)) !important;
+  border-color: rgba(16,185,129,0.45) !important;
+  color: #6ee7b7 !important;
+}
+.estudi-btn.active {
+  background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(6,182,212,0.25)) !important;
+  border-color: #10b981 !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(16,185,129,0.35) !important;
+}
+#estudi-panel {
+  padding: 8px 14px 2px;
+  border-top: 1px solid rgba(16,185,129,0.15);
+  background: rgba(16,185,129,0.04);
+  animation: fadeIn 0.2s ease;
+}
+.estudi-submode-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.estudi-sub-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(16,185,129,0.3);
+  background: rgba(16,185,129,0.08);
+  color: #6ee7b7;
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+.estudi-sub-btn:hover {
+  background: rgba(16,185,129,0.18);
+  border-color: rgba(16,185,129,0.6);
+}
+.estudi-sub-btn.active {
+  background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(6,182,212,0.2));
+  border-color: #10b981;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(16,185,129,0.25);
+}
+.estudi-hint {
+  font-size: 11px;
+  color: rgba(110,231,183,0.65);
+  margin-top: 7px;
+  margin-bottom: 4px;
+  line-height: 1.5;
+  padding: 6px 10px;
+  background: rgba(16,185,129,0.06);
+  border-radius: 8px;
+  border-left: 2px solid rgba(16,185,129,0.4);
+}
+
+/* Missatges especials d'estudi */
+.estudi-pla-card {
+  background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.06));
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 6px 0;
+}
+.estudi-session {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(16,185,129,0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.estudi-session:hover {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.35);
+}
+.estudi-action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.estudi-action-btn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(16,185,129,0.4);
+  background: rgba(16,185,129,0.12);
+  color: #6ee7b7;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Sora', sans-serif;
+}
+.estudi-action-btn:hover {
+  background: rgba(16,185,129,0.25);
+  color: #fff;
+}
