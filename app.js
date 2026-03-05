@@ -3531,28 +3531,23 @@ ${mode.suffix}`;
     
     const tools = getAITools();
     
-    // Groq no suporta PDFs binaris — extreiem el text primer
+    // Groq no suporta PDFs binaris — extreiem el text amb pdf.js
     let docTextContent = '';
     if(doc.isPDF) {
       typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Extraient text del PDF...</span>`;
       try {
-        // Try to extract text from PDF base64 using basic text extraction
-        const binaryStr = atob(doc.base64);
-        const textMatches = binaryStr.match(/BT[\s\S]*?ET/g) || [];
-        let rawText = textMatches.map(block => {
-          const parts = block.match(/\(([^)]+)\)\s*Tj/g) || [];
-          return parts.map(p => p.replace(/^\(|\)\s*Tj$/g,'')).join(' ');
-        }).join('\n');
-        if(!rawText || rawText.length < 30) {
-          // Fallback: grab printable ASCII sequences
-          rawText = binaryStr.replace(/[^\x20-\x7E\n]/g,' ').replace(/ {3,}/g,' ').substring(0, 60000);
-        }
-        docTextContent = rawText.substring(0, 60000);
+        docTextContent = await extractPDFText(doc.base64);
       } catch(e) { docTextContent = '[No s\'ha pogut llegir el PDF]'; }
     } else {
       docTextContent = userContent.find(b => b.type === 'document')?.source?.data || '';
     }
-    
+
+    // Limitar a ~12.000 caràcters per no superar el límit de tokens de Groq
+    const MAX_DOC_CHARS = 12000;
+    if(docTextContent.length > MAX_DOC_CHARS) {
+      docTextContent = docTextContent.substring(0, MAX_DOC_CHARS) + '\n\n[... document retallat per límit de tokens ...]';
+    }
+
     const groqDocMsgs = [
       {role:'system', content: systemPrompt},
       {role:'user', content: instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent}
@@ -3578,8 +3573,15 @@ ${mode.suffix}`;
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
       let err = '⚠️ Error processant el document.';
-      if(data1?.error?.code === 'rate_limit_exceeded') err = '⏳ Límit assolit. Torna a provar en uns minuts.';
-      else if(data1?.error?.message) err = '⚠️ ' + data1.error.message.substring(0, 150);
+      const errCode = data1?.error?.code || '';
+      const errMsg  = String(data1?.error?.message || '');
+      if(errCode === 'rate_limit_exceeded' || errMsg.includes('rate_limit')) {
+        err = '⏳ Límit d\'ús assolit. Torna a provar en uns minuts.';
+      } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('length')) {
+        err = '⚠️ El document és massa llarg. Prova amb un PDF més curt o amb menys pàgines.';
+      } else if(errMsg) {
+        err = '⚠️ Error Groq: ' + errMsg.substring(0, 200);
+      }
       chat.messages.push({role:'assistant', text: err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
       renderAIMessages(); return;
@@ -3642,6 +3644,46 @@ ${mode.suffix}`;
     localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
     renderAIMessages();
   }
+}
+
+/* ══ */
+
+// ══════════════════════════════════════════════════════
+//  PDF TEXT EXTRACTOR (via pdf.js CDN)
+// ══════════════════════════════════════════════════════
+async function extractPDFText(base64) {
+  // Load pdf.js dynamically if not already loaded
+  if(!window.pdfjsLib) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  // Decode base64 → Uint8Array
+  const binaryStr = atob(base64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for(let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+  const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+  let fullText = '';
+  for(let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += `[Pàgina ${i}]\n${pageText}\n\n`;
+    // Stop if we already have enough text
+    if(fullText.length > 15000) {
+      fullText += '[... més pàgines no incloses per límit de tokens ...]';
+      break;
+    }
+  }
+  return fullText.trim() || '[PDF sense text extret - pot ser una imatge escanejada]';
 }
 
 /* ══ */
