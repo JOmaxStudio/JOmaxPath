@@ -2303,7 +2303,10 @@ async function sendAIBase() {
   try {
     const mode = AI_MODES[aiMode]||AI_MODES.rapid;
 
-    const systemPrompt = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
+    // Detectar conversa casual (sense necessitat d'eines)
+    const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit)/i.test(text);
+
+    const systemPromptFull = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
 
 REGLA CRÍTICA: Quan l'usuari demani afegir, crear, editar o eliminar qualsevol cosa (tasca, event, examen, entrenament...), HAS D'USAR OBLIGATÒRIAMENT l'eina corresponent. MAI responguis dient que ho has fet sense haver cridat l'eina realment.
 
@@ -2346,6 +2349,10 @@ COLORS per add_timed_event: tec-purple=deepwork/estudi, tec-blue=classes/reunion
 ${buildCalendarContext()}
 ${mode.suffix}`;
 
+    // Prompt curt per a converses casuals (estalvia tokens)
+    const systemPromptCasual = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català. Ets proper, intel·ligent i directe. Avui és ${new Date().toLocaleDateString('ca-ES')}.`;
+    const systemPrompt = isCasual ? systemPromptCasual : systemPromptFull;
+
     // ── Missatges d'historial — filtrant buits/nulls ──
     const historyMsgs = chat.messages.slice(-16)
       .filter(m => m.text && String(m.text).trim().length > 0)
@@ -2362,14 +2369,23 @@ ${mode.suffix}`;
         return { role: m.role === 'user' ? 'user' : 'assistant', content };
       });
 
-    const tools = getAITools();
+    // Conversa casual: sense eines (estalvia ~2000 tokens per crida)
+    const tools = isCasual ? [] : getAITools();
 
     // ── PRIMERA CRIDA GROQ ──
     const groqMsgs1 = [
       {role:'system', content: systemPrompt},
       ...historyMsgs
     ];
-    console.log('[Julians] Crida 1 →', groqMsgs1.length, 'msgs,', tools.length, 'eines');
+    console.log('[Julians] Crida 1 →', groqMsgs1.length, 'msgs,', tools.length, 'eines, casual:', isCasual);
+
+    const reqBody1 = {
+      model:'llama-3.3-70b-specdec',
+      max_tokens: mode.max_tokens,
+      temperature: mode.temperature||0.3,
+      messages: groqMsgs1
+    };
+    if(tools.length > 0) { reqBody1.tools = tools; reqBody1.tool_choice = 'auto'; }
 
     const resp1 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:'POST',
@@ -2377,14 +2393,7 @@ ${mode.suffix}`;
         'Content-Type':'application/json',
         'Authorization': 'Bearer ' + getAPIKey()
       },
-      body: JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        max_tokens: mode.max_tokens,
-        temperature: mode.temperature||0.3,
-        tools,
-        tool_choice: 'auto',
-        messages: groqMsgs1
-      })
+      body: JSON.stringify(reqBody1)
     });
     const data1 = await resp1.json();
     console.log('[Julians] Resp 1:', JSON.stringify(data1).substring(0,400));
@@ -2445,7 +2454,7 @@ ${mode.suffix}`;
           'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
-          model:'llama-3.3-70b-versatile',
+          model:'llama-3.3-70b-specdec',
           max_tokens: mode.max_tokens,
           temperature: mode.temperature||0.3,
           messages: msgs2
@@ -3561,7 +3570,7 @@ ${mode.suffix}`;
         'Authorization': 'Bearer ' + getAPIKey()
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.3-70b-specdec',
         max_tokens: Math.max(mode.max_tokens, 2000),
         tools,
         tool_choice: 'auto',
@@ -3621,7 +3630,7 @@ ${mode.suffix}`;
           'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'llama-3.3-70b-specdec',
           max_tokens: Math.max(mode.max_tokens, 2000),
           tools,
           tool_choice: 'auto',
