@@ -342,8 +342,19 @@
               <button class="ai-mode-btn active" id="mode-rapid"  onclick="setAIMode('rapid')">⚡ Ràpid</button>
               <button class="ai-mode-btn"         id="mode-extens" onclick="setAIMode('extens')">📝 Extens</button>
               <button class="ai-mode-btn"         id="mode-profund"onclick="setAIMode('profund')">🔬 Profund</button>
+              <button class="ai-mode-btn estudi-btn" id="mode-estudi" onclick="setAIMode('estudi')">📚 Estudi</button>
             </div>
             <div class="ai-mode-label" id="ai-mode-label-txt">⚡ Respostes concises i immediates</div>
+
+            <!-- Panel submodes Estudi -->
+            <div id="estudi-panel" style="display:none;">
+              <div class="estudi-submode-row">
+                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">📅 Pla d'estudi</button>
+                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">🗒️ Resum</button>
+                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">🧪 Pràctica</button>
+              </div>
+              <div id="estudi-hint" class="estudi-hint">📅 Adjunta un PDF o enganxa la teoria · indica la data de l'examen i Julians crearà un pla d'estudi personalitzat</div>
+            </div>
             <div class="ai-chat-messages" id="ai-messages"></div>
             <div class="ai-chip-row" id="ai-chips"></div>
             <div id="ai-doc-preview" style="display:none;padding:8px 16px;background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);display:none;align-items:center;gap:10px;flex-shrink:0;">
