@@ -2384,15 +2384,8 @@ ${mode.suffix}`;
     if(!resp1.ok) {
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
-      let err = '⚠️ Error API Groq.';
-      if(data1.error) {
-        const e = data1.error;
-        if(e.code==='rate_limit_exceeded'||String(e.message||'').includes('rate')) {
-          err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
-        } else {
-          err = `⚠️ Error Groq: ${String(e.message||JSON.stringify(e)).substring(0,200)}`;
-        }
-      }
+      const rawErr = JSON.stringify(data1?.error || data1).substring(0, 300);
+      let err = `⚠️ Error ${resp1.status}: ${rawErr}`;
       chat.messages.push({role:'assistant', text:err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
       renderAIMessages(); return;
@@ -3568,6 +3561,7 @@ ${mode.suffix}`;
       })
     });
     const data1 = await resp1.json();
+    console.log('[JOmaxPath-DOC] Resposta Groq:', JSON.stringify(data1).substring(0, 500));
     
     if(!resp1.ok) {
       typingEl.remove();
@@ -3575,6 +3569,8 @@ ${mode.suffix}`;
       let err = '⚠️ Error processant el document.';
       const errCode = data1?.error?.code || '';
       const errMsg  = String(data1?.error?.message || '');
+      // Mostrar error real a l'usuari per depurar
+      err = `⚠️ Error ${resp1.status} — codi: "${errCode}" — ${errMsg.substring(0, 300)}`;
       if(errCode === 'rate_limit_exceeded' || errMsg.includes('rate_limit')) {
         err = '⏳ Límit d\'ús assolit. Torna a provar en uns minuts.';
       } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('length')) {
