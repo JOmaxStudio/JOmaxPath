@@ -1416,6 +1416,12 @@ const AI_MODES = {
     max_tokens:4000,
     temperature:0.7,
     suffix:'MODE PROFUND: Proporciona una anàlisi exhaustiva i meticulosa. Raona pas a pas, verifica cada afirmació, usa exemples detallats, considera múltiples perspectives i contraarguments. Estructura amb títols (## ###), llistes jeràrquiques i paràgrafs extensos. Escriu com un expert de primer nivell. No omitis cap detall rellevant.'
+  },
+  estudi:{
+    label:'📚 Estudi', desc:'Pla · Resum · Pràctica personalitzada',
+    max_tokens:4000,
+    temperature:0.5,
+    suffix:''
   }
 };
 
@@ -2251,6 +2257,8 @@ function useAISuggestion(s) {
   document.getElementById('ai-chat-input').focus();
 }
 
+let estudiSubmode = 'pla'; // 'pla' | 'resum' | 'practica'
+
 function setAIMode(mode) {
   aiMode = mode;
   document.querySelectorAll('.ai-mode-btn').forEach(b=>b.classList.remove('active'));
@@ -2259,10 +2267,267 @@ function setAIMode(mode) {
   const labels = {
     rapid:'⚡ Respostes concises i immediates',
     extens:'📝 Respostes detallades i ben estructurades',
-    profund:'🔬 Màxima precisió — pot trigar uns moments'
+    profund:'🔬 Màxima precisió — pot trigar uns moments',
+    estudi:'📚 Pla · Resum · Pràctica — mode estudi activat'
   };
   const lbl = document.getElementById('ai-mode-label-txt');
   if(lbl) lbl.textContent = labels[mode]||'';
+  // Show/hide estudi panel
+  const panel = document.getElementById('estudi-panel');
+  if(panel) panel.style.display = (mode==='estudi') ? 'block' : 'none';
+}
+
+function setEstudiSubmode(sub) {
+  estudiSubmode = sub;
+  document.querySelectorAll('.estudi-sub-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('estudi-sub-'+sub);
+  if(btn) btn.classList.add('active');
+  const hints = {
+    pla: '📅 Adjunta un PDF o enganxa la teoria · indica la data de l\'examen i Julians crearà un pla d\'estudi personalitzat',
+    resum: '🗒️ Adjunta o enganxa la teoria · Julians en farà un resum estructurat amb els conceptes clau i explicacions clares',
+    practica: '🧪 Julians et preguntarà sobre la teoria · preguntes, exercicis i examen de prova per consolidar el que has après'
+  };
+  const hint = document.getElementById('estudi-hint');
+  if(hint) hint.textContent = hints[sub]||'';
+  // Update placeholder
+  const inp = document.getElementById('ai-chat-input');
+  if(inp) {
+    const ph = {
+      pla: 'Indica la data de l\'examen (ex: 15 de juny)...',
+      resum: 'Enganxa aquí la teoria o adjunta un PDF...',
+      practica: 'Digues quin tipus de pràctica vols...'
+    };
+    inp.placeholder = ph[sub] || 'Pregunta a Julians...';
+  }
+}
+
+
+// ══════════════════════════════════════════════════════
+//  MODE ESTUDI — PLA / RESUM / PRÀCTICA
+//  Basat en: Spaced Repetition, Active Recall,
+//  Feynman Technique, mètode 2357, Astra AI Exam Prep
+// ══════════════════════════════════════════════════════
+
+function getEstudiSystemPrompt(submode, docContent) {
+  const base = `Ets Julians, l'assistent d'estudi personal de l'Julià Domingo (17 anys, estudiant). Parles SEMPRE en català. Ets com un professor particular expert en tècniques d'aprenentatge científicament provades: Spaced Repetition, Active Recall, Tècnica Feynman, mètode 2357 i interleaving.`;
+
+  if(submode === 'pla') {
+    return base + `
+
+MODE PLA D'ESTUDI — La teva tasca:
+1. Si l'usuari NO ha indicat la data de l'examen → pregunta-la de forma amigable i breu.
+2. Si tens la data → calcula els dies que falten i genera un PLA D'ESTUDI complet basat en:
+   - MÈTODE 2357 (Spaced Repetition): Sessió 1 (dia 0) → revisió dia 2 → dia 3 → dia 5 → dia 7 → dia abans examen
+   - Divide el contingut en BLOCS TEMÀTICS manejables (15-30 min per bloc)
+   - Intercala temes (Interleaving) per evitar fatiga cognitiva
+   - Reserva els últims 2 dies per REPASSOS i PRÀCTICA
+   
+FORMAT DEL PLA (usa aquest format exacte):
+📅 **PLA D'ESTUDI — [X] dies fins l'examen**
+
+**DIA 1 — [data] · Primera exposició**
+• 📖 [Bloc 1 — tema] (20 min) — Lectura activa + notes pròpies
+• 📖 [Bloc 2 — tema] (20 min)
+• ✍️ Repàs ràpid sense mirar apunts (10 min)
+
+[continua per cada dia...]
+
+**CONSELLS PER AQUEST PLA:**
+[2-3 consells específics per al contingut]
+
+Al final SEMPRE ofereix:
+💡 "Vols que et generi un **resum** per a la sessió d'avui? O prefereix passar directament a **preguntes de pràctica**?"`;
+  }
+
+  if(submode === 'resum') {
+    return base + `
+
+MODE RESUM — La teva tasca és crear un resum que faciliti la comprensió i memorització:
+
+ESTRUCTURA DEL RESUM (OBLIGATÒRIA):
+1. **🎯 IDEA CENTRAL** (1-2 frases: de què tracta tot plegat)
+2. **🗺️ MAPA CONCEPTUAL** (llista jeràrquica dels conceptes principals → subconcptes)
+3. **📌 CONCEPTES CLAU** (per a cada concepte important):
+   - **Nom**: explicació simple com si fos a un nen de 12 anys (Tècnica Feynman)
+   - **Exemple**: analogia o exemple de la vida real
+   - **Per recordar**: truc mnemotècnic si és útil
+4. **🔗 CONNEXIONS** (com es relacionen els conceptes entre ells)
+5. **⚡ RESUM ULTRA-CURT** (5 frases màxim que capturen el 80% del contingut)
+
+REGLES:
+- Usa llenguatge senzill, com si expliquessis a un amic
+- Afegeix emojis per ajudar la memòria visual
+- Destaca en **negreta** els termes que podrien sortir a l'examen
+- Si hi ha dates/números importants, posa'ls en una llista separada
+
+Al final ofereix: "Vols que passem a **pràctica** per consolidar el que hem après?"`;
+  }
+
+  if(submode === 'practica') {
+    return base + `
+
+MODE PRÀCTICA — La teva tasca és consolidar el coneixement amb Active Recall:
+
+Si l'usuari NO ha especificat quin tipus vol → pregunta:
+"Quin tipus de pràctica prefereixes avui?
+1️⃣ **Preguntes obertes** — respon amb les teves paraules
+2️⃣ **Test tipus examen** — preguntes amb opcions (A/B/C/D)  
+3️⃣ **Flashcards** — pregunta i respon
+4️⃣ **Tècnica Feynman** — explica'm el concepte com si jo no en sabés res
+5️⃣ **Examen complet** — simulo un examen real amb nota final"
+
+Quan l'usuari tria i respon:
+- Valora la resposta de forma constructiva
+- Si s'equivoca: NO donis la resposta directament, dona una PISTA primer
+- Apunta mentalment els errors per reforçar-los
+- Adapta la dificultat al nivell de l'usuari
+- Cada 3-4 preguntes: mini-resum del que va bé i el que cal reforçar
+
+FORMAT PREGUNTES:
+❓ **Pregunta [N]:** [text]
+(Pren el temps que necessitis per respondre)
+
+QUAN L'USUARI RESPON → valora i continua. Al final dóna una puntuació i recomana si cal tornar al resum o al pla.`;
+  }
+
+  return base;
+}
+
+async function sendAIEstudi(userMsg, docContent) {
+  const chat = aiChats[aiCurrentChatId];
+  const box = document.getElementById('ai-messages');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ai-msg thinking';
+
+  const submodeIcons = { pla:'📅', resum:'🗒️', practica:'🧪' };
+  typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">${submodeIcons[estudiSubmode]||'📚'} Mode Estudi — ${estudiSubmode}...</span>`;
+  box.appendChild(typingEl);
+  box.scrollTop = box.scrollHeight;
+  document.getElementById('ai-chat-send').disabled = true;
+
+  try {
+    const systemPrompt = getEstudiSystemPrompt(estudiSubmode, docContent);
+
+    // Historial filtrat i limitat
+    const historyMsgs = chat.messages.slice(-10)
+      .filter(m => m.text && String(m.text).trim().length > 0)
+      .map(m => {
+        let cnt = String(m.text);
+        if(cnt.length > 1200) cnt = cnt.substring(0, 1200) + '...[retallat]';
+        return { role: m.role === 'user' ? 'user' : 'assistant', content: cnt };
+      });
+
+    // Construir el missatge de l'usuari
+    // Detectar comandes ràpides de canvi de submode
+    if(userMsg) {
+      const cmd = userMsg.toLowerCase().trim();
+      if(cmd.includes('fes el resum') || cmd === 'resum') {
+        setEstudiSubmode('resum');
+        userContent = 'Fes el resum de la teoria que hem tractat.';
+      } else if(cmd.includes('pràctica') || cmd === 'practica' || cmd.includes('practicar')) {
+        setEstudiSubmode('practica');
+        userContent = 'Volem practicar. Pregunta\'m sobre el contingut que hem tractat.';
+      } else if(cmd.includes('fes el pla') || cmd.includes('pla d') || cmd === 'pla') {
+        setEstudiSubmode('pla');
+        userContent = 'Crea el pla d\'estudi per al contingut que hem tractat.';
+      }
+    }
+
+    let userContent = userMsg || '';
+    if(docContent) {
+      const maxDoc = 10000;
+      const docTrimmed = docContent.length > maxDoc
+        ? docContent.substring(0, maxDoc) + '\n[... document retallat ...]'
+        : docContent;
+      userContent = (userMsg ? userMsg + '\n\n' : '') +
+        '--- TEORIA/CONTINGUT A ESTUDIAR ---\n' + docTrimmed;
+    }
+
+    if(!userContent) {
+      // No hi ha res — donar benvinguda al submode
+      const welcomes = {
+        pla: 'Hola! Estic llest per crear el teu pla d\'estudi personalitzat 📅\n\nPer começar, necessito saber:\n1. **Quina matèria o tema** has d\'estudiar?\n2. **Quan tens l\'examen?** (data exacta si en saps)\n\nTambé pots adjuntar el PDF de la teoria o enganxar-la directament aquí 👇',
+        resum: 'Perfecte! Mode Resum activat 🗒️\n\nAdjunta el PDF de la teoria o enganxa el text aquí i et faré un resum estructurat amb:\n• Conceptes clau explicats simplement\n• Mapa conceptual\n• Trucs per memoritzar\n• Resum ultra-curt per repassar ràpid',
+        practica: 'Mode Pràctica activat! 🧪\n\nPer practicar necessito la teoria. Pots:\n• **Adjuntar el PDF** de la teoria\n• **Enganxar el text** aquí\n• O dir-me **quin tema** vols practicar (si ja hem fet el resum)\n\nQuin tipus de pràctica prefereixes?\n1️⃣ Preguntes obertes\n2️⃣ Test tipus examen (A/B/C/D)\n3️⃣ Flashcards\n4️⃣ Tècnica Feynman\n5️⃣ Examen complet amb nota'
+      };
+      typingEl.remove();
+      document.getElementById('ai-chat-send').disabled = false;
+      chat.messages.push({ role: 'assistant', text: welcomes[estudiSubmode] || 'Mode estudi activat!' });
+      localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+      renderAIMessages();
+      return;
+    }
+
+    const msgs = [
+      { role: 'system', content: systemPrompt },
+      ...historyMsgs
+    ];
+    // Assegurar que l'últim missatge és de l'usuari
+    if(msgs[msgs.length-1].role !== 'user') {
+      msgs.push({ role: 'user', content: userContent });
+    } else {
+      msgs[msgs.length-1].content = userContent;
+    }
+
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getAPIKey()
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 3500,
+        temperature: 0.55,
+        messages: msgs
+      })
+    });
+
+    const data = await resp.json();
+    typingEl.remove();
+    document.getElementById('ai-chat-send').disabled = false;
+
+    if(!resp.ok) {
+      const errMsg = data?.error?.message || JSON.stringify(data?.error);
+      chat.messages.push({ role: 'assistant', text: '⚠️ Error Groq (' + resp.status + '): ' + errMsg.substring(0, 200) });
+    } else {
+      const answer = data.choices?.[0]?.message?.content || '⚠️ Sense resposta.';
+      chat.messages.push({ role: 'assistant', text: answer });
+
+      // Afegir botons d'acció contextuals segons el submode
+      const actionMsg = getEstudiActionButtons(estudiSubmode, answer);
+      if(actionMsg) {
+        setTimeout(() => {
+          chat.messages.push({ role: 'assistant', text: actionMsg });
+          localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+          renderAIMessages();
+        }, 400);
+      }
+    }
+
+    localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+    renderAISidebar();
+    renderAIMessages();
+
+  } catch(err) {
+    typingEl.remove();
+    document.getElementById('ai-chat-send').disabled = false;
+    chat.messages.push({ role: 'assistant', text: '⚠️ Error de connexió: ' + err.message });
+    localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+    renderAIMessages();
+  }
+}
+
+function getEstudiActionButtons(submode, answer) {
+  // Si la resposta ja conté una oferta de transició, no afegim botó extra
+  if(answer.includes('Vols que') || answer.includes('prefereixes')) return null;
+  if(submode === 'pla') {
+    return '🔗 **Accions ràpides:**\n[Vols un **Resum** de la teoria? → escriu "fes el resum"] · [Vols **Pràctica** directa? → escriu "pràctica"]';
+  }
+  if(submode === 'resum') {
+    return '🔗 **Accions ràpides:**\n[Vols el **Pla d\'estudi** complet? → escriu "fes el pla"] · [Vols **Practicar** ara? → escriu "pràctica"]';
+  }
+  return null;
 }
 
 // ── MAIN SEND FUNCTION ────────────────────────────────
@@ -3454,8 +3719,49 @@ function showDocError(msg) {
   box.appendChild(el); box.scrollTop = box.scrollHeight;
 }
 
-// ── Override sendAI to support document attachments ──
+// ── Override sendAI to support document attachments + mode estudi ──
 async function sendAI() {
+  // MODE ESTUDI: ruta especial
+  if(aiMode === 'estudi') {
+    const input = document.getElementById('ai-chat-input');
+    const userMsg = input.value.trim();
+    input.value = '';
+
+    if(!getAPIKey()) {
+      const chatLog = document.getElementById('ai-messages');
+      const warn = document.createElement('div');
+      warn.className = 'ai-msg assistant';
+      warn.innerHTML = '<span style="color:#fca5a5;">⚠️ Configura la clau Groq a ⚙️ Configuració → 🔑 IA</span>';
+      chatLog?.appendChild(warn);
+      return;
+    }
+
+    if(!aiChats[aiCurrentChatId]) createNewChat(false);
+    const chat = aiChats[aiCurrentChatId];
+
+    let docContent = null;
+
+    if(attachedDoc) {
+      // Extreure text del document
+      if(attachedDoc.isPDF) {
+        try { docContent = await extractPDFText(attachedDoc.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el PDF]'; }
+      } else {
+        try { docContent = await extractDocxText(attachedDoc.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el document]'; }
+      }
+      const displayMsg = (userMsg || '📎 Processa aquest document per al mode estudi') + '\n\n📄 *' + attachedDoc.name + '* (' + attachedDoc.size + ')';
+      chat.messages.push({ role: 'user', text: displayMsg });
+      if(chat.messages.length === 1) chat.title = ('Estudi: ' + attachedDoc.name).substring(0, 32);
+      clearAttachment();
+    } else if(userMsg) {
+      chat.messages.push({ role: 'user', text: userMsg });
+      if(chat.messages.length === 1) chat.title = userMsg.substring(0, 32);
+    }
+
+    localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+    renderAISidebar(); renderAIMessages();
+    return sendAIEstudi(userMsg, docContent);
+  }
+
   // If no document attached, use base sendAI
   if(!attachedDoc) { return sendAIBase(); }
   
