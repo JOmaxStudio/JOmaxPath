@@ -158,8 +158,8 @@
       <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
       <div class="progress-chapters" id="prog-chapters"></div>
       <div class="progress-btn-row">
-        <button class="progress-btn" onclick="changeChapter(-1)" data-i18n="prog_prev">← Anterior</button>
-        <button class="progress-btn" onclick="changeChapter(1)" data-i18n="prog_next">Capítol completat ✓ →</button>
+        <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
+        <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
         <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
       </div>
       <div class="progress-congrats" id="prog-congrats"></div>
@@ -259,29 +259,126 @@
       <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
     </div>
 
-    <div class="exam-section">
-      <div class="exam-header-bar">
-        <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
-        <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+    <!-- Mode switcher -->
+    <div class="tasks-mode-bar">
+      <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
+      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
+    </div>
+
+    <!-- VISTA PERSONAL -->
+    <div id="tasks-personal-view">
+      <div class="exam-section">
+        <div class="exam-header-bar">
+          <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
+          <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+        </div>
+        <div class="exam-form" id="exam-form">
+          <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
+          <input type="date" id="exam-date" />
+          <select id="exam-type">
+            <option value="deures">📚 Deures/Entrega</option>
+            <option value="treball">📄 Treball/Projecte</option>
+            <option value="tasca">🗂️ Tasca general</option>
+            <option value="personal">🙋 Feina personal</option>
+          </select>
+          <select id="exam-prio">
+            <option value="1">🔴 P1 Urgent</option>
+            <option value="2">🟡 P2 Important</option>
+            <option value="3" selected>🔵 P3 Normal</option>
+            <option value="4">⚪ P4 Baix</option>
+          </select>
+          <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+        </div>
+        <div class="exam-list" id="exam-list"></div>
       </div>
-      <div class="exam-form" id="exam-form">
-        <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
-        <input type="date" id="exam-date" />
-        <select id="exam-type">
-          <option value="deures">📚 Deures/Entrega</option>
-          <option value="treball">📄 Treball/Projecte</option>
-          <option value="tasca">🗂️ Tasca general</option>
-          <option value="personal">🙋 Feina personal</option>
-        </select>
-        <select id="exam-prio">
-          <option value="1">🔴 P1 Urgent</option>
-          <option value="2">🟡 P2 Important</option>
-          <option value="3" selected>🔵 P3 Normal</option>
-          <option value="4">⚪ P4 Baix</option>
-        </select>
-        <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+    </div>
+
+    <!-- VISTA COMPARTIDA (Kanban) -->
+    <div id="tasks-shared-view" style="display:none;">
+      <div class="shared-boards-header">
+        <div id="shared-boards-list-view">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-boards-grid"></div>
+        </div>
+        <div id="shared-board-detail" style="display:none;"></div>
       </div>
-      <div class="exam-list" id="exam-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear/Editar tauler -->
+  <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
+    <div class="board-modal">
+      <h3 id="board-modal-title">Nova llista compartida</h3>
+      <label>Nom de la llista</label>
+      <input type="text" id="board-name-inp" placeholder="Ex: Projecte de Mates..." maxlength="60" />
+      <label>Descripció (opcional)</label>
+      <input type="text" id="board-desc-inp" placeholder="Descripció breu..." maxlength="120" />
+      <label>Convidar membres (emails, un per línia)</label>
+      <textarea id="board-members-inp" placeholder="exemple@email.com&#10;altre@email.com" rows="3"></textarea>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
+        <button class="bm-cancel-btn" onclick="closeBoardModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detall de tasca -->
+  <div id="task-detail-overlay" class="modal-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
+    <div class="task-detail-modal">
+      <div class="tdm-header">
+        <div id="tdm-urgency-bar"></div>
+        <h3 id="tdm-title"></h3>
+        <button class="tdm-close" onclick="closeTaskDetail()">✕</button>
+      </div>
+      <div class="tdm-body">
+        <div class="tdm-row"><span class="tdm-lbl">📝 Descripció</span><p id="tdm-desc" class="tdm-val"></p></div>
+        <div class="tdm-row"><span class="tdm-lbl">👤 Responsable</span><span id="tdm-assignee" class="tdm-val"></span></div>
+        <div class="tdm-row"><span class="tdm-lbl">📅 Data límit</span><span id="tdm-due" class="tdm-val"></span></div>
+        <div class="tdm-row"><span class="tdm-lbl">🚦 Urgència</span><span id="tdm-urgency" class="tdm-val"></span></div>
+        <div class="tdm-row"><span class="tdm-lbl">📌 Estat</span>
+          <select id="tdm-status" onchange="updateTaskStatusFromDetail(this.value)">
+            <option value="todo">Per començar</option>
+            <option value="doing">En curs</option>
+            <option value="done">Finalitzada</option>
+          </select>
+        </div>
+        <div class="tdm-notes-section">
+          <span class="tdm-lbl">💬 Notes</span>
+          <div id="tdm-notes-list"></div>
+          <div class="tdm-add-note">
+            <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." />
+            <button onclick="addNoteToTask()">Afegir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nova tasca al tauler -->
+  <div id="board-task-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardTaskModal()" style="display:none;">
+    <div class="board-modal">
+      <h3>Nova tasca</h3>
+      <label>Títol <span style="color:var(--red)">*</span></label>
+      <input type="text" id="bt-title-inp" placeholder="Títol de la tasca..." maxlength="80" />
+      <label>Descripció</label>
+      <textarea id="bt-desc-inp" placeholder="Descripció opcional..." rows="2"></textarea>
+      <label>Responsable</label>
+      <input type="text" id="bt-assignee-inp" placeholder="Nom o email..." />
+      <label>Data límit</label>
+      <input type="date" id="bt-due-inp" />
+      <label>Urgència</label>
+      <div class="bt-urgency-row">
+        <button class="bt-urg-btn active" data-u="green" onclick="selectBtUrgency(this)">🟢 Baixa</button>
+        <button class="bt-urg-btn" data-u="yellow" onclick="selectBtUrgency(this)">🟡 Mitjana</button>
+        <button class="bt-urg-btn" data-u="red" onclick="selectBtUrgency(this)">🔴 Alta</button>
+      </div>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" onclick="saveBoardTask()">Afegir tasca</button>
+        <button class="bm-cancel-btn" onclick="closeBoardTaskModal()">Cancel·lar</button>
+      </div>
     </div>
   </div>
 
@@ -358,7 +455,7 @@
             <div class="ai-chat-input-row">
               <label class="ai-attach-btn" title="Adjuntar PDF o Word" for="ai-file-input">📎</label>
               <input type="file" id="ai-file-input" accept=".pdf,.doc,.docx" title="PDF recomanat. Word: converteix a PDF per millors resultats." style="display:none;" onchange="handleFileAttach(this)" />
-              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" data-i18n-placeholder="chat_placeholder" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
+              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
               <button id="ai-chat-send" onclick="sendAI()">➤</button>
             </div>
           </div>
