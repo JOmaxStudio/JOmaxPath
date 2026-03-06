@@ -5437,6 +5437,12 @@ let btUrgency = 'green';
 let btEditingColStatus = 'todo';
 
 // ── Mode switcher ──────────────────────────────────────
+let personalView = 'list';  // 'list' | 'kanban'
+let sharedView   = 'list';  // 'list' | 'kanban'
+let sharedKanbanActiveBoardId = null; // board actiu a la vista kanban directa
+let editingBoardId = null;  // board que s'està editant al modal
+let boardTempMembers = [];  // membres temporals mentre editem el modal
+
 function setTasksMode(mode) {
   tasksMode = mode;
   document.getElementById('tmode-personal').classList.toggle('active', mode==='personal');
@@ -5444,6 +5450,25 @@ function setTasksMode(mode) {
   document.getElementById('tasks-personal-view').style.display = mode==='personal' ? '' : 'none';
   document.getElementById('tasks-shared-view').style.display = mode==='shared' ? '' : 'none';
   if(mode==='shared') renderSharedBoards();
+  if(mode==='personal') setPersonalView(personalView);
+}
+
+function setPersonalView(view) {
+  personalView = view;
+  document.getElementById('tvt-list')?.classList.toggle('active', view==='list');
+  document.getElementById('tvt-kanban')?.classList.toggle('active', view==='kanban');
+  document.getElementById('personal-list-view').style.display = view==='list' ? '' : 'none';
+  document.getElementById('personal-kanban-view').style.display = view==='kanban' ? '' : 'none';
+  if(view==='kanban') renderPersonalKanban();
+}
+
+function setSharedView(view) {
+  sharedView = view;
+  document.getElementById('tvt-shared-list')?.classList.toggle('active', view==='list');
+  document.getElementById('tvt-shared-kanban')?.classList.toggle('active', view==='kanban');
+  document.getElementById('shared-list-inner').style.display = view==='list' ? '' : 'none';
+  document.getElementById('shared-kanban-inner').style.display = view==='kanban' ? '' : 'none';
+  if(view==='kanban') renderSharedKanbanDirect();
 }
 
 // ── Persistència local (offline) ───────────────────────
@@ -5489,26 +5514,29 @@ async function loadBoardsFromSupabase() {
 
 // ── Renderitzar llista de taulers ─────────────────────
 function renderSharedBoards() {
-  const view = document.getElementById('shared-boards-list-view');
+  const listView = document.getElementById('shared-boards-list-view');
   const detail = document.getElementById('shared-board-detail');
   if(activeBoardId) {
-    view.style.display='none'; detail.style.display='';
-    renderBoardDetail(activeBoardId);
-  } else {
-    view.style.display=''; detail.style.display='none';
-    const grid = document.getElementById('shared-boards-grid');
-    if(!grid) return;
-    const ids = Object.keys(sharedBoards);
-    if(!ids.length) {
-      grid.innerHTML = `<div class="board-empty-state"><div class="board-empty-icon">🤝</div><p>Encara no tens cap llista compartida.<br>Crea'n una nova o espera ser convidat/da.</p></div>`;
-      return;
-    }
-    grid.innerHTML = `<div class="boards-grid">${ids.map(id=>{
+    if(listView) listView.style.display='none';
+    if(detail) { detail.style.display=''; renderBoardDetail(activeBoardId); }
+    return;
+  }
+  if(listView) listView.style.display='';
+  if(detail) detail.style.display='none';
+
+  // Actualitzar grid llista
+  const grid = document.getElementById('shared-boards-grid');
+  const ids = Object.keys(sharedBoards);
+  const emptyHtml = `<div class="board-empty-state"><div class="board-empty-icon">🤝</div><p>Encara no tens cap llista compartida.<br>Crea'n una nova o espera ser convidat/da.</p></div>`;
+
+  if(grid) {
+    grid.innerHTML = !ids.length ? emptyHtml : `<div class="boards-grid">${ids.map(id=>{
       const b = sharedBoards[id];
       const taskCount = Object.keys(b.tasks||{}).length;
       const memberCount = (b.members||[]).length + 1;
       return `<div class="board-card" onclick="openBoardDetail('${id}')">
-        <button class="board-card-del" onclick="event.stopPropagation();deleteBoard('${id}')" title="Eliminar">🗑</button>
+        <button class="board-card-del" onclick="event.stopPropagation();openEditBoardModal('${id}')" title="Editar membres">✏️</button>
+        <button class="board-card-del" onclick="event.stopPropagation();deleteBoard('${id}')" title="Eliminar" style="right:44px;">🗑</button>
         <div class="board-card-name">${b.name}</div>
         <div class="board-card-desc">${b.desc||''}</div>
         <div class="board-card-meta">
@@ -5518,6 +5546,9 @@ function renderSharedBoards() {
       </div>`;
     }).join('')}</div>`;
   }
+
+  // Si estem en vista kanban, actualitzar selector i board
+  if(sharedView === 'kanban') renderSharedKanbanDirect();
 }
 
 function openBoardDetail(boardId) {
@@ -5562,28 +5593,57 @@ function renderBoardDetail(boardId) {
             <span class="kanban-col-title">${col.label}</span>
             <span class="kanban-col-count">${colTasks.length}</span>
           </div>
-          ${colTasks.map(task=>renderKanbanCard(task)).join('')}
+          ${colTasks.map(task=>renderKanbanCard(task, boardId, false)).join('')}
           <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">+ Afegir tasca</div>
         </div>`;
       }).join('')}
     </div>`;
 }
 
-function renderKanbanCard(task) {
+function renderKanbanCard(task, boardId, isPersonal) {
   const today = toLocalDateKey(new Date());
   const isOverdue = task.due && task.due < today && task.status !== 'done';
   const hasNotes = task.notes && task.notes.length > 0;
   const dueLabel = task.due ? `📅 ${task.due}` : '';
-  return `<div class="kanban-task-card urg-${task.urgency||'green'}" onclick="openTaskDetail('${activeBoardId}','${task.id}')">
+  const cols = ['todo','doing','done'];
+  const idx = cols.indexOf(task.status);
+  const canLeft  = idx > 0;
+  const canRight = idx < cols.length - 1;
+  const bid = boardId || activeBoardId || '';
+  const onClickFn = isPersonal
+    ? `openPersonalTaskDetail('${task.id}')`
+    : `openTaskDetail('${bid}','${task.id}')`;
+  const leftFn  = isPersonal
+    ? `event.stopPropagation();movePersonalTask('${task.id}','${cols[idx-1]}')`
+    : `event.stopPropagation();moveKanbanTask('${bid}','${task.id}','${cols[idx-1]}')`;
+  const rightFn = isPersonal
+    ? `event.stopPropagation();movePersonalTask('${task.id}','${cols[idx+1]}')`
+    : `event.stopPropagation();moveKanbanTask('${bid}','${task.id}','${cols[idx+1]}')`;
+  const delFn = isPersonal
+    ? `event.stopPropagation();deletePersonalKanbanTask('${task.id}')`
+    : `event.stopPropagation();deleteKanbanTask('${bid}','${task.id}')`;
+  return `<div class="kanban-task-card urg-${task.urgency||'green'}"
+      draggable="true"
+      data-taskid="${task.id}"
+      data-boardid="${bid}"
+      data-ispersonal="${isPersonal?'1':'0'}"
+      ondragstart="onKanbanDragStart(event)"
+      onclick="${onClickFn}">
     <div class="kcard-title">${task.title}</div>
     <div class="kcard-meta">
       <span class="kcard-urgency-dot urg-${task.urgency||'green'}"></span>
       ${task.assignee ? `<span class="kcard-assignee">👤 ${task.assignee}</span>` : ''}
       ${dueLabel ? `<span class="kcard-due${isOverdue?' overdue':''}">${dueLabel}</span>` : ''}
-      ${hasNotes ? `<span class="kcard-note-icon" title="${task.notes.length} nota${task.notes.length>1?'s':''}">💬 ${task.notes.length}</span>` : ''}
+      ${hasNotes ? `<span class="kcard-note-icon">💬 ${task.notes.length}</span>` : ''}
+    </div>
+    <div class="kcard-actions" onclick="event.stopPropagation()">
+      <button class="kcard-arrow-btn" ${canLeft?`onclick="${leftFn}"`:'disabled style="opacity:0.2;cursor:default;"'}>←</button>
+      <button class="kcard-del-btn" onclick="${delFn}">×</button>
+      <button class="kcard-arrow-btn" ${canRight?`onclick="${rightFn}"`:'disabled style="opacity:0.2;cursor:default;"'}>→</button>
     </div>
   </div>`;
 }
+
 
 // ── Modals tauler ──────────────────────────────────────
 function openCreateBoardModal() {
@@ -5748,3 +5808,381 @@ document.addEventListener('DOMContentLoaded', () => {
     if(supa && supaUser) await loadBoardsFromSupabase();
   }, 2000);
 });
+
+// ══════════════════════════════════════════════════════
+//  KANBAN PERSONAL (vista kanban de les tasques personals)
+// ══════════════════════════════════════════════════════
+
+let personalKanbanTasks = JSON.parse(localStorage.getItem('personal_kanban_v1') || '{}');
+
+function savePersonalKanban() {
+  localStorage.setItem('personal_kanban_v1', JSON.stringify(personalKanbanTasks));
+}
+
+function renderPersonalKanban() {
+  const board = document.getElementById('personal-kanban-board');
+  if(!board) return;
+  const cols = [
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+  ];
+  board.className = 'kanban-board';
+  board.innerHTML = cols.map(col => {
+    const tasks = Object.values(personalKanbanTasks).filter(t=>t.status===col.id);
+    tasks.sort((a,b)=>{ const ord={red:0,yellow:1,green:2}; return (ord[a.urgency]||1)-(ord[b.urgency]||1); });
+    return `<div class="kanban-col ${col.cls}" id="pkcol-${col.id}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="onKanbanDrop(event,'${col.id}',true)">
+      <div class="kanban-col-header">
+        <span class="kanban-col-title">${col.label}</span>
+        <span class="kanban-col-count">${tasks.length}</span>
+      </div>
+      ${tasks.map(t=>renderKanbanCard(t,'',true)).join('')}
+      <div class="kanban-add-area" onclick="openPersonalKanbanModal('${col.id}')">+ Afegir tasca</div>
+    </div>`;
+  }).join('');
+}
+
+function openPersonalKanbanModal(colStatus) {
+  btEditingColStatus = colStatus || 'todo';
+  btUrgency = 'green';
+  document.getElementById('bt-title-inp').value='';
+  document.getElementById('bt-desc-inp').value='';
+  document.getElementById('bt-assignee-inp').value='';
+  document.getElementById('bt-due-inp').value='';
+  document.querySelectorAll('.bt-urg-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.bt-urg-btn[data-u="green"]').classList.add('active');
+  // Reaprofitem el modal de board task però per personal
+  const modal = document.getElementById('board-task-modal-overlay');
+  modal.dataset.mode = 'personal';
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('bt-title-inp').focus(), 80);
+}
+
+function savePersonalKanbanTask() {
+  const title = document.getElementById('bt-title-inp').value.trim();
+  if(!title) return;
+  const taskId = 'pk_' + Date.now();
+  personalKanbanTasks[taskId] = {
+    id: taskId,
+    title,
+    desc: document.getElementById('bt-desc-inp').value.trim(),
+    assignee: document.getElementById('bt-assignee-inp').value.trim(),
+    due: document.getElementById('bt-due-inp').value,
+    urgency: btUrgency,
+    status: btEditingColStatus,
+    notes: [],
+    createdAt: new Date().toISOString()
+  };
+  savePersonalKanban();
+  closeBoardTaskModal();
+  renderPersonalKanban();
+}
+
+function movePersonalTask(taskId, newStatus) {
+  if(personalKanbanTasks[taskId]) {
+    personalKanbanTasks[taskId].status = newStatus;
+    savePersonalKanban();
+    renderPersonalKanban();
+  }
+}
+
+function deletePersonalKanbanTask(taskId) {
+  if(!confirm('Eliminar aquesta tasca?')) return;
+  delete personalKanbanTasks[taskId];
+  savePersonalKanban();
+  renderPersonalKanban();
+}
+
+function openPersonalTaskDetail(taskId) {
+  const task = personalKanbanTasks[taskId];
+  if(!task) return;
+  detailBoardId = '__personal__';
+  detailTaskId = taskId;
+  const urgColors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
+  const urgLabels = {green:'🟢 Baixa', yellow:'🟡 Mitjana', red:'🔴 Alta'};
+  document.getElementById('tdm-urgency-bar').style.background = urgColors[task.urgency||'green'];
+  document.getElementById('tdm-title').textContent = task.title;
+  document.getElementById('tdm-desc').textContent = task.desc || '—';
+  document.getElementById('tdm-assignee').textContent = task.assignee || '—';
+  document.getElementById('tdm-due').textContent = task.due || '—';
+  document.getElementById('tdm-urgency').textContent = urgLabels[task.urgency||'green'];
+  document.getElementById('tdm-status').value = task.status;
+  renderTaskNotes(task);
+  document.getElementById('task-detail-overlay').style.display='flex';
+}
+
+// Override updateTaskStatusFromDetail per suportar personal
+const _origUpdateStatus = updateTaskStatusFromDetail;
+updateTaskStatusFromDetail = function(newStatus) {
+  if(detailBoardId === '__personal__') {
+    if(personalKanbanTasks[detailTaskId]) {
+      personalKanbanTasks[detailTaskId].status = newStatus;
+      savePersonalKanban();
+      renderPersonalKanban();
+    }
+    return;
+  }
+  _origUpdateStatus(newStatus);
+};
+
+// Override addNoteToTask per suportar personal
+const _origAddNote = addNoteToTask;
+addNoteToTask = function() {
+  if(detailBoardId === '__personal__') {
+    const inp = document.getElementById('tdm-note-inp');
+    const text = inp.value.trim();
+    if(!text) return;
+    const task = personalKanbanTasks[detailTaskId];
+    if(!task) return;
+    if(!task.notes) task.notes=[];
+    task.notes.push({ text, author: supaUser?.email||'jo', date: new Date().toISOString() });
+    savePersonalKanban();
+    inp.value='';
+    renderTaskNotes(task);
+    renderPersonalKanban();
+    return;
+  }
+  _origAddNote();
+};
+
+// Override saveBoardTask per mode personal
+const _origSaveBoardTask = saveBoardTask;
+saveBoardTask = function() {
+  const modal = document.getElementById('board-task-modal-overlay');
+  if(modal?.dataset.mode === 'personal') {
+    modal.dataset.mode = '';
+    savePersonalKanbanTask();
+    return;
+  }
+  _origSaveBoardTask();
+};
+
+// ══════════════════════════════════════════════════════
+//  KANBAN COMPARTIT VISTA DIRECTA (sense entrar al detall)
+// ══════════════════════════════════════════════════════
+
+function renderSharedKanbanDirect() {
+  const selector = document.getElementById('shared-board-selector');
+  const container = document.getElementById('shared-kanban-board-container');
+  if(!selector || !container) return;
+
+  const ids = Object.keys(sharedBoards);
+  if(!ids.length) {
+    selector.innerHTML = '';
+    container.innerHTML = `<div class="board-empty-state"><div class="board-empty-icon">🤝</div><p>Cap llista compartida.</p></div>`;
+    return;
+  }
+
+  if(!sharedKanbanActiveBoardId || !sharedBoards[sharedKanbanActiveBoardId]) {
+    sharedKanbanActiveBoardId = ids[0];
+  }
+
+  selector.innerHTML = `<div class="board-selector-row">${ids.map(id=>`
+    <button class="board-selector-chip${id===sharedKanbanActiveBoardId?' active':''}"
+      onclick="sharedKanbanActiveBoardId='${id}';renderSharedKanbanDirect()">
+      ${sharedBoards[id].name}
+    </button>`).join('')}</div>`;
+
+  // Renderitzar kanban del board seleccionat
+  const board = sharedBoards[sharedKanbanActiveBoardId];
+  const cols = [
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+  ];
+  const tasks = board.tasks || {};
+  container.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
+    </div>
+    <div class="kanban-board">
+      ${cols.map(col=>{
+        const colTasks = Object.values(tasks).filter(t=>t.status===col.id);
+        colTasks.sort((a,b)=>{ const ord={red:0,yellow:1,green:2}; return (ord[a.urgency]||1)-(ord[b.urgency]||1); });
+        return `<div class="kanban-col ${col.cls}"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="onKanbanDrop(event,'${col.id}',false)">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">${col.label}</span>
+            <span class="kanban-col-count">${colTasks.length}</span>
+          </div>
+          ${colTasks.map(task=>renderKanbanCard(task, sharedKanbanActiveBoardId, false)).join('')}
+          <div class="kanban-add-area" onclick="activeBoardId=sharedKanbanActiveBoardId;openBoardTaskModal('${col.id}')">+ Afegir</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  DRAG & DROP
+// ══════════════════════════════════════════════════════
+
+let dragTaskId = null;
+let dragBoardId = null;
+let dragIsPersonal = false;
+
+function onKanbanDragStart(event) {
+  const card = event.currentTarget;
+  dragTaskId    = card.dataset.taskid;
+  dragBoardId   = card.dataset.boardid;
+  dragIsPersonal = card.dataset.ispersonal === '1';
+  card.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+  setTimeout(()=>card.classList.remove('dragging'), 0);
+}
+
+function onKanbanDrop(event, newStatus, isPersonal) {
+  event.preventDefault();
+  document.querySelectorAll('.kanban-col').forEach(c=>c.classList.remove('drag-over'));
+  if(!dragTaskId) return;
+  if(isPersonal || dragIsPersonal) {
+    movePersonalTask(dragTaskId, newStatus);
+  } else {
+    moveKanbanTask(dragBoardId, dragTaskId, newStatus);
+  }
+  dragTaskId = dragBoardId = null;
+}
+
+// ══════════════════════════════════════════════════════
+//  MOURE TASCA (compartida)
+// ══════════════════════════════════════════════════════
+
+function moveKanbanTask(boardId, taskId, newStatus) {
+  const board = sharedBoards[boardId];
+  if(!board?.tasks[taskId]) return;
+  board.tasks[taskId].status = newStatus;
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(boardId);
+  // Re-render el board actiu
+  if(activeBoardId === boardId) renderBoardDetail(boardId);
+  if(sharedKanbanActiveBoardId === boardId) renderSharedKanbanDirect();
+}
+
+function deleteKanbanTask(boardId, taskId) {
+  if(!confirm('Eliminar aquesta tasca?')) return;
+  const board = sharedBoards[boardId];
+  if(!board?.tasks) return;
+  delete board.tasks[taskId];
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(boardId);
+  if(activeBoardId === boardId) renderBoardDetail(boardId);
+  if(sharedKanbanActiveBoardId === boardId) renderSharedKanbanDirect();
+}
+
+// ══════════════════════════════════════════════════════
+//  GESTIÓ DE MEMBRES
+// ══════════════════════════════════════════════════════
+
+function openCreateBoardModal() {
+  editingBoardId = null;
+  boardTempMembers = [];
+  document.getElementById('board-name-inp').value='';
+  document.getElementById('board-desc-inp').value='';
+  document.getElementById('board-member-add-inp').value='';
+  document.getElementById('board-modal-title').textContent='Nova llista compartida';
+  document.getElementById('bm-save-btn').textContent='Crear llista';
+  renderBoardMembersChips();
+  document.getElementById('board-modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('board-name-inp').focus(), 80);
+}
+
+function openEditBoardModal(boardId) {
+  editingBoardId = boardId;
+  const board = sharedBoards[boardId];
+  boardTempMembers = [...(board.members||[])];
+  document.getElementById('board-name-inp').value = board.name;
+  document.getElementById('board-desc-inp').value = board.desc||'';
+  document.getElementById('board-member-add-inp').value='';
+  document.getElementById('board-modal-title').textContent='Editar llista';
+  document.getElementById('bm-save-btn').textContent='Guardar canvis';
+  renderBoardMembersChips();
+  document.getElementById('board-modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('board-name-inp').focus(), 80);
+}
+
+function renderBoardMembersChips() {
+  const el = document.getElementById('board-members-current');
+  if(!el) return;
+  el.innerHTML = boardTempMembers.length
+    ? boardTempMembers.map((m,i)=>`
+        <div class="member-chip">
+          <span>${m}</span>
+          <button class="member-chip-del" onclick="removeBoardMember(${i})">×</button>
+        </div>`).join('')
+    : '<span style="color:var(--muted);font-size:11px;">Cap membre afegit</span>';
+}
+
+function addBoardMember() {
+  const inp = document.getElementById('board-member-add-inp');
+  const email = inp.value.trim().toLowerCase();
+  if(!email || !email.includes('@')) { inp.focus(); return; }
+  if(boardTempMembers.includes(email)) { inp.value=''; return; }
+  boardTempMembers.push(email);
+  inp.value='';
+  renderBoardMembersChips();
+}
+
+function removeBoardMember(idx) {
+  boardTempMembers.splice(idx, 1);
+  renderBoardMembersChips();
+}
+
+// Sobreescriure closeBoardModal per netejar
+const _origCloseBoardModal = closeBoardModal;
+closeBoardModal = function() {
+  document.getElementById('board-modal-overlay').style.display='none';
+  editingBoardId = null;
+  boardTempMembers = [];
+};
+
+// Sobreescriure saveBoardModal per gestionar edició
+const _origSaveBoardModal = saveBoardModal;
+saveBoardModal = function() {
+  const name = document.getElementById('board-name-inp').value.trim();
+  if(!name) { document.getElementById('board-name-inp').focus(); return; }
+  const desc = document.getElementById('board-desc-inp').value.trim();
+
+  if(editingBoardId) {
+    // Editar tauler existent
+    const board = sharedBoards[editingBoardId];
+    board.name = name;
+    board.desc = desc;
+    board.members = [...boardTempMembers];
+    saveSharedBoardsLocal();
+    syncBoardToSupabase(editingBoardId);
+    closeBoardModal();
+    renderSharedBoards();
+  } else {
+    // Crear tauler nou
+    const boardId = 'board_' + Date.now();
+    sharedBoards[boardId] = {
+      id: boardId, name, desc,
+      members: [...boardTempMembers],
+      tasks: {},
+      createdBy: supaUser?.email || 'local',
+      createdAt: new Date().toISOString()
+    };
+    saveSharedBoardsLocal();
+    syncBoardToSupabase(boardId);
+    closeBoardModal();
+    renderSharedBoards();
+  }
+};
+
+// ── Drag & drop en el board detail (col·lumnes del board compartit) ──
+// Afegir drag events als columnes del board detail
+const _origRenderBoardDetail = renderBoardDetail;
+renderBoardDetail = function(boardId) {
+  _origRenderBoardDetail(boardId);
+  // Afegir drag events a les columnes
+  document.querySelectorAll('#shared-board-detail .kanban-col').forEach(col => {
+    const colId = col.id.replace('kcol-','');
+    col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', ()=>col.classList.remove('drag-over'));
+    col.addEventListener('drop', e=>{ e.preventDefault(); col.classList.remove('drag-over'); onKanbanDrop(e, colId, false); });
+  });
+};
