@@ -1290,21 +1290,43 @@ function saveBlock() {
   renderWeekGrid(); renderStats(); renderConfigTab();
 }
 function renderProfileTab(body) {
+  const userName = profileData.username || profileData.name || '';
+  const notifDays = profileData.notifDays !== undefined ? profileData.notifDays : 2;
+  const accountEmail = supaUser?.email || '—';
   body.innerHTML=`
+    <div class="profile-section-title">👤 Compte</div>
+    <div class="profile-field"><label>EMAIL</label><div class="profile-static">${accountEmail}</div></div>
+    <div class="profile-field"><label>NOM D'USUARI</label><input type="text" id="pf-username" value="${profileData.username||''}" placeholder="Com et vols dir?" maxlength="30" /></div>
+
+    <div class="profile-section-title" style="margin-top:18px;">🎨 Personalització</div>
     <div class="profile-field"><label>NOM AL TÍTOL</label><input type="text" id="pf-name" value="${profileData.name||''}" /></div>
     <div class="profile-field"><label>SUBTÍTOL</label><input type="text" id="pf-sub" value="${profileData.sub||''}" /></div>
-    <div class="profile-field"><label>FRASE MOTIVADORA (sota objectiu)</label><textarea id="pf-moto" rows="3">${(motoData.text||'').replace(/<br>/g,'\n')}</textarea></div>
-    <div class="profile-field"><label>SUBTÍTOL FRASE (etapa)</label><input type="text" id="pf-motosub" value="${motoData.sub||''}" /></div>
+    <div class="profile-field"><label>FRASE MOTIVADORA</label><textarea id="pf-moto" rows="3">${(motoData.text||'').replace(/<br>/g,'\n')}</textarea></div>
+    <div class="profile-field"><label>SUBTÍTOL FRASE</label><input type="text" id="pf-motosub" value="${motoData.sub||''}" /></div>
+
+    <div class="profile-section-title" style="margin-top:18px;">🔔 Notificacions de tasques</div>
+    <div class="profile-field"><label>AVISAR AMB QUANTS DIES D'ANTELACIÓ</label>
+      <select id="pf-notif-days">
+        <option value="1" ${notifDays==1?'selected':''}>1 dia abans</option>
+        <option value="2" ${notifDays==2?'selected':''}>2 dies abans</option>
+        <option value="3" ${notifDays==3?'selected':''}>3 dies abans</option>
+        <option value="5" ${notifDays==5?'selected':''}>5 dies abans</option>
+        <option value="7" ${notifDays==7?'selected':''}>1 setmana abans</option>
+      </select>
+    </div>
     <button class="profile-save" onclick="saveProfile()">💾 Guardar</button>`;
 }
 function saveProfile() {
-  profileData.name=document.getElementById('pf-name').value.trim();
-  profileData.sub=document.getElementById('pf-sub').value.trim();
-  motoData.text=document.getElementById('pf-moto').value;
-  motoData.sub=document.getElementById('pf-motosub').value.trim();
-  localStorage.setItem('profile_v2',JSON.stringify(profileData));
-  localStorage.setItem('moto_v2',JSON.stringify(motoData));
+  profileData.username = document.getElementById('pf-username').value.trim();
+  profileData.name = document.getElementById('pf-name').value.trim();
+  profileData.sub  = document.getElementById('pf-sub').value.trim();
+  profileData.notifDays = parseInt(document.getElementById('pf-notif-days').value) || 2;
+  motoData.text = document.getElementById('pf-moto').value;
+  motoData.sub  = document.getElementById('pf-motosub').value.trim();
+  localStorage.setItem('profile_v2', JSON.stringify(profileData));
+  localStorage.setItem('moto_v2', JSON.stringify(motoData));
   renderProfile(); renderMoto(); closeConfig();
+  showSyncToast('✅ Perfil guardat');
 }
 function renderGoalTab(body) {
   body.innerHTML=`
@@ -5400,14 +5422,83 @@ function checkAndFireNotifications() {
     }
   });
 
-  // Check exams due soon (10 min before if time set, or at 8am the day)
+  var userName = (typeof profileData !== 'undefined' && profileData.username) ? profileData.username : null;
+  var notifDays = (typeof profileData !== 'undefined' && profileData.notifDays) ? parseInt(profileData.notifDays) : 2;
+  var namePrefix = userName ? userName + ', ' : '';
+
+  // ── Exams i tasques personals ──
   if(typeof examList !== 'undefined') {
-    var tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
-    var tomorrowKey = toLocalDateKey(tomorrow);
-    examList.filter(function(e){ return !e.done && e.date === tomorrowKey; }).forEach(function(ex) {
-      var fireKey = 'exam_tmrw_' + ex.id;
-      if(hhmm === '20:00' && !firedNotifs[fireKey]) {
-        new Notification('JOmaxPath 📝', { body: 'Demà: ' + ex.name });
+    examList.filter(function(e){ return !e.done && e.date; }).forEach(function(ex) {
+      var d = new Date(ex.date + 'T00:00:00');
+      var diff = Math.round((d - now) / 86400000);
+      // Notificar X dies abans a les 09:00 i el dia mateix a les 08:00
+      var shouldFire = false;
+      var fireKey = '';
+      if(diff === notifDays && hhmm === '09:00') {
+        fireKey = 'exam_' + notifDays + 'd_' + ex.id;
+        shouldFire = true;
+      } else if(diff === 1 && hhmm === '09:00') {
+        fireKey = 'exam_1d_' + ex.id;
+        shouldFire = true;
+      } else if(diff === 0 && hhmm === '08:00') {
+        fireKey = 'exam_0d_' + ex.id;
+        shouldFire = true;
+      }
+      if(shouldFire && fireKey && !firedNotifs[fireKey]) {
+        var msg = diff === 0
+          ? namePrefix + 'Avui tens: ' + ex.name
+          : diff === 1
+            ? namePrefix + 'Demà: ' + ex.name
+            : namePrefix + 'En ' + diff + ' dies: ' + ex.name;
+        new Notification('JOmaxPath 📋', { body: msg });
+        firedNotifs[fireKey] = 1;
+        localStorage.setItem('fired_notifs_v1', JSON.stringify(firedNotifs));
+      }
+    });
+  }
+
+  // ── Tasques Kanban compartides ──
+  if(typeof sharedBoards !== 'undefined') {
+    Object.values(sharedBoards).forEach(function(board) {
+      Object.values(board.tasks || {}).forEach(function(task) {
+        if(task.status === 'done' || !task.due) return;
+        var d = new Date(task.due + 'T00:00:00');
+        var diff = Math.round((d - now) / 86400000);
+        var shouldFire = false; var fireKey = '';
+        if(diff === notifDays && hhmm === '09:00') { fireKey = 'kbt_' + notifDays + 'd_' + task.id; shouldFire = true; }
+        else if(diff === 1 && hhmm === '09:00') { fireKey = 'kbt_1d_' + task.id; shouldFire = true; }
+        else if(diff === 0 && hhmm === '08:00') { fireKey = 'kbt_0d_' + task.id; shouldFire = true; }
+        if(shouldFire && fireKey && !firedNotifs[fireKey]) {
+          var msg = diff === 0
+            ? namePrefix + '[' + board.name + '] Avui acaba: ' + task.title
+            : diff === 1
+              ? namePrefix + '[' + board.name + '] Demà acaba: ' + task.title
+              : namePrefix + '[' + board.name + '] En ' + diff + ' dies acaba: ' + task.title;
+          new Notification('JOmaxPath 🤝', { body: msg });
+          firedNotifs[fireKey] = 1;
+          localStorage.setItem('fired_notifs_v1', JSON.stringify(firedNotifs));
+        }
+      });
+    });
+  }
+
+  // ── Tasques Kanban personals ──
+  if(typeof personalKanbanTasks !== 'undefined') {
+    Object.values(personalKanbanTasks).forEach(function(task) {
+      if(task.status === 'done' || !task.due) return;
+      var d = new Date(task.due + 'T00:00:00');
+      var diff = Math.round((d - now) / 86400000);
+      var shouldFire = false; var fireKey = '';
+      if(diff === notifDays && hhmm === '09:00') { fireKey = 'pkt_' + notifDays + 'd_' + task.id; shouldFire = true; }
+      else if(diff === 1 && hhmm === '09:00') { fireKey = 'pkt_1d_' + task.id; shouldFire = true; }
+      else if(diff === 0 && hhmm === '08:00') { fireKey = 'pkt_0d_' + task.id; shouldFire = true; }
+      if(shouldFire && fireKey && !firedNotifs[fireKey]) {
+        var msg = diff === 0
+          ? namePrefix + 'Avui acaba: ' + task.title
+          : diff === 1
+            ? namePrefix + 'Demà acaba: ' + task.title
+            : namePrefix + 'En ' + diff + ' dies acaba: ' + task.title;
+        new Notification('JOmaxPath 📋', { body: msg });
         firedNotifs[fireKey] = 1;
         localStorage.setItem('fired_notifs_v1', JSON.stringify(firedNotifs));
       }
@@ -5715,15 +5806,20 @@ function saveBoardTask() {
   if(!activeBoardId) return;
   const board = sharedBoards[activeBoardId];
   const taskId = 'task_' + Date.now();
+  const btLinkUrl   = document.getElementById('bt-link-url-inp')?.value.trim();
+  const btLinkLabel = document.getElementById('bt-link-label-inp')?.value.trim();
+  const btAssignee  = document.getElementById('bt-assignee-inp').value.trim();
   board.tasks[taskId] = {
     id: taskId,
     title,
     desc: document.getElementById('bt-desc-inp').value.trim(),
-    assignee: document.getElementById('bt-assignee-inp').value.trim(),
+    assignee: btAssignee,
+    assignees: btAssignee ? [btAssignee] : [],
     due: document.getElementById('bt-due-inp').value,
     urgency: btUrgency,
     status: btEditingColStatus,
     notes: [],
+    links: (btLinkUrl ? [{url: btLinkUrl, label: btLinkLabel || btLinkUrl}] : []),
     createdAt: new Date().toISOString(),
     createdBy: supaUser?.email || 'local'
   };
@@ -5734,29 +5830,159 @@ function saveBoardTask() {
 }
 
 // ── Detall de tasca ────────────────────────────────────
+let tdmDirty = false;
+let tdmCurrentUrgency = 'green';
+
+function tdmMarkDirty() {
+  tdmDirty = true;
+  const btn = document.getElementById('tdm-save-btn');
+  if(btn) btn.style.display = 'block';
+}
+
+function tdmSetUrgency(u, btn) {
+  tdmCurrentUrgency = u;
+  const colors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
+  document.getElementById('tdm-urgency-bar').style.background = colors[u];
+  document.querySelectorAll('.tdm-urg-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  tdmMarkDirty();
+}
+
+function tdmAddAssignee() {
+  const inp = document.getElementById('tdm-assignee-inp');
+  const val = inp.value.trim();
+  if(!val) return;
+  const task = _tdmGetTask();
+  if(!task) return;
+  if(!task.assignees) task.assignees = task.assignee ? [task.assignee] : [];
+  if(!task.assignees.includes(val)) task.assignees.push(val);
+  task.assignee = task.assignees[0]; // compat
+  inp.value = '';
+  tdmRenderAssignees(task);
+  tdmMarkDirty();
+}
+
+function tdmRemoveAssignee(idx) {
+  const task = _tdmGetTask();
+  if(!task?.assignees) return;
+  task.assignees.splice(idx, 1);
+  task.assignee = task.assignees[0] || '';
+  tdmRenderAssignees(task);
+  tdmMarkDirty();
+}
+
+function tdmRenderAssignees(task) {
+  const el = document.getElementById('tdm-assignees-chips');
+  if(!el) return;
+  const list = task.assignees?.length ? task.assignees : (task.assignee ? [task.assignee] : []);
+  el.innerHTML = list.length
+    ? list.map((a,i)=>`<div class="member-chip">${a}<button class="member-chip-del" onclick="tdmRemoveAssignee(${i})">×</button></div>`).join('')
+    : '<span style="color:var(--muted);font-size:11px;">Cap responsable</span>';
+}
+
+function tdmAddLink() {
+  const urlInp   = document.getElementById('tdm-link-url-inp');
+  const lblInp   = document.getElementById('tdm-link-label-inp');
+  const url   = urlInp.value.trim();
+  const label = lblInp.value.trim() || url;
+  if(!url) { urlInp.focus(); return; }
+  const task = _tdmGetTask();
+  if(!task) return;
+  if(!task.links) task.links = [];
+  task.links.push({ url, label });
+  urlInp.value = ''; lblInp.value = '';
+  tdmRenderLinks(task);
+  tdmMarkDirty();
+}
+
+function tdmRemoveLink(idx) {
+  const task = _tdmGetTask();
+  if(!task?.links) return;
+  task.links.splice(idx, 1);
+  tdmRenderLinks(task);
+  tdmMarkDirty();
+}
+
+function tdmRenderLinks(task) {
+  const el = document.getElementById('tdm-links-list');
+  if(!el) return;
+  const links = task.links || [];
+  el.innerHTML = links.length
+    ? links.map((l,i)=>`<div class="tdm-link-item">
+        <a href="${l.url}" target="_blank" rel="noopener">🔗 ${l.label||l.url}</a>
+        <button class="tdm-note-del" onclick="tdmRemoveLink(${i})">×</button>
+      </div>`).join('')
+    : '<span style="color:var(--muted);font-size:11px;">Cap enllaç</span>';
+}
+
+function _tdmGetTask() {
+  if(detailBoardId === '__personal__') return personalKanbanTasks[detailTaskId];
+  return sharedBoards[detailBoardId]?.tasks[detailTaskId];
+}
+
+function tdmSaveChanges() {
+  const task = _tdmGetTask();
+  if(!task) return;
+  task.title    = document.getElementById('tdm-title').value.trim() || task.title;
+  task.desc     = document.getElementById('tdm-desc').value.trim();
+  task.due      = document.getElementById('tdm-due').value;
+  task.urgency  = tdmCurrentUrgency;
+  // Assignees already updated live via tdmAddAssignee/tdmRemoveAssignee
+
+  // Update urgency bar color
+  const colors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
+  document.getElementById('tdm-urgency-bar').style.background = colors[tdmCurrentUrgency];
+
+  if(detailBoardId === '__personal__') {
+    savePersonalKanban();
+    renderPersonalKanban();
+  } else {
+    saveSharedBoardsLocal();
+    syncBoardToSupabase(detailBoardId);
+    if(activeBoardId === detailBoardId) renderBoardDetail(detailBoardId);
+    if(sharedKanbanActiveBoardId === detailBoardId) renderSharedKanbanDirect();
+  }
+
+  tdmDirty = false;
+  const btn = document.getElementById('tdm-save-btn');
+  if(btn) { btn.textContent = '✅ Guardat!'; setTimeout(()=>{ btn.textContent='💾 Guardar canvis'; btn.style.display='none'; }, 1500); }
+}
+
 function openTaskDetail(boardId, taskId) {
   detailBoardId = boardId;
   detailTaskId = taskId;
   const task = sharedBoards[boardId]?.tasks[taskId];
   if(!task) return;
+  tdmPopulate(task);
+}
 
-  const urgLabels = {green:'🟢 Baixa', yellow:'🟡 Mitjana', red:'🔴 Alta'};
-  const urgColors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
-
-  document.getElementById('tdm-urgency-bar').style.background = urgColors[task.urgency||'green'];
-  document.getElementById('tdm-title').textContent = task.title;
-  document.getElementById('tdm-desc').textContent = task.desc || '—';
-  document.getElementById('tdm-assignee').textContent = task.assignee || '—';
-  document.getElementById('tdm-due').textContent = task.due || '—';
-  document.getElementById('tdm-urgency').textContent = urgLabels[task.urgency||'green'];
-  document.getElementById('tdm-status').value = task.status;
-
+function tdmPopulate(task) {
+  tdmDirty = false;
+  tdmCurrentUrgency = task.urgency || 'green';
+  const colors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
+  document.getElementById('tdm-urgency-bar').style.background = colors[tdmCurrentUrgency];
+  document.getElementById('tdm-title').value = task.title || '';
+  document.getElementById('tdm-desc').value  = task.desc  || '';
+  document.getElementById('tdm-due').value   = task.due   || '';
+  document.getElementById('tdm-status').value = task.status || 'todo';
+  // Urgency buttons
+  document.querySelectorAll('.tdm-urg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.u === tdmCurrentUrgency);
+  });
+  tdmRenderAssignees(task);
+  tdmRenderLinks(task);
   renderTaskNotes(task);
+  const saveBtn = document.getElementById('tdm-save-btn');
+  if(saveBtn) saveBtn.style.display = 'none';
   document.getElementById('task-detail-overlay').style.display='flex';
 }
+
 function closeTaskDetail() {
+  if(tdmDirty) {
+    if(!confirm('Tens canvis sense guardar. Vols sortir igualment?')) return;
+  }
   document.getElementById('task-detail-overlay').style.display='none';
-  detailBoardId=null; detailTaskId=null;
+  detailBoardId=null; detailTaskId=null; tdmDirty=false;
 }
 function renderTaskNotes(task) {
   const list = document.getElementById('tdm-notes-list');
@@ -5865,15 +6091,20 @@ function savePersonalKanbanTask() {
   const title = document.getElementById('bt-title-inp').value.trim();
   if(!title) return;
   const taskId = 'pk_' + Date.now();
+  const pkLinkUrl   = document.getElementById('bt-link-url-inp')?.value.trim();
+  const pkLinkLabel = document.getElementById('bt-link-label-inp')?.value.trim();
+  const pkAssignee  = document.getElementById('bt-assignee-inp').value.trim();
   personalKanbanTasks[taskId] = {
     id: taskId,
     title,
     desc: document.getElementById('bt-desc-inp').value.trim(),
-    assignee: document.getElementById('bt-assignee-inp').value.trim(),
+    assignee: pkAssignee,
+    assignees: pkAssignee ? [pkAssignee] : [],
     due: document.getElementById('bt-due-inp').value,
     urgency: btUrgency,
     status: btEditingColStatus,
     notes: [],
+    links: (pkLinkUrl ? [{url: pkLinkUrl, label: pkLinkLabel || pkLinkUrl}] : []),
     createdAt: new Date().toISOString()
   };
   savePersonalKanban();
@@ -5882,11 +6113,11 @@ function savePersonalKanbanTask() {
 }
 
 function movePersonalTask(taskId, newStatus) {
-  if(personalKanbanTasks[taskId]) {
-    personalKanbanTasks[taskId].status = newStatus;
-    savePersonalKanban();
-    renderPersonalKanban();
-  }
+  if(!personalKanbanTasks[taskId]) return;
+  const oldStatus = personalKanbanTasks[taskId].status;
+  personalKanbanTasks[taskId].status = newStatus;
+  savePersonalKanban();
+  _playMoveAnimation(oldStatus, newStatus, ()=>renderPersonalKanban());
 }
 
 function deletePersonalKanbanTask(taskId) {
@@ -5900,18 +6131,8 @@ function openPersonalTaskDetail(taskId) {
   const task = personalKanbanTasks[taskId];
   if(!task) return;
   detailBoardId = '__personal__';
-  detailTaskId = taskId;
-  const urgColors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
-  const urgLabels = {green:'🟢 Baixa', yellow:'🟡 Mitjana', red:'🔴 Alta'};
-  document.getElementById('tdm-urgency-bar').style.background = urgColors[task.urgency||'green'];
-  document.getElementById('tdm-title').textContent = task.title;
-  document.getElementById('tdm-desc').textContent = task.desc || '—';
-  document.getElementById('tdm-assignee').textContent = task.assignee || '—';
-  document.getElementById('tdm-due').textContent = task.due || '—';
-  document.getElementById('tdm-urgency').textContent = urgLabels[task.urgency||'green'];
-  document.getElementById('tdm-status').value = task.status;
-  renderTaskNotes(task);
-  document.getElementById('task-detail-overlay').style.display='flex';
+  detailTaskId  = taskId;
+  tdmPopulate(task);
 }
 
 // Override updateTaskStatusFromDetail per suportar personal
@@ -6054,12 +6275,14 @@ function onKanbanDrop(event, newStatus, isPersonal) {
 function moveKanbanTask(boardId, taskId, newStatus) {
   const board = sharedBoards[boardId];
   if(!board?.tasks[taskId]) return;
+  const oldStatus = board.tasks[taskId].status;
   board.tasks[taskId].status = newStatus;
   saveSharedBoardsLocal();
   syncBoardToSupabase(boardId);
-  // Re-render el board actiu
-  if(activeBoardId === boardId) renderBoardDetail(boardId);
-  if(sharedKanbanActiveBoardId === boardId) renderSharedKanbanDirect();
+  _playMoveAnimation(oldStatus, newStatus, ()=>{
+    if(activeBoardId === boardId) renderBoardDetail(boardId);
+    if(sharedKanbanActiveBoardId === boardId) renderSharedKanbanDirect();
+  });
 }
 
 function deleteKanbanTask(boardId, taskId) {
@@ -6185,4 +6408,79 @@ renderBoardDetail = function(boardId) {
     col.addEventListener('dragleave', ()=>col.classList.remove('drag-over'));
     col.addEventListener('drop', e=>{ e.preventDefault(); col.classList.remove('drag-over'); onKanbanDrop(e, colId, false); });
   });
+};
+
+// ══════════════════════════════════════════════════════
+//  ANIMACIONS DE MOVIMENT DE TASQUES
+// ══════════════════════════════════════════════════════
+
+function _playMoveAnimation(oldStatus, newStatus, callback) {
+  const colOrder = ['todo', 'doing', 'done'];
+  const oldIdx = colOrder.indexOf(oldStatus);
+  const newIdx = colOrder.indexOf(newStatus);
+  const forward = newIdx > oldIdx; // endavant = feliç, enrere = trist
+
+  // Overlay d'animació
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed; inset:0; z-index:9999; pointer-events:none;
+    display:flex; align-items:center; justify-content:center;
+    font-size:80px; animation: taskMoveAnim 0.7s ease forwards;
+  `;
+
+  if(forward) {
+    // 🎉 Animació feliç — confetti + emoji
+    overlay.textContent = ['✅','🎯','🚀','⭐','💪'][Math.floor(Math.random()*5)];
+    overlay.style.animation = 'taskMoveHappy 0.65s ease forwards';
+    // Burst de confetti si existeix la funció
+    if(typeof burstConfetti === 'function') {
+      burstConfetti(window.innerWidth/2, window.innerHeight/2);
+    }
+  } else {
+    // 😢 Animació trista — emoji trist
+    overlay.textContent = ['😓','😬','↩️','🔄','⚠️'][Math.floor(Math.random()*5)];
+    overlay.style.animation = 'taskMoveSad 0.65s ease forwards';
+  }
+
+  document.body.appendChild(overlay);
+  setTimeout(()=>{ overlay.remove(); if(callback) callback(); }, 650);
+}
+
+// Injectar keyframes si no existeixen
+(function injectTaskMoveStyles() {
+  if(document.getElementById('task-move-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'task-move-styles';
+  s.textContent = `
+    @keyframes taskMoveHappy {
+      0%   { transform: scale(0.3) rotate(-20deg); opacity:0; }
+      40%  { transform: scale(1.3) rotate(10deg);  opacity:1; }
+      70%  { transform: scale(0.9) rotate(-5deg);  opacity:1; }
+      100% { transform: scale(1.1) rotate(0deg);   opacity:0; }
+    }
+    @keyframes taskMoveSad {
+      0%   { transform: scale(0.3) rotate(20deg);  opacity:0; }
+      30%  { transform: scale(1.1) rotate(-8deg);  opacity:1; }
+      60%  { transform: scale(0.95) rotate(3deg);  opacity:0.9; }
+      100% { transform: scale(0.8) rotate(0deg) translateY(20px); opacity:0; }
+    }
+  `;
+  document.head.appendChild(s);
+})();
+
+// ══════════════════════════════════════════════════════
+//  KANBAN CARD — mostrar links a la targeta
+// ══════════════════════════════════════════════════════
+// Patch renderKanbanCard per mostrar 🔗 si hi ha links
+const _origRenderKanbanCard = renderKanbanCard;
+renderKanbanCard = function(task, boardId, isPersonal) {
+  let html = _origRenderKanbanCard(task, boardId, isPersonal);
+  // Afegir indicador de links si n'hi ha
+  if(task.links && task.links.length > 0) {
+    html = html.replace(
+      '<div class="kcard-meta">',
+      `<div class="kcard-links-preview">${task.links.slice(0,2).map(l=>`<a href="${l.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="kcard-link-chip">🔗 ${l.label||'Enllaç'}</a>`).join('')}</div><div class="kcard-meta">`
+    );
+  }
+  return html;
 };
