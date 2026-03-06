@@ -2629,3 +2629,65 @@ body.on-julians #ai-fab { display: none !important; }
 }
 .tdm-save-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
 .tdm-save-btn:active { transform: translateY(0); }
+
+/* ══ FIX INPUTS FOSCOS — forçar tema fosc a tots els inputs/selects/textarea del modal ══ */
+.tdm-modal input,
+.tdm-modal textarea,
+.tdm-modal select,
+.tdm-inline-add input,
+.tdm-link-add-row input,
+.tdm-title-inp,
+.tdm-textarea,
+.tdm-date-inp {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--text) !important;
+  color-scheme: dark;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+.tdm-modal input::placeholder,
+.tdm-modal textarea::placeholder {
+  color: rgba(255,255,255,0.25) !important;
+}
+.tdm-modal input:focus,
+.tdm-modal textarea:focus,
+.tdm-modal select:focus {
+  border-color: rgba(124,58,237,0.5) !important;
+  outline: none !important;
+}
+
+/* ══ FIX SELECT — forçar fons fosc als selects natius ══ */
+.tdm-modal select,
+#tdm-status,
+select.tdm-edit-field {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--text) !important;
+  color-scheme: dark;
+}
+select option {
+  background: #13132a !important;
+  color: var(--text) !important;
+}
+
+/* ══ FIX PERFIL — inputs i selects a la pestanya de perfil ══ */
+.profile-field input,
+.profile-field textarea,
+.profile-field select {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--text) !important;
+  color-scheme: dark;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+}
+.profile-field input::placeholder,
+.profile-field textarea::placeholder {
+  color: rgba(255,255,255,0.25) !important;
+}
+.profile-field select option {
+  background: #13132a !important;
+  color: var(--text) !important;
+}
