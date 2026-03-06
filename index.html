@@ -158,8 +158,8 @@
       <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
       <div class="progress-chapters" id="prog-chapters"></div>
       <div class="progress-btn-row">
-        <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
-        <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
+        <button class="progress-btn" onclick="changeChapter(-1)" data-i18n="prog_prev">← Anterior</button>
+        <button class="progress-btn" onclick="changeChapter(1)" data-i18n="prog_next">Capítol completat ✓ →</button>
         <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
       </div>
       <div class="progress-congrats" id="prog-congrats"></div>
@@ -172,7 +172,7 @@
         <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
         <div class="streak-number" id="streak-num">0</div>
         <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius</div>
-        <div class="streak-best" id="streak-best" data-i18n-best="streak_best">Millor ratxa: 0</div>
+        <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
         <div class="streak-days" id="streak-days"></div>
       </div>
       <div class="streak-actions">
@@ -358,7 +358,7 @@
             <div class="ai-chat-input-row">
               <label class="ai-attach-btn" title="Adjuntar PDF o Word" for="ai-file-input">📎</label>
               <input type="file" id="ai-file-input" accept=".pdf,.doc,.docx" title="PDF recomanat. Word: converteix a PDF per millors resultats." style="display:none;" onchange="handleFileAttach(this)" />
-              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
+              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" data-i18n-placeholder="chat_placeholder" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
               <button id="ai-chat-send" onclick="sendAI()">➤</button>
             </div>
           </div>
