@@ -33,7 +33,7 @@
     pointer-events:none;
     z-index:0;
   }
-  .container { max-width:1600px; margin:0 auto; padding:40px 10px; position:relative; z-index:1; }
+  .container { max-width:1600px; margin:0 auto; padding:40px 80px; position:relative; z-index:1; }
   .side-deco { position:fixed; top:0; bottom:0; width:3px; z-index:0; pointer-events:none; }
   .side-deco-left  { left:0;  background:linear-gradient(to bottom, transparent 0%, rgba(0,180,216,0.45) 30%, rgba(124,58,237,0.3) 60%, rgba(0,191,165,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,180,216,0.18); }
   .side-deco-right { right:0; background:linear-gradient(to bottom, transparent 0%, rgba(0,191,165,0.4) 30%, rgba(124,58,237,0.25) 60%, rgba(0,180,216,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,191,165,0.15); }
@@ -877,6 +877,7 @@
     body.view-pages #add-note-fab{bottom:82px;right:16px;}
     body.view-pages #ai-fab{bottom:82px;left:14px;}
     body.view-pages #config-btn{bottom:152px;right:16px;}
+    .container { padding:24px 14px !important; }
   }
 
   /* ── TODAY PANEL ──────────────────────────────────── */
