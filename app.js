@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setLogos() {
   const src = 'data:image/jpeg;base64,' + LOGO_B64;
-  ['julians-logo-header','julians-logo-sm','julians-fab-img'].forEach(id => {
+  ['julians-logo-header','julians-logo-sm','julians-fab-img','julians-bnav-logo','julians-page-icon'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.src = src;
   });
@@ -250,6 +250,8 @@ function navTo(page) {
   document.querySelectorAll('.app-page').forEach(p => p.classList.remove('page-active'));
   const target = document.getElementById('page-'+page);
   if(target) target.classList.add('page-active');
+  // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
+  document.body.classList.toggle('on-julians', page === 'julians');
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
     b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
   });
@@ -2101,6 +2103,53 @@ function buildCalendarContext() {
 }
 
 // ── Render functions ──────────────────────────────────
+
+// ── AI SIDEBAR TOGGLE + RESIZE ────────────────────────
+function toggleAISidebar() {
+  const sidebar = document.getElementById('ai-sidebar');
+  if(!sidebar) return;
+  const collapsed = sidebar.classList.toggle('collapsed');
+  localStorage.setItem('ai_sidebar_collapsed', collapsed ? '1' : '0');
+}
+
+function initAISidebarResize() {
+  const handle = document.getElementById('ai-sidebar-resize');
+  const sidebar = document.getElementById('ai-sidebar');
+  if(!handle || !sidebar) return;
+
+  let dragging = false, startX = 0, startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    if(sidebar.classList.contains('collapsed')) return;
+    dragging = true;
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    const newW = Math.min(360, Math.max(140, startW + (e.clientX - startX)));
+    sidebar.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if(!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('ai_sidebar_width', sidebar.offsetWidth);
+  });
+
+  // Restore saved state
+  const savedCollapsed = localStorage.getItem('ai_sidebar_collapsed');
+  if(savedCollapsed === '1') sidebar.classList.add('collapsed');
+  const savedWidth = localStorage.getItem('ai_sidebar_width');
+  if(savedWidth && savedCollapsed !== '1') sidebar.style.width = savedWidth + 'px';
+}
+
 function initAI() {
   if(!Object.keys(aiChats).length) createNewChat(false);
   else {
@@ -2108,6 +2157,7 @@ function initAI() {
     renderAISidebar(); renderAIMessages();
   }
   renderAISuggestions();
+  setTimeout(initAISidebarResize, 100);
 }
 
 function createNewChat(switchTo=true) {
