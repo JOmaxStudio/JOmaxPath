@@ -362,81 +362,106 @@
     </div>
   </div>
 
-  <!-- Modal: Detall de tasca (totalment editable) -->
-  <div id="task-detail-overlay" class="modal-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
-    <div class="task-detail-modal">
-      <div class="tdm-header">
-        <div id="tdm-urgency-bar"></div>
-        <input class="tdm-title-input" id="tdm-title" placeholder="Títol de la tasca..." />
-        <button class="tdm-close" onclick="closeTaskDetail()">✕</button>
+  <!-- Modal: Detall de tasca -->
+  <div id="task-detail-overlay" class="tdm-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
+    <div class="tdm-modal">
+
+      <!-- Barra d'urgència superior + close -->
+      <div class="tdm-top-bar">
+        <div class="tdm-urg-strip" id="tdm-urgency-bar"></div>
+        <button class="tdm-close-btn" onclick="closeTaskDetail()">✕</button>
       </div>
-      <div class="tdm-body">
 
-        <!-- Descripció editable -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">📝 Descripció</span>
-          <textarea class="tdm-edit-field" id="tdm-desc" placeholder="Afegir descripció..." rows="2" oninput="tdmMarkDirty()"></textarea>
-        </div>
+      <!-- Títol editable gran -->
+      <div class="tdm-title-zone">
+        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." oninput="tdmMarkDirty()" />
+      </div>
 
-        <!-- Responsables (múltiples) -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">👤 Responsables</span>
-          <div id="tdm-assignees-chips"></div>
-          <div class="tdm-add-assignee">
-            <input type="text" id="tdm-assignee-inp" placeholder="Afegir responsable..." />
-            <button onclick="tdmAddAssignee()">+</button>
+      <!-- Cos en dues columnes -->
+      <div class="tdm-cols">
+
+        <!-- Columna esquerra: camps -->
+        <div class="tdm-col-left">
+
+          <!-- Descripció -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">📝 Descripció</div>
+            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" oninput="tdmMarkDirty()"></textarea>
           </div>
-        </div>
 
-        <!-- Data límit editable -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">📅 Data límit</span>
-          <input type="date" class="tdm-edit-field" id="tdm-due" oninput="tdmMarkDirty()" />
-        </div>
-
-        <!-- Urgència editable -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">🚦 Urgència</span>
-          <div class="tdm-urgency-row">
-            <button class="tdm-urg-btn" data-u="green" onclick="tdmSetUrgency('green',this)">🟢 Baixa</button>
-            <button class="tdm-urg-btn" data-u="yellow" onclick="tdmSetUrgency('yellow',this)">🟡 Mitjana</button>
-            <button class="tdm-urg-btn" data-u="red" onclick="tdmSetUrgency('red',this)">🔴 Alta</button>
+          <!-- Responsables -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">👤 Responsables</div>
+            <div class="tdm-chips-row" id="tdm-assignees-chips"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-assignee-inp" placeholder="Afegir responsable..." onkeydown="if(event.key==='Enter')tdmAddAssignee()" />
+              <button onclick="tdmAddAssignee()">+</button>
+            </div>
           </div>
+
+          <!-- Enllaços -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">🔗 Enllaços</div>
+            <div id="tdm-links-list"></div>
+            <div class="tdm-link-add-row">
+              <input type="url" id="tdm-link-url-inp" placeholder="https://..." onkeydown="if(event.key==='Enter')tdmAddLink()" />
+              <input type="text" id="tdm-link-label-inp" placeholder="Nom" />
+              <button onclick="tdmAddLink()">+</button>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">💬 Notes</div>
+            <div id="tdm-notes-list"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." onkeydown="if(event.key==='Enter')addNoteToTask()" />
+              <button onclick="addNoteToTask()">+</button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Estat -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">📌 Estat</span>
-          <select id="tdm-status" onchange="updateTaskStatusFromDetail(this.value)">
+        <!-- Columna dreta: metadades -->
+        <div class="tdm-col-right">
+
+          <!-- Estat -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📌 Estat</div>
+            <div class="tdm-status-pills" id="tdm-status-pills">
+              <button class="tdm-status-pill" data-s="todo"  onclick="tdmSetStatus('todo',this)">Per començar</button>
+              <button class="tdm-status-pill" data-s="doing" onclick="tdmSetStatus('doing',this)">En curs</button>
+              <button class="tdm-status-pill" data-s="done"  onclick="tdmSetStatus('done',this)">Finalitzada</button>
+            </div>
+          </div>
+
+          <!-- Urgència -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">🚦 Urgència</div>
+            <div class="tdm-urg-pills">
+              <button class="tdm-urg-pill" data-u="green"  onclick="tdmSetUrgency('green',this)"><span class="tdm-urg-dot urg-green"></span>Baixa</button>
+              <button class="tdm-urg-pill" data-u="yellow" onclick="tdmSetUrgency('yellow',this)"><span class="tdm-urg-dot urg-yellow"></span>Mitjana</button>
+              <button class="tdm-urg-pill" data-u="red"    onclick="tdmSetUrgency('red',this)"><span class="tdm-urg-dot urg-red"></span>Alta</button>
+            </div>
+          </div>
+
+          <!-- Data límit -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📅 Data límit</div>
+            <input type="date" class="tdm-date-inp" id="tdm-due" oninput="tdmMarkDirty()" />
+          </div>
+
+          <!-- Guardar -->
+          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
+
+          <!-- Select hidden per compat -->
+          <select id="tdm-status" style="display:none;" onchange="updateTaskStatusFromDetail(this.value)">
             <option value="todo">Per començar</option>
             <option value="doing">En curs</option>
             <option value="done">Finalitzada</option>
           </select>
-        </div>
 
-        <!-- Enllaços -->
-        <div class="tdm-row">
-          <span class="tdm-lbl">🔗 Enllaços</span>
-          <div id="tdm-links-list"></div>
-          <div class="tdm-add-link">
-            <input type="url" id="tdm-link-url-inp" placeholder="https://..." />
-            <input type="text" id="tdm-link-label-inp" placeholder="Nom (opcional)" />
-            <button onclick="tdmAddLink()">+</button>
-          </div>
         </div>
-
-        <!-- Notes -->
-        <div class="tdm-notes-section">
-          <span class="tdm-lbl">💬 Notes</span>
-          <div id="tdm-notes-list"></div>
-          <div class="tdm-add-note">
-            <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." />
-            <button onclick="addNoteToTask()">Afegir</button>
-          </div>
-        </div>
-
-        <!-- Botó guardar canvis -->
-        <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
       </div>
     </div>
   </div>
