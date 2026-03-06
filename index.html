@@ -97,7 +97,7 @@
   <div class="bnav-item" onclick="navTo('home')"><div class="bnav-icon">🏠</div><div class="bnav-lbl">INICI</div></div>
   <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
   <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
-  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon">🧠</div><div class="bnav-lbl">JULIANS</div></div>
+  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
   <div class="bnav-item" onclick="navTo('calendari')"><div class="bnav-icon">🗓️</div><div class="bnav-lbl">CALENDARI</div></div>
   <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
 </nav>
@@ -288,7 +288,7 @@
   <!-- ═══ PAGE: JULIANS ═══ -->
   <div class="app-page" id="page-julians">
     <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🧠</div>
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" alt="J"/></div>
       <div class="page-title-text">
         <h2 id="pt-julians-h2">JULIANS AI</h2>
         <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
@@ -297,27 +297,18 @@
     </div>
 
     <div id="ai-section">
-      <!-- AI header above card -->
-      <div style="text-align:center;margin-bottom:18px;">
-        <div style="display:inline-flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(59,130,246,0.08));border:1px solid rgba(124,58,237,0.25);border-radius:20px;padding:16px 28px;">
-          <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;box-shadow:0 0 16px rgba(124,58,237,0.4);"><img id="julians-logo-header" style="width:100%;height:100%;object-fit:cover;" alt="Julians" /></div>
-          <div style="text-align:left;">
-            <div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px;">JULIANS AI</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px;font-weight:300;">Assistent personal</div>
-          </div>
-        </div>
-      </div>
-
       <div id="ai-section-card">
         <div id="ai-layout">
           <div id="ai-sidebar">
             <div id="ai-sidebar-header">
-              <span class="ai-sidebar-title">Xats</span>
-              <div style="display:flex;gap:4px;">
-                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar">🗑️</button>
-                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat">✏️</button>
+              <span class="ai-sidebar-title" id="ai-sidebar-title-txt">Xats</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar" id="ai-sel-mode-btn">🗑️</button>
+                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat" id="ai-new-btn">✏️</button>
+                <button class="ai-new-chat-btn" onclick="toggleAISidebar()" title="Amagar xats" id="ai-sidebar-toggle">◀</button>
               </div>
             </div>
+            <div id="ai-sidebar-resize" title="Arrossega per canviar mida"></div>
             <div class="ai-select-toolbar" id="ai-select-toolbar">
               <span class="ai-sel-count" id="ai-sel-count">0 seleccionats</span>
               <div class="ai-sel-actions">
@@ -330,11 +321,7 @@
           <div id="ai-main">
             <div id="ai-main-header">
               <div class="ai-main-left">
-                <div class="ai-avatar-sm"><img id="julians-logo-sm" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J" /></div>
-                <div>
-                  <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
-                  <div class="ai-subtitle-sm">Assistent personal</div>
-                </div>
+                <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
               </div>
               <button class="ai-clear-btn" onclick="clearCurrentChat()" title="Netejar xat">🗑️</button>
             </div>
