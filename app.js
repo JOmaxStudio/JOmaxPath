@@ -4490,11 +4490,99 @@ const LANG_STRINGS = {
     btn_save:'💾 GUARDAR', btn_cancel:'Cancel·lar', btn_today:'↩ AVUI',
     // Misc
     streak_label:'dies consecutius',
+    streak_best:'Millor ratxa:',
+    streak_btn:'✓ SESSIÓ FETA',
+    streak_undo:'↺ Desfer',
     add_task:'+ AFEGIR',
     pomo_focus:'FOCUS', pomo_break:'DESCANS', pomo_long:'DESCANS LLARG',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REPRENDRE', pomo_reset:'↺ RESET',
     pomo_today:'avui', pomo_week:'setmana', pomo_total:'total',
+    pomo_daily_goal:'🎯 OBJECTIU D\'AVUI',
+    pomo_rewards:'🏆 RECOMPENSES',
+    pomo_work_label:'TREBALL', pomo_break_label:'DESCANS',
+    pomo_auto:'(auto)', pomo_apply:'APLICAR',
+    pomo_xp_sub:'Completa pomodoros per pujar de nivell',
     spotify_ph:"Enganxa l'URL de Spotify...",
+    spotify_load:'▶ CARREGAR',
+    spotify_placeholder:"Enganxa l'URL d'una playlist, àlbum o cançó de Spotify",
+    victories_week:'Setmana actual',
+    victories_saved:'✓ Guardat!',
+    sec_llegenda:'llegenda de blocs',
+    // Screen tips
+    tip_grayscale_title:'Mode escala de grisos',
+    tip_grayscale_text:'Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors.',
+    tip_intention_title:'Intenció prèvia',
+    tip_intention_text:"Abans d'obrir el mòbil, di't: \"Obro el mòbil per...\". Si no pots completar la frase, no l'obris.",
+    tip_pomodoro_title:'Tècnica Pomodoro',
+    tip_pomodoro_text:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.',
+    tip_zones_title:'Zones sense mòbil',
+    tip_zones_text:"Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals.",
+    tip_ritual_title:'Ritual nocturn',
+    tip_ritual_text:"Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper.",
+    tip_notif_title:'Silencia les notificacions',
+    tip_notif_text:'Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.',
+    // Motivation tips
+    tip_act_title:'Actua primer',
+    tip_act_text:"La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol.",
+    tip_chain_title:'No trenquis la cadena',
+    tip_chain_text:"Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció.",
+    tip_mini_title:'Mini-objectius diaris',
+    tip_mini_text:'Cada dia, un objectiu concret i assolible. No "programar", sinó "completar l\'exercici 3 del capítol 5".',
+    tip_measure_title:'Mesura el progrés',
+    tip_measure_text:'El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.',
+    tip_why_title:'Recorda el per què',
+    tip_why_text:"Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.",
+    tip_sleep_title:'El son és productivitat',
+    tip_sleep_text:"8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.",
+    // Auth
+    auth_enter:'ENTRAR', auth_register:'REGISTRAR',
+    auth_email:'CORREU ELECTRÒNIC', auth_password:'CONTRASENYA',
+    auth_password_hint:'CONTRASENYA (mínim 6 caràcters)',
+    auth_create:'CREAR COMPTE',
+    auth_skip:'Continuar sense compte (dades locals)',
+    auth_login:'INICIAR SESSIÓ',
+    // Modals
+    modal_timed_title:'⏱ Nou event horari',
+    modal_title_label:'TÍTOL', modal_start_label:'INICI', modal_end_label:'FI', modal_color_label:'COLOR',
+    modal_cancel:'Cancel·lar', modal_save:'Guardar', modal_add:'Afegir',
+    modal_desc_label:'DESCRIPCIÓ', modal_time_label:'HORA (opcional)', modal_type_label:'TIPUS',
+    modal_day_title:'Afegir al dia',
+    modal_close:'Tancar',
+    // Shortcuts panel
+    sc_title:'⌨️ DRECERES DE TECLAT',
+    sc_search:'Cerca global', sc_capture:'Captura ràpida', sc_pomo:'Pomodoro play/pause',
+    sc_home:'Anar a Inici', sc_tasks:'Anar a Tasques', sc_julians:'Anar a Julians',
+    sc_cal:'Anar a Calendari', sc_show:'Mostrar dreceres', sc_close_esc:'Tancar panell / modal',
+    sc_close_btn:'Tancar',
+    // Fullscreen clock
+    fs_upcoming:'Pròximes tasques', fs_no_tasks:'sense tasques',
+    fs_today_cal:'Avui al calendari', fs_nothing:"res avui",
+    fs_streak:'Ratxa actual', fs_consec:'dies consecutius 🔥',
+    fs_goal:'Objectiu', fs_hide_sec:'⏱ Amagar segons', fs_close_hint:'ESC · clic per tancar',
+    // Chat
+    chat_delete_title:'ELIMINAR XAT',
+    chat_delete_msg:'Segur que vols eliminar aquest xat? No es pot desfer.',
+    chat_delete_confirm:'Eliminar',
+    // Note picker
+    note_pick_title:'ESCULL COLOR',
+    // Sync
+    sync_toast:'⚡ Sincronitzat',
+    // Drawer sub
+    drawer_sub:'El teu espai',
+    // Header user
+    header_user:'El teu planificador personal',
+    // Config tabs
+    cfg_horari:'📅 Horari', cfg_tipus:'🎨 Tipus', cfg_perfil:'👤 Perfil',
+    cfg_objectiu:'🎯 Objectiu', cfg_ia:'🔑 IA', cfg_reset:'🔄 Reset',
+    cfg_title:'⚙️ Configuració',
+    // Match form labels
+    mf_data:'DATA', mf_hora:'HORA', mf_local:'EQUIP LOCAL', mf_visitant:'EQUIP VISITANT',
+    mf_jornada:'JORNADA', mf_result:'RESULTAT (opcional)', mf_camp:'CAMP:',
+    mf_casa:'CASA ✓', mf_fora:'FORA',
+    // Pomo fullscreen
+    pomo_fs_start:'▶ INICIAR', pomo_fs_now_playing:'ara sonant', pomo_fs_close:'ESC · TOCA PER TANCAR',
+    // Moto
+    moto_text:"No t'esperis a tenir ganes.\nFes-ho i les ganes vindran.",
     lang_label:'Idioma',
   },
   es: {
@@ -4531,11 +4619,99 @@ const LANG_STRINGS = {
     btn_add:'+ AÑADIR', btn_add_match:'+ AÑADIR PARTIDO',
     btn_save:'💾 GUARDAR', btn_cancel:'Cancelar', btn_today:'↩ HOY',
     streak_label:'días consecutivos programando',
+    streak_best:'Mejor racha:',
+    streak_btn:'✓ SESIÓN HECHA',
+    streak_undo:'↺ Deshacer',
     add_task:'+ AÑADIR',
     pomo_focus:'ENFOQUE', pomo_break:'DESCANSO', pomo_long:'DESCANSO LARGO',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REANUDAR', pomo_reset:'↺ RESET',
     pomo_today:'hoy', pomo_week:'semana', pomo_total:'total',
+    pomo_daily_goal:'🎯 OBJETIVO DE HOY',
+    pomo_rewards:'🏆 RECOMPENSAS',
+    pomo_work_label:'TRABAJO', pomo_break_label:'DESCANSO',
+    pomo_auto:'(auto)', pomo_apply:'APLICAR',
+    pomo_xp_sub:'Completa pomodoros para subir de nivel',
     spotify_ph:'Pega la URL de Spotify...',
+    spotify_load:'▶ CARGAR',
+    spotify_placeholder:'Pega la URL de una playlist, álbum o canción de Spotify',
+    victories_week:'Semana actual',
+    victories_saved:'✓ ¡Guardado!',
+    sec_llegenda:'leyenda de bloques',
+    // Screen tips
+    tip_grayscale_title:'Modo escala de grises',
+    tip_grayscale_text:'Activa el modo escala de grises en el móvil. El cerebro deja de encontrar las apps atractivas cuando pierde los colores.',
+    tip_intention_title:'Intención previa',
+    tip_intention_text:'Antes de abrir el móvil, dite: "Abro el móvil para...". Si no puedes completar la frase, no lo abras.',
+    tip_pomodoro_title:'Técnica Pomodoro',
+    tip_pomodoro_text:'25 minutos de foco total, 5 de descanso. Durante el foco, el móvil boca abajo y en silencio.',
+    tip_zones_title:'Zonas sin móvil',
+    tip_zones_text:'Mesa de estudio, cama y comidas = zonas sin teléfono. Crea límites físicos, no mentales.',
+    tip_ritual_title:'Ritual nocturno',
+    tip_ritual_text:'Sin pantallas 45 min antes de dormir. Lee, escribe o planifica el día siguiente en papel.',
+    tip_notif_title:'Silencia las notificaciones',
+    tip_notif_text:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.',
+    // Motivation tips
+    tip_act_title:'Actúa primero',
+    tip_act_text:'La motivación viene DESPUÉS de actuar, no antes. Empieza 5 minutos y el cerebro se enganchará solo.',
+    tip_chain_title:'No rompas la cadena',
+    tip_chain_text:'¿Un día fallas? Bien. ¿Dos días seguidos? Peligro. La cadena es el sistema, no la excepción.',
+    tip_mini_title:'Mini-objetivos diarios',
+    tip_mini_text:'Cada día, un objetivo concreto y alcanzable. No "programar", sino "completar el ejercicio 3 del capítulo 5".',
+    tip_measure_title:'Mide el progreso',
+    tip_measure_text:'Lo que se mide mejora. Apunta cada sesión. Ver el registro te motiva a continuar.',
+    tip_why_title:'Recuerda el porqué',
+    tip_why_text:'Empresa propia a los 18. Cada vez que no tienes ganas, recuerda para quién lo haces y para qué futuro.',
+    tip_sleep_title:'El sueño es productividad',
+    tip_sleep_text:'8h de sueño = el doble de rendimiento. No te prives de dormir para estudiar más. El cerebro consolida mientras duerme.',
+    // Auth
+    auth_enter:'ENTRAR', auth_register:'REGISTRAR',
+    auth_email:'CORREO ELECTRÓNICO', auth_password:'CONTRASEÑA',
+    auth_password_hint:'CONTRASEÑA (mínimo 6 caracteres)',
+    auth_create:'CREAR CUENTA',
+    auth_skip:'Continuar sin cuenta (datos locales)',
+    auth_login:'INICIAR SESIÓN',
+    // Modals
+    modal_timed_title:'⏱ Nuevo evento horario',
+    modal_title_label:'TÍTULO', modal_start_label:'INICIO', modal_end_label:'FIN', modal_color_label:'COLOR',
+    modal_cancel:'Cancelar', modal_save:'Guardar', modal_add:'Añadir',
+    modal_desc_label:'DESCRIPCIÓN', modal_time_label:'HORA (opcional)', modal_type_label:'TIPO',
+    modal_day_title:'Añadir al día',
+    modal_close:'Cerrar',
+    // Shortcuts panel
+    sc_title:'⌨️ ATAJOS DE TECLADO',
+    sc_search:'Búsqueda global', sc_capture:'Captura rápida', sc_pomo:'Pomodoro play/pausa',
+    sc_home:'Ir a Inicio', sc_tasks:'Ir a Tareas', sc_julians:'Ir a Julians',
+    sc_cal:'Ir a Calendario', sc_show:'Mostrar atajos', sc_close_esc:'Cerrar panel / modal',
+    sc_close_btn:'Cerrar',
+    // Fullscreen clock
+    fs_upcoming:'Próximas tareas', fs_no_tasks:'sin tareas',
+    fs_today_cal:'Hoy en el calendario', fs_nothing:'nada hoy',
+    fs_streak:'Racha actual', fs_consec:'días consecutivos 🔥',
+    fs_goal:'Objetivo', fs_hide_sec:'⏱ Ocultar segundos', fs_close_hint:'ESC · clic para cerrar',
+    // Chat
+    chat_delete_title:'ELIMINAR CHAT',
+    chat_delete_msg:'¿Seguro que quieres eliminar este chat? No se puede deshacer.',
+    chat_delete_confirm:'Eliminar',
+    // Note picker
+    note_pick_title:'ELIGE COLOR',
+    // Sync
+    sync_toast:'⚡ Sincronizado',
+    // Drawer sub
+    drawer_sub:'Tu espacio',
+    // Header user
+    header_user:'Tu planificador personal',
+    // Config tabs
+    cfg_horari:'📅 Horario', cfg_tipus:'🎨 Tipo', cfg_perfil:'👤 Perfil',
+    cfg_objectiu:'🎯 Objetivo', cfg_ia:'🔑 IA', cfg_reset:'🔄 Reset',
+    cfg_title:'⚙️ Configuración',
+    // Match form labels
+    mf_data:'FECHA', mf_hora:'HORA', mf_local:'EQUIPO LOCAL', mf_visitant:'EQUIPO VISITANTE',
+    mf_jornada:'JORNADA', mf_result:'RESULTADO (opcional)', mf_camp:'CAMPO:',
+    mf_casa:'CASA ✓', mf_fora:'FUERA',
+    // Pomo fullscreen
+    pomo_fs_start:'▶ INICIAR', pomo_fs_now_playing:'sonando ahora', pomo_fs_close:'ESC · TOCA PARA CERRAR',
+    // Moto
+    moto_text:'No esperes a tener ganas.\nHazlo y las ganas vendrán.',
     lang_label:'Idioma',
   },
   en: {
@@ -4572,11 +4748,99 @@ const LANG_STRINGS = {
     btn_add:'+ ADD', btn_add_match:'+ ADD MATCH',
     btn_save:'💾 SAVE', btn_cancel:'Cancel', btn_today:'↩ TODAY',
     streak_label:'consecutive days coding',
+    streak_best:'Best streak:',
+    streak_btn:'✓ SESSION DONE',
+    streak_undo:'↺ Undo',
     add_task:'+ ADD',
     pomo_focus:'FOCUS', pomo_break:'BREAK', pomo_long:'LONG BREAK',
     pomo_start:'▶ START', pomo_pause:'⏸ PAUSE', pomo_resume:'▶ RESUME', pomo_reset:'↺ RESET',
     pomo_today:'today', pomo_week:'week', pomo_total:'total',
+    pomo_daily_goal:'🎯 TODAY\'S GOAL',
+    pomo_rewards:'🏆 REWARDS',
+    pomo_work_label:'WORK', pomo_break_label:'BREAK',
+    pomo_auto:'(auto)', pomo_apply:'APPLY',
+    pomo_xp_sub:'Complete pomodoros to level up',
     spotify_ph:'Paste Spotify URL...',
+    spotify_load:'▶ LOAD',
+    spotify_placeholder:'Paste the URL of a Spotify playlist, album or song',
+    victories_week:'Current week',
+    victories_saved:'✓ Saved!',
+    sec_llegenda:'block legend',
+    // Screen tips
+    tip_grayscale_title:'Grayscale mode',
+    tip_grayscale_text:'Enable grayscale mode on your phone. The brain stops finding apps attractive when it loses colors.',
+    tip_intention_title:'Prior intention',
+    tip_intention_text:'Before opening your phone, say: "I\'m opening my phone to...". If you can\'t complete the sentence, don\'t open it.',
+    tip_pomodoro_title:'Pomodoro technique',
+    tip_pomodoro_text:'25 minutes of total focus, 5 of rest. During focus, phone face down and silent.',
+    tip_zones_title:'Phone-free zones',
+    tip_zones_text:'Study desk, bed and meals = phone-free zones. Create physical limits, not mental ones.',
+    tip_ritual_title:'Night ritual',
+    tip_ritual_text:'No screens 45 min before sleep. Read, write or plan the next day on paper.',
+    tip_notif_title:'Silence notifications',
+    tip_notif_text:'Disable all notifications except calls. You decide when to check, not the apps.',
+    // Motivation tips
+    tip_act_title:'Act first',
+    tip_act_text:'Motivation comes AFTER acting, not before. Start for 5 minutes and your brain will get hooked.',
+    tip_chain_title:'Don\'t break the chain',
+    tip_chain_text:'Miss one day? Fine. Two days in a row? Danger. The chain is the system, not the exception.',
+    tip_mini_title:'Daily mini-goals',
+    tip_mini_text:'Every day, one concrete and achievable goal. Not "code", but "complete exercise 3 of chapter 5".',
+    tip_measure_title:'Measure progress',
+    tip_measure_text:'What gets measured gets improved. Log every session. Seeing the record motivates you to continue.',
+    tip_why_title:'Remember your why',
+    tip_why_text:'Own business at 18. Every time you don\'t feel like it, remember who you\'re doing it for and what future.',
+    tip_sleep_title:'Sleep is productivity',
+    tip_sleep_text:'8h sleep = double performance. Don\'t deprive yourself of sleep to study more. The brain consolidates while sleeping.',
+    // Auth
+    auth_enter:'LOG IN', auth_register:'REGISTER',
+    auth_email:'EMAIL', auth_password:'PASSWORD',
+    auth_password_hint:'PASSWORD (minimum 6 characters)',
+    auth_create:'CREATE ACCOUNT',
+    auth_skip:'Continue without account (local data)',
+    auth_login:'LOG IN',
+    // Modals
+    modal_timed_title:'⏱ New timed event',
+    modal_title_label:'TITLE', modal_start_label:'START', modal_end_label:'END', modal_color_label:'COLOR',
+    modal_cancel:'Cancel', modal_save:'Save', modal_add:'Add',
+    modal_desc_label:'DESCRIPTION', modal_time_label:'TIME (optional)', modal_type_label:'TYPE',
+    modal_day_title:'Add to day',
+    modal_close:'Close',
+    // Shortcuts panel
+    sc_title:'⌨️ KEYBOARD SHORTCUTS',
+    sc_search:'Global search', sc_capture:'Quick capture', sc_pomo:'Pomodoro play/pause',
+    sc_home:'Go to Home', sc_tasks:'Go to Tasks', sc_julians:'Go to Julians',
+    sc_cal:'Go to Calendar', sc_show:'Show shortcuts', sc_close_esc:'Close panel / modal',
+    sc_close_btn:'Close',
+    // Fullscreen clock
+    fs_upcoming:'Upcoming tasks', fs_no_tasks:'no tasks',
+    fs_today_cal:'Today in calendar', fs_nothing:'nothing today',
+    fs_streak:'Current streak', fs_consec:'consecutive days 🔥',
+    fs_goal:'Goal', fs_hide_sec:'⏱ Hide seconds', fs_close_hint:'ESC · click to close',
+    // Chat
+    chat_delete_title:'DELETE CHAT',
+    chat_delete_msg:'Are you sure you want to delete this chat? This cannot be undone.',
+    chat_delete_confirm:'Delete',
+    // Note picker
+    note_pick_title:'PICK COLOR',
+    // Sync
+    sync_toast:'⚡ Synced',
+    // Drawer sub
+    drawer_sub:'Your space',
+    // Header user
+    header_user:'Your personal planner',
+    // Config tabs
+    cfg_horari:'📅 Schedule', cfg_tipus:'🎨 Type', cfg_perfil:'👤 Profile',
+    cfg_objectiu:'🎯 Goal', cfg_ia:'🔑 AI', cfg_reset:'🔄 Reset',
+    cfg_title:'⚙️ Settings',
+    // Match form labels
+    mf_data:'DATE', mf_hora:'TIME', mf_local:'HOME TEAM', mf_visitant:'AWAY TEAM',
+    mf_jornada:'ROUND', mf_result:'RESULT (optional)', mf_camp:'FIELD:',
+    mf_casa:'HOME ✓', mf_fora:'AWAY',
+    // Pomo fullscreen
+    pomo_fs_start:'▶ START', pomo_fs_now_playing:'now playing', pomo_fs_close:'ESC · TAP TO CLOSE',
+    // Moto
+    moto_text:"Don't wait to feel like it.\nDo it and the motivation will come.",
     lang_label:'Language',
   }
 };
@@ -4775,6 +5039,253 @@ function applyLanguage(lang) {
   if(typeof renderCalendar==='function') renderCalendar();
   if(typeof renderNextUp==='function') renderNextUp();
   if(typeof renderVictories==='function') renderVictories();
+
+  // === 15. Streak widget ===
+  const streakBest = document.getElementById('streak-best');
+  if(streakBest) {
+    const num = streakBest.textContent.replace(/[^0-9]/g,'');
+    streakBest.textContent = t('streak_best') + ' ' + num;
+  }
+  const streakBtn = document.getElementById('streak-btn');
+  if(streakBtn) streakBtn.textContent = t('streak_btn');
+  const streakUndo = document.querySelector('.streak-btn.minus');
+  if(streakUndo) streakUndo.textContent = t('streak_undo');
+
+  // === 16. Pomodoro gamification ===
+  const pomoDailyGoalLbl = document.querySelector('[style*="OBJECTIU"]') || document.evaluate('//*[contains(text(),"OBJECTIU D") or contains(text(),"OBJETIVO") or contains(text(),"TODAY")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  document.querySelectorAll('[style*="letter-spacing:1px"]').forEach(el => {
+    if(el.textContent.includes('OBJECTIU') || el.textContent.includes('OBJETIVO') || el.textContent.includes("TODAY'S GOAL") || el.textContent.includes('TODAY\'S')) {
+      el.textContent = t('pomo_daily_goal');
+    }
+    if(el.textContent.includes('RECOMPENSES') || el.textContent.includes('RECOMPENSAS') || el.textContent.includes('REWARDS')) {
+      el.textContent = t('pomo_rewards');
+    }
+  });
+  const xpSub = document.getElementById('pomo-xp-sub');
+  if(xpSub) xpSub.textContent = t('pomo_xp_sub');
+
+  // === 17. Pomo custom row labels ===
+  document.querySelectorAll('#pomo-custom-row label').forEach(el => {
+    if(el.textContent.trim()==='TREBALL'||el.textContent.trim()==='TRABAJO'||el.textContent.trim()==='WORK') el.textContent=t('pomo_work_label');
+    if(el.textContent.trim()==='DESCANS'||el.textContent.trim()==='DESCANSO'||el.textContent.trim()==='BREAK') el.textContent=t('pomo_break_label');
+  });
+  const pomoAuto = document.querySelector('#pomo-custom-row span[style*="Space Mono"]');
+  document.querySelectorAll('#pomo-custom-row span').forEach(el => {
+    if(el.textContent.trim()==='(auto)') el.textContent=t('pomo_auto');
+  });
+  const pomoApply = document.querySelector('#pomo-custom-row button[onclick*="applyPomoCustom"]');
+  if(pomoApply) pomoApply.textContent=t('pomo_apply');
+
+  // === 18. Pomo ratio label ===
+  const ratioLbl = document.getElementById('pomo-ratio-lbl');
+  if(ratioLbl) {
+    const fw = document.getElementById('pomo-cust-focus')?.textContent||'25';
+    const bw = document.getElementById('pomo-cust-break')?.textContent||'5';
+    const ratioMap = {
+      ca:`Ràtio: 1:5 · ${bw} min de descans per cada ${fw} de treball`,
+      es:`Ratio: 1:5 · ${bw} min de descanso por cada ${fw} de trabajo`,
+      en:`Ratio: 1:5 · ${bw} min break for every ${fw} of work`
+    };
+    ratioLbl.textContent = ratioMap[lang]||ratioMap.ca;
+  }
+
+  // === 19. Spotify section ===
+  const spotifyLoad = document.querySelector('button[onclick*="loadSpotify"]');
+  if(spotifyLoad) spotifyLoad.textContent=t('spotify_load');
+  const spotifyPh = document.getElementById('spotify-placeholder');
+  if(spotifyPh) {
+    spotifyPh.innerHTML = t('spotify_placeholder')+'<br><span style="font-size:10px;font-family:\'Space Mono\',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>';
+  }
+
+  // === 20. Victories week label ===
+  const vicWeek = document.getElementById('victories-week-label');
+  if(vicWeek && (vicWeek.textContent==='Setmana actual'||vicWeek.textContent==='Semana actual'||vicWeek.textContent==='Current week')) {
+    vicWeek.textContent=t('victories_week');
+  }
+  const vicSaved = document.getElementById('victories-saved');
+  if(vicSaved) vicSaved.textContent=t('victories_saved');
+
+  // === 21. Screen tips ===
+  const tipData = [
+    ['tip_grayscale','⚫'],['tip_intention','🎯'],['tip_pomodoro','⏱️'],
+    ['tip_zones','📵'],['tip_ritual','🌙'],['tip_notif','🔔']
+  ];
+  const motData = [
+    ['tip_act','🧠'],['tip_chain','🔗'],['tip_mini','🎯'],
+    ['tip_measure','📊'],['tip_why','💡'],['tip_sleep','😴']
+  ];
+  [...document.querySelectorAll('.screen-tip')].forEach((el,i)=>{
+    if(tipData[i]) {
+      const titleEl=el.querySelector('.tip-title');
+      const textEl=el.querySelector('.tip-text');
+      if(titleEl) titleEl.textContent=t(tipData[i][0]+'_title');
+      if(textEl) textEl.textContent=t(tipData[i][0]+'_text');
+    }
+  });
+  [...document.querySelectorAll('.tip-card')].forEach((el,i)=>{
+    if(motData[i]) {
+      const titleEl=el.querySelector('.tip-title');
+      const textEl=el.querySelector('.tip-text');
+      if(titleEl) titleEl.textContent=t(motData[i][0]+'_title');
+      if(textEl) textEl.textContent=t(motData[i][0]+'_text');
+    }
+  });
+
+  // === 22. Auth modal ===
+  const tabLogin=document.getElementById('tab-login');
+  const tabReg=document.getElementById('tab-register');
+  if(tabLogin) tabLogin.textContent=t('auth_enter');
+  if(tabReg) tabReg.textContent=t('auth_register');
+  const authSubmit=document.getElementById('auth-submit-btn');
+  if(authSubmit) authSubmit.textContent=t('auth_enter');
+  const authRegBtn=document.getElementById('auth-reg-btn');
+  if(authRegBtn) authRegBtn.textContent=t('auth_create');
+  const authSkip=document.querySelector('.auth-skip');
+  if(authSkip) authSkip.textContent=t('auth_skip');
+  document.querySelectorAll('.auth-field label').forEach(lbl=>{
+    const txt=lbl.textContent.trim();
+    if(txt==='CORREU ELECTRÒNIC'||txt==='CORREO ELECTRÓNICO'||txt==='EMAIL') lbl.textContent=t('auth_email');
+    if(txt==='CONTRASENYA'||txt==='CONTRASEÑA'||txt==='PASSWORD') lbl.textContent=t('auth_password');
+    if(txt.includes('mínim')||txt.includes('mínimo')||txt.includes('minimum')) lbl.textContent=t('auth_password_hint');
+  });
+  const drawerLogin=document.querySelector('#drawer-login-btn span');
+  if(drawerLogin) drawerLogin.textContent=t('auth_login');
+
+  // === 23. Timed event modal ===
+  const timedTitle=document.getElementById('timed-modal-title');
+  if(timedTitle) timedTitle.textContent=t('modal_timed_title');
+  document.querySelectorAll('#timed-modal .modal-field label').forEach(lbl=>{
+    const txt=lbl.textContent.trim();
+    if(txt==='TÍTOL'||txt==='TÍTULO'||txt==='TITLE') lbl.textContent=t('modal_title_label');
+    if(txt==='INICI'||txt==='INICIO'||txt==='START') lbl.textContent=t('modal_start_label');
+    if(txt==='FI'||txt==='FIN'||txt==='END') lbl.textContent=t('modal_end_label');
+    if(txt==='COLOR') lbl.textContent=t('modal_color_label');
+  });
+  const timedCancel=document.querySelector('#timed-modal .modal-cancel');
+  if(timedCancel) timedCancel.textContent=t('modal_cancel');
+  const timedSave=document.querySelector('#timed-modal .modal-save');
+  if(timedSave) timedSave.textContent=t('modal_save');
+
+  // === 24. Day modal ===
+  const dayTitle=document.getElementById('day-modal-title');
+  if(dayTitle) dayTitle.textContent=t('modal_day_title');
+  document.querySelectorAll('#day-modal .modal-field label').forEach(lbl=>{
+    const txt=lbl.textContent.trim();
+    if(txt==='DESCRIPCIÓ'||txt==='DESCRIPCIÓN'||txt==='DESCRIPTION') lbl.textContent=t('modal_desc_label');
+    if(txt==='HORA (opcional)'||txt==='TIME (optional)') lbl.textContent=t('modal_time_label');
+    if(txt==='TIPUS'||txt==='TIPO'||txt==='TYPE') lbl.textContent=t('modal_type_label');
+  });
+  const dayTypeOpts={
+    ca:['📌 Recordatori','📚 Escolar','🏒 Esport','💻 Programació','🤖 Robotech','📝 Examen','📦 Entrega','🎯 Altres'],
+    es:['📌 Recordatorio','📚 Escolar','🏒 Deporte','💻 Programación','🤖 Robotech','📝 Examen','📦 Entrega','🎯 Otros'],
+    en:['📌 Reminder','📚 School','🏒 Sport','💻 Programming','🤖 Robotech','📝 Exam','📦 Delivery','🎯 Other']
+  }[lang]||[];
+  const dmTypeEl=document.getElementById('dm-type');
+  if(dmTypeEl) [...dmTypeEl.options].forEach((o,i)=>{if(dayTypeOpts[i])o.text=dayTypeOpts[i];});
+
+  // === 25. Month modal close ===
+  const monthClose=document.querySelector('.month-close-btn');
+  if(monthClose) monthClose.textContent=t('modal_close');
+
+  // === 26. Shortcuts panel ===
+  const scTitle=document.querySelector('#shortcuts-panel h3');
+  if(scTitle) scTitle.textContent=t('sc_title');
+  const scDescs=document.querySelectorAll('.shortcut-desc');
+  const scKeys=[t('sc_search'),t('sc_capture'),t('sc_pomo'),t('sc_home'),t('sc_tasks'),t('sc_julians'),t('sc_cal'),t('sc_show'),t('sc_close_esc')];
+  scDescs.forEach((el,i)=>{if(scKeys[i])el.textContent=scKeys[i];});
+  const scClose=document.querySelector('.shortcuts-close');
+  if(scClose) scClose.textContent=t('sc_close_btn');
+
+  // === 27. Fullscreen clock ===
+  const fsUpcoming=document.querySelector('.fs-side-label');
+  const fsSideLabels=document.querySelectorAll('.fs-side-label');
+  if(fsSideLabels[0]) fsSideLabels[0].textContent=t('fs_upcoming');
+  if(fsSideLabels[1]) fsSideLabels[1].textContent=t('fs_today_cal');
+  if(fsSideLabels[2]) fsSideLabels[2].textContent=t('fs_streak');
+  if(fsSideLabels[3]) fsSideLabels[3].textContent=t('fs_goal');
+  const fsNoTasks=document.querySelector('#fs-tasks-panel .fs-empty');
+  if(fsNoTasks) fsNoTasks.textContent=t('fs_no_tasks');
+  const fsNothing=document.querySelector('#fs-today-panel .fs-empty');
+  if(fsNothing) fsNothing.textContent=t('fs_nothing');
+  const fsStreakLbl=document.querySelector('.fs-streak-label');
+  if(fsStreakLbl) fsStreakLbl.textContent=t('fs_consec');
+  const fsToggleSec=document.getElementById('fs-toggle-seconds');
+  if(fsToggleSec) fsToggleSec.textContent=t('fs_hide_sec');
+  const fsCloseHint=document.getElementById('fs-close-hint');
+  if(fsCloseHint) fsCloseHint.textContent=t('fs_close_hint');
+
+  // === 28. Chat delete modal ===
+  const cdTitle=document.getElementById('cd-title');
+  if(cdTitle) cdTitle.textContent=t('chat_delete_title');
+  const cdMsg=document.getElementById('cd-msg');
+  if(cdMsg) cdMsg.textContent=t('chat_delete_msg');
+  const cdConfirm=document.querySelector('.cd-btn-confirm');
+  if(cdConfirm) cdConfirm.textContent=t('chat_delete_confirm');
+  const cdCancel=document.querySelector('.cd-btn-cancel');
+  if(cdCancel) cdCancel.textContent=t('modal_cancel');
+
+  // === 29. Note picker ===
+  const noteTitle=document.querySelector('#note-picker h4');
+  if(noteTitle) noteTitle.textContent=t('note_pick_title');
+
+  // === 30. Sync toast ===
+  const syncToast=document.getElementById('sync-toast');
+  if(syncToast) syncToast.textContent=t('sync_toast');
+
+  // === 31. Drawer sub ===
+  const drawerSub=document.getElementById('drawer-sub');
+  if(drawerSub) drawerSub.textContent=t('drawer_sub');
+
+  // === 32. Header user ===
+  const headerSub=document.getElementById('header-sub');
+  if(headerSub) {
+    const ver=headerSub.querySelector('.jomaxpath-version');
+    headerSub.textContent=t('header_user')+' ';
+    if(ver) headerSub.appendChild(ver);
+  }
+
+  // === 33. Config panel ===
+  const cfgTitle=document.querySelector('#config-panel h2');
+  if(cfgTitle) cfgTitle.textContent=t('cfg_title');
+  const cfgTabs=document.querySelectorAll('.config-tab');
+  const cfgKeys=['cfg_horari','cfg_tipus','cfg_perfil','cfg_objectiu','cfg_ia','cfg_reset'];
+  cfgTabs.forEach((btn,i)=>{if(cfgKeys[i])btn.textContent=t(cfgKeys[i]);});
+
+  // === 34. Match form labels ===
+  document.querySelectorAll('#match-form label').forEach(lbl=>{
+    const txt=lbl.textContent.trim();
+    if(txt==='DATA'||txt==='FECHA'||txt==='DATE') lbl.textContent=t('mf_data');
+    if(txt==='HORA'||txt==='TIME') lbl.textContent=t('mf_hora');
+    if(txt==='EQUIP LOCAL'||txt==='EQUIPO LOCAL'||txt==='HOME TEAM') lbl.textContent=t('mf_local');
+    if(txt==='EQUIP VISITANT'||txt==='EQUIPO VISITANTE'||txt==='AWAY TEAM') lbl.textContent=t('mf_visitant');
+    if(txt==='JORNADA'||txt==='ROUND') lbl.textContent=t('mf_jornada');
+    if(txt.includes('opcional')||txt.includes('optional')) lbl.textContent=t('mf_result');
+    if(txt==='CAMP:'||txt==='CAMPO:'||txt==='FIELD:') lbl.textContent=t('mf_camp');
+  });
+  const mfCasa=document.getElementById('mf-casa-btn');
+  if(mfCasa) mfCasa.textContent=t('mf_casa');
+  const mfFora=document.getElementById('mf-fora-btn');
+  if(mfFora) mfFora.textContent=t('mf_fora');
+
+  // === 35. Pomo fullscreen ===
+  const pomoFsStart=document.getElementById('pomo-fs-start');
+  if(pomoFsStart && (pomoFsStart.textContent.includes('INICIAR')||pomoFsStart.textContent.includes('START'))) pomoFsStart.textContent=t('pomo_fs_start');
+  const pomoFsMusicLbl=document.getElementById('pomo-fs-music-label');
+  if(pomoFsMusicLbl) pomoFsMusicLbl.textContent=t('pomo_fs_now_playing');
+  const pomoFsClose=document.getElementById('pomo-fs-close-hint');
+  if(pomoFsClose) pomoFsClose.textContent=t('pomo_fs_close');
+
+  // === 36. Moto ===
+  const motoText=document.getElementById('moto-text');
+  if(motoText) motoText.innerHTML=t('moto_text').replace('\n','<br>');
+
+  // === 37. Sec llegenda ===
+  const llegenda=document.querySelector('[data-i18n="sec_llegenda"]');
+  if(llegenda) {
+    const infoBtn2=llegenda.querySelector('.info-btn');
+    llegenda.childNodes[0].textContent=t('sec_llegenda')+' ';
+    if(!infoBtn2) llegenda.textContent=t('sec_llegenda');
+  }
 }
 
 // Add language switcher to nav drawer after themes section
