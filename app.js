@@ -4839,7 +4839,13 @@ function initSupabase() {
   try {
     if(!window.supabase) { console.warn('[Auth] Supabase SDK no disponible'); return false; }
     const { createClient } = window.supabase;
-    supa = createClient(SUPA_URL, SUPA_KEY);
+    supa = createClient(SUPA_URL, SUPA_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false
+      }
+    });
     return true;
   } catch(e) { console.warn('[Auth] Error init Supabase:', e); return false; }
 }
@@ -5096,11 +5102,16 @@ localStorage.setItem = function(key, value) {
 
 // ── Init: comprovar sessió existent ──────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Inicialitzar Supabase (pot no estar disponible si CDN falla)
-  const supaOk = initSupabase();
-
+  // Inicialitzar Supabase — esperar fins a 3s si el SDK no ha carregat encara
+  let supaOk = initSupabase();
   if(!supaOk) {
-    // CDN no disponible — continuar sense auth
+    for(let i=0; i<30; i++) {
+      await new Promise(r=>setTimeout(r,100));
+      supaOk = initSupabase();
+      if(supaOk) break;
+    }
+  }
+  if(!supaOk) {
     console.warn('[Auth] Continuant sense Supabase');
     return;
   }
