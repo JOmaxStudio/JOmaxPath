@@ -5842,10 +5842,22 @@ function tdmMarkDirty() {
 function tdmSetUrgency(u, btn) {
   tdmCurrentUrgency = u;
   const colors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
-  document.getElementById('tdm-urgency-bar').style.background = colors[u];
-  document.querySelectorAll('.tdm-urg-btn').forEach(b=>b.classList.remove('active'));
+  const bar = document.getElementById('tdm-urgency-bar');
+  if(bar) bar.style.background = colors[u];
+  document.querySelectorAll('.tdm-urg-pill, .tdm-urg-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   tdmMarkDirty();
+}
+
+function tdmSetStatus(s, btn) {
+  // Actualitzar select hidden
+  const sel = document.getElementById('tdm-status');
+  if(sel) sel.value = s;
+  // Pills visuals
+  document.querySelectorAll('.tdm-status-pill').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // Aplicar canvi immediatament
+  updateTaskStatusFromDetail(s);
 }
 
 function tdmAddAssignee() {
@@ -5876,8 +5888,8 @@ function tdmRenderAssignees(task) {
   if(!el) return;
   const list = task.assignees?.length ? task.assignees : (task.assignee ? [task.assignee] : []);
   el.innerHTML = list.length
-    ? list.map((a,i)=>`<div class="member-chip">${a}<button class="member-chip-del" onclick="tdmRemoveAssignee(${i})">×</button></div>`).join('')
-    : '<span style="color:var(--muted);font-size:11px;">Cap responsable</span>';
+    ? list.map((a,i)=>`<div class="tdm-chip"><span>${a}</span><button class="tdm-chip-del" onclick="tdmRemoveAssignee(${i})">×</button></div>`).join('')
+    : '<span style="color:rgba(255,255,255,0.2);font-size:11px;">Sense responsables</span>';
 }
 
 function tdmAddLink() {
@@ -5910,9 +5922,9 @@ function tdmRenderLinks(task) {
   el.innerHTML = links.length
     ? links.map((l,i)=>`<div class="tdm-link-item">
         <a href="${l.url}" target="_blank" rel="noopener">🔗 ${l.label||l.url}</a>
-        <button class="tdm-note-del" onclick="tdmRemoveLink(${i})">×</button>
+        <button class="tdm-link-del" onclick="tdmRemoveLink(${i})">×</button>
       </div>`).join('')
-    : '<span style="color:var(--muted);font-size:11px;">Cap enllaç</span>';
+    : '<span style="color:rgba(255,255,255,0.2);font-size:11px;">Sense enllaços</span>';
 }
 
 function _tdmGetTask() {
@@ -5960,20 +5972,40 @@ function tdmPopulate(task) {
   tdmDirty = false;
   tdmCurrentUrgency = task.urgency || 'green';
   const colors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
-  document.getElementById('tdm-urgency-bar').style.background = colors[tdmCurrentUrgency];
-  document.getElementById('tdm-title').value = task.title || '';
-  document.getElementById('tdm-desc').value  = task.desc  || '';
-  document.getElementById('tdm-due').value   = task.due   || '';
-  document.getElementById('tdm-status').value = task.status || 'todo';
-  // Urgency buttons
-  document.querySelectorAll('.tdm-urg-btn').forEach(b=>{
+
+  // Strip urgència
+  const bar = document.getElementById('tdm-urgency-bar');
+  if(bar) bar.style.background = colors[tdmCurrentUrgency];
+
+  // Títol, desc, data
+  const titleEl = document.getElementById('tdm-title');
+  if(titleEl) titleEl.value = task.title || '';
+  const descEl = document.getElementById('tdm-desc');
+  if(descEl) descEl.value = task.desc || '';
+  const dueEl = document.getElementById('tdm-due');
+  if(dueEl) dueEl.value = task.due || '';
+
+  // Select hidden (compat)
+  const statusSel = document.getElementById('tdm-status');
+  if(statusSel) statusSel.value = task.status || 'todo';
+
+  // Pills d'estat
+  document.querySelectorAll('.tdm-status-pill').forEach(b=>{
+    b.classList.toggle('active', b.dataset.s === (task.status||'todo'));
+  });
+
+  // Pills d'urgència
+  document.querySelectorAll('.tdm-urg-pill').forEach(b=>{
     b.classList.toggle('active', b.dataset.u === tdmCurrentUrgency);
   });
+
   tdmRenderAssignees(task);
   tdmRenderLinks(task);
   renderTaskNotes(task);
+
   const saveBtn = document.getElementById('tdm-save-btn');
   if(saveBtn) saveBtn.style.display = 'none';
+
   document.getElementById('task-detail-overlay').style.display='flex';
 }
 
@@ -5986,13 +6018,14 @@ function closeTaskDetail() {
 }
 function renderTaskNotes(task) {
   const list = document.getElementById('tdm-notes-list');
+  if(!list) return;
   const notes = task.notes || [];
   list.innerHTML = notes.length ? notes.map((n,i)=>`
     <div class="tdm-note-item">
-      <span style="flex:1">${n.text}</span>
-      <span style="font-size:10px;color:var(--muted);margin-right:6px;">${n.author||''} · ${(n.date||'').slice(0,10)}</span>
+      <div class="tdm-note-text">${n.text}</div>
+      <div class="tdm-note-meta">${n.author||''} · ${(n.date||'').slice(0,10)}</div>
       <button class="tdm-note-del" onclick="deleteTaskNote(${i})">×</button>
-    </div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:4px 0;">Sense notes.</div>';
+    </div>`).join('') : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">Sense notes.</div>';
 }
 function addNoteToTask() {
   const inp = document.getElementById('tdm-note-inp');
