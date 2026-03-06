@@ -633,10 +633,29 @@
   .avui-btn:hover { background:rgba(16,185,129,0.22); }
 
   /* ═══ JULIANS AI SECTION ═══ */
-  #ai-section { margin-bottom:50px; }
-  #ai-section-card { background:var(--card); border:1px solid rgba(124,58,237,0.28); border-radius:20px; overflow:hidden; }
-  #ai-layout { display:flex; height:calc(100vh - 220px); min-height:500px; max-height:900px; }
-  #ai-sidebar { width:200px; flex-shrink:0; background:rgba(0,0,0,0.25); border-right:1px solid rgba(124,58,237,0.15); display:flex; flex-direction:column; overflow:hidden; }
+  #ai-section { margin-bottom:16px; }
+  #ai-section-card { background:var(--card); border:1px solid rgba(124,58,237,0.28); border-radius:20px; overflow:hidden; margin-bottom:4px; }
+  #ai-layout { display:flex; height:calc(100vh - 240px); min-height:500px; max-height:900px; }
+  #ai-sidebar { width:200px; min-width:140px; max-width:360px; flex-shrink:0; background:rgba(0,0,0,0.25); border-right:1px solid rgba(124,58,237,0.15); display:flex; flex-direction:column; overflow:hidden; transition:width 0.25s cubic-bezier(.4,0,.2,1); position:relative; }
+  #ai-sidebar.collapsed { width:42px !important; min-width:42px; }
+  #ai-sidebar.collapsed #ai-sidebar-title-txt,
+  #ai-sidebar.collapsed #ai-sel-mode-btn,
+  #ai-sidebar.collapsed #ai-new-btn,
+  #ai-sidebar.collapsed #ai-chat-list,
+  #ai-sidebar.collapsed .ai-select-toolbar { display:none !important; }
+  #ai-sidebar.collapsed #ai-sidebar-header { justify-content:center; padding:14px 6px; }
+  #ai-sidebar.collapsed #ai-sidebar-toggle { transform:rotate(180deg); }
+
+  #ai-sidebar-resize {
+    position:absolute; right:0; top:0; bottom:0; width:5px;
+    cursor:col-resize; z-index:10;
+    background:transparent;
+    transition:background 0.2s;
+  }
+  #ai-sidebar-resize:hover { background:rgba(124,58,237,0.35); }
+  #ai-sidebar-toggle {
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1) !important;
+  }
   #ai-sidebar-header { padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
   .ai-sidebar-title { font-size:13px; font-weight:700; color:var(--accent2); font-family:'Space Mono',monospace; }
   .ai-new-chat-btn { background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3); color:var(--accent2); width:26px; height:26px; border-radius:7px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
@@ -653,7 +672,7 @@
   .ai-chat-item:hover .ai-chat-item-del { opacity:1; }
   .ai-chat-item-del:hover { color:#fca5a5; }
   #ai-main { flex:1; display:flex; flex-direction:column; min-width:0; }
-  #ai-main-header { padding:14px 18px; background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(59,130,246,0.06)); border-bottom:1px solid rgba(124,58,237,0.12); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  #ai-main-header { padding:8px 14px; background:linear-gradient(135deg,rgba(124,58,237,0.07),rgba(59,130,246,0.04)); border-bottom:1px solid rgba(124,58,237,0.1); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
   .ai-main-left { display:flex; align-items:center; gap:10px; }
   .ai-avatar-sm { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--accent),#3b82f6); display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 0 10px rgba(124,58,237,0.35); overflow:hidden; }
   .ai-chat-title-display { font-size:14px; font-weight:700; color:var(--text); }
@@ -833,6 +852,7 @@
   .bnav-icon{font-size:19px;opacity:.45;transition:all .2s;}
   .bnav-lbl{font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:.5px;}
   .bnav-item.active .bnav-icon{opacity:1;filter:drop-shadow(0 0 6px var(--accent2));}
+  .bnav-item.active #julians-bnav-logo { opacity:1; filter:drop-shadow(0 0 6px var(--accent2)); }
   .bnav-item.active .bnav-lbl{color:var(--accent2);}
 
   /* ── FABs: push above bottom nav in pages mode ── */
@@ -1998,3 +2018,12 @@
   border-radius: 9px;
   border: 1px solid rgba(16,185,129,0.12);
 }
+
+/* Amagar FABs que tapen el botó d'enviar quan ets al Julians */
+#page-julians.page-active ~ * #add-note-fab,
+#page-julians.page-active ~ * #search-fab { display: none !important; }
+
+/* Alternativa: marcar el body quan julians és actiu */
+body.on-julians #add-note-fab,
+body.on-julians #search-fab { display: none !important; }
+body.on-julians #ai-fab { display: none !important; }
