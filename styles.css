@@ -2295,3 +2295,84 @@ body.on-julians #ai-fab { display: none !important; }
 .board-selector-chip.active {
   background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.5); color: var(--accent2);
 }
+
+/* ══ MODAL DETALL TASCA — EDITABLE ══ */
+.tdm-title-input {
+  width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.15);
+  color: var(--text); font-size: 17px; font-weight: 700; font-family: 'Sora', sans-serif;
+  padding: 4px 0; outline: none; margin-bottom: 4px; padding-right: 32px;
+  box-sizing: border-box;
+}
+.tdm-title-input:focus { border-bottom-color: rgba(124,58,237,0.6); }
+.tdm-edit-field {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px;
+  padding: 8px 12px; border-radius: 10px; outline: none; resize: vertical;
+  box-sizing: border-box; margin-top: 4px;
+}
+.tdm-edit-field:focus { border-color: rgba(124,58,237,0.5); }
+
+/* Urgència editable al detall */
+.tdm-urgency-row { display: flex; gap: 8px; margin-top: 6px; }
+.tdm-urg-btn {
+  flex: 1; padding: 7px; border-radius: 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); color: var(--muted); font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.tdm-urg-btn.active[data-u="green"] { background: rgba(110,231,183,0.2); border-color: #6ee7b7; color: #6ee7b7; }
+.tdm-urg-btn.active[data-u="yellow"]{ background: rgba(252,211,77,0.2); border-color: #fcd34d; color: #fcd34d; }
+.tdm-urg-btn.active[data-u="red"]   { background: rgba(248,113,113,0.2); border-color: #f87171; color: #f87171; }
+
+/* Afegir responsable */
+.tdm-add-assignee { display: flex; gap: 8px; margin-top: 8px; }
+.tdm-add-assignee input { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:var(--text); font-family:'Sora',sans-serif; font-size:13px; padding:7px 12px; border-radius:10px; outline:none; }
+.tdm-add-assignee button { background:rgba(124,58,237,0.2); border:1px solid rgba(124,58,237,0.4); color:var(--accent2); padding:7px 14px; border-radius:10px; cursor:pointer; font-size:16px; transition:all 0.15s; }
+.tdm-add-assignee button:hover { background:rgba(124,58,237,0.35); }
+
+/* Afegir link */
+.tdm-add-link { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.tdm-add-link input[type="url"] { flex: 2; min-width: 140px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:var(--text); font-family:'Sora',sans-serif; font-size:13px; padding:7px 12px; border-radius:10px; outline:none; }
+.tdm-add-link input[type="text"] { flex: 1; min-width: 80px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:var(--text); font-family:'Sora',sans-serif; font-size:13px; padding:7px 12px; border-radius:10px; outline:none; }
+.tdm-add-link button { background:rgba(0,191,165,0.15); border:1px solid rgba(0,191,165,0.35); color:var(--teal); padding:7px 14px; border-radius:10px; cursor:pointer; font-size:16px; transition:all 0.15s; }
+.tdm-add-link button:hover { background:rgba(0,191,165,0.28); }
+
+/* Link items al detall */
+.tdm-link-item { display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,0.04); border-radius:8px; margin-bottom:6px; }
+.tdm-link-item a { flex:1; color:var(--accent2); font-size:13px; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tdm-link-item a:hover { text-decoration:underline; }
+
+/* Links a les targetes Kanban */
+.kcard-links-preview { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+.kcard-link-chip {
+  font-size: 10px; color: var(--accent2); background: rgba(124,58,237,0.12);
+  border: 1px solid rgba(124,58,237,0.25); border-radius: 20px;
+  padding: 2px 8px; text-decoration: none; white-space: nowrap;
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+  transition: all 0.15s;
+}
+.kcard-link-chip:hover { background: rgba(124,58,237,0.25); }
+
+/* Botó guardar al modal de detall */
+.tdm-save-btn {
+  width: 100%; margin-top: 18px; padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 12px; color: #fff; font-weight: 700;
+  font-size: 14px; cursor: pointer; transition: all 0.2s;
+}
+.tdm-save-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ══ PERFIL — seccions ══ */
+.profile-section-title {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+  color: var(--accent2); text-transform: uppercase; margin: 8px 0 10px;
+  padding-bottom: 6px; border-bottom: 1px solid rgba(124,58,237,0.2);
+}
+.profile-static {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 9px 12px; font-size: 13px; color: var(--muted);
+}
+
+/* ══ MODAL NOVA TASCA — input link ══ */
+#board-task-modal-overlay .board-modal input[type="url"] {
+  box-sizing: border-box;
+}
