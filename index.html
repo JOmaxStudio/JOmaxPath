@@ -259,7 +259,7 @@
       <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
     </div>
 
-    <!-- Mode switcher -->
+    <!-- Mode switcher: Personal / Compartides -->
     <div class="tasks-mode-bar">
       <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
       <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
@@ -267,44 +267,76 @@
 
     <!-- VISTA PERSONAL -->
     <div id="tasks-personal-view">
-      <div class="exam-section">
-        <div class="exam-header-bar">
-          <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
-          <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+      <!-- Sub-switcher: Llista / Kanban personal -->
+      <div class="tasks-view-toggle">
+        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
+        <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
+      </div>
+
+      <!-- Vista llista personal (original) -->
+      <div id="personal-list-view">
+        <div class="exam-section">
+          <div class="exam-header-bar">
+            <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
+            <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+          </div>
+          <div class="exam-form" id="exam-form">
+            <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
+            <input type="date" id="exam-date" />
+            <select id="exam-type">
+              <option value="deures">📚 Deures/Entrega</option>
+              <option value="treball">📄 Treball/Projecte</option>
+              <option value="tasca">🗂️ Tasca general</option>
+              <option value="personal">🙋 Feina personal</option>
+            </select>
+            <select id="exam-prio">
+              <option value="1">🔴 P1 Urgent</option>
+              <option value="2">🟡 P2 Important</option>
+              <option value="3" selected>🔵 P3 Normal</option>
+              <option value="4">⚪ P4 Baix</option>
+            </select>
+            <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+          </div>
+          <div class="exam-list" id="exam-list"></div>
         </div>
-        <div class="exam-form" id="exam-form">
-          <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
-          <input type="date" id="exam-date" />
-          <select id="exam-type">
-            <option value="deures">📚 Deures/Entrega</option>
-            <option value="treball">📄 Treball/Projecte</option>
-            <option value="tasca">🗂️ Tasca general</option>
-            <option value="personal">🙋 Feina personal</option>
-          </select>
-          <select id="exam-prio">
-            <option value="1">🔴 P1 Urgent</option>
-            <option value="2">🟡 P2 Important</option>
-            <option value="3" selected>🔵 P3 Normal</option>
-            <option value="4">⚪ P4 Baix</option>
-          </select>
-          <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+      </div>
+
+      <!-- Vista Kanban personal -->
+      <div id="personal-kanban-view" style="display:none;">
+        <div class="personal-kanban-header">
+          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
         </div>
-        <div class="exam-list" id="exam-list"></div>
+        <div id="personal-kanban-board"></div>
       </div>
     </div>
 
-    <!-- VISTA COMPARTIDA (Kanban) -->
+    <!-- VISTA COMPARTIDA -->
     <div id="tasks-shared-view" style="display:none;">
-      <div class="shared-boards-header">
-        <div id="shared-boards-list-view">
+      <!-- Sub-switcher: Llista taulers / Detall kanban -->
+      <div id="shared-boards-list-view">
+        <div class="tasks-view-toggle" style="margin-bottom:18px;">
+          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
+          <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
+        </div>
+        <!-- Vista llista de taulers -->
+        <div id="shared-list-inner">
           <div class="shared-boards-title-row">
             <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
             <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
           </div>
           <div id="shared-boards-grid"></div>
         </div>
-        <div id="shared-board-detail" style="display:none;"></div>
+        <!-- Vista kanban directe (mostra el primer tauler o selector) -->
+        <div id="shared-kanban-inner" style="display:none;">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-board-selector"></div>
+          <div id="shared-kanban-board-container"></div>
+        </div>
       </div>
+      <div id="shared-board-detail" style="display:none;"></div>
     </div>
   </div>
 
@@ -316,10 +348,15 @@
       <input type="text" id="board-name-inp" placeholder="Ex: Projecte de Mates..." maxlength="60" />
       <label>Descripció (opcional)</label>
       <input type="text" id="board-desc-inp" placeholder="Descripció breu..." maxlength="120" />
-      <label>Convidar membres (emails, un per línia)</label>
-      <textarea id="board-members-inp" placeholder="exemple@email.com&#10;altre@email.com" rows="3"></textarea>
+      <label>Membres actuals</label>
+      <div id="board-members-current"></div>
+      <label>Afegir membre (email)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="email" id="board-member-add-inp" placeholder="nou@email.com" style="flex:1;" />
+        <button onclick="addBoardMember()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">+ Afegir</button>
+      </div>
       <div class="board-modal-btns">
-        <button class="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
+        <button class="bm-save-btn" id="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
         <button class="bm-cancel-btn" onclick="closeBoardModal()">Cancel·lar</button>
       </div>
     </div>
