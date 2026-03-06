@@ -4828,7 +4828,7 @@ document.addEventListener('DOMContentLoaded', () => {
 //    CREATE POLICY "allow_all_auth" ON shared_boards FOR ALL TO authenticated USING (true);
 // ── IMPORTANT: Substitueix SUPA_KEY per la teva clau anon JWT (comença per eyJ...)
 const SUPA_URL = 'https://fcoitcesjyjkfcqwrblm.supabase.co';
-const SUPA_KEY = 'sb_publishable_TNIAnxpoDBZjmSPcua6SnQ_m8hTX2sj';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjb2l0Y2Vzanlqa2ZjcXdyYmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MDUwNDQsImV4cCI6MjA4ODE4MTA0NH0.bvwDg2ThL4HivusLJEUhbV9VdJ7VAuHwE2CtCE0oZ3w';
 
 // Supabase init — defensiu, protegit si el CDN falla
 let supa = null;
