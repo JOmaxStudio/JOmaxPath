@@ -297,67 +297,34 @@ function renderMoto() {
 // ══════════════════════════════════════════════════════
 function renderProgress() {
   const {chapter,total,title,unit} = progData;
-  const L = currentLang||'ca';
   document.getElementById('prog-title').textContent = '📚 ' + (title||'Curs de Programació');
-  const ofLbl = {ca:'de',es:'de',en:'of'}[L];
-  const unitLbl = unit || {ca:'Capítol',es:'Capítulo',en:'Chapter'}[L];
-  document.getElementById('prog-fraction').textContent = `${unitLbl} ${chapter} ${ofLbl} ${total}`;
+  document.getElementById('prog-fraction').textContent = `${unit||'Capítol'} ${chapter} de ${total}`;
   const pct = total > 1 ? ((chapter-1)/(total-1))*100 : 100;
   document.getElementById('prog-fill').style.width = pct + '%';
   const ch = document.getElementById('prog-chapters'); ch.innerHTML = '';
   for(let i=1;i<=total;i++){
     const d = document.createElement('div');
     d.className = 'chapter-dot' + (i<chapter?' done':i===chapter?' current':'');
-    const lbl = progData.labels?.[i] || `${unitLbl} ${i}`;
+    const lbl = progData.labels?.[i] || `${unit||'Cap'} ${i}`;
     d.setAttribute('data-label', lbl);
     d.onclick = () => { progData.chapter=i; saveProgData(); renderProgress(); };
     ch.appendChild(d);
   }
-  // Congrats — traduïts
+  // Congrats
   const msgs = {
-    ca: {
-      1:`Comencem! Primer ${unitLbl} activat. 🚀`,
-      2:`Dos ${unitLbl}s fets. El camí comença! 💪`,
-      3:`Un terç del camí. Molt bé! 🔥`,
-      4:`A mig camí! Segueix fort. ⚡`,
-      5:`Més de la meitat. Imparable! 🌟`,
-      6:`Dos terços completats. Brutal! 🏆`,
-      7:`Quasi-quasi! Un empenta final. 🎯`,
-      8:`ÚLTIM ${unitLbl.toUpperCase()}! Ara o mai! 🔥🔥`,
-      9:`CURS COMPLETAT! eres increïble! 🎉🎊`
-    },
-    es: {
-      1:`¡Empezamos! Primer ${unitLbl} activado. 🚀`,
-      2:`Dos ${unitLbl}s hechos. ¡El camino empieza! 💪`,
-      3:`Un tercio del camino. ¡Muy bien! 🔥`,
-      4:`¡A mitad del camino! Sigue fuerte. ⚡`,
-      5:`Más de la mitad. ¡Imparable! 🌟`,
-      6:`Dos tercios completados. ¡Brutal! 🏆`,
-      7:`¡Casi casi! Un empujón final. 🎯`,
-      8:`¡ÚLTIMO ${unitLbl.toUpperCase()}! ¡Ahora o nunca! 🔥🔥`,
-      9:`¡CURSO COMPLETADO! ¡Eres increíble! 🎉🎊`
-    },
-    en: {
-      1:`Let's go! First ${unitLbl} activated. 🚀`,
-      2:`Two ${unitLbl}s done. The journey begins! 💪`,
-      3:`One third of the way. Great job! 🔥`,
-      4:`Halfway there! Keep it up. ⚡`,
-      5:`More than half done. Unstoppable! 🌟`,
-      6:`Two thirds completed. Awesome! 🏆`,
-      7:`Almost there! One final push. 🎯`,
-      8:`LAST ${unitLbl.toUpperCase()}! Now or never! 🔥🔥`,
-      9:`COURSE COMPLETED! You're incredible! 🎉🎊`
-    }
+    1:`Comencem! Primer ${unit||'capítol'} activat. 🚀`,
+    2:`Dos ${unit||'capítols'} fets. El camí comença! 💪`,
+    3:`Un terç del camí. Molt bé! 🔥`,
+    4:`A mig camí! Segueix fort. ⚡`,
+    5:`Més de la meitat. Imparable! 🌟`,
+    6:`Dos terços completats. Brutal! 🏆`,
+    7:`Quasi-quasi! Un empenta final. 🎯`,
+    8:`ÚLTIM ${(unit||'capítol').toUpperCase()}! Ara o mai! 🔥🔥`,
+    9:`CURS COMPLETAT! ets increïble! 🎉🎊`
   };
   const cEl = document.getElementById('prog-congrats');
-  const msg = (msgs[L]||msgs.ca)[chapter];
-  if(msg) { cEl.textContent=msg; cEl.style.display='block'; }
+  if(msgs[chapter]) { cEl.textContent=msgs[chapter]; cEl.style.display='block'; }
   else cEl.style.display='none';
-  // Actualitzar text dels botons
-  const prevBtn = document.querySelector('.progress-btn[data-i18n="prog_prev"]');
-  const nextBtn = document.querySelector('.progress-btn[data-i18n="prog_next"]');
-  if(prevBtn) prevBtn.textContent = LANG_STRINGS[L]?.prog_prev || '← Anterior';
-  if(nextBtn) nextBtn.textContent = LANG_STRINGS[L]?.prog_next || `${unitLbl} completat ✓ →`;
 }
 function changeChapter(d) {
   const t = progData.total||9;
@@ -468,23 +435,14 @@ function getDateForCard(dayIndex) {
 }
 function renderWeekDates() {
   const ws = getWeekStart(weekOffset);
-  const monthNames = {
-    ca:['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'],
-    es:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
-    en:['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
-  }[currentLang||'ca'];
+  const monthNames = ['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
   const today = toLocalDateKey(new Date());
+  // Update week label
   const end = new Date(ws); end.setDate(ws.getDate()+6);
-  const weekLbls = {
-    current:{ca:'AQUESTA SETMANA', es:'ESTA SEMANA',    en:'THIS WEEK'},
-    next:   {ca:'SETMANA QUE VE',  es:'SEMANA QUE VIENE', en:'NEXT WEEK'},
-    prev:   {ca:'SETMANA PASSADA', es:'SEMANA PASADA',  en:'LAST WEEK'},
-  };
-  const L = currentLang||'ca';
   let label = '';
-  if(weekOffset===0) label=weekLbls.current[L];
-  else if(weekOffset===1) label=weekLbls.next[L];
-  else if(weekOffset===-1) label=weekLbls.prev[L];
+  if(weekOffset===0) label='AQUESTA SETMANA';
+  else if(weekOffset===1) label='SETMANA QUE VE';
+  else if(weekOffset===-1) label='SETMANA PASSADA';
   else {
     const ds = `${ws.getDate()} ${monthNames[ws.getMonth()]}`;
     const de = `${end.getDate()} ${monthNames[end.getMonth()]}`;
@@ -643,26 +601,12 @@ function renderWeekGrid() {
   const grid = document.getElementById('week-grid'); if(!grid) return;
   grid.innerHTML='';
   const today = toLocalDateKey(new Date());
-  const dayNamesMap = {
-    ca:['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'],
-    es:['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
-    en:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-  };
-  const monthNamesShortMap = {
-    ca:['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'],
-    es:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
-    en:['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
-  };
-  const L = currentLang||'ca';
-  const dayNames = dayNamesMap[L];
-  const monthNamesShort = monthNamesShortMap[L];
-  const timedEvLbl = {ca:'Events horaris', es:'Eventos horarios', en:'Timed events'}[L];
-  const timedAddLbl = {ca:'+ Afegir', es:'+ Añadir', en:'+ Add'}[L];
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   for(let i=0;i<7;i++){
     const sched = daySchedule[i] || {name:dayNames[i],sleep:'23:00',blocks:[]};
     const dateKey = getDateForCard(i);
     const dateParts = dateKey.split('-');
-    const dateLabel = `${parseInt(dateParts[2])} ${monthNamesShort[parseInt(dateParts[1])-1]}`;
+    const dateLabel = `${parseInt(dateParts[2])} ${['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'][parseInt(dateParts[1])-1]}`;
     const isToday = dateKey===today;
     const isWeekend = i>=5;
     const card = document.createElement('div');
@@ -692,7 +636,7 @@ function renderWeekGrid() {
     }).join('');
     // Day events (combined dayEvents + monthEvents)
     const eventsHtml = renderDayEventsHtml(i, dateKey);
-  card.innerHTML = `
+    card.innerHTML = `
       <div class="day-header">
         <div><span class="day-name">${sched.name||dayNames[i]}</span>${dateHtml}${customHtml}</div>
         <span class="day-sleep">🌙 ${sched.sleep||'23:00'}</span>
@@ -876,7 +820,8 @@ function editBadge(i, e) {
 //  STATS
 // ══════════════════════════════════════════════════════
 function renderStats() {
-  const L = currentLang||'ca';
+  // Calculate from schedule
+  let progH=0, skolaH=0, hockeyH=0, robotH=0;
   function calcH(t) {
     const [s,e]=t.split('-');
     if(!s||!e) return 0;
@@ -884,70 +829,23 @@ function renderStats() {
     const [eh,em]=e.split(':').map(Number);
     return (eh*60+em-sh*60-(sm||0))/60;
   }
-
-  // Calcula hores per cada tipus de bloc present a l'horari
-  const typeHours = {}; // { typeKey: hours }
-  const typeLabels = {}; // { typeKey: labelText } — pren el label més freqüent
-  const typeLabelCount = {}; // { typeKey: { label: count } }
-
   Object.values(daySchedule).forEach(d=>{
     (d.blocks||[]).forEach(b=>{
-      const t = b.t||'rest';
-      if(t==='rest') return; // No mostrar blocs de descans
-      const h = calcH(b.time||'');
-      typeHours[t] = (typeHours[t]||0) + h;
-      // Comptar etiquetes per trobar la més freqüent
-      if(b.label) {
-        if(!typeLabelCount[t]) typeLabelCount[t] = {};
-        typeLabelCount[t][b.label] = (typeLabelCount[t][b.label]||0)+1;
-      }
+      const h=calcH(b.time||'');
+      if(b.t==='prog') progH+=h;
+      else if(b.t==='escola') skolaH+=h;
+      else if(b.t==='hockey') hockeyH+=h;
+      else if(b.t==='robotech') robotH+=h;
     });
   });
-
-  // Noms per defecte dels tipus coneguts
-  const defaultTypeNames = {
-    ca:  { prog:'Programació', escola:'Institut', hockey:'Hoquei', robotech:'Robotech', angles:"Anglès", 'escola-feina':'Feina escolar', sopar:'Àpats', prep:'Preparació' },
-    es:  { prog:'Programación', escola:'Instituto', hockey:'Hockey', robotech:'Robotech', angles:'Inglés', 'escola-feina':'Trabajo escolar', sopar:'Comidas', prep:'Preparación' },
-    en:  { prog:'Coding', escola:'School', hockey:'Hockey', robotech:'Robotech', angles:'English', 'escola-feina':'School work', sopar:'Meals', prep:'Prep' }
-  }[L]||{};
-
-  // Determinar l'etiqueta a mostrar per cada tipus
-  Object.keys(typeHours).forEach(t=>{
-    if(typeLabelCount[t]) {
-      // La label més freqüent
-      const best = Object.entries(typeLabelCount[t]).sort((a,b)=>b[1]-a[1])[0];
-      typeLabels[t] = best[0];
-    } else {
-      typeLabels[t] = defaultTypeNames[t] || t;
-    }
-  });
-
-  // Colors per tipus
-  const typeColorsMap = {
-    prog:'var(--accent2)', escola:'var(--blue)', hockey:'var(--red)',
-    robotech:'var(--green)', angles:'var(--pink)', 'escola-feina':'var(--teal)',
-    sopar:'var(--orange)', prep:'var(--yellow)'
-  };
-
-  // Construir stats dinàmicament
-  const stats = Object.entries(typeHours)
-    .sort((a,b)=>b[1]-a[1]) // Les de més hores primer
-    .map(([t, h]) => ({
-      num: h > 0 ? (Number.isInteger(h) ? h+'h' : h.toFixed(1)+'h') : '0h',
-      label: typeLabels[t] + {ca:' setmanal', es:' semanal', en:' weekly'}[L],
-      color: typeColorsMap[t] || 'var(--accent)'
-    }));
-
-  // Afegir sempre: tasques pendents i fase actual
-  const statsLbls = {
-    tasks:  {ca:'Tasques pendents', es:'Tareas pendientes', en:'Pending tasks'},
-    phase:  {ca:'Fase',             es:'Fase',              en:'Phase'},
-  };
-  stats.push(
-    {num:examList.filter(e=>!e.done).length, label:statsLbls.tasks[L], color:'var(--yellow)'},
-    {num:progData.chapter+'/'+progData.total, label:statsLbls.phase[L], color:'var(--teal)'}
-  );
-
+  const stats=[
+    {num:progH.toFixed(1)+'h',label:'Programació setmanal',color:'var(--accent2)'},
+    {num:skolaH.toFixed(0)+'h',label:'Institut setmanal',color:'var(--blue)'},
+    {num:hockeyH.toFixed(1)+'h',label:'Hoquei setmanal',color:'var(--red)'},
+    {num:robotH.toFixed(1)+'h',label:'Robotech setmanal',color:'var(--green)'},
+    {num:examList.filter(e=>!e.done).length,label:'Tasques pendents',color:'var(--yellow)'},
+    {num:progData.chapter+'/'+progData.total,label:progData.unit||'Capítol'+' actual',color:'var(--teal)'}
+  ];
   document.getElementById('stats-grid').innerHTML=stats.map(s=>
     `<div class="stat-card"><div class="stat-number" style="color:${s.color}">${s.num}</div><div class="stat-label">${s.label}</div></div>`
   ).join('');
@@ -2359,10 +2257,8 @@ function renderAIMessages() {
   const box = document.getElementById('ai-messages'); if(!box) return;
   const chips = document.getElementById('ai-chips');
   const chat = aiChats[aiCurrentChatId];
-  const L = currentLang||'ca';
-  const S = LANG_STRINGS[L]||LANG_STRINGS.ca;
   if(!chat||!chat.messages.length){
-    box.innerHTML=`<div class="ai-msg-empty">${S.ai_welcome||'Hola! Soc <strong>Julians</strong>, el teu assistent personal de <strong>JOmaxPath</strong>. 🧠<br><br>Puc ajudar-te a:<br><br><em>«Afegeix deep work avui de 17 a 19»</em><br><em>«Genera la meva setmana òptima»</em><br><em>«Afegeix examen de mates dijous»</em><br><br>Gestiono tasques, calendari, horari i molt més!'}</div>`;
+    box.innerHTML='<div class="ai-msg-empty">Hola! Soc <strong>Julians</strong>, el teu assistent personal de <strong>JOmaxPath</strong>. 🧠<br><br>Et puc ajudar a:<br><br><em>«Afegeix deep work avui de 17 a 19»</em><br><em>«Genera la meva setmana òptima»</em><br><em>«Afegeix examen de mates dijous»</em><br><br>Gestiono tasques, calendari, horari i molt més!</div>';
     if(chips) { chips.style.display='flex'; chips.style.opacity='1'; }
     return;
   }
@@ -2390,12 +2286,18 @@ function formatAIText(text) {
 
 function renderAISuggestions() {
   const chips = document.getElementById('ai-chips'); if(!chips) return;
-  const L = currentLang||'ca';
-  const S = LANG_STRINGS[L]||LANG_STRINGS.ca;
   const suggestions = [
-    S.ai_s1, S.ai_s2, S.ai_s3, S.ai_s4, S.ai_s5,
-    S.ai_s6, S.ai_s7, S.ai_s8, S.ai_s9, S.ai_s10
-  ].filter(Boolean);
+    'Afegeix deep work avui de 17:00 a 19:00',
+    'Genera la meva setmana òptima amb deep work',
+    'Afegeix sessió de gym dilluns, dimecres i divendres a les 7',
+    'Crea el meu horari setmanal complet',
+    'Afegeix tots els partits de la temporada',
+    'Afegeix examen de mates per dijous 5 de març',
+    'Mostra els meus events horaris d\'aquesta setmana',
+    'Marca la sessió d\'avui feta 🔥',
+    'Quin és el meu progrés?',
+    'Motiva\'m!'
+  ];
   chips.innerHTML = suggestions.map(s=>
     `<button class="ai-suggestion" onclick="useAISuggestion('${s.replace(/'/g,"\\'")}')">${s}</button>`
   ).join('');
@@ -2412,13 +2314,11 @@ function setAIMode(mode) {
   document.querySelectorAll('.ai-mode-btn').forEach(b=>b.classList.remove('active'));
   const btn = document.getElementById('mode-'+mode);
   if(btn) btn.classList.add('active');
-  const L = currentLang||'ca';
-  const S = LANG_STRINGS[L]||LANG_STRINGS.ca;
   const labels = {
-    rapid: S.ai_mode_rapid||'⚡ Respostes concises i immediates',
-    extens: S.ai_mode_extens||'📝 Respostes detallades i ben estructurades',
-    profund: S.ai_mode_profund||'🔬 Màxima precisió — pot trigar uns moments',
-    estudi: S.ai_mode_estudi||'📚 Pla · Resum · Pràctica — mode estudi activat'
+    rapid:'⚡ Respostes concises i immediates',
+    extens:'📝 Respostes detallades i ben estructurades',
+    profund:'🔬 Màxima precisió — pot trigar uns moments',
+    estudi:'📚 Pla · Resum · Pràctica — mode estudi activat'
   };
   const lbl = document.getElementById('ai-mode-label-txt');
   if(lbl) lbl.textContent = labels[mode]||'';
@@ -2930,11 +2830,11 @@ const DAILY_QUOTES = [
   {t:"El futur pertany als qui creuen en la bellesa dels seus somnis.", a:"ELEANOR ROOSEVELT"},
   {t:"Fes avui el que els altres no volen fer. Demà viuràs el que els altres no podran viure.", a:"JERRY RICE"},
   {t:"No et preocupis per fracassar. Preocupa't per les oportunitats que perds si ni ho intentes.", a:"JACK CANFIELD"},
-  {t:"El secret per avançar és començar. El secret per començar és dividir les tàsques complexes en petites gestionables.", a:"MARK TWAIN"},
+  {t:"El secret per avançar és començar. El secret per començar és dividir les tasques complexes en tasques petites i gestionables.", a:"MARK TWAIN"},
   {t:"La motivació et fa arrencar. L'hàbit et fa continuar.", a:"JIM RYUN"},
-  {t:"Éxit és la suma de petits esforços repetits dia rere dia.", a:"ROBERT COLLIER"},
+  {t:"Èxit és la suma de petits esforços repetits dia rere dia.", a:"ROBERT COLLIER"},
   {t:"No busquis el temps, crea'l.", a:"CHARLES BUXTON"},
-  {t:"Cada dia fa's una cosa que et fa por. Així creixeràs.", a:"ELEANOR ROOSEVELT"},
+  {t:"Cada dia fes una cosa que et fa por. Així creixeràs.", a:"ELEANOR ROOSEVELT"},
   {t:"La productivitat no es tracta de fer moltes coses. Es tracta de fer les coses correctes.", a:"UNKNOWN"},
   {t:"Un objectiu sense un pla és només un desig.", a:"ANTOINE DE SAINT-EXUPÉRY"},
   {t:"La clau no és dedicar prioritat al que tens a l'agenda, sinó planificar les prioritats.", a:"STEPHEN COVEY"},
@@ -2979,26 +2879,21 @@ function renderTodayDashboard() {
   const streakNum = parseInt(document.getElementById('streak-num')?.textContent||'0');
 
   const grid = document.getElementById('today-grid'); if(!grid) return;
-  const tdLbls = {
-    tasks: {ca:'Tasques pendents', es:'Tareas pendientes', en:'Pending tasks'},
-    events:{ca:'Events avui',      es:'Eventos hoy',      en:'Events today'},
-    pomos: {ca:'Pomodoros avui',   es:'Pomodoros hoy',    en:'Pomodoros today'}
-  };
   grid.innerHTML = `
     <div class="today-card">
       <div class="tc-icon">📋</div>
       <div class="tc-val" style="color:var(--yellow)">${pending}</div>
-      <div class="tc-lbl">${tdLbls.tasks[currentLang]||tdLbls.tasks.ca}</div>
+      <div class="tc-lbl">Tasques pendents</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">📅</div>
       <div class="tc-val" style="color:var(--accent2)">${evCount}</div>
-      <div class="tc-lbl">${tdLbls.events[currentLang]||tdLbls.events.ca}</div>
+      <div class="tc-lbl">Events avui</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">🍅</div>
       <div class="tc-val" style="color:var(--red)">${pomoToday}</div>
-      <div class="tc-lbl">${tdLbls.pomos[currentLang]||tdLbls.pomos.ca}</div>
+      <div class="tc-lbl">Pomodoros avui</div>
     </div>
   `;
   // Now indicator
@@ -3078,7 +2973,7 @@ function pomoTick() {
   if(pomoCurrent<=0) {
     clearInterval(pomoInterval); pomoRunning=false;
     if(pomoPhase==='focus') {
-      // Confetti burst
+      // Confetti i notificació
       const btn = document.getElementById('pomo-start');
       const rect = btn?.getBoundingClientRect();
       if(rect) burstConfetti(rect.left+rect.width/2, rect.top);
@@ -3087,15 +2982,30 @@ function pomoTick() {
       if(pomoData.lastDate!==today){pomoData.today=0;pomoData.week=0;pomoData.lastDate=today;}
       pomoData.today++; pomoData.total++;
       localStorage.setItem('pomo_v1',JSON.stringify(pomoData));
-      if(Notification.permission==='granted') new Notification('JOmaxPath 🍅',{body:`${pomoFocusMins}min session done! +${pomoFocusMins*2} XP`});
+      const notifBody = {ca:`Sessió de ${pomoFocusMins}min completada! Descans automàtic iniciat. 🍵`,es:`¡Sesión de ${pomoFocusMins}min completada! Descanso automático iniciado. 🍵`,en:`${pomoFocusMins}min session done! Break starting automatically. 🍵`}[currentLang||'ca'];
+      if(Notification.permission==='granted') new Notification('JOmaxPath 🍅',{body:notifBody});
+      // Mostrar toast de transició
+      const phaseMsg = {ca:'🍵 Descans! Temps de desconnectar.',es:'🍵 ¡Descanso! Tiempo de desconectar.',en:'🍵 Break time! Time to rest.'}[currentLang||'ca'];
+      showSyncToast(phaseMsg);
       pomoPhase = (pomoSessionsDone%pomoSessions===0)?'long-break':'break';
       pomoCurrent = (pomoPhase==='long-break'?pomoFocusMins*2:pomoBreakMins)*60;
     } else {
+      // Descans acabat → tornar a focus
       pomoPhase='focus'; pomoCurrent=pomoFocusMins*60;
+      const focusMsg = {ca:'⚡ Descans acabat! Focus iniciat.',es:'⚡ ¡Descanso acabado! Focus iniciado.',en:'⚡ Break over! Focus started.'}[currentLang||'ca'];
+      showSyncToast(focusMsg);
+      if(Notification.permission==='granted') {
+        const nb = {ca:'Tornada al focus! Concentra-te.',es:'¡Vuelve al foco! Concéntrate.',en:'Back to focus! Concentrate.'}[currentLang||'ca'];
+        new Notification('JOmaxPath ⚡',{body:nb});
+      }
     }
-    document.getElementById('pomo-start').textContent=t('pomo_start');
-    document.getElementById('pomo-start').className='pomo-btn start';
     updatePomoDisplay(); renderTodayDashboard(); checkPomoRewards();
+    // ── AUTO-START: arrancar automàticament la fase següent ──
+    const startBtn = document.getElementById('pomo-start');
+    if(startBtn) { startBtn.textContent=t('pomo_pause'); startBtn.className='pomo-btn pause'; }
+    pomoRunning=true;
+    clearInterval(pomoInterval);
+    pomoInterval=setInterval(function(){ pomoTick(); },1000);
     return;
   }
   updatePomoDisplay();
@@ -4601,29 +4511,6 @@ const LANG_STRINGS = {
     pomo_today:'avui', pomo_week:'setmana', pomo_total:'total',
     spotify_ph:"Enganxa l'URL de Spotify...",
     lang_label:'Idioma',
-    // Progrés
-    prog_prev:'← Anterior',
-    prog_next:'Capítol completat ✓ →',
-    // AI Julians
-    ai_sidebar_title:'Xats',
-    ai_new_chat:'Nou xat',
-    chat_placeholder:'Pregunta a Julians... o adjunta un PDF 📎',
-    ai_mode_rapid:'⚡ Respostes concises i immediates',
-    ai_mode_extens:'📝 Respostes detallades i ben estructurades',
-    ai_mode_profund:'🔬 Màxima precisió — pot trigar uns moments',
-    ai_mode_estudi:'📚 Pla · Resum · Pràctica — mode estudi activat',
-    ai_welcome:'Hola! Soc <strong>Julians</strong>, el teu assistent personal de <strong>JOmaxPath</strong>. 🧠<br><br>Puc ajudar-te a:<br><br><em>«Afegeix deep work avui de 17 a 19»</em><br><em>«Genera la meva setmana òptima»</em><br><em>«Afegeix examen de mates dijous»</em><br><br>Gestiono tasques, calendari, horari i molt més!',
-    // Suggestions Julians
-    ai_s1:"Afegeix deep work avui de 17:00 a 19:00",
-    ai_s2:'Genera la meva setmana òptima amb deep work',
-    ai_s3:'Afegeix sessió de gym dilluns, dimecres i divendres a les 7',
-    ai_s4:'Crea el meu horari setmanal complet',
-    ai_s5:'Afegeix tots els partits de la temporada',
-    ai_s6:"Afegeix examen de mates per dijous 5 de març",
-    ai_s7:"Mostra els meus events horaris d'aquesta setmana",
-    ai_s8:"Marca la sessió d'avui feta 🔥",
-    ai_s9:'Quin és el meu progrés?',
-    ai_s10:"Motiva'm!",
   },
   es: {
     nav_home:'INICIO', nav_horari:'HORARIO', nav_tasques:'TAREAS',
@@ -4665,28 +4552,6 @@ const LANG_STRINGS = {
     pomo_today:'hoy', pomo_week:'semana', pomo_total:'total',
     spotify_ph:'Pega la URL de Spotify...',
     lang_label:'Idioma',
-    // Progreso
-    prog_prev:'← Anterior',
-    prog_next:'Capítulo completado ✓ →',
-    // AI Julians
-    ai_sidebar_title:'Chats',
-    ai_new_chat:'Nuevo chat',
-    chat_placeholder:'Pregunta a Julians... o adjunta un PDF 📎',
-    ai_mode_rapid:'⚡ Respuestas concisas e inmediatas',
-    ai_mode_extens:'📝 Respuestas detalladas y bien estructuradas',
-    ai_mode_profund:'🔬 Máxima precisión — puede tardar unos momentos',
-    ai_mode_estudi:'📚 Plan · Resumen · Práctica — modo estudio activado',
-    ai_welcome:'¡Hola! Soy <strong>Julians</strong>, tu asistente personal de <strong>JOmaxPath</strong>. 🧠<br><br>Puedo ayudarte a:<br><br><em>«Añade deep work hoy de 17 a 19»</em><br><em>«Genera mi semana óptima»</em><br><em>«Añade examen de mates el jueves»</em><br><br>¡Gestiono tareas, calendario, horario y mucho más!',
-    ai_s1:'Añade deep work hoy de 17:00 a 19:00',
-    ai_s2:'Genera mi semana óptima con deep work',
-    ai_s3:'Añade sesión de gym lunes, miércoles y viernes a las 7',
-    ai_s4:'Crea mi horario semanal completo',
-    ai_s5:'Añade todos los partidos de la temporada',
-    ai_s6:'Añade examen de mates para el jueves 5 de marzo',
-    ai_s7:'Muestra mis eventos horarios de esta semana',
-    ai_s8:'Marca la sesión de hoy como hecha 🔥',
-    ai_s9:'¿Cuál es mi progreso?',
-    ai_s10:'¡Motívame!',
   },
   en: {
     nav_home:'HOME', nav_horari:'SCHEDULE', nav_tasques:'TASKS',
@@ -4728,28 +4593,6 @@ const LANG_STRINGS = {
     pomo_today:'today', pomo_week:'week', pomo_total:'total',
     spotify_ph:'Paste Spotify URL...',
     lang_label:'Language',
-    // Progress
-    prog_prev:'← Previous',
-    prog_next:'Chapter done ✓ →',
-    // AI Julians
-    ai_sidebar_title:'Chats',
-    ai_new_chat:'New chat',
-    chat_placeholder:'Ask Julians... or attach a PDF 📎',
-    ai_mode_rapid:'⚡ Concise and immediate responses',
-    ai_mode_extens:'📝 Detailed and well-structured responses',
-    ai_mode_profund:'🔬 Maximum precision — may take a moment',
-    ai_mode_estudi:'📚 Plan · Summary · Practice — study mode on',
-    ai_welcome:'Hi! I\'m <strong>Julians</strong>, your personal assistant at <strong>JOmaxPath</strong>. 🧠<br><br>I can help you:<br><br><em>«Add deep work today from 5pm to 7pm»</em><br><em>«Generate my optimal week»</em><br><em>«Add math exam on Thursday»</em><br><br>I manage tasks, calendar, schedule and much more!',
-    ai_s1:'Add deep work today from 17:00 to 19:00',
-    ai_s2:'Generate my optimal week with deep work',
-    ai_s3:'Add gym session Monday, Wednesday and Friday at 7',
-    ai_s4:'Create my complete weekly schedule',
-    ai_s5:'Add all season matches',
-    ai_s6:'Add math exam for Thursday March 5th',
-    ai_s7:"Show my timed events this week",
-    ai_s8:"Mark today's session as done 🔥",
-    ai_s9:'What is my progress?',
-    ai_s10:'Motivate me!',
   }
 };
 let currentLang = localStorage.getItem('jomaxpath_lang') || 'ca';
@@ -4947,22 +4790,6 @@ function applyLanguage(lang) {
   if(typeof renderCalendar==='function') renderCalendar();
   if(typeof renderNextUp==='function') renderNextUp();
   if(typeof renderVictories==='function') renderVictories();
-
-  // === 15. Re-render traduïts dinàmicament ===
-  if(typeof renderTodayDashboard==='function') renderTodayDashboard();
-  if(typeof renderStats==='function') renderStats();
-  if(typeof renderWeekDates==='function') renderWeekDates();
-  if(typeof renderWeekGrid==='function') renderWeekGrid();
-  if(typeof renderProgress==='function') renderProgress();
-  if(typeof renderAIMessages==='function') renderAIMessages();
-  if(typeof renderAISuggestions==='function') renderAISuggestions();
-  if(typeof setAIMode==='function') setAIMode(window.aiMode||'rapid');
-
-  // === 16. Sidebar Julians: títol i placeholder ===
-  const aiTitle = document.getElementById('ai-sidebar-title-txt');
-  if(aiTitle) aiTitle.textContent = s.ai_sidebar_title||'Xats';
-  const aiInput = document.getElementById('ai-chat-input');
-  if(aiInput) aiInput.placeholder = s.chat_placeholder||'Pregunta a Julians...';
 }
 
 // Add language switcher to nav drawer after themes section
@@ -4989,6 +4816,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════════════════
 //  SUPABASE AUTH & SYNC
 // ══════════════════════════════════════════════════════
+// SETUP SQL necessari a Supabase (executa un cop al SQL Editor):
+// 1) Taula user_data (dades personals): ja existent
+// 2) Taula shared_boards (tasques compartides):
+//    CREATE TABLE IF NOT EXISTS shared_boards (
+//      id TEXT PRIMARY KEY,
+//      data JSONB,
+//      updated_at TIMESTAMPTZ DEFAULT now()
+//    );
+//    ALTER TABLE shared_boards ENABLE ROW LEVEL SECURITY;
+//    CREATE POLICY "allow_all_auth" ON shared_boards FOR ALL TO authenticated USING (true);
+// ── IMPORTANT: Substitueix SUPA_KEY per la teva clau anon JWT (comença per eyJ...)
 const SUPA_URL = 'https://fcoitcesjyjkfcqwrblm.supabase.co';
 const SUPA_KEY = 'sb_publishable_TNIAnxpoDBZjmSPcua6SnQ_m8hTX2sj';
 
@@ -5152,12 +4990,18 @@ async function saveToSupabase() {
     const v = localStorage.getItem(k);
     if(v) try { data[k] = JSON.parse(v); } catch(e) { data[k] = v; }
   });
-  // Protecció: no guardar si les dades són completament buides
-  // (evita sobreescriure dades del servidor amb un localStorage buit)
-  const hasData = Object.keys(data).length > 0;
-  if(!hasData) {
-    console.warn('[Supabase] Save ignorat: localStorage buit. Carregant del servidor...');
+  // Protecció: no guardar si localStorage és completament buit
+  // (evita sobreescriure dades del servidor quan s'obre en un dispositiu nou)
+  const hasRealData = Object.keys(data).length > 0 &&
+    Object.values(data).some(v => {
+      if(Array.isArray(v)) return v.length > 0;
+      if(typeof v === 'object' && v !== null) return Object.keys(v).length > 0;
+      return !!v;
+    });
+  if(!hasRealData) {
+    console.warn('[Supabase] Save ignorat: sense dades locals. Carregant del servidor...');
     setSyncDot('');
+    await loadFromSupabase();
     return;
   }
   const { error } = await supa.from('user_data').upsert({
@@ -5177,13 +5021,14 @@ async function loadFromSupabase() {
   const { data, error } = await supa.from('user_data').select('data').eq('user_id', supaUser.id).single();
   setSyncDot(error ? 'offline' : '');
   if(error) {
-    // PGRST116 = fila no trobada = compte nou sense dades → guardar les actuals
-    // Qualsevol ALTRE error = problema de xarxa/clau → NO sobreescriure res
     if(error.code === 'PGRST116') {
-      await saveToSupabase(); // primer login real → guardar dades locals
+      // Fila no trobada = compte nou → guardar dades locals actuals
+      console.log('[Supabase] Compte nou, guardant dades inicials...');
+      await saveToSupabase();
     } else {
+      // Error de connexió/auth → NO sobreescriure les dades del servidor amb localStorage buit
       console.warn('[Supabase] Error carregant:', error.message);
-      showSyncToast('⚠️ Error de connexió. Les dades locals no s\'han sobrescrit.');
+      showSyncToast('⚠️ Error de connexió. Les dades locals estan mantingudes.');
     }
     return;
   }
@@ -5235,6 +5080,8 @@ async function loadFromSupabase() {
   renderExams(); renderNextUp(); renderCalendar();
   renderMatches(); renderVictories(); renderAllDayEvents(); renderAISidebar();
   showSyncToast('📥 Dades carregades');
+  // Carregar taulers compartits en segon pla
+  setTimeout(async()=>{ await loadBoardsFromSupabase(); }, 500);
 }
 
 // ── Auto-sync: debounce quan canvia localStorage ─────
@@ -5277,10 +5124,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Escolta canvis d'autenticació
-  supa.auth.onAuthStateChange((event, session) => {
+  supa.auth.onAuthStateChange(async (event, session) => {
     if(event === 'SIGNED_IN' && session?.user) {
       supaUser = session.user;
       updateAuthIndicator();
+      // Carregar taulers compartits en iniciar sessió
+      setTimeout(async()=>{ await loadBoardsFromSupabase(); }, 1000);
     } else if(event === 'SIGNED_OUT') {
       supaUser = null;
       updateAuthIndicator();
@@ -5561,4 +5410,330 @@ document.addEventListener('DOMContentLoaded', function() {
   if(notifEnabled && Notification.permission === 'granted') {
     scheduleNotifications();
   }
+});
+
+// ══════════════════════════════════════════════════════
+//  KANBAN — LLISTES COMPARTIDES
+// ══════════════════════════════════════════════════════
+
+// ── Estat ──────────────────────────────────────────────
+let tasksMode = 'personal'; // 'personal' | 'shared'
+let sharedBoards = {}; // { boardId: { id, name, desc, members:[], tasks:{}, createdBy, createdAt } }
+let activeBoardId = null;
+let detailTaskId = null;
+let detailBoardId = null;
+let btUrgency = 'green';
+let btEditingColStatus = 'todo';
+
+// ── Mode switcher ──────────────────────────────────────
+function setTasksMode(mode) {
+  tasksMode = mode;
+  document.getElementById('tmode-personal').classList.toggle('active', mode==='personal');
+  document.getElementById('tmode-shared').classList.toggle('active', mode==='shared');
+  document.getElementById('tasks-personal-view').style.display = mode==='personal' ? '' : 'none';
+  document.getElementById('tasks-shared-view').style.display = mode==='shared' ? '' : 'none';
+  if(mode==='shared') renderSharedBoards();
+}
+
+// ── Persistència local (offline) ───────────────────────
+function loadSharedBoards() {
+  sharedBoards = JSON.parse(localStorage.getItem('shared_boards_v1') || '{}');
+}
+function saveSharedBoardsLocal() {
+  localStorage.setItem('shared_boards_v1', JSON.stringify(sharedBoards));
+}
+
+// ── Supabase: guardar tauler (taula shared_boards) ─────
+async function syncBoardToSupabase(boardId) {
+  if(!supa || !supaUser) return;
+  const board = sharedBoards[boardId];
+  if(!board) return;
+  try {
+    await supa.from('shared_boards').upsert({
+      id: boardId,
+      data: board,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch(e) { console.warn('[Kanban] Error sync:', e); }
+}
+
+async function loadBoardsFromSupabase() {
+  if(!supa || !supaUser) return;
+  try {
+    // Carregar taulers on l'usuari és membre o creador
+    const email = supaUser.email;
+    const { data, error } = await supa.from('shared_boards').select('id, data');
+    if(error) { console.warn('[Kanban] Error carregant taulers:', error.message); return; }
+    if(!data) return;
+    data.forEach(row => {
+      const b = row.data;
+      if(!b) return;
+      // Mostrar si és creador o membre
+      const isMember = (b.createdBy === email) || (b.members||[]).includes(email);
+      if(isMember) sharedBoards[row.id] = b;
+    });
+    saveSharedBoardsLocal();
+  } catch(e) { console.warn('[Kanban] Error carregant:', e); }
+}
+
+// ── Renderitzar llista de taulers ─────────────────────
+function renderSharedBoards() {
+  const view = document.getElementById('shared-boards-list-view');
+  const detail = document.getElementById('shared-board-detail');
+  if(activeBoardId) {
+    view.style.display='none'; detail.style.display='';
+    renderBoardDetail(activeBoardId);
+  } else {
+    view.style.display=''; detail.style.display='none';
+    const grid = document.getElementById('shared-boards-grid');
+    if(!grid) return;
+    const ids = Object.keys(sharedBoards);
+    if(!ids.length) {
+      grid.innerHTML = `<div class="board-empty-state"><div class="board-empty-icon">🤝</div><p>Encara no tens cap llista compartida.<br>Crea'n una nova o espera ser convidat/da.</p></div>`;
+      return;
+    }
+    grid.innerHTML = `<div class="boards-grid">${ids.map(id=>{
+      const b = sharedBoards[id];
+      const taskCount = Object.keys(b.tasks||{}).length;
+      const memberCount = (b.members||[]).length + 1;
+      return `<div class="board-card" onclick="openBoardDetail('${id}')">
+        <button class="board-card-del" onclick="event.stopPropagation();deleteBoard('${id}')" title="Eliminar">🗑</button>
+        <div class="board-card-name">${b.name}</div>
+        <div class="board-card-desc">${b.desc||''}</div>
+        <div class="board-card-meta">
+          <span>📋 ${taskCount} tasca${taskCount!==1?'s':''}</span>
+          <span>👥 ${memberCount} membre${memberCount!==1?'s':''}</span>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+}
+
+function openBoardDetail(boardId) {
+  activeBoardId = boardId;
+  renderSharedBoards();
+}
+function closeBoardDetail() {
+  activeBoardId = null;
+  renderSharedBoards();
+}
+
+// ── Renderitzar detall (Kanban) ────────────────────────
+function renderBoardDetail(boardId) {
+  const board = sharedBoards[boardId];
+  if(!board) return;
+  const detail = document.getElementById('shared-board-detail');
+
+  const cols = [
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+  ];
+
+  const tasks = board.tasks || {};
+  const memberList = [board.createdBy, ...(board.members||[])].filter(Boolean).join(' · ');
+
+  detail.innerHTML = `
+    <div class="board-detail-header">
+      <button class="board-back-btn" onclick="closeBoardDetail()">← Tornar</button>
+      <div>
+        <div class="board-detail-name">${board.name}</div>
+        <div class="board-members-row">👥 ${memberList}</div>
+      </div>
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
+    </div>
+    <div class="kanban-board">
+      ${cols.map(col => {
+        const colTasks = Object.values(tasks).filter(t=>t.status===col.id);
+        colTasks.sort((a,b)=>{ const ord={red:0,yellow:1,green:2}; return (ord[a.urgency]||1)-(ord[b.urgency]||1); });
+        return `<div class="kanban-col ${col.cls}" id="kcol-${col.id}">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">${col.label}</span>
+            <span class="kanban-col-count">${colTasks.length}</span>
+          </div>
+          ${colTasks.map(task=>renderKanbanCard(task)).join('')}
+          <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">+ Afegir tasca</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderKanbanCard(task) {
+  const today = toLocalDateKey(new Date());
+  const isOverdue = task.due && task.due < today && task.status !== 'done';
+  const hasNotes = task.notes && task.notes.length > 0;
+  const dueLabel = task.due ? `📅 ${task.due}` : '';
+  return `<div class="kanban-task-card urg-${task.urgency||'green'}" onclick="openTaskDetail('${activeBoardId}','${task.id}')">
+    <div class="kcard-title">${task.title}</div>
+    <div class="kcard-meta">
+      <span class="kcard-urgency-dot urg-${task.urgency||'green'}"></span>
+      ${task.assignee ? `<span class="kcard-assignee">👤 ${task.assignee}</span>` : ''}
+      ${dueLabel ? `<span class="kcard-due${isOverdue?' overdue':''}">${dueLabel}</span>` : ''}
+      ${hasNotes ? `<span class="kcard-note-icon" title="${task.notes.length} nota${task.notes.length>1?'s':''}">💬 ${task.notes.length}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+// ── Modals tauler ──────────────────────────────────────
+function openCreateBoardModal() {
+  document.getElementById('board-name-inp').value='';
+  document.getElementById('board-desc-inp').value='';
+  document.getElementById('board-members-inp').value='';
+  document.getElementById('board-modal-title').textContent='Nova llista compartida';
+  document.getElementById('board-modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('board-name-inp').focus(), 80);
+}
+function closeBoardModal() {
+  document.getElementById('board-modal-overlay').style.display='none';
+}
+function saveBoardModal() {
+  const name = document.getElementById('board-name-inp').value.trim();
+  if(!name) { document.getElementById('board-name-inp').focus(); return; }
+  const desc = document.getElementById('board-desc-inp').value.trim();
+  const rawMembers = document.getElementById('board-members-inp').value.trim();
+  const members = rawMembers ? rawMembers.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+
+  const boardId = 'board_' + Date.now();
+  sharedBoards[boardId] = {
+    id: boardId,
+    name, desc, members,
+    tasks: {},
+    createdBy: supaUser?.email || 'local',
+    createdAt: new Date().toISOString()
+  };
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(boardId);
+  closeBoardModal();
+  renderSharedBoards();
+}
+function deleteBoard(boardId) {
+  if(!confirm('Vols eliminar aquesta llista i totes les seves tasques?')) return;
+  delete sharedBoards[boardId];
+  saveSharedBoardsLocal();
+  if(supa && supaUser) {
+    supa.from('shared_boards').delete().eq('id', boardId).then(()=>{});
+  }
+  if(activeBoardId===boardId) activeBoardId=null;
+  renderSharedBoards();
+}
+
+// ── Modal nova tasca ───────────────────────────────────
+function openBoardTaskModal(colStatus) {
+  btEditingColStatus = colStatus || 'todo';
+  btUrgency = 'green';
+  document.getElementById('bt-title-inp').value='';
+  document.getElementById('bt-desc-inp').value='';
+  document.getElementById('bt-assignee-inp').value='';
+  document.getElementById('bt-due-inp').value='';
+  document.querySelectorAll('.bt-urg-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.bt-urg-btn[data-u="green"]').classList.add('active');
+  document.getElementById('board-task-modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('bt-title-inp').focus(), 80);
+}
+function closeBoardTaskModal() {
+  document.getElementById('board-task-modal-overlay').style.display='none';
+}
+function selectBtUrgency(btn) {
+  btUrgency = btn.dataset.u;
+  document.querySelectorAll('.bt-urg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function saveBoardTask() {
+  const title = document.getElementById('bt-title-inp').value.trim();
+  if(!title) { document.getElementById('bt-title-inp').focus(); return; }
+  if(!activeBoardId) return;
+  const board = sharedBoards[activeBoardId];
+  const taskId = 'task_' + Date.now();
+  board.tasks[taskId] = {
+    id: taskId,
+    title,
+    desc: document.getElementById('bt-desc-inp').value.trim(),
+    assignee: document.getElementById('bt-assignee-inp').value.trim(),
+    due: document.getElementById('bt-due-inp').value,
+    urgency: btUrgency,
+    status: btEditingColStatus,
+    notes: [],
+    createdAt: new Date().toISOString(),
+    createdBy: supaUser?.email || 'local'
+  };
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(activeBoardId);
+  closeBoardTaskModal();
+  renderBoardDetail(activeBoardId);
+}
+
+// ── Detall de tasca ────────────────────────────────────
+function openTaskDetail(boardId, taskId) {
+  detailBoardId = boardId;
+  detailTaskId = taskId;
+  const task = sharedBoards[boardId]?.tasks[taskId];
+  if(!task) return;
+
+  const urgLabels = {green:'🟢 Baixa', yellow:'🟡 Mitjana', red:'🔴 Alta'};
+  const urgColors = {green:'#6ee7b7', yellow:'#fcd34d', red:'#f87171'};
+
+  document.getElementById('tdm-urgency-bar').style.background = urgColors[task.urgency||'green'];
+  document.getElementById('tdm-title').textContent = task.title;
+  document.getElementById('tdm-desc').textContent = task.desc || '—';
+  document.getElementById('tdm-assignee').textContent = task.assignee || '—';
+  document.getElementById('tdm-due').textContent = task.due || '—';
+  document.getElementById('tdm-urgency').textContent = urgLabels[task.urgency||'green'];
+  document.getElementById('tdm-status').value = task.status;
+
+  renderTaskNotes(task);
+  document.getElementById('task-detail-overlay').style.display='flex';
+}
+function closeTaskDetail() {
+  document.getElementById('task-detail-overlay').style.display='none';
+  detailBoardId=null; detailTaskId=null;
+}
+function renderTaskNotes(task) {
+  const list = document.getElementById('tdm-notes-list');
+  const notes = task.notes || [];
+  list.innerHTML = notes.length ? notes.map((n,i)=>`
+    <div class="tdm-note-item">
+      <span style="flex:1">${n.text}</span>
+      <span style="font-size:10px;color:var(--muted);margin-right:6px;">${n.author||''} · ${(n.date||'').slice(0,10)}</span>
+      <button class="tdm-note-del" onclick="deleteTaskNote(${i})">×</button>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:4px 0;">Sense notes.</div>';
+}
+function addNoteToTask() {
+  const inp = document.getElementById('tdm-note-inp');
+  const text = inp.value.trim();
+  if(!text) return;
+  const task = sharedBoards[detailBoardId]?.tasks[detailTaskId];
+  if(!task) return;
+  if(!task.notes) task.notes=[];
+  task.notes.push({ text, author: supaUser?.email||'jo', date: new Date().toISOString() });
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(detailBoardId);
+  inp.value='';
+  renderTaskNotes(task);
+  renderBoardDetail(detailBoardId);
+}
+function deleteTaskNote(idx) {
+  const task = sharedBoards[detailBoardId]?.tasks[detailTaskId];
+  if(!task?.notes) return;
+  task.notes.splice(idx,1);
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(detailBoardId);
+  renderTaskNotes(task);
+  renderBoardDetail(detailBoardId);
+}
+function updateTaskStatusFromDetail(newStatus) {
+  const task = sharedBoards[detailBoardId]?.tasks[detailTaskId];
+  if(!task) return;
+  task.status = newStatus;
+  saveSharedBoardsLocal();
+  syncBoardToSupabase(detailBoardId);
+  renderBoardDetail(detailBoardId);
+}
+
+// ── Init Kanban ────────────────────────────────────────
+loadSharedBoards();
+// Si l'usuari ja ha iniciat sessió, carregar els taulers del servidor
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(async () => {
+    if(supa && supaUser) await loadBoardsFromSupabase();
+  }, 2000);
 });
