@@ -2691,3 +2691,12 @@ select option {
   background: #13132a !important;
   color: var(--text) !important;
 }
+
+/* ── Nom dia clicable ── */
+.day-name {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.day-name:hover {
+  color: var(--accent2);
+}
