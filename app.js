@@ -308,19 +308,20 @@ function navTo(page) {
   if(target) target.classList.add('page-active');
   // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
   document.body.classList.toggle('on-julians', page === 'julians');
-  if (page === 'julians') {
-    // Scroll instantani al final quan s'entra a Julians
-    requestAnimationFrame(() => scrollToBottom(false));
-    setTimeout(() => scrollToBottom(false), 100);
-    setTimeout(() => scrollToBottom(false), 300);
-  }
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
     b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
   });
   document.querySelectorAll('#nav-drawer .ndw-item').forEach((item,i) => {
     item.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
   });
-  window.scrollTo({top:0,behavior:'smooth'});
+  if (page === 'julians') {
+    // No fem scroll a dalt — volem quedar-nos al final del xat
+    setTimeout(() => scrollToBottom(false), 50);
+    setTimeout(() => scrollToBottom(false), 200);
+    setTimeout(() => scrollToBottom(false), 500);
+  } else {
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
   const drawer = document.getElementById('nav-drawer');
   if(drawer && drawer.classList.contains('open')) toggleDrawer();
 }
@@ -2587,29 +2588,25 @@ function scrollToBottom(animate=true) {
   const box = document.getElementById('ai-messages');
   if (!box) return;
 
-  const goDown = (smooth) => {
-    // Intenta scroll intern del box (quan té alçada limitada)
-    if (smooth) {
-      box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
-    } else {
-      box.scrollTop = box.scrollHeight;
-    }
+  const doScroll = (smooth) => {
+    // Prova 1: scroll intern del box (si té overflow propi)
+    box.scrollTop = box.scrollHeight;
+
+    // Prova 2: scroll de la finestra fins al final del box
+    const rect = box.getBoundingClientRect();
+    const absBottom = window.scrollY + rect.bottom;
+    window.scrollTo({ top: absBottom - window.innerHeight + 80, behavior: smooth ? 'smooth' : 'instant' });
   };
 
   if (animate) {
-    goDown(true);
-    requestAnimationFrame(() => {
-      goDown(true);
-      setTimeout(() => goDown(true), 200);
-      setTimeout(() => goDown(true), 500);
-    });
+    doScroll(true);
+    setTimeout(() => doScroll(true), 100);
+    setTimeout(() => doScroll(true), 300);
   } else {
-    // Instantani: força amb scrollTop directe (més fiable)
     requestAnimationFrame(() => {
-      box.scrollTop = box.scrollHeight;
-      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
-      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 150);
-      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 400);
+      doScroll(false);
+      setTimeout(() => doScroll(false), 100);
+      setTimeout(() => doScroll(false), 300);
     });
   }
 }
