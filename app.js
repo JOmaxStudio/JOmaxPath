@@ -2586,18 +2586,31 @@ function clearCurrentChat() {
 function scrollToBottom(animate=true) {
   const box = document.getElementById('ai-messages');
   if (!box) return;
-  const doScroll = (behavior) => box.scrollTo({ top: box.scrollHeight, behavior });
+
+  const goDown = (smooth) => {
+    // Intenta scroll intern del box (quan té alçada limitada)
+    if (smooth) {
+      box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+    } else {
+      box.scrollTop = box.scrollHeight;
+    }
+  };
+
   if (animate) {
-    // Scroll suau — múltiples intents per garantir que el DOM ha acabat de pintar
-    doScroll('smooth');
+    goDown(true);
     requestAnimationFrame(() => {
-      doScroll('smooth');
-      setTimeout(() => doScroll('smooth'), 150);
-      setTimeout(() => doScroll('smooth'), 350);
+      goDown(true);
+      setTimeout(() => goDown(true), 200);
+      setTimeout(() => goDown(true), 500);
     });
   } else {
-    // Scroll instantani (càrrega inicial o canvi de xat)
-    doScroll('instant');
+    // Instantani: força amb scrollTop directe (més fiable)
+    requestAnimationFrame(() => {
+      box.scrollTop = box.scrollHeight;
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 150);
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 400);
+    });
   }
 }
 
