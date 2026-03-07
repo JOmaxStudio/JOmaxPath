@@ -217,21 +217,54 @@ body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
 body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 
 /* ══════════════════════════════════════════════════════════════
-   MODE ESTRET (layout-narrow)
+   MODE ESTRET — vista centrada (max 700px, 1 columna)
 ══════════════════════════════════════════════════════════════ */
 body.layout-narrow .container {
-  max-width: 680px !important;
+  max-width: 700px !important;
   margin-left: auto !important;
   margin-right: auto !important;
-  padding: 28px 24px 48px !important;
 }
 body.layout-narrow { font-size: 17px !important; }
 body.layout-narrow .home-two-col,
 body.layout-narrow .focus-two-col,
-body.layout-narrow .cal-two-col { grid-template-columns: 1fr !important; }
-body.layout-narrow .week-grid   { grid-template-columns: repeat(2, 1fr) !important; }
+body.layout-narrow .cal-two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; }
+body.layout-narrow .week-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; }
 body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
-body.layout-narrow .stats-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+body.layout-narrow .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   MODE AMPLE — tot l'espai disponible (per defecte)
+══════════════════════════════════════════════════════════════ */
+body:not(.layout-narrow) .container {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 32px 36px 48px !important;
+}
+@media(max-width:600px) {
+  body:not(.layout-narrow) .container { padding: 16px 12px 32px !important; }
+}
+body:not(.layout-narrow) .home-two-col,
+body:not(.layout-narrow) .focus-two-col,
+body:not(.layout-narrow) .cal-two-col {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 28px !important;
+  align-items: start !important;
+}
+body:not(.layout-narrow) .week-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 10px !important;
+}
+@media(max-width:1200px) {
+  body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
+@media(max-width:700px) {
+  body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  body:not(.layout-narrow) .home-two-col,
+  body:not(.layout-narrow) .focus-two-col,
+  body:not(.layout-narrow) .cal-two-col { grid-template-columns: 1fr !important; }
+}
 
 /* Botons amplada al drawer */
 .ndw-layout-btn {
@@ -247,7 +280,7 @@ body.layout-narrow .stats-grid  { grid-template-columns: repeat(2, 1fr) !importa
   font-family: inherit !important;
 }
 .ndw-layout-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; color: var(--text) !important; }
-.ndw-layout-btn.ndw-active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
+.ndw-layout-btn.ndw-active { background: color-mix(in srgb, var(--accent) 22%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
 
 </style>
 <!-- LAYOUT-FIX-END -->
@@ -1380,38 +1413,29 @@ body.layout-narrow .stats-grid  { grid-template-columns: repeat(2, 1fr) !importa
 <script src="app.js" defer></script>
 <script>
 // ── Layout Width: Ample / Estret ──
-function setLayoutWidth(mode) {
-  localStorage.setItem('layout_width', mode);
-  applyLayoutWidth(mode);
-  var drawer = document.getElementById('nav-drawer');
-  if(drawer && drawer.classList.contains('open')) {
-    if(typeof toggleDrawer === 'function') toggleDrawer();
-  }
+// S'executa immediatament, NO depèn de app.js
+function setLayoutWidth(w) {
+  localStorage.setItem('layout_width', w);
+  _applyLW(w);
+  // tanca drawer si és obert
+  setTimeout(function() {
+    var d = document.getElementById('nav-drawer');
+    if(d && d.classList.contains('open') && typeof toggleDrawer==='function') toggleDrawer();
+  }, 50);
 }
-function applyLayoutWidth(mode) {
-  if(mode === 'narrow') {
-    document.body.classList.add('layout-narrow');
-  } else {
-    document.body.classList.remove('layout-narrow');
-  }
-  var btnWide   = document.getElementById('ndw-layout-wide');
-  var btnNarrow = document.getElementById('ndw-layout-narrow');
-  if(btnWide) {
-    btnWide.classList.toggle('ndw-active', mode !== 'narrow');
-  }
-  if(btnNarrow) {
-    btnNarrow.classList.toggle('ndw-active', mode === 'narrow');
-  }
+function _applyLW(w) {
+  document.body.classList.toggle('layout-narrow', w === 'narrow');
+  var bW = document.getElementById('ndw-layout-wide');
+  var bN = document.getElementById('ndw-layout-narrow');
+  if(bW) bW.classList.toggle('ndw-active', w !== 'narrow');
+  if(bN) bN.classList.toggle('ndw-active', w === 'narrow');
 }
-// Aplicar preferència desada al carregar
-(function() {
-  var saved = localStorage.getItem('layout_width') || 'wide';
-  applyLayoutWidth(saved);
-  // Re-aplicar quan el DOM estigui llest del tot
-  document.addEventListener('DOMContentLoaded', function() {
-    applyLayoutWidth(localStorage.getItem('layout_width') || 'wide');
-  });
-})();
+// Aplicar de seguida (abans que carregui app.js)
+_applyLW(localStorage.getItem('layout_width') || 'wide');
+// Tornar a aplicar quan el DOM estigui llest (per si els botons no existien)
+document.addEventListener('DOMContentLoaded', function() {
+  _applyLW(localStorage.getItem('layout_width') || 'wide');
+});
 </script>
 </body>
 </html>
