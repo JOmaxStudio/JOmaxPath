@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOmaxPath</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="favicon.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head><body class="view-pages">
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div id="auth-overlay">
+  <div id="auth-box">
+    <div id="auth-logo">
+      <div class="bolt">⚡</div>
+      <h2>JOMAXPATH</h2>
+      <p>ORGANITZA · PLANIFICA · ACONSEGUEIX</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">ENTRAR</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTRAR</div>
+    </div>
+    <div id="auth-login-form">
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email"/></div>
+      <div class="auth-field"><label>CONTRASENYA</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"/></div>
+      <button class="auth-btn" id="auth-submit-btn" onclick="authLogin()">ENTRAR</button>
+    </div>
+    <div id="auth-register-form" style="display:none">
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email"/></div>
+      <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password"/></div>
+      <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()">CREAR COMPTE</button>
+    </div>
+    <div id="auth-msg"></div>
+    <div class="auth-divider"><span>o</span></div>
+    <div class="auth-skip" onclick="authSkip()">Continuar sense compte (dades locals)</div>
+  </div>
+</div>
+
+<!-- User indicator -->
+
+
+<!-- Sync toast -->
+<div id="sync-toast">⚡ Sincronitzat</div>
+
+<!-- Clock -->
+<div id="nav-clock" onclick="openClockFullscreen()" ondblclick="toggleClockSeconds();event.stopPropagation();" title="Clic: pantalla completa · Doble clic: amagar/mostrar segons">--:--</div>
+
+<!-- Hamburger -->
+<div class="side-deco side-deco-left"></div>
+<div class="side-deco side-deco-right"></div>
+<button id="nav-hamburger" onclick="toggleDrawer()" aria-label="Menú">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Nav overlay + drawer -->
+<div id="nav-overlay" onclick="toggleDrawer()"></div>
+<div id="nav-drawer">
+  <div class="ndw-header" style="flex-direction:row;align-items:center;">
+    <div class="ndw-logo">📅</div>
+    <div style="flex:1"><div class="ndw-title">JOmaxPath</div><div class="ndw-sub" id="drawer-sub">El teu espai</div></div>
+  </div>
+  <!-- Auth: sessió activa -->
+  <div id="auth-indicator" onclick="authShowMenu()">
+    <div class="auth-dot" id="auth-dot"></div>
+    <span id="auth-user-email"></span>
+    <span id="auth-signout-hint">Sortir →</span>
+  </div>
+  <!-- Auth: sense sessió -->
+  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Space Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
+    <div style="width:7px;height:7px;border-radius:50%;background:rgba(0,180,216,0.3);flex-shrink:0;"></div>
+    <span>INICIAR SESSIÓ</span>
+  </div>
+  <div class="ndw-section" data-i18n="drawer_view">Vista</div>
+  <div class="ndw-view-row" style="display:none;">
+    <button class="ndw-view-btn" id="ndw-view-single" onclick="setViewMode('single')" data-i18n="drawer_one_page">📄 Una pàgina</button>
+    <button class="ndw-view-btn active" id="ndw-view-pages"  onclick="setViewMode('pages')" data-i18n="drawer_sections">📑 Apartats</button>
+  </div>
+  <div class="ndw-section" data-i18n="drawer_nav">Navegació</div>
+  <div class="ndw-item" onclick="navTo('home')"><div class="ndw-item-icon">🏠</div><div><div class="ndw-item-text" data-i18n="menu_home">Inici</div><div class="ndw-item-sub" data-i18n="menu_home_sub">Objectiu · Progrés · Ratxa</div></div></div>
+  <div class="ndw-item" onclick="navTo('horari')"><div class="ndw-item-icon">📅</div><div><div class="ndw-item-text" data-i18n="menu_horari">Horari</div><div class="ndw-item-sub" data-i18n="menu_horari_sub">Setmana · Resum</div></div></div>
+  <div class="ndw-item" onclick="navTo('tasques')"><div class="ndw-item-icon">📋</div><div><div class="ndw-item-text" data-i18n="menu_tasques">Tasques</div><div class="ndw-item-sub" data-i18n="menu_tasques_sub">Deures · Treballs</div></div></div>
+  <div class="ndw-item" onclick="navTo('julians')"><div class="ndw-item-icon">🧠</div><div><div class="ndw-item-text" data-i18n="menu_julians">Julians AI</div><div class="ndw-item-sub" data-i18n="menu_julians_sub">Assistent personal</div></div></div>
+  <div class="ndw-item" onclick="navTo('calendari')"><div class="ndw-item-icon">🗓️</div><div><div class="ndw-item-text" data-i18n="menu_calendari">Calendari</div><div class="ndw-item-sub" data-i18n="menu_calendari_sub">Mensual · Partits</div></div></div>
+  <div class="ndw-item" onclick="navTo('focus')"><div class="ndw-item-icon">🎯</div><div><div class="ndw-item-text" data-i18n="menu_focus">Focus</div><div class="ndw-item-sub" data-i18n="menu_focus_sub">Pomodoro · Motivació · Pantalles</div></div></div>
+  <div class="ndw-section" data-i18n="drawer_themes">Temes</div>
+  <div class="ndw-themes" id="ndw-themes-grid"></div>
+  <div class="ndw-bottom">
+    <div class="ndw-bottom-btn" onclick="openConfig();toggleDrawer()" data-i18n="drawer_config">⚙️ Configuració</div>
+    <div class="ndw-bottom-btn" onclick="navTo('julians');toggleDrawer()" data-i18n="drawer_julians">🧠 Julians</div>
+  </div>
+</div>
+
+<!-- Bottom nav (pages mode) -->
+<nav id="bnav">
+  <div class="bnav-item" onclick="navTo('home')"><div class="bnav-icon">🏠</div><div class="bnav-lbl">INICI</div></div>
+  <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
+  <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
+  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
+  <div class="bnav-item" onclick="navTo('calendari')"><div class="bnav-icon">🗓️</div><div class="bnav-lbl">CALENDARI</div></div>
+  <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
+</nav>
+
+<div class="container">
+
+  <!-- ═══ PAGE: HOME ═══ -->
+  <div class="app-page page-active" id="page-home">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🏠</div>
+      <div class="page-title-text">
+        <h2 id="pt-home-h2">INICI</h2>
+        <p id="pt-home-sub">Objectiu · Progrés · Ratxa · Hàbits</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('home')" title="Com funciona?">i</button>
+    </div>
+
+    <div class="header">
+      <div class="jomaxpath-tag">✦ El teu espai de productivitat ✦</div>
+      <div class="jomaxpath-hero">
+        <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(2.5rem,8vw,5rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">JOmaxPath</div>
+        <div class="jomaxpath-hero-title" style="font-size:clamp(1.2rem,3.5vw,2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">CALENDARI PERSONAL</div>
+      </div>
+      <div class="jomaxpath-user" id="header-sub">El teu planificador personal <span class="jomaxpath-version">v2.0</span></div>
+    </div>
+
+    <div class="home-two-col">
+      <!-- Columna esquerra -->
+      <div class="home-col-left">
+        <div class="goal-banner" id="goal-banner">
+          <div class="icon" id="goal-icon">🚀</div>
+          <div>
+            <h3 id="goal-title">Objectiu principal</h3>
+            <p id="goal-desc">Crear la meva empresa abans de complir els 18 anys. Cada línia de codi és un pas cap a la independència.</p>
+          </div>
+        </div>
+        <div class="daily-quote" id="daily-quote">
+          <div class="dq-text" id="dq-text">Carregant...</div>
+          <div class="dq-author" id="dq-author"></div>
+          <button class="dq-refresh" onclick="refreshQuote()" title="Nova frase">↻</button>
+        </div>
+        <div class="today-panel">
+          <div class="section-title" style="margin:0 0 4px;" data-i18n="sec_ara_mateix">📍 ara mateix</div>
+          <div class="today-grid" id="today-grid"></div>
+          <div class="today-now" id="today-now" style="display:none;">
+            <div class="today-now-dot"></div>
+            <span id="today-now-txt"></span>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-header">
+            <h3 id="prog-title">📚 Curs de Programació</h3>
+            <span id="prog-fraction">Capítol 4 de 9</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+          <div class="progress-chapters" id="prog-chapters"></div>
+          <div class="progress-btn-row">
+            <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
+            <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
+            <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
+          </div>
+          <div class="progress-congrats" id="prog-congrats"></div>
+        </div>
+      </div>
+      <!-- Columna dreta -->
+      <div class="home-col-right">
+        <div class="streak-widget" id="streak-widget">
+          <div class="streak-fire">🔥</div>
+          <div class="streak-info" style="position:relative;">
+            <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
+            <div class="streak-number" id="streak-num">0</div>
+            <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius</div>
+            <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
+            <div class="streak-days" id="streak-days"></div>
+          </div>
+          <div class="streak-actions">
+            <button class="streak-btn" id="streak-btn" onclick="markStreakToday()">✓ SESSIÓ FETA</button>
+            <button class="streak-btn minus" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;font-size:9px;" onclick="undoStreakToday()" title="Desfer d'avui">↺ Desfer</button>
+          </div>
+        </div>
+        <div class="habits-section">
+          <div class="habits-header">
+            <div class="section-title" style="margin:0;" data-i18n="sec_habits">🌱 hàbits diaris <button class="info-btn" onclick="showInfo('habits')" title="Com funciona?">i</button></div>
+            <button class="add-habit-btn" onclick="toggleHabitForm()" data-i18n="btn_add">+ AFEGIR</button>
+          </div>
+          <div id="habits-list"></div>
+          <div class="habit-add-form" id="habit-add-form">
+            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." />
+            <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
+            <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
+          </div>
+        </div>
+        <div class="moto" id="moto-section">
+          <div class="moto-text" id="moto-text">No t'esperis a tenir ganes.<br>Fes-ho i les ganes vindran.</div>
+          <div class="moto-sub" id="moto-sub">CAPÍTOL 4 → 5 · EMPRESA PRÒPIA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: HORARI ═══ -->
+  <div class="app-page" id="page-horari">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📅</div>
+      <div class="page-title-text">
+        <h2 id="pt-horari-h2">HORARI <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?" style="vertical-align:middle;margin-left:6px;">i</button></h2>
+      </div>
+    </div>
+
+    <!-- Next up -->
+    <div id="next-up-bar" style="display:none;" class="next-up-bar">
+      <div class="next-up-icon">📌</div>
+      <div class="next-up-info">
+        <div class="next-up-label" data-i18n="next_task">PRÒXIMA TASCA</div>
+        <div class="next-up-text" id="next-up-text"></div>
+        <div class="next-up-when" id="next-up-when"></div>
+      </div>
+      <div class="next-up-countdown" id="next-up-cd"></div>
+    </div>
+
+    <!-- Week nav -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <div class="section-title" style="margin:0;flex:1;" data-i18n="sec_this_week">aquesta setmana</div>
+      <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
+      <div style="display:flex;gap:6px;">
+        <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
+        <div id="week-label" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
+        <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
+      </div>
+    </div>
+
+    <div class="week-grid" id="week-grid"></div>
+
+    <!-- Weekly summary -->
+    <div class="weekly-summary">
+      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_weekly_summary">resum setmanal</div>
+      <div class="stats-grid" id="stats-grid"></div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: TASQUES ═══ -->
+  <div class="app-page" id="page-tasques">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📋</div>
+      <div class="page-title-text">
+        <h2 id="pt-tasques-h2">TASQUES</h2>
+        <p id="pt-tasques-sub">Deures · Treballs · Prioritats</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
+    </div>
+
+    <!-- Mode switcher: Personal / Compartides -->
+    <div class="tasks-mode-bar">
+      <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
+      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
+    </div>
+
+    <!-- VISTA PERSONAL -->
+    <div id="tasks-personal-view">
+      <!-- Sub-switcher: Llista / Kanban personal -->
+      <div class="tasks-view-toggle">
+        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
+        <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
+      </div>
+
+      <!-- Vista llista personal (original) -->
+      <div id="personal-list-view">
+        <div class="exam-section">
+          <div class="exam-header-bar">
+            <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
+            <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+          </div>
+          <div class="exam-form" id="exam-form">
+            <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
+            <input type="date" id="exam-date" />
+            <select id="exam-type">
+              <option value="deures">📚 Deures/Entrega</option>
+              <option value="treball">📄 Treball/Projecte</option>
+              <option value="tasca">🗂️ Tasca general</option>
+              <option value="personal">🙋 Feina personal</option>
+            </select>
+            <select id="exam-prio">
+              <option value="1">🔴 P1 Urgent</option>
+              <option value="2">🟡 P2 Important</option>
+              <option value="3" selected>🔵 P3 Normal</option>
+              <option value="4">⚪ P4 Baix</option>
+            </select>
+            <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+          </div>
+          <div class="exam-list" id="exam-list"></div>
+        </div>
+      </div>
+
+      <!-- Vista Kanban personal -->
+      <div id="personal-kanban-view" style="display:none;">
+        <div class="personal-kanban-header">
+          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
+        </div>
+        <div id="personal-kanban-board"></div>
+      </div>
+    </div>
+
+    <!-- VISTA COMPARTIDA -->
+    <div id="tasks-shared-view" style="display:none;">
+      <!-- Sub-switcher: Llista taulers / Detall kanban -->
+      <div id="shared-boards-list-view">
+        <div class="tasks-view-toggle" style="margin-bottom:18px;">
+          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
+          <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
+        </div>
+        <!-- Vista llista de taulers -->
+        <div id="shared-list-inner">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-boards-grid"></div>
+        </div>
+        <!-- Vista kanban directe (mostra el primer tauler o selector) -->
+        <div id="shared-kanban-inner" style="display:none;">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-board-selector"></div>
+          <div id="shared-kanban-board-container"></div>
+        </div>
+      </div>
+      <div id="shared-board-detail" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear/Editar tauler -->
+  <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
+    <div class="board-modal">
+      <h3 id="board-modal-title">Nova llista compartida</h3>
+      <label>Nom de la llista</label>
+      <input type="text" id="board-name-inp" placeholder="Ex: Projecte de Mates..." maxlength="60" />
+      <label>Descripció (opcional)</label>
+      <input type="text" id="board-desc-inp" placeholder="Descripció breu..." maxlength="120" />
+      <label>Membres actuals</label>
+      <div id="board-members-current"></div>
+      <label>Afegir membre (email)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="email" id="board-member-add-inp" placeholder="nou@email.com" style="flex:1;" />
+        <button onclick="addBoardMember()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">+ Afegir</button>
+      </div>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" id="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
+        <button class="bm-cancel-btn" onclick="closeBoardModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detall de tasca -->
+  <div id="task-detail-overlay" class="tdm-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
+    <div class="tdm-modal">
+
+      <!-- Barra d'urgència superior + close -->
+      <div class="tdm-top-bar">
+        <div class="tdm-urg-strip" id="tdm-urgency-bar"></div>
+        <button class="tdm-close-btn" onclick="closeTaskDetail()">✕</button>
+      </div>
+
+      <!-- Títol editable gran -->
+      <div class="tdm-title-zone">
+        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." oninput="tdmMarkDirty()" />
+      </div>
+
+      <!-- Cos en dues columnes -->
+      <div class="tdm-cols">
+
+        <!-- Columna esquerra: camps -->
+        <div class="tdm-col-left">
+
+          <!-- Descripció -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">📝 Descripció</div>
+            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" oninput="tdmMarkDirty()"></textarea>
+          </div>
+
+          <!-- Responsables -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">👤 Responsables</div>
+            <div class="tdm-chips-row" id="tdm-assignees-chips"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-assignee-inp" placeholder="Afegir responsable..." onkeydown="if(event.key==='Enter')tdmAddAssignee()" />
+              <button onclick="tdmAddAssignee()">+</button>
+            </div>
+          </div>
+
+          <!-- Enllaços -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">🔗 Enllaços</div>
+            <div id="tdm-links-list"></div>
+            <div class="tdm-link-add-row">
+              <input type="url" id="tdm-link-url-inp" placeholder="https://..." onkeydown="if(event.key==='Enter')tdmAddLink()" />
+              <input type="text" id="tdm-link-label-inp" placeholder="Nom" />
+              <button onclick="tdmAddLink()">+</button>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">💬 Notes</div>
+            <div id="tdm-notes-list"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." onkeydown="if(event.key==='Enter')addNoteToTask()" />
+              <button onclick="addNoteToTask()">+</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna dreta: metadades -->
+        <div class="tdm-col-right">
+
+          <!-- Estat -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📌 Estat</div>
+            <div class="tdm-status-pills" id="tdm-status-pills">
+              <button class="tdm-status-pill" data-s="todo"  onclick="tdmSetStatus('todo',this)">Per començar</button>
+              <button class="tdm-status-pill" data-s="doing" onclick="tdmSetStatus('doing',this)">En curs</button>
+              <button class="tdm-status-pill" data-s="done"  onclick="tdmSetStatus('done',this)">Finalitzada</button>
+            </div>
+          </div>
+
+          <!-- Urgència -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">🚦 Urgència</div>
+            <div class="tdm-urg-pills">
+              <button class="tdm-urg-pill" data-u="green"  onclick="tdmSetUrgency('green',this)"><span class="tdm-urg-dot urg-green"></span>Baixa</button>
+              <button class="tdm-urg-pill" data-u="yellow" onclick="tdmSetUrgency('yellow',this)"><span class="tdm-urg-dot urg-yellow"></span>Mitjana</button>
+              <button class="tdm-urg-pill" data-u="red"    onclick="tdmSetUrgency('red',this)"><span class="tdm-urg-dot urg-red"></span>Alta</button>
+            </div>
+          </div>
+
+          <!-- Data límit -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📅 Data límit</div>
+            <input type="date" class="tdm-date-inp" id="tdm-due" oninput="tdmMarkDirty()" />
+          </div>
+
+          <!-- Guardar -->
+          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
+
+          <!-- Select hidden per compat -->
+          <select id="tdm-status" style="display:none;" onchange="updateTaskStatusFromDetail(this.value)">
+            <option value="todo">Per començar</option>
+            <option value="doing">En curs</option>
+            <option value="done">Finalitzada</option>
+          </select>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nova tasca al tauler -->
+  <div id="board-task-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardTaskModal()" style="display:none;">
+    <div class="board-modal">
+      <h3>Nova tasca</h3>
+      <label>Títol <span style="color:var(--red)">*</span></label>
+      <input type="text" id="bt-title-inp" placeholder="Títol de la tasca..." maxlength="80" />
+      <label>Descripció</label>
+      <textarea id="bt-desc-inp" placeholder="Descripció opcional..." rows="2"></textarea>
+      <label>Responsable</label>
+      <input type="text" id="bt-assignee-inp" placeholder="Nom o email..." id="bt-assignee-inp" />
+      <label>Enllaç (opcional)</label>
+      <div style="display:flex;gap:6px;">
+        <input type="url" id="bt-link-url-inp" placeholder="https://canva.com/..." style="flex:2;" />
+        <input type="text" id="bt-link-label-inp" placeholder="Nom" style="flex:1;" />
+      </div>
+      <label>Data límit</label>
+      <input type="date" id="bt-due-inp" />
+      <label>Urgència</label>
+      <div class="bt-urgency-row">
+        <button class="bt-urg-btn active" data-u="green" onclick="selectBtUrgency(this)">🟢 Baixa</button>
+        <button class="bt-urg-btn" data-u="yellow" onclick="selectBtUrgency(this)">🟡 Mitjana</button>
+        <button class="bt-urg-btn" data-u="red" onclick="selectBtUrgency(this)">🔴 Alta</button>
+      </div>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" onclick="saveBoardTask()">Afegir tasca</button>
+        <button class="bm-cancel-btn" onclick="closeBoardTaskModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: JULIANS ═══ -->
+  <div class="app-page" id="page-julians">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" alt="J"/></div>
+      <div class="page-title-text">
+        <h2 id="pt-julians-h2">JULIANS AI</h2>
+        <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('julians')" title="Com funciona?">i</button>
+    </div>
+
+    <div id="ai-section">
+      <div id="ai-section-card">
+        <div id="ai-layout">
+          <div id="ai-sidebar">
+            <div id="ai-sidebar-header">
+              <span class="ai-sidebar-title" id="ai-sidebar-title-txt">Xats</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar" id="ai-sel-mode-btn">🗑️</button>
+                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat" id="ai-new-btn">✏️</button>
+                <button class="ai-new-chat-btn" onclick="toggleAISidebar()" title="Amagar xats" id="ai-sidebar-toggle">◀</button>
+              </div>
+            </div>
+            <div id="ai-sidebar-resize" title="Arrossega per canviar mida"></div>
+            <div class="ai-select-toolbar" id="ai-select-toolbar">
+              <span class="ai-sel-count" id="ai-sel-count">0 seleccionats</span>
+              <div class="ai-sel-actions">
+                <button class="ai-sel-btn ai-sel-del" onclick="deleteSelectedChats()">Eliminar</button>
+                <button class="ai-sel-btn ai-sel-cancel" onclick="aiCancelSelectMode()">Cancel·lar</button>
+              </div>
+            </div>
+            <div id="ai-chat-list"></div>
+          </div>
+          <div id="ai-main">
+            <div id="ai-main-header">
+              <div class="ai-main-left">
+                <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
+              </div>
+              <button class="ai-clear-btn" onclick="clearCurrentChat()" title="Netejar xat">🗑️</button>
+            </div>
+            <div class="ai-mode-row">
+              <button class="ai-mode-btn active" id="mode-rapid"  onclick="setAIMode('rapid')">⚡ Ràpid</button>
+              <button class="ai-mode-btn"         id="mode-extens" onclick="setAIMode('extens')">📝 Extens</button>
+              <button class="ai-mode-btn"         id="mode-profund"onclick="setAIMode('profund')">🔬 Profund</button>
+              <button class="ai-mode-btn estudi-btn" id="mode-estudi" onclick="setAIMode('estudi')">📚 Estudi</button>
+            </div>
+            <div class="ai-mode-label" id="ai-mode-label-txt">⚡ Respostes concises i immediates</div>
+
+            <!-- Panel submodes Estudi -->
+            <div id="estudi-panel" style="display:none;">
+              <div class="estudi-submode-row">
+                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">
+                  <span class="esub-icon">📅</span><span class="esub-label">Pla d'estudi</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">
+                  <span class="esub-icon">🗒️</span><span class="esub-label">Resum</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">
+                  <span class="esub-icon">🧪</span><span class="esub-label">Pràctica</span>
+                </button>
+              </div>
+              <div id="estudi-hint" class="estudi-hint"></div>
+            </div>
+            <div class="ai-chat-messages" id="ai-messages"></div>
+            <div class="ai-chip-row" id="ai-chips"></div>
+            <div id="ai-doc-preview" style="display:none;padding:8px 16px;background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);display:none;align-items:center;gap:10px;flex-shrink:0;">
+              <span id="ai-doc-icon" style="font-size:18px;">📄</span>
+              <span id="ai-doc-name" style="flex:1;font-size:12px;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+              <button onclick="removeAttachment()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
+            </div>
+            <div class="ai-chat-input-row">
+              <label class="ai-attach-btn" title="Adjuntar PDF o Word" for="ai-file-input">📎</label>
+              <input type="file" id="ai-file-input" accept=".pdf,.doc,.docx" title="PDF recomanat. Word: converteix a PDF per millors resultats." style="display:none;" onchange="handleFileAttach(this)" />
+              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
+              <button id="ai-chat-send" onclick="sendAI()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: CALENDARI ═══ -->
+  <div class="app-page" id="page-calendari">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🗓️</div>
+      <div class="page-title-text">
+        <h2 id="pt-calendari-h2">CALENDARI</h2>
+        <p id="pt-calendari-sub" ondblclick="editCalendariSub()" title="Doble clic per editar" style="cursor:pointer">Events · Calendari mensual</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('calendari')" title="Com funciona?">i</button>
+    </div>
+
+    <div class="cal-two-col">
+    <!-- Monthly Calendar -->
+    <div class="monthly-section">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+        <h3 id="cal-month-title">Març 2026</h3>
+        <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+      </div>
+      <div class="cal-grid-header">
+        <span>DL</span><span>DM</span><span>DC</span><span>DJ</span><span>DV</span><span>DS</span><span>DG</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;"></div><span id="cal-leg-exam">Examen/Entrega</span></div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#5eead4;"></div><span id="cal-leg-deures">Deures</span></div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;border-radius:50%;"></div><span id="cal-leg-partit">Partit</span></div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent2);"></div><span id="cal-leg-altres">Altres</span></div>
+      </div>
+    </div>
+
+    <!-- Matches -->
+    <div class="matches-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
+          <button onclick="editMatchesTitle()" title="Editar títol" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:12px;padding:0;">✎</button>
+          <button class="info-btn" onclick="showInfo('partits')" title="Com funciona?">i</button>
+        </div>
+        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
+      </div>
+
+      <!-- Add/Edit form -->
+      <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
+            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
+            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
+            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
+            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
+            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
+            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
+          <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
+          <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
+        </div>
+        <input type="hidden" id="mf-edit-id" value="" />
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveMatch()" style="flex:1;background:var(--red);color:white;font-weight:700;font-size:12px;padding:9px;border-radius:8px;border:none;cursor:pointer;" data-i18n="btn_save">💾 GUARDAR</button>
+          <button onclick="toggleMatchForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+
+      <div id="matches-list"></div>
+    </div>
+    </div><!-- /cal-two-col -->
+  </div>
+
+  <!-- ═══ PAGE: FOCUS ═══ -->
+  <div class="app-page" id="page-focus">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🎯</div>
+      <div class="page-title-text">
+        <h2 id="pt-focus-h2">FOCUS</h2>
+        <p id="pt-focus-sub">Pomodoro · Pantalles · Motivació</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('tips')" title="Com funciona?">i</button>
+    </div>
+
+
+    <div class="focus-two-col">
+    <div class="focus-col-left">
+    <!-- Pomodoro Gamification -->
+    <div style="background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(124,58,237,0.08));border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(239,68,68,0.12),transparent 70%);pointer-events:none;"></div>
+      
+      <!-- Level & XP -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+        <div id="pomo-level-badge" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(239,68,68,0.4);">
+          <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
+          <span style="font-size:8px;color:rgba(255,255,255,0.7);letter-spacing:1px;">LVL</span>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span id="pomo-level-name" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
+            <span id="pomo-xp-txt" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
+            <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub">Completa pomodoros per pujar de nivell</div>
+        </div>
+      </div>
+
+      <!-- Daily Goal -->
+      <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button onclick="changeDailyGoal(-1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
+            <span id="pomo-goal-num" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
+            <span style="font-size:10px;color:var(--muted);">🍅</span>
+            <button onclick="changeDailyGoal(1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="pomo-goal-dots"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status">Comença el primer pomodoro!</div>
+      </div>
+
+      <!-- Rewards row -->
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
+    </div>
+
+    <!-- Pomodoro Focus Timer -->
+    <div class="pomodoro-section">
+      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_pomodoro">⏱️ focus timer — pomodoro <button class="info-btn" onclick="showInfo('pomodoro')" title="Com funciona?">i</button></div>
+      
+      <!-- Custom timer input -->
+      <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
+            <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
+            <span id="pomo-cust-focus" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
+          </div>
+        </div>
+        <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
+            <span id="pomo-cust-break" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+          </div>
+          <span style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">(auto)</span>
+        </div>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
+      </div>
+      <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+
+      <div class="pomo-display">
+        <div class="pomo-sessions" id="pomo-sessions"></div>
+        <div class="pomo-ring-wrap">
+          <svg class="pomo-svg" viewBox="0 0 180 180">
+            <circle class="pomo-bg" cx="90" cy="90" r="80"/>
+            <circle class="pomo-arc" id="pomo-arc" cx="90" cy="90" r="80"/>
+          </svg>
+          <div class="pomo-time">
+            <div class="pomo-digits" id="pomo-digits">25:00</div>
+            <div class="pomo-label" id="pomo-lbl">FOCUS</div>
+          </div>
+        </div>
+        <div class="pomo-presets">
+          <button class="pomo-preset-btn active" id="preset-25" onclick="setPomoPreset(25,5,4)">25/5</button>
+          <button class="pomo-preset-btn" id="preset-50" onclick="setPomoPreset(50,10,4)">50/10</button>
+          <button class="pomo-preset-btn" id="preset-90" onclick="setPomoPreset(90,20,3)">90/20</button>
+          <button class="pomo-preset-btn" id="preset-cust" style="display:none;">✏️ CUSTOM</button>
+        </div>
+        <div class="pomo-controls">
+          <button class="pomo-btn start" id="pomo-start" onclick="pomoAction()">▶ INICIAR</button>
+          <button class="pomo-btn reset" onclick="pomoReset()">↺ RESET</button>
+          <button class="pomo-btn" onclick="openPomoFullscreen()" title="Pantalla completa" style="padding:0 14px;font-size:16px;">⛶</button>
+        </div>
+        <div class="pomo-stats-row">
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-today">0</div><div class="pomo-stat-lbl">avui</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-week">0</div><div class="pomo-stat-lbl">setmana</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-total">0</div><div class="pomo-stat-lbl">total</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spotify Focus Playlist -->
+    <div style="background:var(--card);border:1px solid rgba(30,215,96,0.25);border-radius:20px;padding:22px 24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <span style="font-size:20px;">🎵</span>
+          <span style="font-family:'Space Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
+          <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
+            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
+            onkeydown="if(event.key==='Enter') loadSpotify()" />
+          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Space Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
+        </div>
+      </div>
+      <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
+        <iframe id="spotify-iframe" style="border-radius:12px;width:100%;" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+      <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
+        Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
+        <span style="font-size:10px;font-family:'Space Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
+      </div>
+    </div>
+
+    </div><!-- /focus-col-left -->
+    <div class="focus-col-right">
+    <!-- Victories -->
+    <div class="victories-section">
+      <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_victories">🏆 les meves victòries de la setmana <button class="info-btn" onclick="showInfo('victories')" title="Com funciona?">i</button></div>
+      <div class="victories-week-nav">
+        <button class="vic-nav-btn" onclick="changeVictoriesWeek(-1)">←</button>
+        <div class="victories-week-label" id="victories-week-label">Setmana actual</div>
+        <button class="vic-nav-btn" onclick="changeVictoriesWeek(1)">→</button>
+      </div>
+      <div class="victories-list">
+        <div class="victory-input-row"><span class="victory-num">1</span><input class="victory-input" id="v1" placeholder="Primera victòria d'aquesta setmana..." /></div>
+        <div class="victory-input-row"><span class="victory-num">2</span><input class="victory-input" id="v2" placeholder="Segona victòria..." /></div>
+        <div class="victory-input-row"><span class="victory-num">3</span><input class="victory-input" id="v3" placeholder="Tercera victòria..." /></div>
+      </div>
+      <button class="victories-save-btn" onclick="saveVictories()">💾 GUARDAR VICTÒRIES</button>
+      <div class="victories-saved-msg" id="victories-saved">✓ Guardat!</div>
+    </div>
+
+    <!-- Screen time tips -->
+    <div class="screen-section">
+      <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_screen_tips">📵 trucs per no mirar tant les pantalles <button class="info-btn" onclick="showInfo('pantalles')" title="Com funciona?">i</button></div>
+      <div class="screen-grid">
+        <div class="screen-tip"><div class="tip-icon">⚫</div><div class="tip-title">Mode escala de grisos</div><div class="tip-text">Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🎯</div><div class="tip-title">Intenció prèvia</div><div class="tip-text">Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris.</div></div>
+        <div class="screen-tip"><div class="tip-icon">⏱️</div><div class="tip-title">Tècnica Pomodoro</div><div class="tip-text">25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.</div></div>
+        <div class="screen-tip"><div class="tip-icon">📵</div><div class="tip-title">Zones sense mòbil</div><div class="tip-text">Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🌙</div><div class="tip-title">Ritual nocturn</div><div class="tip-text">Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🔔</div><div class="tip-title">Silencia les notificacions</div><div class="tip-text">Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.</div></div>
+      </div>
+    </div>
+
+    <!-- Motivation tips -->
+    <div class="section-title" data-i18n="sec_motivation_rules">regles d'or per no perdre la motivació <button class="info-btn" onclick="showInfo('motivacio')" title="Com funciona?">i</button></div>
+    <div class="tips-grid">
+      <div class="tip-card"><div class="tip-icon">🧠</div><div class="tip-title">Actua primer</div><div class="tip-text">La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol.</div></div>
+      <div class="tip-card"><div class="tip-icon">🔗</div><div class="tip-title">No trenquis la cadena</div><div class="tip-text">Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció.</div></div>
+      <div class="tip-card"><div class="tip-icon">🎯</div><div class="tip-title">Mini-objectius diaris</div><div class="tip-text">Cada dia, un objectiu concret i assolible. No "programar", sinó "completar l'exercici 3 del capítol 5".</div></div>
+      <div class="tip-card"><div class="tip-icon">📊</div><div class="tip-title">Mesura el progrés</div><div class="tip-text">El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.</div></div>
+      <div class="tip-card"><div class="tip-icon">💡</div><div class="tip-title">Recorda el per què</div><div class="tip-text">Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.</div></div>
+      <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">El son és productivitat</div><div class="tip-text">8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.</div></div>
+    </div>
+  </div><!-- /focus-col-right -->
+  </div><!-- /focus-two-col -->
+  </div>
+
+</div><!-- /container -->
+
+<!-- Timed Event Modal -->
+<div id="timed-modal-overlay" onclick="if(event.target===this)closeTimedModal()">
+  <div id="timed-modal">
+    <h4 id="timed-modal-title">⏱ Nou event horari</h4>
+    <div class="modal-field"><label>TÍTOL</label><input type="text" id="tm-title" placeholder="Nom de l'event..." onkeydown="if(event.key==='Enter')saveTimedEvent()" /></div>
+    <div class="timed-modal-row">
+      <div class="modal-field"><label>INICI</label><input type="time" id="tm-start" value="09:00" /></div>
+      <div class="modal-field"><label>FI</label><input type="time" id="tm-end" value="10:00" /></div>
+    </div>
+    <div class="modal-field">
+      <label>COLOR</label>
+      <div class="timed-color-row">
+        <div class="tcbtn sel" data-c="tec-purple" style="background:#7C5CBF" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-blue"   style="background:#3B6EA5" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-green"  style="background:#2E7D52" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-orange" style="background:#B5622A" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-red"    style="background:#A03030" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-pink"   style="background:#9B3070" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-teal"   style="background:#1E7068" onclick="pickTimedColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:20px;">
+      <button class="modal-cancel" onclick="closeTimedModal()">Cancel·lar</button>
+      <button class="mbtn-timed-del" id="timed-del-btn" style="display:none;padding:10px 14px;background:rgba(160,48,48,0.15);border:1px solid rgba(160,48,48,0.3);color:#fca5a5;border-radius:8px;cursor:pointer;font-size:13px;" onclick="deleteTimedEvent()">🗑</button>
+      <button class="modal-save" onclick="saveTimedEvent()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="day-modal-overlay" onclick="if(event.target===this)closeDayModal()">
+  <div id="day-modal">
+    <h4 id="day-modal-title">Afegir al dia</h4>
+    <div class="modal-field"><label>DESCRIPCIÓ</label><input type="text" id="dm-text" placeholder="Descripció..." onkeydown="if(event.key==='Enter')saveDayEvent()" /></div>
+    <div class="modal-field"><label>HORA (opcional)</label><input type="time" id="dm-time" /></div>
+    <div class="modal-field"><label>TIPUS</label>
+      <select id="dm-type">
+        <option value="📌 Recordatori">📌 Recordatori</option>
+        <option value="📚 Escolar">📚 Escolar</option>
+        <option value="🏒 Esport">🏒 Esport</option>
+        <option value="💻 Programació">💻 Programació</option>
+        <option value="🤖 Robotech">🤖 Robotech</option>
+        <option value="📝 Examen">📝 Examen</option>
+        <option value="📦 Entrega">📦 Entrega</option>
+        <option value="🎯 Altres">🎯 Altres</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-save" onclick="saveDayEvent()">Afegir</button>
+      <button class="modal-cancel" onclick="closeDayModal()">Cancel·lar</button>
+    </div>
+  </div>
+</div>
+
+<div id="month-modal-overlay" onclick="if(event.target===this)closeMonthModal()">
+  <div id="month-modal">
+    <h4 id="mm-title">Dia</h4>
+    <div class="modal-date-sub" id="mm-sub"></div>
+    <div class="month-event-list" id="mm-list"></div>
+    <div class="month-add-form">
+      <div class="month-add-row">
+        <input type="text" id="mm-text" placeholder="Afegir event..." onkeydown="if(event.key==='Enter')saveMonthEvent()" />
+        <input type="time" id="mm-time" />
+      </div>
+      <div class="month-add-row">
+        <select id="mm-type">
+          <option value="exam">📝 Examen/Entrega</option>
+          <option value="deures">📚 Deures</option>
+          <option value="partit">🏒 Partit</option>
+          <option value="other">📌 Altres</option>
+        </select>
+      </div>
+      <button class="month-save-btn" onclick="saveMonthEvent()">+ Afegir</button>
+    </div>
+    <button class="month-close-btn" onclick="closeMonthModal()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Quick Capture -->
+<button id="quick-capture-btn" onclick="openQuickCapture()" title="Captura ràpida (Q)">⚡</button>
+<div id="quick-capture-overlay" onclick="if(event.target===this)closeQuickCapture()">
+  <div id="quick-capture-box">
+    <h4 id="qc-title">⚡ Captura ràpida</h4>
+    <input type="text" id="qc-input" placeholder="Escriu qualsevol cosa... tasca, event, nota..." />
+    <div class="qc-types">
+      <button class="qc-type-btn active" id="qct-tasca" onclick="setQCType('tasca')" data-i18n-qc="qct_task">📋 Tasca</button>
+      <button class="qc-type-btn" id="qct-event" onclick="setQCType('event')" data-i18n-qc="qct_event">📅 Event</button>
+      <button class="qc-type-btn" id="qct-nota"  onclick="setQCType('nota')" data-i18n-qc="qct_note">📝 Nota</button>
+    </div>
+    <div class="qc-row" id="qc-extra-row" style="margin-bottom:12px;">
+      <input type="date" id="qc-date" />
+      <select id="qc-subtype">
+        <option value="tasca">🗂️ Tasca</option>
+        <option value="deures">📚 Deures</option>
+        <option value="treball">📄 Treball</option>
+        <option value="personal">🙋 Personal</option>
+      </select>
+    </div>
+    <div class="qc-row">
+      <button class="qc-add-btn" id="qc-add-btn" onclick="saveQuickCapture()">Afegir ↵</button>
+    </div>
+    <button class="qc-close-btn" id="qc-close-btn" onclick="closeQuickCapture()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Global Search -->
+<div id="global-search-bar">
+  <div class="search-input-wrap">
+    <span>🔍</span>
+    <input type="text" id="search-input" placeholder="Cerca tasques, events, partits..." oninput="runSearch(this.value)" />
+    <button id="search-close" onclick="closeSearch()">✕</button>
+  </div>
+  <div id="search-results"></div>
+</div>
+<button id="search-fab" onclick="openSearch()" title="Cerca (/)">🔍</button>
+
+<!-- Keyboard Shortcuts Panel -->
+<div id="shortcuts-overlay" onclick="if(event.target===this)closeShortcuts()">
+  <div id="shortcuts-panel">
+    <h3>⌨️ DRECERES DE TECLAT</h3>
+    <div class="shortcut-row"><span class="shortcut-desc">Cerca global</span><span class="shortcut-key">/</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Captura ràpida</span><span class="shortcut-key">Q</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Pomodoro play/pause</span><span class="shortcut-key">P</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Inici</span><span class="shortcut-key">1</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Tasques</span><span class="shortcut-key">2</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Julians</span><span class="shortcut-key">3</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Calendari</span><span class="shortcut-key">4</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Mostrar dreceres</span><span class="shortcut-key">?</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Tancar panell / modal</span><span class="shortcut-key">Esc</span></div>
+    <button class="shortcuts-close" onclick="closeShortcuts()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Info Tooltip Overlay -->
+<div id="info-tooltip-overlay" class="info-tooltip-overlay" onclick="if(event.target===this)closeInfo()">
+  <div class="info-tooltip-box">
+    <button class="info-tooltip-close" onclick="closeInfo()">✕</button>
+    <span class="info-tooltip-icon" id="info-icon"></span>
+    <div class="info-tooltip-title" id="info-title"></div>
+    <div class="info-tooltip-body" id="info-body"></div>
+  </div>
+</div>
+
+
+<!-- Chat Delete Confirm Modal -->
+<div id="chat-delete-modal">
+  <div id="chat-delete-box">
+    <div class="cd-icon">🗑️</div>
+    <div class="cd-title" id="cd-title">ELIMINAR XAT</div>
+    <div class="cd-msg" id="cd-msg">Segur que vols eliminar aquest xat? No es pot desfer.</div>
+    <div class="cd-btn-row">
+      <button class="cd-btn-confirm" onclick="executeChatDelete()">Eliminar</button>
+      <button class="cd-btn-cancel" onclick="closeChatDeleteModal()">Cancel·lar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky notes -->
+<div id="notes-overlay"></div>
+<div id="note-picker">
+  <h4>ESCULL COLOR</h4>
+  <div class="color-picker-row">
+    <div class="color-pick-btn" style="background:#fef08a" onclick="createNote('yellow')"></div>
+    <div class="color-pick-btn" style="background:#bbf7d0" onclick="createNote('green')"></div>
+    <div class="color-pick-btn" style="background:#fbcfe8" onclick="createNote('pink')"></div>
+    <div class="color-pick-btn" style="background:#bae6fd" onclick="createNote('blue')"></div>
+    <div class="color-pick-btn" style="background:#ddd6fe" onclick="createNote('purple')"></div>
+    <div class="color-pick-btn" style="background:#fed7aa" onclick="createNote('orange')"></div>
+  </div>
+</div>
+<button id="add-note-fab" onclick="toggleNotePicker()" title="Afegir nota">📝</button>
+
+<!-- Julians FAB -->
+<button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
+  <img id="julians-fab-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J"/>
+</button>
+
+<!-- Config button -->
+<button id="config-btn" onclick="openConfig()" title="Configuració">⚙️</button>
+
+<!-- Config panel -->
+<div id="config-overlay" onclick="if(event.target===this)closeConfig()">
+  <div id="config-panel">
+    <div class="config-header">
+      <h2>⚙️ Configuració</h2>
+      <button class="config-close" onclick="closeConfig()">×</button>
+    </div>
+    <div class="config-tabs">
+      <button class="config-tab active" onclick="switchTab('horari')">📅 Horari</button>
+      <button class="config-tab" onclick="switchTab('perfil')">👤 Perfil</button>
+      <button class="config-tab" onclick="switchTab('objectiu')">🎯 Objectiu</button>
+      <button class="config-tab" onclick="switchTab('ia')">🔑 IA</button>
+      <button class="config-tab" onclick="switchTab('reset')">🔄 Reset</button>
+    </div>
+    <div class="config-body" id="config-body"></div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- ═══ FULLSCREEN CLOCK OVERLAY ═══ -->
+<div id="clock-fullscreen">
+  <!-- Left: upcoming tasks -->
+  <div class="fs-side" onclick="closeClockFullscreen()">
+    <div>
+      <div class="fs-side-label">Pròximes tasques</div>
+      <div class="fs-side-card" id="fs-tasks-panel"><div class="fs-empty">sense tasques</div></div>
+    </div>
+    <div>
+      <div class="fs-side-label">Avui al calendari</div>
+      <div class="fs-side-card" id="fs-today-panel"><div class="fs-empty">res avui</div></div>
+    </div>
+  </div>
+
+  <div class="fs-divider"></div>
+
+  <!-- Centre: clock -->
+  <div id="fs-center" onclick="closeClockFullscreen()">
+    <div>
+      <span id="fs-clock-time">--:--</span><span id="fs-clock-seconds">:--</span>
+    </div>
+    <div id="fs-clock-date"></div>
+  </div>
+
+  <div class="fs-divider"></div>
+
+  <!-- Right: streak + goal -->
+  <div class="fs-side" onclick="closeClockFullscreen()">
+    <div>
+      <div class="fs-side-label">Ratxa actual</div>
+      <div class="fs-side-card">
+        <div class="fs-streak-num" id="fs-streak-num">0</div>
+        <div class="fs-streak-label">dies consecutius 🔥</div>
+        <div class="fs-streak-dots" id="fs-streak-dots"></div>
+      </div>
+    </div>
+    <div>
+      <div class="fs-side-label">Objectiu</div>
+      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Sora',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
+    </div>
+  </div>
+
+  <div id="fs-clock-controls" onclick="event.stopPropagation()">
+    <button id="fs-toggle-seconds" onclick="toggleClockSeconds()">⏱ Amagar segons</button>
+    <span id="fs-close-hint">ESC · clic per tancar</span>
+  </div>
+</div>
+
+
+
+
+
+
+
+<!-- ═══ POMODORO FULLSCREEN ═══ -->
+<div id="pomo-fullscreen" onclick="handlePomoFsClick(event)">
+  <!-- SVG ring + digits -->
+  <div id="pomo-fs-svg-wrap">
+    <svg id="pomo-fs-svg" viewBox="0 0 200 200">
+      <circle class="pomo-fs-bg-circle" cx="100" cy="100" r="88"/>
+      <circle class="pomo-fs-arc" id="pomo-fs-arc" cx="100" cy="100" r="88"
+        stroke-dasharray="553" stroke-dashoffset="0"/>
+    </svg>
+    <div id="pomo-fs-center">
+      <div id="pomo-fs-digits">25:00</div>
+      <div id="pomo-fs-phase">FOCUS</div>
+    </div>
+  </div>
+
+  <!-- Session dots -->
+  <div id="pomo-fs-dots"></div>
+
+  <!-- Controls (no propagate click) -->
+  <div id="pomo-fs-controls" onclick="event.stopPropagation()">
+    <button class="pomo-fs-btn primary" id="pomo-fs-start" onclick="pomoFsAction()">▶ INICIAR</button>
+    <button class="pomo-fs-btn" onclick="pomoFsReset()">↺ RESET</button>
+  </div>
+
+  <!-- Música -->
+  <div id="pomo-fs-music">
+    <div id="pomo-fs-music-label">ara sonant</div>
+    <div class="pomo-fs-music-bar paused" id="pomo-fs-bar">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div id="pomo-fs-music-track">—</div>
+    <div id="pomo-fs-music-artist"></div>
+  </div>
+
+  <div id="pomo-fs-close-hint">ESC · TOCA PER TANCAR</div>
+</div>
+
+
+
+<script src="app.js" defer></script>
+</body>
+</html>
