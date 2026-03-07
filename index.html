@@ -207,15 +207,9 @@
     <div class="page-title-bar">
       <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📅</div>
       <div class="page-title-text">
-        <h2 id="pt-horari-h2">HORARI</h2>
-        <p id="pt-horari-sub">Setmana · Blocs · Estadístiques</p>
+        <h2 id="pt-horari-h2">HORARI <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?" style="vertical-align:middle;margin-left:6px;">i</button></h2>
       </div>
-      <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?">i</button>
     </div>
-
-    <!-- Legend -->
-    <div class="section-title" data-i18n="sec_llegenda">llegenda de blocs <button class="info-btn" onclick="showInfo('llegenda')" title="Com funciona?">i</button></div>
-    <div class="legend" id="legend-container"></div>
 
     <!-- Next up -->
     <div id="next-up-bar" style="display:none;" class="next-up-bar">
@@ -1035,7 +1029,6 @@
     </div>
     <div class="config-tabs">
       <button class="config-tab active" onclick="switchTab('horari')">📅 Horari</button>
-      <button class="config-tab" onclick="switchTab('tipus')">🎨 Tipus</button>
       <button class="config-tab" onclick="switchTab('perfil')">👤 Perfil</button>
       <button class="config-tab" onclick="switchTab('objectiu')">🎯 Objectiu</button>
       <button class="config-tab" onclick="switchTab('ia')">🔑 IA</button>
