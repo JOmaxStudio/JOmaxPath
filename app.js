@@ -6727,29 +6727,31 @@ renderKanbanCard = function(task, boardId, isPersonal) {
 // ══════════════════════════════════════════════════════
 //  LAYOUT WIDTH — Ample / Estret
 // ══════════════════════════════════════════════════════
-function setLayoutWidth(mode) {
-  localStorage.setItem('layout_width', mode);
-  applyLayoutWidth(mode);
-  // Tanca el drawer
-  const drawer = document.getElementById('nav-drawer');
-  if(drawer && drawer.classList.contains('open')) toggleDrawer();
+function setLayoutWidth(w) {
+  localStorage.setItem('layout_width', w);
+  _applyLW(w);
+  setTimeout(function() {
+    var d = document.getElementById('nav-drawer');
+    if (d && d.classList.contains('open') && typeof toggleDrawer === 'function') toggleDrawer();
+  }, 60);
 }
 
-function applyLayoutWidth(mode) {
-  if(mode === 'narrow') {
-    document.body.classList.add('layout-narrow');
-  } else {
-    document.body.classList.remove('layout-narrow');
+function _applyLW(w) {
+  document.body.classList.toggle('layout-narrow', w === 'narrow');
+  var bW = document.getElementById('ndw-layout-wide');
+  var bN = document.getElementById('ndw-layout-narrow');
+  if (bW) {
+    if (w !== 'narrow') {
+      bW.style.cssText = 'color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
+      bN.style.cssText = 'color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
+    } else {
+      bW.style.cssText = 'color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
+      bN.style.cssText = 'color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
+    }
   }
-  // Actualitza botons del drawer
-  const btnWide   = document.getElementById('ndw-layout-wide');
-  const btnNarrow = document.getElementById('ndw-layout-narrow');
-  if(btnWide)   btnWide.classList.toggle('active',   mode !== 'narrow');
-  if(btnNarrow) btnNarrow.classList.toggle('active', mode === 'narrow');
 }
 
-// Aplicar al carregar la pàgina
-(function() {
-  const saved = localStorage.getItem('layout_width') || 'wide';
-  applyLayoutWidth(saved);
-})();
+// Aplicar preferència guardada quan el DOM estigui llest
+document.addEventListener('DOMContentLoaded', function() {
+  _applyLW(localStorage.getItem('layout_width') || 'wide');
+});
