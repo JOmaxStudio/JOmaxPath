@@ -3,245 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JOmaxPath</title>
+<title>SortMind</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/png" href="favicon.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+</head><body class="view-pages">
 <!-- LAYOUT-FIX-START -->
 <style>
+/* ════════════════════════════════════════════════
+   JOMAXPATH — LAYOUT AMPLE/ESTRET + BOTONS v6
+════════════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════════════════════════
-   JOMAXPATH — LAYOUT + TOTS ELS TEMES + BARRA INFERIOR v5
-══════════════════════════════════════════════════════════════ */
-
-/* ── Container sempre 100% ── */
-.container {
-  width: 100% !important;
-  max-width: 100% !important;
-  padding: 28px 32px 48px 32px !important;
-  box-sizing: border-box !important;
-}
-@media(max-width:600px) { .container { padding: 16px 12px 32px !important; } }
-
-/* ── Pàgines mínim 100vh ── */
-body.view-pages .app-page.page-active { min-height: calc(100vh - 68px); }
-
-/* ── HOME: 2 columnes ── */
-@media(min-width:900px) {
-  .home-two-col {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 24px !important;
-    align-items: start !important;
-  }
-}
-.home-col-left, .home-col-right {
-  display: flex !important; flex-direction: column !important; gap: 20px !important;
-}
-.home-col-left > *, .home-col-right > * { margin-bottom: 0 !important; }
-
-/* ── HORARI: 7 columnes ── */
-@media(min-width:1024px) {
-  .week-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 10px !important; }
-  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
-}
-@media(min-width:600px) and (max-width:1023px) {
-  .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
-  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
-}
-.week-grid .day-card { display: flex !important; flex-direction: column !important; min-height: 200px !important; }
-.day-card .day-body { flex: 1 !important; }
-
-/* ── FOCUS / CALENDARI: 2 columnes ── */
-@media(min-width:900px) {
-  .focus-two-col, .cal-two-col {
-    display: grid !important; grid-template-columns: 1fr 1fr !important;
-    gap: 24px !important; align-items: start !important;
-  }
-}
-.focus-col-left, .focus-col-right {
-  display: flex !important; flex-direction: column !important; gap: 20px !important;
-}
-
-/* ── JULIANS AI: alçada total ── */
-#page-julians.page-active { display: flex !important; flex-direction: column !important; min-height: calc(100vh - 68px) !important; }
-#page-julians.page-active > .container { flex: 1 !important; display: flex !important; flex-direction: column !important; }
-#ai-section { flex: 1 !important; display: flex !important; flex-direction: column !important; margin-bottom: 0 !important; }
-#ai-section-card { flex: 1 !important; display: flex !important; flex-direction: column !important; }
-#ai-layout { flex: 1 !important; height: auto !important; min-height: 480px !important; max-height: none !important; }
-
-/* ── GRIDS ── */
-.stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
-.tips-grid, .screen-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
-.boards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; }
-.kanban-board { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 16px !important; width: 100% !important; }
-@media(max-width:600px) { .kanban-board { grid-template-columns: 1fr !important; } }
-
-/* ── Botons de vista ── */
-.ndw-view-btn {
-  flex: 1 !important;
-  padding: 7px 10px !important;
-  border-radius: 8px !important;
-  border: 1px solid var(--border) !important;
-  background: transparent !important;
-  color: var(--muted) !important;
-  font-size: 10px !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-}
-.ndw-view-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; color: var(--text) !important; }
-.ndw-view-btn.active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   BARRA INFERIOR — color coincideix amb cada tema
-══════════════════════════════════════════════════════════════ */
-#bnav {
-  background: rgba(8,8,16,0.93) !important;
-  backdrop-filter: blur(20px) saturate(1.5) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
-  border-top: 1px solid var(--border) !important;
-}
-body.theme-ocean    #bnav { background: rgba(3,17,31,0.93)  !important; border-top-color: rgba(14,165,233,0.3) !important; }
-body.theme-forest   #bnav { background: rgba(4,14,7,0.93)   !important; border-top-color: rgba(22,163,74,0.3) !important; }
-body.theme-sunset   #bnav { background: rgba(19,4,8,0.93)   !important; border-top-color: rgba(225,29,72,0.3) !important; }
-body.theme-midnight #bnav { background: rgba(5,5,15,0.95)   !important; border-top-color: rgba(79,70,229,0.3) !important; }
-body.theme-caramel  #bnav { background: rgba(14,10,2,0.93)  !important; border-top-color: rgba(217,119,6,0.3) !important; }
-body.theme-violet   #bnav { background: rgba(8,4,19,0.94)   !important; border-top-color: rgba(147,51,234,0.3) !important; }
-body.theme-rose     #bnav { background: rgba(15,5,8,0.94)   !important; border-top-color: rgba(190,24,93,0.3) !important; }
-body.theme-blanc    #bnav { background: rgba(240,242,248,0.97) !important; border-top-color: rgba(109,40,217,0.18) !important; }
-
-.bnav-item.active .bnav-lbl { color: var(--accent2) !important; }
-.bnav-lbl { color: var(--muted) !important; }
-.bnav-item.active .bnav-icon { filter: drop-shadow(0 0 5px var(--accent2)) !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   ELEMENTS GLOBALS — tots els temes
-══════════════════════════════════════════════════════════════ */
-body[class*="theme-"] .day-card,
-body[class*="theme-"] .goal-banner,
-body[class*="theme-"] .daily-quote,
-body[class*="theme-"] .today-panel,
-body[class*="theme-"] .progress-section,
-body[class*="theme-"] .streak-widget,
-body[class*="theme-"] .habits-section,
-body[class*="theme-"] .weekly-summary,
-body[class*="theme-"] .stat-card,
-body[class*="theme-"] .tip-card,
-body[class*="theme-"] .screen-tip,
-body[class*="theme-"] .exam-section,
-body[class*="theme-"] .matches-section,
-body[class*="theme-"] .monthly-section,
-body[class*="theme-"] .screen-section,
-body[class*="theme-"] .victories-section,
-body[class*="theme-"] .pomodoro-section,
-body[class*="theme-"] .kanban-col,
-body[class*="theme-"] .board-card,
-body[class*="theme-"] .next-up-bar {
-  background: var(--card) !important;
-  border-color: var(--border) !important;
-}
-body[class*="theme-"] .stat-card,
-body[class*="theme-"] .screen-tip { background: var(--card2) !important; }
-body[class*="theme-"] .goal-banner { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,transparent),color-mix(in srgb,var(--accent) 5%,transparent)) !important; }
-body[class*="theme-"] .streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.07)) !important; }
-body[class*="theme-"] .today-panel { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,transparent),color-mix(in srgb,var(--accent) 6%,transparent)) !important; }
-
-body[class*="theme-"] .section-title { color: var(--muted) !important; }
-body[class*="theme-"] .section-title::after { background: var(--border) !important; }
-body[class*="theme-"] .page-title-text h2 { color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; }
-body[class*="theme-"] .page-title-text p { color: var(--muted) !important; }
-body[class*="theme-"] .block-time, body[class*="theme-"] .day-sleep { color: var(--muted) !important; }
-body[class*="theme-"] .day-name { color: var(--text) !important; }
-
-body[class*="theme-"] #nav-hamburger { background: var(--card) !important; border-color: var(--border) !important; }
-body[class*="theme-"] #nav-hamburger span { background: var(--text) !important; }
-body[class*="theme-"] #nav-clock { background: var(--card) !important; color: var(--accent2) !important; border-color: var(--border) !important; }
-body[class*="theme-"] #nav-drawer { background: var(--card) !important; }
-body[class*="theme-"] .ndw-item-text { color: var(--text) !important; }
-body[class*="theme-"] .ndw-item-sub, body[class*="theme-"] .ndw-section { color: var(--muted) !important; }
-
-body[class*="theme-"] #config-panel { background: var(--card) !important; }
-body[class*="theme-"] .config-tab { color: var(--muted) !important; border-bottom-color: transparent !important; }
-body[class*="theme-"] .config-tab.active { color: var(--accent2) !important; border-bottom-color: var(--accent2) !important; }
-
-body[class*="theme-"] input, body[class*="theme-"] select, body[class*="theme-"] textarea {
-  background: var(--card2) !important; color: var(--text) !important; border-color: var(--border) !important;
-}
-body[class*="theme-"] select option { background: var(--card) !important; color: var(--text) !important; }
-body[class*="theme-"] input::placeholder, body[class*="theme-"] textarea::placeholder { color: var(--muted) !important; }
-
-body[class*="theme-"] .progress-bar { background: color-mix(in srgb,var(--accent) 12%,transparent) !important; }
-body[class*="theme-"] .chapter-dot { background: color-mix(in srgb,var(--accent) 15%,transparent) !important; }
-body[class*="theme-"] .progress-btn { background: color-mix(in srgb,var(--accent) 12%,transparent) !important; border-color: color-mix(in srgb,var(--accent) 30%,transparent) !important; color: var(--accent2) !important; }
-
-body[class*="theme-"] .streak-day-dot { border-color: var(--border) !important; color: var(--muted) !important; }
-body[class*="theme-"] .streak-day-dot.done { background: rgba(245,158,11,0.18) !important; border-color: rgba(245,158,11,0.45) !important; color: #fcd34d !important; }
-body[class*="theme-"] .streak-btn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.3) !important; color: #fcd34d !important; }
-body[class*="theme-"] .habit-dot { border-color: var(--border) !important; }
-body[class*="theme-"] .habit-dot.done { background: color-mix(in srgb,var(--green,#10b981) 20%,transparent) !important; border-color: var(--green,#10b981) !important; }
-
-body[class*="theme-"] #ai-section-card { background: var(--card) !important; border-color: var(--border) !important; }
-body[class*="theme-"] #ai-sidebar { background: color-mix(in srgb,var(--card) 80%,var(--bg)) !important; border-right-color: var(--border) !important; }
-body[class*="theme-"] .ai-chat-messages { background: var(--card) !important; }
-body[class*="theme-"] .ai-chat-input-row { background: var(--card2) !important; border-top-color: var(--border) !important; }
-body[class*="theme-"] #ai-chat-input { background: var(--card) !important; border-color: var(--border) !important; color: var(--text) !important; }
-body[class*="theme-"] #ai-chat-input::placeholder { color: var(--muted) !important; }
-body[class*="theme-"] .ai-msg.user { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 14%,transparent)) !important; color: var(--text) !important; border-color: color-mix(in srgb,var(--accent) 28%,transparent) !important; }
-body[class*="theme-"] .ai-msg.assistant { background: var(--card2) !important; color: var(--text) !important; border-color: var(--border) !important; }
-body[class*="theme-"] .ai-chat-item { color: var(--muted) !important; }
-body[class*="theme-"] .ai-chat-item.active { background: color-mix(in srgb,var(--accent) 14%,transparent) !important; color: var(--accent2) !important; }
-body[class*="theme-"] .ai-mode-btn { background: color-mix(in srgb,var(--text) 5%,transparent) !important; color: var(--muted) !important; border-color: var(--border) !important; }
-body[class*="theme-"] .ai-mode-btn.active { background: color-mix(in srgb,var(--accent) 18%,transparent) !important; color: var(--accent2) !important; border-color: var(--accent2) !important; }
-body[class*="theme-"] .ai-suggestion { background: color-mix(in srgb,var(--accent) 8%,transparent) !important; border-color: color-mix(in srgb,var(--accent) 25%,transparent) !important; color: var(--accent2) !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   TEMA BLANC — Overrides específics
-══════════════════════════════════════════════════════════════ */
-body.theme-blanc {
-  --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7;
-  --accent:#6d28d9; --accent2:#7c3aed;
-  --text:#1a1a2e; --muted:#64748b; --border:rgba(109,40,217,0.15);
-}
-body.theme-blanc::after { display: none !important; }
-body.theme-blanc #header-name { color: #1a1a2e !important; text-shadow: 0 0 20px rgba(109,40,217,0.3) !important; }
-body.theme-blanc .jomaxpath-hero-title { color: #2d1b69 !important; -webkit-text-fill-color: #2d1b69 !important; text-shadow: none !important; }
-body.theme-blanc .day-card, body.theme-blanc .stat-card, body.theme-blanc .tip-card,
-body.theme-blanc .habits-section, body.theme-blanc .progress-section,
-body.theme-blanc .kanban-col, body.theme-blanc .board-card {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
-}
-body.theme-blanc .ai-msg.assistant { background: #fff !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; }
-body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
-body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   MODE ESTRET — vista centrada (max 700px, 1 columna)
-══════════════════════════════════════════════════════════════ */
-body.layout-narrow .container {
-  max-width: 700px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-body.layout-narrow { font-size: 17px !important; }
-body.layout-narrow .home-two-col,
-body.layout-narrow .focus-two-col,
-body.layout-narrow .cal-two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; }
-body.layout-narrow .week-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; }
-body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
-body.layout-narrow .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-
-/* ══════════════════════════════════════════════════════════════
-   MODE AMPLE — tot l'espai disponible (per defecte)
-══════════════════════════════════════════════════════════════ */
+/* ── MODE AMPLE (per defecte): tot l'espai ── */
 body:not(.layout-narrow) .container {
   max-width: 100% !important;
   width: 100% !important;
-  padding: 32px 36px 48px !important;
+  margin: 0 !important;
+  padding: 32px 40px 48px !important;
+  box-sizing: border-box !important;
 }
-@media(max-width:600px) {
-  body:not(.layout-narrow) .container { padding: 16px 12px 32px !important; }
+@media(max-width:700px) {
+  body:not(.layout-narrow) .container { padding: 16px 14px 32px !important; }
 }
 body:not(.layout-narrow) .home-two-col,
 body:not(.layout-narrow) .focus-two-col,
@@ -251,6 +34,14 @@ body:not(.layout-narrow) .cal-two-col {
   gap: 28px !important;
   align-items: start !important;
 }
+body:not(.layout-narrow) .home-col-left,
+body:not(.layout-narrow) .home-col-right,
+body:not(.layout-narrow) .focus-col-left,
+body:not(.layout-narrow) .focus-col-right {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
 body:not(.layout-narrow) .week-grid {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
@@ -259,39 +50,100 @@ body:not(.layout-narrow) .week-grid {
 @media(max-width:1200px) {
   body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
-@media(max-width:700px) {
+@media(max-width:800px) {
   body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(2, 1fr) !important; }
   body:not(.layout-narrow) .home-two-col,
   body:not(.layout-narrow) .focus-two-col,
   body:not(.layout-narrow) .cal-two-col { grid-template-columns: 1fr !important; }
 }
+body:not(.layout-narrow) .kanban-board {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 16px !important;
+}
+@media(max-width:800px) {
+  body:not(.layout-narrow) .kanban-board { grid-template-columns: 1fr !important; }
+}
+body:not(.layout-narrow) .stats-grid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+}
+body.view-pages .app-page.page-active {
+  min-height: calc(100vh - 68px) !important;
+}
 
-/* Botons amplada al drawer */
+/* ── MODE ESTRET: centrat, lletra gran ── */
+body.layout-narrow .container {
+  max-width: 700px !important;
+  margin: 0 auto !important;
+  padding: 28px 24px 48px !important;
+  box-sizing: border-box !important;
+}
+body.layout-narrow { font-size: 17px !important; }
+body.layout-narrow .home-two-col,
+body.layout-narrow .focus-two-col,
+body.layout-narrow .cal-two-col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+body.layout-narrow .week-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 10px !important;
+}
+body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
+body.layout-narrow .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+/* ── BOTONS AMPLADA — visibles en tots els temes ── */
+.ndw-layout-row {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 6px 16px 14px !important;
+}
 .ndw-layout-btn {
   flex: 1 !important;
-  padding: 8px 10px !important;
+  padding: 9px 8px !important;
   border-radius: 8px !important;
-  border: 1px solid rgba(255,255,255,0.2) !important;
-  background: rgba(255,255,255,0.06) !important;
-  color: rgba(255,255,255,0.6) !important;
-  font-size: 11px !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.08) !important;
+  color: rgba(255,255,255,0.75) !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
   cursor: pointer !important;
   transition: all 0.2s !important;
-  font-family: inherit !important;
+  text-align: center !important;
 }
-.ndw-layout-btn:hover { background: rgba(124,58,237,0.2) !important; color: #fff !important; border-color: rgba(124,58,237,0.5) !important; }
-.ndw-layout-btn.ndw-active { background: rgba(124,58,237,0.3) !important; border-color: #a78bfa !important; color: #a78bfa !important; font-weight: 600 !important; }
-
+.ndw-layout-btn:hover {
+  background: rgba(124,58,237,0.25) !important;
+  border-color: rgba(167,139,250,0.6) !important;
+  color: #fff !important;
+}
+.ndw-layout-btn.ndw-active {
+  background: rgba(124,58,237,0.35) !important;
+  border-color: #a78bfa !important;
+  color: #a78bfa !important;
+  font-weight: 700 !important;
+}
+/* Tema blanc: botons foscos */
+body.theme-blanc .ndw-layout-btn {
+  border-color: rgba(0,0,0,0.2) !important;
+  background: rgba(0,0,0,0.06) !important;
+  color: rgba(0,0,0,0.6) !important;
+}
+body.theme-blanc .ndw-layout-btn.ndw-active {
+  background: rgba(109,40,217,0.15) !important;
+  border-color: #7c3aed !important;
+  color: #7c3aed !important;
+}
 </style>
 <!-- LAYOUT-FIX-END -->
-</head><body class="view-pages">
 
 <!-- ═══ AUTH MODAL ═══ -->
 <div id="auth-overlay">
   <div id="auth-box">
     <div id="auth-logo">
       <div class="bolt">⚡</div>
-      <h2>JOMAXPATH</h2>
+      <h2>SORTMIND</h2>
       <p>ORGANITZA · PLANIFICA · ACONSEGUEIX</p>
     </div>
     <div class="auth-tabs">
@@ -335,7 +187,7 @@ body:not(.layout-narrow) .week-grid {
 <div id="nav-drawer">
   <div class="ndw-header" style="flex-direction:row;align-items:center;">
     <div class="ndw-logo">📅</div>
-    <div style="flex:1"><div class="ndw-title">JOmaxPath</div><div class="ndw-sub" id="drawer-sub">El teu espai</div></div>
+    <div style="flex:1"><div class="ndw-title">SortMind</div><div class="ndw-sub" id="drawer-sub">El teu espai</div></div>
   </div>
   <!-- Auth: sessió activa -->
   <div id="auth-indicator" onclick="authShowMenu()">
@@ -344,17 +196,17 @@ body:not(.layout-narrow) .week-grid {
     <span id="auth-signout-hint">Sortir →</span>
   </div>
   <!-- Auth: sense sessió -->
-  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
+  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Space Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
     <div style="width:7px;height:7px;border-radius:50%;background:rgba(0,180,216,0.3);flex-shrink:0;"></div>
     <span>INICIAR SESSIÓ</span>
   </div>
   <div class="ndw-section" data-i18n="drawer_view">Vista</div>
-  <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 4px;">
+  <div class="ndw-view-row" style="display:none;">
     <button class="ndw-view-btn" id="ndw-view-single" onclick="setViewMode('single')" data-i18n="drawer_one_page">📄 Una pàgina</button>
     <button class="ndw-view-btn active" id="ndw-view-pages"  onclick="setViewMode('pages')" data-i18n="drawer_sections">📑 Apartats</button>
   </div>
   <div class="ndw-section">Amplada</div>
-  <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 12px;">
+  <div class="ndw-layout-row">
     <button class="ndw-layout-btn ndw-active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')">⬌ Ample</button>
     <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')">▣ Estret</button>
   </div>
@@ -378,7 +230,7 @@ body:not(.layout-narrow) .week-grid {
   <div class="bnav-item" onclick="navTo('home')"><div class="bnav-icon">🏠</div><div class="bnav-lbl">INICI</div></div>
   <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
   <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
-  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
+  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon">🧠</div><div class="bnav-lbl">JULIANS</div></div>
   <div class="bnav-item" onclick="navTo('calendari')"><div class="bnav-icon">🗓️</div><div class="bnav-lbl">CALENDARI</div></div>
   <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
 </nav>
@@ -397,85 +249,89 @@ body:not(.layout-narrow) .week-grid {
     </div>
 
     <div class="header">
-      <div class="jomaxpath-tag">✦ El teu espai de productivitat ✦</div>
-      <div class="jomaxpath-hero">
-        <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(2.5rem,8vw,5rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">JOmaxPath</div>
-        <div class="jomaxpath-hero-title" style="font-size:clamp(1.2rem,3.5vw,2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">CALENDARI PERSONAL</div>
+      <div class="sortmind-tag">✦ El teu espai de productivitat ✦</div>
+      <div class="sortmind-hero">
+        <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(2.5rem,8vw,5rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">SortMind</div>
+        <div class="sortmind-hero-title" style="font-size:clamp(1.2rem,3.5vw,2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">CALENDARI PERSONAL</div>
       </div>
-      <div class="jomaxpath-user" id="header-sub">Developed by JOmax <span class="jomaxpath-version">v2.0</span></div>
+      <div class="sortmind-user" id="header-sub">El teu planificador personal <span class="sortmind-version">v2.0</span></div>
     </div>
 
-    <div class="home-two-col">
-      <!-- Columna esquerra -->
-      <div class="home-col-left">
-        <div class="goal-banner" id="goal-banner">
-          <div class="icon" id="goal-icon">🚀</div>
-          <div>
-            <h3 id="goal-title">Objectiu principal</h3>
-            <p id="goal-desc">Crear la meva empresa abans de complir els 18 anys. Cada línia de codi és un pas cap a la independència.</p>
-          </div>
-        </div>
-        <div class="daily-quote" id="daily-quote">
-          <div class="dq-text" id="dq-text">Carregant...</div>
-          <div class="dq-author" id="dq-author"></div>
-          <button class="dq-refresh" onclick="refreshQuote()" title="Nova frase">↻</button>
-        </div>
-        <div class="today-panel">
-          <div class="section-title" style="margin:0 0 4px;" data-i18n="sec_ara_mateix">📍 ara mateix</div>
-          <div class="today-grid" id="today-grid"></div>
-          <div class="today-now" id="today-now" style="display:none;">
-            <div class="today-now-dot"></div>
-            <span id="today-now-txt"></span>
-          </div>
-        </div>
-        <div class="progress-section">
-          <div class="progress-header">
-            <h3 id="prog-title">📚 Curs de Programació</h3>
-            <span id="prog-fraction">Capítol 4 de 9</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
-          <div class="progress-chapters" id="prog-chapters"></div>
-          <div class="progress-btn-row">
-            <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
-            <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
-            <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
-          </div>
-          <div class="progress-congrats" id="prog-congrats"></div>
-        </div>
+    <div class="goal-banner" id="goal-banner">
+      <div class="icon" id="goal-icon">🚀</div>
+      <div>
+        <h3 id="goal-title">Objectiu principal</h3>
+        <p id="goal-desc">Crear la meva empresa abans de complir els 18 anys. Cada línia de codi és un pas cap a la independència.</p>
       </div>
-      <!-- Columna dreta -->
-      <div class="home-col-right">
-        <div class="streak-widget" id="streak-widget">
-          <div class="streak-fire">🔥</div>
-          <div class="streak-info" style="position:relative;">
-            <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
-            <div class="streak-number" id="streak-num">0</div>
-            <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius</div>
-            <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
-            <div class="streak-days" id="streak-days"></div>
-          </div>
-          <div class="streak-actions">
-            <button class="streak-btn" id="streak-btn" onclick="markStreakToday()">✓ SESSIÓ FETA</button>
-            <button class="streak-btn minus" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;font-size:9px;" onclick="undoStreakToday()" title="Desfer d'avui">↺ Desfer</button>
-          </div>
-        </div>
-        <div class="habits-section">
-          <div class="habits-header">
-            <div class="section-title" style="margin:0;" data-i18n="sec_habits">🌱 hàbits diaris <button class="info-btn" onclick="showInfo('habits')" title="Com funciona?">i</button></div>
-            <button class="add-habit-btn" onclick="toggleHabitForm()" data-i18n="btn_add">+ AFEGIR</button>
-          </div>
-          <div id="habits-list"></div>
-          <div class="habit-add-form" id="habit-add-form">
-            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." />
-            <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
-            <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
-          </div>
-        </div>
-        <div class="moto" id="moto-section">
-          <div class="moto-text" id="moto-text">No t'esperis a tenir ganes.<br>Fes-ho i les ganes vindran.</div>
-          <div class="moto-sub" id="moto-sub">CAPÍTOL 4 → 5 · EMPRESA PRÒPIA</div>
-        </div>
+    </div>
+
+    <!-- Daily Quote -->
+    <div class="daily-quote" id="daily-quote">
+      <div class="dq-text" id="dq-text">Carregant...</div>
+      <div class="dq-author" id="dq-author"></div>
+      <button class="dq-refresh" onclick="refreshQuote()" title="Nova frase">↻</button>
+    </div>
+
+    <!-- Today Dashboard -->
+    <div class="today-panel">
+      <div class="section-title" style="margin:0 0 4px;" data-i18n="sec_ara_mateix">📍 ara mateix</div>
+      <div class="today-grid" id="today-grid"></div>
+      <div class="today-now" id="today-now" style="display:none;">
+        <div class="today-now-dot"></div>
+        <span id="today-now-txt"></span>
       </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <h3 id="prog-title">📚 Curs de Programació</h3>
+        <span id="prog-fraction">Capítol 4 de 9</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="progress-chapters" id="prog-chapters"></div>
+      <div class="progress-btn-row">
+        <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
+        <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
+        <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
+      </div>
+      <div class="progress-congrats" id="prog-congrats"></div>
+    </div>
+
+    <!-- Streak -->
+    <div class="streak-widget" id="streak-widget">
+      <div class="streak-fire">🔥</div>
+      <div class="streak-info" style="position:relative;">
+        <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
+        <div class="streak-number" id="streak-num">0</div>
+        <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius programant</div>
+        <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
+        <div class="streak-days" id="streak-days"></div>
+      </div>
+      <div class="streak-actions">
+        <button class="streak-btn" id="streak-btn" onclick="markStreakToday()">✓ SESSIÓ FETA</button>
+        <button class="streak-btn minus" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;font-size:9px;" onclick="undoStreakToday()" title="Desfer d'avui">↺ Desfer</button>
+      </div>
+    </div>
+
+    <!-- Multi-Habit Tracker -->
+    <div class="habits-section">
+      <div class="habits-header">
+        <div class="section-title" style="margin:0;" data-i18n="sec_habits">🌱 hàbits diaris <button class="info-btn" onclick="showInfo('habits')" title="Com funciona?">i</button></div>
+        <button class="add-habit-btn" onclick="toggleHabitForm()" data-i18n="btn_add">+ AFEGIR</button>
+      </div>
+      <div id="habits-list"></div>
+      <div class="habit-add-form" id="habit-add-form">
+        <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." />
+        <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
+        <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
+      </div>
+    </div>
+
+    <!-- Footer / moto -->
+    <div class="moto" id="moto-section">
+      <div class="moto-text" id="moto-text">No t'esperis a tenir ganes.<br>Fes-ho i les ganes vindran.</div>
+      <div class="moto-sub" id="moto-sub">CAPÍTOL 4 → 5 · EMPRESA PRÒPIA</div>
     </div>
   </div>
 
@@ -484,9 +340,15 @@ body:not(.layout-narrow) .week-grid {
     <div class="page-title-bar">
       <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📅</div>
       <div class="page-title-text">
-        <h2 id="pt-horari-h2">HORARI <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?" style="vertical-align:middle;margin-left:6px;">i</button></h2>
+        <h2 id="pt-horari-h2">HORARI</h2>
+        <p id="pt-horari-sub">Setmana · Blocs · Estadístiques</p>
       </div>
+      <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?">i</button>
     </div>
+
+    <!-- Legend -->
+    <div class="section-title" data-i18n="sec_llegenda">llegenda de blocs <button class="info-btn" onclick="showInfo('llegenda')" title="Com funciona?">i</button></div>
+    <div class="legend" id="legend-container"></div>
 
     <!-- Next up -->
     <div id="next-up-bar" style="display:none;" class="next-up-bar">
@@ -505,7 +367,7 @@ body:not(.layout-narrow) .week-grid {
       <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
       <div style="display:flex;gap:6px;">
         <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
-        <div id="week-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
+        <div id="week-label" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
         <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
       </div>
     </div>
@@ -530,247 +392,36 @@ body:not(.layout-narrow) .week-grid {
       <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
     </div>
 
-    <!-- Mode switcher: Personal / Compartides -->
-    <div class="tasks-mode-bar">
-      <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
-      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
-    </div>
-
-    <!-- VISTA PERSONAL -->
-    <div id="tasks-personal-view">
-      <!-- Sub-switcher: Llista / Kanban personal -->
-      <div class="tasks-view-toggle">
-        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
-        <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
+    <div class="exam-section">
+      <div class="exam-header-bar">
+        <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
+        <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
       </div>
-
-      <!-- Vista llista personal (original) -->
-      <div id="personal-list-view">
-        <div class="exam-section">
-          <div class="exam-header-bar">
-            <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
-            <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
-          </div>
-          <div class="exam-form" id="exam-form">
-            <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
-            <input type="date" id="exam-date" />
-            <select id="exam-type">
-              <option value="deures">📚 Deures/Entrega</option>
-              <option value="treball">📄 Treball/Projecte</option>
-              <option value="tasca">🗂️ Tasca general</option>
-              <option value="personal">🙋 Feina personal</option>
-            </select>
-            <select id="exam-prio">
-              <option value="1">🔴 P1 Urgent</option>
-              <option value="2">🟡 P2 Important</option>
-              <option value="3" selected>🔵 P3 Normal</option>
-              <option value="4">⚪ P4 Baix</option>
-            </select>
-            <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
-          </div>
-          <div class="exam-list" id="exam-list"></div>
-        </div>
+      <div class="exam-form" id="exam-form">
+        <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
+        <input type="date" id="exam-date" />
+        <select id="exam-type">
+          <option value="deures">📚 Deures/Entrega</option>
+          <option value="treball">📄 Treball/Projecte</option>
+          <option value="tasca">🗂️ Tasca general</option>
+          <option value="personal">🙋 Feina personal</option>
+        </select>
+        <select id="exam-prio">
+          <option value="1">🔴 P1 Urgent</option>
+          <option value="2">🟡 P2 Important</option>
+          <option value="3" selected>🔵 P3 Normal</option>
+          <option value="4">⚪ P4 Baix</option>
+        </select>
+        <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
       </div>
-
-      <!-- Vista Kanban personal -->
-      <div id="personal-kanban-view" style="display:none;">
-        <div class="personal-kanban-header">
-          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
-        </div>
-        <div id="personal-kanban-board"></div>
-      </div>
-    </div>
-
-    <!-- VISTA COMPARTIDA -->
-    <div id="tasks-shared-view" style="display:none;">
-      <!-- Sub-switcher: Llista taulers / Detall kanban -->
-      <div id="shared-boards-list-view">
-        <div class="tasks-view-toggle" style="margin-bottom:18px;">
-          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
-          <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
-        </div>
-        <!-- Vista llista de taulers -->
-        <div id="shared-list-inner">
-          <div class="shared-boards-title-row">
-            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
-            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
-          </div>
-          <div id="shared-boards-grid"></div>
-        </div>
-        <!-- Vista kanban directe (mostra el primer tauler o selector) -->
-        <div id="shared-kanban-inner" style="display:none;">
-          <div class="shared-boards-title-row">
-            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
-            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
-          </div>
-          <div id="shared-board-selector"></div>
-          <div id="shared-kanban-board-container"></div>
-        </div>
-      </div>
-      <div id="shared-board-detail" style="display:none;"></div>
-    </div>
-  </div>
-
-  <!-- Modal: Crear/Editar tauler -->
-  <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
-    <div class="board-modal">
-      <h3 id="board-modal-title">Nova llista compartida</h3>
-      <label>Nom de la llista</label>
-      <input type="text" id="board-name-inp" placeholder="Ex: Projecte de Mates..." maxlength="60" />
-      <label>Descripció (opcional)</label>
-      <input type="text" id="board-desc-inp" placeholder="Descripció breu..." maxlength="120" />
-      <label>Membres actuals</label>
-      <div id="board-members-current"></div>
-      <label>Afegir membre (email)</label>
-      <div style="display:flex;gap:8px;">
-        <input type="email" id="board-member-add-inp" placeholder="nou@email.com" style="flex:1;" />
-        <button onclick="addBoardMember()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">+ Afegir</button>
-      </div>
-      <div class="board-modal-btns">
-        <button class="bm-save-btn" id="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
-        <button class="bm-cancel-btn" onclick="closeBoardModal()">Cancel·lar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Detall de tasca -->
-  <div id="task-detail-overlay" class="tdm-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
-    <div class="tdm-modal">
-
-      <!-- Barra d'urgència superior + close -->
-      <div class="tdm-top-bar">
-        <div class="tdm-urg-strip" id="tdm-urgency-bar"></div>
-        <button class="tdm-close-btn" onclick="closeTaskDetail()">✕</button>
-      </div>
-
-      <!-- Títol editable gran -->
-      <div class="tdm-title-zone">
-        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." oninput="tdmMarkDirty()" />
-      </div>
-
-      <!-- Cos en dues columnes -->
-      <div class="tdm-cols">
-
-        <!-- Columna esquerra: camps -->
-        <div class="tdm-col-left">
-
-          <!-- Descripció -->
-          <div class="tdm-field-block">
-            <div class="tdm-field-lbl">📝 Descripció</div>
-            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" oninput="tdmMarkDirty()"></textarea>
-          </div>
-
-          <!-- Responsables -->
-          <div class="tdm-field-block">
-            <div class="tdm-field-lbl">👤 Responsables</div>
-            <div class="tdm-chips-row" id="tdm-assignees-chips"></div>
-            <div class="tdm-inline-add">
-              <input type="text" id="tdm-assignee-inp" placeholder="Afegir responsable..." onkeydown="if(event.key==='Enter')tdmAddAssignee()" />
-              <button onclick="tdmAddAssignee()">+</button>
-            </div>
-          </div>
-
-          <!-- Enllaços -->
-          <div class="tdm-field-block">
-            <div class="tdm-field-lbl">🔗 Enllaços</div>
-            <div id="tdm-links-list"></div>
-            <div class="tdm-link-add-row">
-              <input type="url" id="tdm-link-url-inp" placeholder="https://..." onkeydown="if(event.key==='Enter')tdmAddLink()" />
-              <input type="text" id="tdm-link-label-inp" placeholder="Nom" />
-              <button onclick="tdmAddLink()">+</button>
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div class="tdm-field-block">
-            <div class="tdm-field-lbl">💬 Notes</div>
-            <div id="tdm-notes-list"></div>
-            <div class="tdm-inline-add">
-              <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." onkeydown="if(event.key==='Enter')addNoteToTask()" />
-              <button onclick="addNoteToTask()">+</button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Columna dreta: metadades -->
-        <div class="tdm-col-right">
-
-          <!-- Estat -->
-          <div class="tdm-meta-block">
-            <div class="tdm-field-lbl">📌 Estat</div>
-            <div class="tdm-status-pills" id="tdm-status-pills">
-              <button class="tdm-status-pill" data-s="todo"  onclick="tdmSetStatus('todo',this)">Per començar</button>
-              <button class="tdm-status-pill" data-s="doing" onclick="tdmSetStatus('doing',this)">En curs</button>
-              <button class="tdm-status-pill" data-s="done"  onclick="tdmSetStatus('done',this)">Finalitzada</button>
-            </div>
-          </div>
-
-          <!-- Urgència -->
-          <div class="tdm-meta-block">
-            <div class="tdm-field-lbl">🚦 Urgència</div>
-            <div class="tdm-urg-pills">
-              <button class="tdm-urg-pill" data-u="green"  onclick="tdmSetUrgency('green',this)"><span class="tdm-urg-dot urg-green"></span>Baixa</button>
-              <button class="tdm-urg-pill" data-u="yellow" onclick="tdmSetUrgency('yellow',this)"><span class="tdm-urg-dot urg-yellow"></span>Mitjana</button>
-              <button class="tdm-urg-pill" data-u="red"    onclick="tdmSetUrgency('red',this)"><span class="tdm-urg-dot urg-red"></span>Alta</button>
-            </div>
-          </div>
-
-          <!-- Data límit -->
-          <div class="tdm-meta-block">
-            <div class="tdm-field-lbl">📅 Data límit</div>
-            <input type="date" class="tdm-date-inp" id="tdm-due" oninput="tdmMarkDirty()" />
-          </div>
-
-          <!-- Guardar -->
-          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
-
-          <!-- Select hidden per compat -->
-          <select id="tdm-status" style="display:none;" onchange="updateTaskStatusFromDetail(this.value)">
-            <option value="todo">Per començar</option>
-            <option value="doing">En curs</option>
-            <option value="done">Finalitzada</option>
-          </select>
-
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Nova tasca al tauler -->
-  <div id="board-task-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardTaskModal()" style="display:none;">
-    <div class="board-modal">
-      <h3>Nova tasca</h3>
-      <label>Títol <span style="color:var(--red)">*</span></label>
-      <input type="text" id="bt-title-inp" placeholder="Títol de la tasca..." maxlength="80" />
-      <label>Descripció</label>
-      <textarea id="bt-desc-inp" placeholder="Descripció opcional..." rows="2"></textarea>
-      <label>Responsable</label>
-      <input type="text" id="bt-assignee-inp" placeholder="Nom o email..." id="bt-assignee-inp" />
-      <label>Enllaç (opcional)</label>
-      <div style="display:flex;gap:6px;">
-        <input type="url" id="bt-link-url-inp" placeholder="https://canva.com/..." style="flex:2;" />
-        <input type="text" id="bt-link-label-inp" placeholder="Nom" style="flex:1;" />
-      </div>
-      <label>Data límit</label>
-      <input type="date" id="bt-due-inp" />
-      <label>Urgència</label>
-      <div class="bt-urgency-row">
-        <button class="bt-urg-btn active" data-u="green" onclick="selectBtUrgency(this)">🟢 Baixa</button>
-        <button class="bt-urg-btn" data-u="yellow" onclick="selectBtUrgency(this)">🟡 Mitjana</button>
-        <button class="bt-urg-btn" data-u="red" onclick="selectBtUrgency(this)">🔴 Alta</button>
-      </div>
-      <div class="board-modal-btns">
-        <button class="bm-save-btn" onclick="saveBoardTask()">Afegir tasca</button>
-        <button class="bm-cancel-btn" onclick="closeBoardTaskModal()">Cancel·lar</button>
-      </div>
+      <div class="exam-list" id="exam-list"></div>
     </div>
   </div>
 
   <!-- ═══ PAGE: JULIANS ═══ -->
   <div class="app-page" id="page-julians">
     <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" alt="J"/></div>
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🧠</div>
       <div class="page-title-text">
         <h2 id="pt-julians-h2">JULIANS AI</h2>
         <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
@@ -779,18 +430,27 @@ body:not(.layout-narrow) .week-grid {
     </div>
 
     <div id="ai-section">
+      <!-- AI header above card -->
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="display:inline-flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(59,130,246,0.08));border:1px solid rgba(124,58,237,0.25);border-radius:20px;padding:16px 28px;">
+          <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;box-shadow:0 0 16px rgba(124,58,237,0.4);"><img id="julians-logo-header" style="width:100%;height:100%;object-fit:cover;" alt="Julians" /></div>
+          <div style="text-align:left;">
+            <div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px;">JULIANS AI</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;font-weight:300;">Assistent personal</div>
+          </div>
+        </div>
+      </div>
+
       <div id="ai-section-card">
         <div id="ai-layout">
           <div id="ai-sidebar">
             <div id="ai-sidebar-header">
-              <span class="ai-sidebar-title" id="ai-sidebar-title-txt">Xats</span>
-              <div style="display:flex;gap:4px;align-items:center;">
-                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar" id="ai-sel-mode-btn">🗑️</button>
-                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat" id="ai-new-btn">✏️</button>
-                <button class="ai-new-chat-btn" onclick="toggleAISidebar()" title="Amagar xats" id="ai-sidebar-toggle">◀</button>
+              <span class="ai-sidebar-title">Xats</span>
+              <div style="display:flex;gap:4px;">
+                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar">🗑️</button>
+                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat">✏️</button>
               </div>
             </div>
-            <div id="ai-sidebar-resize" title="Arrossega per canviar mida"></div>
             <div class="ai-select-toolbar" id="ai-select-toolbar">
               <span class="ai-sel-count" id="ai-sel-count">0 seleccionats</span>
               <div class="ai-sel-actions">
@@ -803,7 +463,11 @@ body:not(.layout-narrow) .week-grid {
           <div id="ai-main">
             <div id="ai-main-header">
               <div class="ai-main-left">
-                <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
+                <div class="ai-avatar-sm"><img id="julians-logo-sm" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J" /></div>
+                <div>
+                  <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
+                  <div class="ai-subtitle-sm">Assistent personal</div>
+                </div>
               </div>
               <button class="ai-clear-btn" onclick="clearCurrentChat()" title="Netejar xat">🗑️</button>
             </div>
@@ -811,25 +475,8 @@ body:not(.layout-narrow) .week-grid {
               <button class="ai-mode-btn active" id="mode-rapid"  onclick="setAIMode('rapid')">⚡ Ràpid</button>
               <button class="ai-mode-btn"         id="mode-extens" onclick="setAIMode('extens')">📝 Extens</button>
               <button class="ai-mode-btn"         id="mode-profund"onclick="setAIMode('profund')">🔬 Profund</button>
-              <button class="ai-mode-btn estudi-btn" id="mode-estudi" onclick="setAIMode('estudi')">📚 Estudi</button>
             </div>
             <div class="ai-mode-label" id="ai-mode-label-txt">⚡ Respostes concises i immediates</div>
-
-            <!-- Panel submodes Estudi -->
-            <div id="estudi-panel" style="display:none;">
-              <div class="estudi-submode-row">
-                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">
-                  <span class="esub-icon">📅</span><span class="esub-label">Pla d'estudi</span>
-                </button>
-                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">
-                  <span class="esub-icon">🗒️</span><span class="esub-label">Resum</span>
-                </button>
-                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">
-                  <span class="esub-icon">🧪</span><span class="esub-label">Pràctica</span>
-                </button>
-              </div>
-              <div id="estudi-hint" class="estudi-hint"></div>
-            </div>
             <div class="ai-chat-messages" id="ai-messages"></div>
             <div class="ai-chip-row" id="ai-chips"></div>
             <div id="ai-doc-preview" style="display:none;padding:8px 16px;background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);display:none;align-items:center;gap:10px;flex-shrink:0;">
@@ -860,7 +507,6 @@ body:not(.layout-narrow) .week-grid {
       <button class="info-btn" onclick="showInfo('calendari')" title="Com funciona?">i</button>
     </div>
 
-    <div class="cal-two-col">
     <!-- Monthly Calendar -->
     <div class="monthly-section">
       <div class="cal-nav">
@@ -884,43 +530,43 @@ body:not(.layout-narrow) .week-grid {
     <div class="matches-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
-          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
+          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
           <button onclick="editMatchesTitle()" title="Editar títol" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:12px;padding:0;">✎</button>
           <button class="info-btn" onclick="showInfo('partits')" title="Com funciona?">i</button>
         </div>
-        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
+        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
       </div>
 
       <!-- Add/Edit form -->
       <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
-            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
+            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
-            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
+            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
-            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
+            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
-            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
+            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
-            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
+            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
-            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
+            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
           <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
           <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
         </div>
@@ -933,7 +579,6 @@ body:not(.layout-narrow) .week-grid {
 
       <div id="matches-list"></div>
     </div>
-    </div><!-- /cal-two-col -->
   </div>
 
   <!-- ═══ PAGE: FOCUS ═══ -->
@@ -948,8 +593,6 @@ body:not(.layout-narrow) .week-grid {
     </div>
 
 
-    <div class="focus-two-col">
-    <div class="focus-col-left">
     <!-- Pomodoro Gamification -->
     <div style="background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(124,58,237,0.08));border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(239,68,68,0.12),transparent 70%);pointer-events:none;"></div>
@@ -957,13 +600,13 @@ body:not(.layout-narrow) .week-grid {
       <!-- Level & XP -->
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
         <div id="pomo-level-badge" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(239,68,68,0.4);">
-          <span style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
+          <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
           <span style="font-size:8px;color:rgba(255,255,255,0.7);letter-spacing:1px;">LVL</span>
         </div>
         <div style="flex:1;min-width:160px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-            <span id="pomo-level-name" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
-            <span id="pomo-xp-txt" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
+            <span id="pomo-level-name" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
+            <span id="pomo-xp-txt" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
           </div>
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
             <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
@@ -975,10 +618,10 @@ body:not(.layout-narrow) .week-grid {
       <!-- Daily Goal -->
       <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <button onclick="changeDailyGoal(-1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="pomo-goal-num" style="font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
+            <span id="pomo-goal-num" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
             <span style="font-size:10px;color:var(--muted);">🍅</span>
             <button onclick="changeDailyGoal(1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
           </div>
@@ -988,7 +631,7 @@ body:not(.layout-narrow) .week-grid {
       </div>
 
       <!-- Rewards row -->
-      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
     </div>
 
@@ -999,26 +642,26 @@ body:not(.layout-narrow) .week-grid {
       <!-- Custom timer input -->
       <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
             <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
-            <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
-            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <span id="pomo-cust-focus" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
             <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
           </div>
         </div>
         <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
+          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
-            <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
-            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <span id="pomo-cust-break" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
           </div>
-          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;">(auto)</span>
+          <span style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">(auto)</span>
         </div>
-        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
       </div>
-      <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+      <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
 
       <div class="pomo-display">
         <div class="pomo-sessions" id="pomo-sessions"></div>
@@ -1056,13 +699,13 @@ body:not(.layout-narrow) .week-grid {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
           <span style="font-size:20px;">🎵</span>
-          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
+          <span style="font-family:'Space Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
           <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
-            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
+            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
             onkeydown="if(event.key==='Enter') loadSpotify()" />
-          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
+          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Space Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
         </div>
       </div>
       <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
@@ -1070,12 +713,10 @@ body:not(.layout-narrow) .week-grid {
       </div>
       <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
         Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
-        <span style="font-size:10px;font-family:'Share Tech Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
+        <span style="font-size:10px;font-family:'Space Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
       </div>
     </div>
 
-    </div><!-- /focus-col-left -->
-    <div class="focus-col-right">
     <!-- Victories -->
     <div class="victories-section">
       <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_victories">🏆 les meves victòries de la setmana <button class="info-btn" onclick="showInfo('victories')" title="Com funciona?">i</button></div>
@@ -1116,8 +757,6 @@ body:not(.layout-narrow) .week-grid {
       <div class="tip-card"><div class="tip-icon">💡</div><div class="tip-title">Recorda el per què</div><div class="tip-text">Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.</div></div>
       <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">El son és productivitat</div><div class="tip-text">8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.</div></div>
     </div>
-  </div><!-- /focus-col-right -->
-  </div><!-- /focus-two-col -->
   </div>
 
 </div><!-- /container -->
@@ -1314,6 +953,7 @@ body:not(.layout-narrow) .week-grid {
     </div>
     <div class="config-tabs">
       <button class="config-tab active" onclick="switchTab('horari')">📅 Horari</button>
+      <button class="config-tab" onclick="switchTab('tipus')">🎨 Tipus</button>
       <button class="config-tab" onclick="switchTab('perfil')">👤 Perfil</button>
       <button class="config-tab" onclick="switchTab('objectiu')">🎯 Objectiu</button>
       <button class="config-tab" onclick="switchTab('ia')">🔑 IA</button>
@@ -1322,6 +962,10 @@ body:not(.layout-narrow) .week-grid {
     <div class="config-body" id="config-body"></div>
   </div>
 </div>
+
+
+
+
 
 
 <!-- ═══ FULLSCREEN CLOCK OVERLAY ═══ -->
@@ -1362,7 +1006,7 @@ body:not(.layout-narrow) .week-grid {
     </div>
     <div>
       <div class="fs-side-label">Objectiu</div>
-      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
+      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Sora',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
     </div>
   </div>
 
@@ -1371,6 +1015,11 @@ body:not(.layout-narrow) .week-grid {
     <span id="fs-close-hint">ESC · clic per tancar</span>
   </div>
 </div>
+
+
+
+
+
 
 
 <!-- ═══ POMODORO FULLSCREEN ═══ -->
@@ -1410,29 +1059,27 @@ body:not(.layout-narrow) .week-grid {
   <div id="pomo-fs-close-hint">ESC · TOCA PER TANCAR</div>
 </div>
 
+
+
 <script src="app.js" defer></script>
 <script>
-// ── Layout Width: Ample / Estret ──
-// S'executa immediatament, NO depèn de app.js
+// ── Layout Width ──
 function setLayoutWidth(w) {
   localStorage.setItem('layout_width', w);
   _applyLW(w);
-  // tanca drawer si és obert
   setTimeout(function() {
     var d = document.getElementById('nav-drawer');
-    if(d && d.classList.contains('open') && typeof toggleDrawer==='function') toggleDrawer();
-  }, 50);
+    if (d && d.classList.contains('open') && typeof toggleDrawer === 'function') toggleDrawer();
+  }, 60);
 }
 function _applyLW(w) {
   document.body.classList.toggle('layout-narrow', w === 'narrow');
   var bW = document.getElementById('ndw-layout-wide');
   var bN = document.getElementById('ndw-layout-narrow');
-  if(bW) bW.classList.toggle('ndw-active', w !== 'narrow');
-  if(bN) bN.classList.toggle('ndw-active', w === 'narrow');
+  if (bW) bW.classList.toggle('ndw-active', w !== 'narrow');
+  if (bN) bN.classList.toggle('ndw-active', w === 'narrow');
 }
-// Aplicar de seguida (abans que carregui app.js)
 _applyLW(localStorage.getItem('layout_width') || 'wide');
-// Tornar a aplicar quan el DOM estigui llest (per si els botons no existien)
 document.addEventListener('DOMContentLoaded', function() {
   _applyLW(localStorage.getItem('layout_width') || 'wide');
 });
