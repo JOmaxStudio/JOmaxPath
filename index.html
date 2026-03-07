@@ -68,7 +68,7 @@
     <span id="auth-signout-hint">Sortir →</span>
   </div>
   <!-- Auth: sense sessió -->
-  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Space Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
+  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
     <div style="width:7px;height:7px;border-radius:50%;background:rgba(0,180,216,0.3);flex-shrink:0;"></div>
     <span>INICIAR SESSIÓ</span>
   </div>
@@ -121,7 +121,7 @@
         <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(2.5rem,8vw,5rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">JOmaxPath</div>
         <div class="jomaxpath-hero-title" style="font-size:clamp(1.2rem,3.5vw,2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">CALENDARI PERSONAL</div>
       </div>
-      <div class="jomaxpath-user" id="header-sub">El teu planificador personal <span class="jomaxpath-version">v2.0</span></div>
+      <div class="jomaxpath-user" id="header-sub">Developed by JOmax <span class="jomaxpath-version">v2.0</span></div>
     </div>
 
     <div class="home-two-col">
@@ -224,7 +224,7 @@
       <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
       <div style="display:flex;gap:6px;">
         <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
-        <div id="week-label" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
+        <div id="week-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
         <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
       </div>
     </div>
@@ -603,43 +603,43 @@
     <div class="matches-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
-          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
+          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
           <button onclick="editMatchesTitle()" title="Editar títol" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:12px;padding:0;">✎</button>
           <button class="info-btn" onclick="showInfo('partits')" title="Com funciona?">i</button>
         </div>
-        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
+        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
       </div>
 
       <!-- Add/Edit form -->
       <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
-            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
+            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
-            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
+            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
-            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
+            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
-            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
+            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
-            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
+            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
           <div>
-            <label style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
-            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
+            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
           <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
           <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
         </div>
@@ -676,13 +676,13 @@
       <!-- Level & XP -->
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
         <div id="pomo-level-badge" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(239,68,68,0.4);">
-          <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
           <span style="font-size:8px;color:rgba(255,255,255,0.7);letter-spacing:1px;">LVL</span>
         </div>
         <div style="flex:1;min-width:160px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-            <span id="pomo-level-name" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
-            <span id="pomo-xp-txt" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
+            <span id="pomo-level-name" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
+            <span id="pomo-xp-txt" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
           </div>
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
             <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
@@ -694,10 +694,10 @@
       <!-- Daily Goal -->
       <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <button onclick="changeDailyGoal(-1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="pomo-goal-num" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
+            <span id="pomo-goal-num" style="font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
             <span style="font-size:10px;color:var(--muted);">🍅</span>
             <button onclick="changeDailyGoal(1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
           </div>
@@ -707,7 +707,7 @@
       </div>
 
       <!-- Rewards row -->
-      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
     </div>
 
@@ -718,26 +718,26 @@
       <!-- Custom timer input -->
       <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
             <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
-            <span id="pomo-cust-focus" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
-            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
             <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
           </div>
         </div>
         <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
-            <span id="pomo-cust-break" style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
-            <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
           </div>
-          <span style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">(auto)</span>
+          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;">(auto)</span>
         </div>
-        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
       </div>
-      <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+      <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
 
       <div class="pomo-display">
         <div class="pomo-sessions" id="pomo-sessions"></div>
@@ -775,13 +775,13 @@
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
           <span style="font-size:20px;">🎵</span>
-          <span style="font-family:'Space Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
           <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
-            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
+            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
             onkeydown="if(event.key==='Enter') loadSpotify()" />
-          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Space Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
+          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
         </div>
       </div>
       <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
@@ -789,7 +789,7 @@
       </div>
       <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
         Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
-        <span style="font-size:10px;font-family:'Space Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
+        <span style="font-size:10px;font-family:'Share Tech Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
       </div>
     </div>
 
@@ -1043,10 +1043,6 @@
 </div>
 
 
-
-
-
-
 <!-- ═══ FULLSCREEN CLOCK OVERLAY ═══ -->
 <div id="clock-fullscreen">
   <!-- Left: upcoming tasks -->
@@ -1085,7 +1081,7 @@
     </div>
     <div>
       <div class="fs-side-label">Objectiu</div>
-      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Sora',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
+      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
     </div>
   </div>
 
@@ -1094,11 +1090,6 @@
     <span id="fs-close-hint">ESC · clic per tancar</span>
   </div>
 </div>
-
-
-
-
-
 
 
 <!-- ═══ POMODORO FULLSCREEN ═══ -->
@@ -1137,8 +1128,6 @@
 
   <div id="pomo-fs-close-hint">ESC · TOCA PER TANCAR</div>
 </div>
-
-
 
 <script src="app.js" defer></script>
 </body>
