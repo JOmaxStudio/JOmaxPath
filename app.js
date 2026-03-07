@@ -308,7 +308,12 @@ function navTo(page) {
   if(target) target.classList.add('page-active');
   // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
   document.body.classList.toggle('on-julians', page === 'julians');
-  if (page === 'julians') requestAnimationFrame(() => scrollToBottom(false));
+  if (page === 'julians') {
+    // Scroll instantani al final quan s'entra a Julians
+    requestAnimationFrame(() => scrollToBottom(false));
+    setTimeout(() => scrollToBottom(false), 100);
+    setTimeout(() => scrollToBottom(false), 300);
+  }
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
     b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
   });
@@ -2581,18 +2586,18 @@ function clearCurrentChat() {
 function scrollToBottom(animate=true) {
   const box = document.getElementById('ai-messages');
   if (!box) return;
+  const doScroll = (behavior) => box.scrollTo({ top: box.scrollHeight, behavior });
   if (animate) {
-    box.style.scrollBehavior = 'smooth';
-    box.scrollTop = box.scrollHeight;
+    // Scroll suau — múltiples intents per garantir que el DOM ha acabat de pintar
+    doScroll('smooth');
     requestAnimationFrame(() => {
-      box.scrollTop = box.scrollHeight;
-      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 80);
-      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 200);
+      doScroll('smooth');
+      setTimeout(() => doScroll('smooth'), 150);
+      setTimeout(() => doScroll('smooth'), 350);
     });
   } else {
-    box.style.scrollBehavior = 'auto';
-    box.scrollTop = box.scrollHeight;
-    box.style.scrollBehavior = 'smooth';
+    // Scroll instantani (càrrega inicial o canvi de xat)
+    doScroll('instant');
   }
 }
 
