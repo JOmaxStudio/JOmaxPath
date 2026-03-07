@@ -3154,48 +3154,30 @@ body.theme-blanc .chapter-dot  { background: rgba(0,0,0,0.08); }
 body.theme-blanc #config-btn { background: #fff; border-color: rgba(109,40,217,0.2); color: #7c3aed; }
 body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); color: #1a1a2e; }
 
-/* ══════════════════════════════════════════════════════
-   LAYOUT AMPLE / COMPACTA
-   - Ample (default): 1 columna, amplada total
-   - Compacta (.layout-narrow): 2 columnes, centrat 1100px
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT MODE — AMPLE (1 columna) i COMPACTA (2 columnes)
+   Ambdós modes ocupen tota la pantalla
+═══════════════════════════════════════════════════════════ */
 
-/* MODE AMPLE: forçar 1 columna (sobreescriu @media 1024px) */
-body:not(.layout-narrow) .home-two-col,
-body:not(.layout-narrow) .focus-two-col,
-body:not(.layout-narrow) .cal-two-col {
-  display: flex !important;
-  flex-direction: column !important;
-  grid-template-columns: none !important;
-}
+/* ── AMPLE: una columna per fila ── */
+body.layout-ample .week-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .stats-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .screen-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .tips-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .today-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .boards-grid { grid-template-columns: 1fr !important; }
+body.layout-ample .kanban-board { grid-template-columns: 1fr !important; }
+body.layout-ample .home-two-col { grid-template-columns: 1fr !important; display: grid !important; }
+body.layout-ample .focus-two-col { grid-template-columns: 1fr !important; display: grid !important; }
+body.layout-ample .cal-two-col { grid-template-columns: 1fr !important; display: grid !important; }
+body.layout-ample .focus-col-left,
+body.layout-ample .focus-col-right { width: 100% !important; max-width: 100% !important; }
+body.layout-ample .week-grid .day-card { grid-column: auto !important; }
 
-/* MODE COMPACTA: 2 columnes + centrat */
-body.layout-narrow .container {
-  max-width: 1100px !important;
-  margin: 0 auto !important;
-  padding: 40px 20px !important;
-  box-sizing: border-box !important;
-}
-body.layout-narrow .home-two-col,
-body.layout-narrow .focus-two-col,
-body.layout-narrow .cal-two-col {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 28px !important;
-  align-items: start !important;
-}
-body.layout-narrow .home-col-left,
-body.layout-narrow .home-col-right,
-body.layout-narrow .focus-col-left,
-body.layout-narrow .focus-col-right {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 20px !important;
-}
-@media(max-width:800px) {
-  body.layout-narrow .home-two-col,
-  body.layout-narrow .focus-two-col,
-  body.layout-narrow .cal-two-col {
-    grid-template-columns: 1fr !important;
-  }
-}
+/* ── COMPACTA: 2 columnes, tota la pantalla ── */
+body.layout-compacta .home-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 28px !important; align-items: start !important; }
+body.layout-compacta .focus-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 28px !important; align-items: start !important; }
+body.layout-compacta .cal-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 28px !important; align-items: start !important; }
+body.layout-compacta .stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+body.layout-compacta .screen-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+body.layout-compacta .tips-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
