@@ -8,6 +8,180 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- LAYOUT-FIX-START -->
+<style>
+/* ═══════════════════════════════════════════════════════════
+   JOMAXPATH — LAYOUT FULLSCREEN FINAL
+   Afegir al final de styles.css
+═══════════════════════════════════════════════════════════ */
+
+/* ── Reset base ── */
+html, body { height: 100%; }
+
+/* ── Cada pàgina ocupa mínim 100vh ── */
+body.view-pages {
+  padding-bottom: 68px;
+}
+body.view-pages .app-page {
+  display: none !important;
+}
+body.view-pages .app-page.page-active {
+  display: block !important;
+  min-height: calc(100vh - 68px);
+}
+
+/* ── Container: ample màxim, padding generós ── */
+.container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 28px 32px 48px 32px !important;
+  box-sizing: border-box !important;
+}
+@media(max-width:600px) {
+  .container { padding: 16px 12px 32px !important; }
+}
+
+/* ════════════════════════════════════════════
+   HOME — 2 columnes que omplen l'alçada
+════════════════════════════════════════════ */
+@media(min-width:900px) {
+  .home-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+  }
+}
+.home-col-left, .home-col-right {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+/* L'últim bloc de cada columna s'estira */
+.home-col-left > *:last-child,
+.home-col-right > *:last-child {
+  flex: 1 !important;
+  min-height: 120px !important;
+}
+
+/* ════════════════════════════════════════════
+   HORARI — week-grid sempre 100% ample
+════════════════════════════════════════════ */
+@media(min-width:1024px) {
+  .week-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 10px !important;
+  }
+  .week-grid .day-card:nth-child(5),
+  .week-grid .day-card:nth-child(6),
+  .week-grid .day-card:nth-child(7) {
+    grid-column: auto !important;
+  }
+}
+@media(min-width:600px) and (max-width:1023px) {
+  .week-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .week-grid .day-card:nth-child(n) {
+    grid-column: auto !important;
+  }
+}
+/* Targetes de dia: estiren el contingut */
+.week-grid .day-card {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 200px !important;
+}
+.day-card .day-body {
+  flex: 1 !important;
+}
+
+/* ════════════════════════════════════════════
+   FOCUS — 2 columnes
+════════════════════════════════════════════ */
+@media(min-width:900px) {
+  .focus-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+  }
+}
+.focus-col-left, .focus-col-right {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+/* ════════════════════════════════════════════
+   CALENDARI — 2 columnes
+════════════════════════════════════════════ */
+@media(min-width:900px) {
+  .cal-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+  }
+}
+
+/* ════════════════════════════════════════════
+   JULIANS AI — ocupa tota l'alçada
+════════════════════════════════════════════ */
+#page-julians.page-active {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: calc(100vh - 68px) !important;
+}
+#page-julians.page-active > .container {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#ai-section {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin-bottom: 0 !important;
+}
+#ai-section-card {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#ai-layout {
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 480px !important;
+  max-height: none !important;
+}
+
+/* ════════════════════════════════════════════
+   GRIDS GENERALS — sempre ample màxim
+════════════════════════════════════════════ */
+.stats-grid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+}
+.tips-grid, .screen-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+}
+.boards-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+}
+.kanban-board {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+@media(max-width:600px) {
+  .kanban-board { grid-template-columns: 1fr !important; }
+}
+
+</style>
+<!-- LAYOUT-FIX-END -->
 </head><body class="view-pages">
 
 <!-- ═══ AUTH MODAL ═══ -->
