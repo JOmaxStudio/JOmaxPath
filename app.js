@@ -344,6 +344,39 @@ function applyLayoutMode(mode) {
   const btnCompacta = document.getElementById('ndw-layout-compacta');
   if (btnAmple)    btnAmple.classList.toggle('active', mode === 'ample');
   if (btnCompacta) btnCompacta.classList.toggle('active', mode === 'compacta');
+
+  // Aplica estils directament per superar els !important dels <style> inline
+  if (mode === 'ample') {
+    // "Ara mateix": 3 targetes en fila
+    const todayGrid = document.getElementById('today-grid');
+    if (todayGrid) todayGrid.style.setProperty('grid-template-columns', '1fr 1fr 1fr', 'important');
+
+    // Horari: Dl-Dv (5 col) dalt, Ds-Dg baix amples
+    const weekGrid = document.getElementById('week-grid');
+    if (weekGrid) {
+      weekGrid.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
+      weekGrid.style.setProperty('gap', '12px', 'important');
+      const cards = weekGrid.querySelectorAll('.day-card');
+      cards.forEach((c, i) => {
+        if (i === 5) c.style.setProperty('grid-column', '1 / 3', 'important');
+        else if (i === 6) c.style.setProperty('grid-column', '3 / 6', 'important');
+        else c.style.removeProperty('grid-column');
+      });
+    }
+  } else {
+    // Restaura today-grid
+    const todayGrid = document.getElementById('today-grid');
+    if (todayGrid) todayGrid.style.removeProperty('grid-template-columns');
+
+    // Restaura week-grid
+    const weekGrid = document.getElementById('week-grid');
+    if (weekGrid) {
+      weekGrid.style.removeProperty('grid-template-columns');
+      weekGrid.style.removeProperty('gap');
+      const cards = weekGrid.querySelectorAll('.day-card');
+      cards.forEach(c => c.style.removeProperty('grid-column'));
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -723,6 +756,18 @@ function renderWeekGrid() {
   renderAllDayBadges();
   updateAraIndicator();
   renderAllTimedEvents();
+  // Re-aplica el mode de layout (els cards acaben de ser recreats)
+  const lm = localStorage.getItem('layout_mode') || 'compacta';
+  if (lm === 'ample') {
+    grid.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
+    grid.style.setProperty('gap', '12px', 'important');
+    const cards = grid.querySelectorAll('.day-card');
+    cards.forEach((c, i) => {
+      if (i === 5) c.style.setProperty('grid-column', '1 / 3', 'important');
+      else if (i === 6) c.style.setProperty('grid-column', '3 / 6', 'important');
+      else c.style.removeProperty('grid-column');
+    });
+  }
 }
 
 function editDayName(dayIdx, e) {
