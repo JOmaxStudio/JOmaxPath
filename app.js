@@ -308,6 +308,7 @@ function navTo(page) {
   if(target) target.classList.add('page-active');
   // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
   document.body.classList.toggle('on-julians', page === 'julians');
+  if (page === 'julians') requestAnimationFrame(() => scrollToBottom(false));
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
     b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
   });
@@ -2576,6 +2577,25 @@ function clearCurrentChat() {
   renderAIMessages();
 }
 
+// Scroll suau fins al final del xat (com fa Claude)
+function scrollToBottom(animate=true) {
+  const box = document.getElementById('ai-messages');
+  if (!box) return;
+  if (animate) {
+    box.style.scrollBehavior = 'smooth';
+    box.scrollTop = box.scrollHeight;
+    requestAnimationFrame(() => {
+      box.scrollTop = box.scrollHeight;
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 80);
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 200);
+    });
+  } else {
+    box.style.scrollBehavior = 'auto';
+    box.scrollTop = box.scrollHeight;
+    box.style.scrollBehavior = 'smooth';
+  }
+}
+
 function renderAIMessages() {
   const box = document.getElementById('ai-messages'); if(!box) return;
   const chips = document.getElementById('ai-chips');
@@ -2588,7 +2608,8 @@ function renderAIMessages() {
   // Hide chips once chat has messages
   if(chips) { chips.style.opacity='0'; chips.style.maxHeight='0'; chips.style.padding='0'; chips.style.overflow='hidden'; }
   box.innerHTML = chat.messages.map(m=>`<div class="ai-msg ${m.role}">${m.role==='assistant'?formatAIText(m.text):escapeHtml(m.text)}</div>`).join('');
-  box.scrollTop = box.scrollHeight;
+  // Scroll instantani en carregar (sense animació), però suau si és un missatge nou
+  scrollToBottom(false);
 }
 
 function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2778,7 +2799,7 @@ async function sendAIEstudi(userMsg, docContent) {
   const submodeIcons = { pla:'📅', resum:'🗒️', practica:'🧪' };
   typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">${submodeIcons[estudiSubmode]||'📚'} Mode Estudi — ${estudiSubmode}...</span>`;
   box.appendChild(typingEl);
-  box.scrollTop = box.scrollHeight;
+  scrollToBottom();
   document.getElementById('ai-chat-send').disabled = true;
 
   try {
@@ -2918,7 +2939,7 @@ async function sendAIBase() {
     warn.className = 'ai-msg assistant';
     warn.innerHTML = '<span style="color:#fcd34d;">⚠️ <strong>Sense API Key configurada.</strong><br>Ves a <strong>⚙️ Configuració → 🔑 IA</strong> per afegir la teva clau de Groq.</span>';
     chatLog?.appendChild(warn);
-    chatLog?.scrollTo(0,chatLog.scrollHeight);
+    scrollToBottom();
     return;
   }
 
@@ -2938,7 +2959,7 @@ async function sendAIBase() {
   typingEl.className='ai-msg thinking';
   const modeHints = {extens:'<span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📝 Redactant resposta extensa...</span>',profund:'<span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">🔬 Analitzant en profunditat...</span>'};
   typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div>${modeHints[aiMode]||''}`;
-  box.appendChild(typingEl); box.scrollTop = box.scrollHeight;
+  box.appendChild(typingEl); scrollToBottom();
   document.getElementById('ai-chat-send').disabled = true;
 
   try {
@@ -4107,7 +4128,7 @@ function showDocError(msg) {
   const el  = document.createElement('div');
   el.className = 'ai-msg assistant';
   el.innerHTML = `<span style="color:#fca5a5;">⚠️ ${msg}</span>`;
-  box.appendChild(el); box.scrollTop = box.scrollHeight;
+  box.appendChild(el); scrollToBottom();
 }
 
 // ── Override sendAI to support document attachments + mode estudi ──
@@ -4151,7 +4172,7 @@ async function sendAI() {
       extractEl.className = 'ai-msg thinking';
       extractEl.id = 'estudi-extract-indicator';
       extractEl.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Llegint document...</span>';
-      box.appendChild(extractEl); box.scrollTop = box.scrollHeight;
+      box.appendChild(extractEl); scrollToBottom();
 
       const docRef = attachedDoc;
       clearAttachment();
@@ -4193,7 +4214,7 @@ async function sendAI() {
   const typingEl = document.createElement('div');
   typingEl.className = 'ai-msg thinking';
   typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Processant ${doc.isPDF ? 'PDF' : 'document Word'}...</span>`;
-  box.appendChild(typingEl); box.scrollTop = box.scrollHeight;
+  box.appendChild(typingEl); scrollToBottom();
   document.getElementById('ai-chat-send').disabled = true;
   
   try {
