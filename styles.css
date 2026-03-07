@@ -2990,3 +2990,166 @@ body.view-pages .app-page.page-active > .container { flex:1!important; display:f
   .container { padding:16px 10px 20px!important; }
   .kanban-board { grid-template-columns:1fr!important; }
 }
+/* ═══════════════════════════════════════════════════════
+   TEMA BLANC — Fix complet per visibilitat
+═══════════════════════════════════════════════════════ */
+body.theme-blanc {
+  --bg: #f0f2f8;
+  --card: #ffffff;
+  --card2: #eef0f7;
+  --accent: #6d28d9;
+  --accent2: #7c3aed;
+  --text: #1a1a2e;
+  --muted: #64748b;
+  --border: rgba(109,40,217,0.15);
+  --green: #059669;
+  --orange: #d97706;
+  --red: #dc2626;
+  --blue: #2563eb;
+  --pink: #db2777;
+  --yellow: #ca8a04;
+  --teal: #0d9488;
+  --cyan: #0284c7;
+  --cyan2: #0369a1;
+}
+
+/* Fons i gradients adaptats */
+body.theme-blanc::before {
+  background:
+    radial-gradient(ellipse at 5% 50%,rgba(109,40,217,0.05) 0%,transparent 35%),
+    radial-gradient(ellipse at 95% 50%,rgba(13,148,136,0.04) 0%,transparent 35%),
+    radial-gradient(ellipse at 20% 15%,rgba(109,40,217,0.06) 0%,transparent 45%),
+    radial-gradient(ellipse at 80% 85%,rgba(37,99,235,0.04) 0%,transparent 45%);
+}
+body.theme-blanc::after { display: none; }
+
+/* Cards visibles */
+body.theme-blanc .day-card,
+body.theme-blanc .tip-card,
+body.theme-blanc .stat-card,
+body.theme-blanc .weekly-summary,
+body.theme-blanc .progress-section,
+body.theme-blanc .matches-section,
+body.theme-blanc .exam-section,
+body.theme-blanc .screen-section,
+body.theme-blanc .victories-section,
+body.theme-blanc .habits-section,
+body.theme-blanc .pomodoro-section,
+body.theme-blanc .monthly-section,
+body.theme-blanc .streak-widget,
+body.theme-blanc .goal-banner,
+body.theme-blanc .today-panel,
+body.theme-blanc .kanban-col,
+body.theme-blanc .board-card,
+body.theme-blanc #ai-section-card {
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  border-color: rgba(109,40,217,0.12);
+}
+
+/* Textos llegibles */
+body.theme-blanc .block-label,
+body.theme-blanc .day-name,
+body.theme-blanc .stat-number,
+body.theme-blanc .section-title,
+body.theme-blanc .progress-header h3,
+body.theme-blanc h3, body.theme-blanc h2 {
+  color: #1a1a2e;
+}
+
+/* Header hero */
+body.theme-blanc .jomaxpath-hero-title {
+  color: #2d1b69;
+  text-shadow:
+    0 0 20px rgba(109,40,217,0.3),
+    0 0 40px rgba(109,40,217,0.15);
+}
+body.theme-blanc .jomaxpath-user { color: #64748b; }
+
+/* Blocs horari */
+body.theme-blanc .block { border-left-width: 3px; }
+body.theme-blanc .block-rest { background: rgba(0,0,0,0.03); }
+body.theme-blanc .block-time { color: #94a3b8; }
+
+/* Nav i hamburger */
+body.theme-blanc #nav-hamburger { background: #fff; border-color: rgba(109,40,217,0.2); }
+body.theme-blanc #nav-hamburger span { background: #1a1a2e; }
+body.theme-blanc #nav-clock { background: #fff; color: #7c3aed; border-color: rgba(109,40,217,0.2); }
+body.theme-blanc #nav-drawer { background: #fff; }
+body.theme-blanc .ndw-item:hover { background: rgba(109,40,217,0.05); }
+
+/* IA chat */
+body.theme-blanc .ai-msg.user {
+  background: linear-gradient(135deg,rgba(109,40,217,0.12),rgba(109,40,217,0.08));
+  color: #1a1a2e;
+  border-color: rgba(109,40,217,0.2);
+}
+body.theme-blanc .ai-msg.assistant {
+  background: #fff;
+  color: #1a1a2e;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+body.theme-blanc #ai-chat-input {
+  background: #f8f9fb;
+  border-color: rgba(109,40,217,0.2);
+  color: #1a1a2e;
+}
+body.theme-blanc #ai-chat-input::placeholder { color: #94a3b8; }
+body.theme-blanc #ai-section-card { background: #fff; }
+body.theme-blanc #ai-sidebar { background: #f8f9fb; }
+body.theme-blanc .ai-chat-item { color: #64748b; }
+body.theme-blanc .ai-chat-item:hover { background: rgba(109,40,217,0.06); color: #1a1a2e; }
+body.theme-blanc .ai-chat-item.active { background: rgba(109,40,217,0.1); color: #7c3aed; }
+body.theme-blanc #ai-main-header { background: #f8f9fb; }
+body.theme-blanc .ai-chat-messages { background: #fafbfc; }
+body.theme-blanc .ai-chip-row { background: transparent; }
+body.theme-blanc .ai-suggestion {
+  background: rgba(109,40,217,0.06);
+  border-color: rgba(109,40,217,0.2);
+  color: #7c3aed;
+}
+body.theme-blanc .ai-mode-btn { background: rgba(0,0,0,0.04); color: #64748b; }
+body.theme-blanc .ai-mode-btn.active { background: rgba(109,40,217,0.12); color: #7c3aed; }
+
+/* Bottom nav */
+body.theme-blanc #bnav {
+  background: rgba(255,255,255,0.95);
+  border-top-color: rgba(109,40,217,0.1);
+}
+body.theme-blanc .bnav-lbl { color: #94a3b8; }
+body.theme-blanc .bnav-item.active .bnav-icon { filter: drop-shadow(0 0 4px rgba(109,40,217,0.5)); }
+
+/* Scrollbar */
+body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2); }
+
+/* Inputs i formularis */
+body.theme-blanc input,
+body.theme-blanc select,
+body.theme-blanc textarea {
+  background: #f8f9fb !important;
+  color: #1a1a2e !important;
+  border-color: rgba(0,0,0,0.12) !important;
+}
+body.theme-blanc select option { background: #fff; color: #1a1a2e; }
+
+/* Streak */
+body.theme-blanc .streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.08),rgba(239,68,68,0.05)); }
+body.theme-blanc .streak-number { text-shadow: none; }
+
+/* Modals */
+body.theme-blanc #config-panel { background: #fff; }
+body.theme-blanc #timed-modal,
+body.theme-blanc #day-modal,
+body.theme-blanc #month-modal { background: #fff; color: #1a1a2e; }
+
+/* Decos laterals */
+body.theme-blanc .side-deco-left  { background: linear-gradient(to bottom, transparent 0%, rgba(109,40,217,0.3) 30%, rgba(109,40,217,0.2) 70%, transparent 100%); }
+body.theme-blanc .side-deco-right { background: linear-gradient(to bottom, transparent 0%, rgba(13,148,136,0.25) 30%, rgba(109,40,217,0.15) 70%, transparent 100%); }
+
+/* Progrés */
+body.theme-blanc .progress-bar { background: rgba(0,0,0,0.06); }
+body.theme-blanc .chapter-dot  { background: rgba(0,0,0,0.08); }
+
+/* FAB buttons */
+body.theme-blanc #config-btn { background: #fff; border-color: rgba(109,40,217,0.2); color: #7c3aed; }
+body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); color: #1a1a2e; }
