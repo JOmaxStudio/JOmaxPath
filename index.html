@@ -216,6 +216,59 @@ body.theme-blanc .ai-msg.assistant { background: #fff !important; box-shadow: 0 
 body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
 body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 
+/* ══════════════════════════════════════════════════════════════
+   MODE ESTRET (layout-narrow) — vista centrada tipus mòbil/tablet
+══════════════════════════════════════════════════════════════ */
+body.layout-narrow .container {
+  max-width: 680px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 28px 24px 48px !important;
+}
+/* Lletra més gran en mode estret */
+body.layout-narrow {
+  font-size: 17px !important;
+}
+body.layout-narrow .day-card,
+body.layout-narrow .stat-card,
+body.layout-narrow .section-title,
+body.layout-narrow .page-title-text h2 {
+  font-size: 1.05em !important;
+}
+body.layout-narrow .bnav-lbl {
+  font-size: 10px !important;
+}
+/* En mode estret: 1 columna en lloc de 2/7 */
+body.layout-narrow .home-two-col,
+body.layout-narrow .focus-two-col,
+body.layout-narrow .cal-two-col {
+  grid-template-columns: 1fr !important;
+}
+body.layout-narrow .week-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+body.layout-narrow .kanban-board {
+  grid-template-columns: 1fr !important;
+}
+body.layout-narrow .stats-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* Botó layout al drawer */
+.ndw-layout-btn {
+  flex: 1 !important;
+  padding: 7px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+.ndw-layout-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; color: var(--text) !important; }
+.ndw-layout-btn.active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
+
 </style>
 <!-- LAYOUT-FIX-END -->
 </head><body class="view-pages">
@@ -286,6 +339,11 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
   <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 4px;">
     <button class="ndw-view-btn" id="ndw-view-single" onclick="setViewMode('single')" data-i18n="drawer_one_page">📄 Una pàgina</button>
     <button class="ndw-view-btn active" id="ndw-view-pages"  onclick="setViewMode('pages')" data-i18n="drawer_sections">📑 Apartats</button>
+  </div>
+  <div class="ndw-section">Amplada</div>
+  <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 4px;">
+    <button class="ndw-layout-btn active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')">⬌ Ample</button>
+    <button class="ndw-layout-btn"        id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')">▣ Estret</button>
   </div>
   <div class="ndw-section" data-i18n="drawer_nav">Navegació</div>
   <div class="ndw-item" onclick="navTo('home')"><div class="ndw-item-icon">🏠</div><div><div class="ndw-item-text" data-i18n="menu_home">Inici</div><div class="ndw-item-sub" data-i18n="menu_home_sub">Objectiu · Progrés · Ratxa</div></div></div>
