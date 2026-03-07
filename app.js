@@ -345,36 +345,65 @@ function applyLayoutMode(mode) {
   if (btnAmple)    btnAmple.classList.toggle('active', mode === 'ample');
   if (btnCompacta) btnCompacta.classList.toggle('active', mode === 'compacta');
 
-  // Aplica estils directament per superar els !important dels <style> inline
-  if (mode === 'ample') {
-    // "Ara mateix": 3 targetes en fila
-    const todayGrid = document.getElementById('today-grid');
-    if (todayGrid) todayGrid.style.setProperty('grid-template-columns', '1fr 1fr 1fr', 'important');
+  // Helper: força estil inline (guanya als !important dels <style> del HTML)
+  function amp(el, prop, val) { if(el) el.style.setProperty(prop, val, 'important'); }
+  function rst(el, prop)      { if(el) el.style.removeProperty(prop); }
+  function ampAll(sel, prop, val) { document.querySelectorAll(sel).forEach(e => amp(e, prop, val)); }
+  function rstAll(sel, prop)      { document.querySelectorAll(sel).forEach(e => rst(e, prop)); }
+  function ampCols(sel1, sel2, prop, val) { ampAll(sel1, prop, val); ampAll(sel2, prop, val); }
+  function rstCols(sel1, sel2, prop)      { rstAll(sel1, prop); rstAll(sel2, prop); }
 
-    // Horari: Dl-Dv (5 col) dalt, Ds-Dg baix amples
+  if (mode === 'ample') {
+    // ── "Ara mateix": 3 quadrats en fila ──
+    amp(document.getElementById('today-grid'), 'grid-template-columns', '1fr 1fr 1fr');
+
+    // ── Home: una columna (una secció per fila) ──
+    ampAll('.home-two-col', 'grid-template-columns', '1fr');
+    ampAll('.home-two-col', 'display', 'grid');
+    ampCols('.home-col-left', '.home-col-right', 'width', '100%');
+
+    // ── Focus: una columna ──
+    ampAll('.focus-two-col', 'grid-template-columns', '1fr');
+    ampAll('.focus-two-col', 'display', 'grid');
+    ampCols('.focus-col-left', '.focus-col-right', 'width', '100%');
+    ampCols('.focus-col-left', '.focus-col-right', 'max-width', '100%');
+    ampCols('.focus-col-left', '.focus-col-right', 'flex', 'none');
+
+    // ── Calendari: una columna (calendari gran, partits a sota) ──
+    ampAll('.cal-two-col', 'grid-template-columns', '1fr');
+    ampAll('.cal-two-col', 'display', 'grid');
+
+    // ── Horari: Dl-Dv (5 col) dalt, Ds-Dg baix amples ──
     const weekGrid = document.getElementById('week-grid');
     if (weekGrid) {
-      weekGrid.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
-      weekGrid.style.setProperty('gap', '12px', 'important');
-      const cards = weekGrid.querySelectorAll('.day-card');
-      cards.forEach((c, i) => {
+      amp(weekGrid, 'grid-template-columns', 'repeat(5, 1fr)');
+      amp(weekGrid, 'gap', '12px');
+      weekGrid.querySelectorAll('.day-card').forEach((c, i) => {
         if (i === 5) c.style.setProperty('grid-column', '1 / 3', 'important');
         else if (i === 6) c.style.setProperty('grid-column', '3 / 6', 'important');
         else c.style.removeProperty('grid-column');
       });
     }
-  } else {
-    // Restaura today-grid
-    const todayGrid = document.getElementById('today-grid');
-    if (todayGrid) todayGrid.style.removeProperty('grid-template-columns');
 
-    // Restaura week-grid
+  } else {
+    // ── Restaura tot ──
+    rst(document.getElementById('today-grid'), 'grid-template-columns');
+
+    ['grid-template-columns','display'].forEach(p => {
+      rstAll('.home-two-col', p);
+      rstAll('.focus-two-col', p);
+      rstAll('.cal-two-col', p);
+    });
+    ['width','max-width','flex'].forEach(p => {
+      rstCols('.home-col-left', '.home-col-right', p);
+      rstCols('.focus-col-left', '.focus-col-right', p);
+    });
+
     const weekGrid = document.getElementById('week-grid');
     if (weekGrid) {
-      weekGrid.style.removeProperty('grid-template-columns');
-      weekGrid.style.removeProperty('gap');
-      const cards = weekGrid.querySelectorAll('.day-card');
-      cards.forEach(c => c.style.removeProperty('grid-column'));
+      rst(weekGrid, 'grid-template-columns');
+      rst(weekGrid, 'gap');
+      weekGrid.querySelectorAll('.day-card').forEach(c => c.style.removeProperty('grid-column'));
     }
   }
 }
