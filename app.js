@@ -119,6 +119,27 @@ let victoriesWeekOffset = 0;
 
 // ── Storage ──
 let daySchedule = JSON.parse(localStorage.getItem('schedule_v2') || 'null') || defaultSchedule();
+let customBlockTypes = JSON.parse(localStorage.getItem('custom_block_types_v1') || 'null') || [
+  {id:'escola',  label:'Escolar',      color:'#3b82f6'},
+  {id:'prog',    label:'Programació',  color:'#7c3aed'},
+  {id:'robotech',label:'Robotech',     color:'#10b981'},
+  {id:'hockey',  label:'Hoquei',       color:'#ef4444'},
+  {id:'angles',  label:'Anglès',       color:'#ec4899'},
+  {id:'rest',    label:'Descans',      color:'rgba(255,255,255,0.15)'},
+  {id:'sopar',   label:'Sopar',        color:'#f59e0b'},
+  {id:'prep',    label:'Preparació',   color:'#eab308'},
+];
+function saveCustomBlockTypes() {
+  localStorage.setItem('custom_block_types_v1', JSON.stringify(customBlockTypes));
+}
+function getBlockTypeColor(id) {
+  const t = customBlockTypes.find(x=>x.id===id);
+  return t ? t.color : (TYPE_COLORS[id] || 'rgba(124,58,237,0.4)');
+}
+function getBlockTypeLabel(id) {
+  const t = customBlockTypes.find(x=>x.id===id);
+  return t ? t.label : (id||'—');
+}
 let monthEvents = JSON.parse(localStorage.getItem('month_events_v2') || '{}');
 let dayEvents   = JSON.parse(localStorage.getItem('day_events_v2') || '{}');
 let timedEvents = JSON.parse(localStorage.getItem('timed_events_v1') || '[]');
@@ -623,7 +644,7 @@ function renderWeekGrid() {
     const now = new Date();
     const nowMins = now.getHours()*60+now.getMinutes();
     let blocksHtml = (sched.blocks||[]).map(b=>{
-      const col = TYPE_COLORS[b.t] || b.customColor || 'rgba(124,58,237,0.4)';
+      const col = getBlockTypeColor(b.t);
       const isProg = b.t==='prog';
       const isAra = isToday && b.time && isCurrentBlock(b.time, nowMins);
       return `<div class="block block-${b.t||'rest'}${isAra?' block-ara':''}">
@@ -638,7 +659,7 @@ function renderWeekGrid() {
     const eventsHtml = renderDayEventsHtml(i, dateKey);
     card.innerHTML = `
       <div class="day-header">
-        <div><span class="day-name">${sched.name||dayNames[i]}</span>${dateHtml}${customHtml}</div>
+        <div><span class="day-name" onclick="editDayName(${i},event)" title="Clic per editar">${sched.name||dayNames[i]}</span>${dateHtml}${customHtml}</div>
         <span class="day-sleep">🌙 ${sched.sleep||'23:00'}</span>
       </div>
       <div class="day-body" id="day-body-${i}">
@@ -650,6 +671,18 @@ function renderWeekGrid() {
   renderAllDayBadges();
   updateAraIndicator();
   renderAllTimedEvents();
+}
+
+function editDayName(dayIdx, e) {
+  e.stopPropagation();
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const current = daySchedule[dayIdx]?.name || dayNames[dayIdx];
+  const newName = prompt("Edita l'etiqueta del dia:", current);
+  if(newName === null) return; // cancel
+  if(!daySchedule[dayIdx]) daySchedule[dayIdx] = {name:dayNames[dayIdx], sleep:'23:00', blocks:[]};
+  daySchedule[dayIdx].name = newName.trim() || dayNames[dayIdx];
+  localStorage.setItem('schedule_v2', JSON.stringify(daySchedule));
+  renderWeekGrid();
 }
 
 function isCurrentBlock(timeStr, nowMins) {
@@ -1177,6 +1210,7 @@ function switchTab(tab) {
 function renderConfigTab() {
   const body=document.getElementById('config-body');
   if(configActiveTab==='horari') renderBlocksTab(body);
+  else if(configActiveTab==='tipus') renderTypesTab(body);
   else if(configActiveTab==='perfil') renderProfileTab(body);
   else if(configActiveTab==='objectiu') renderGoalTab(body);
   else if(configActiveTab==='ia') renderAPIKeyTab(body);
@@ -1210,13 +1244,8 @@ function renderBlocksTab(body) {
     </div>`;
   }).join('');
 
-  // Selector de tipus dinàmic des de customBlockTypes (o fallback)
-  const typeList = (typeof customBlockTypes !== 'undefined' ? customBlockTypes : [
-    {id:'escola',label:'Escolar'},{id:'prog',label:'Programació'},{id:'robotech',label:'Robotech'},
-    {id:'hockey',label:'Hoquei'},{id:'angles',label:'Anglès'},{id:'rest',label:'Descans'},
-    {id:'sopar',label:'Sopar'},{id:'prep',label:'Preparació'}
-  ]);
-  const typeOptions = typeList.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  // Selector de tipus dinàmic des de customBlockTypes
+  const typeOptions = customBlockTypes.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
 
   const editB = editingBlockIdx >= 0 ? sched.blocks[editingBlockIdx] : null;
   const editFormHtml = editingBlockIdx !== null ? `
@@ -1289,6 +1318,81 @@ function saveBlock() {
   localStorage.setItem('schedule_v2',JSON.stringify(daySchedule));
   renderWeekGrid(); renderStats(); renderConfigTab();
 }
+// ══ GESTIÓ DE TIPUS DE BLOCS ══
+let editingTypeIdx = null;
+
+function renderTypesTab(body) {
+  const rows = customBlockTypes.map((t,i) => `
+    <div class="cfg-block-row" style="border-left:3px solid ${t.color};">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <div style="width:14px;height:14px;border-radius:4px;background:${t.color};flex-shrink:0;"></div>
+        <div>
+          <div style="font-weight:700;font-size:13px;">${t.label}</div>
+          <div style="font-size:10px;opacity:0.5;font-family:'Space Mono',monospace;">${t.id}</div>
+        </div>
+      </div>
+      <div class="cfg-block-actions">
+        <button class="cfg-btn cfg-btn-edit" onclick="editTypeIdx(${i})">✏️</button>
+        <button class="cfg-btn cfg-btn-del" onclick="deleteType(${i})">×</button>
+      </div>
+    </div>`).join('');
+
+  const editT = (editingTypeIdx !== null && editingTypeIdx >= 0) ? customBlockTypes[editingTypeIdx] : null;
+  const formHtml = editingTypeIdx !== null ? `
+    <div class="cfg-form" style="margin-top:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;">
+      <h4 style="margin:0 0 14px;font-size:13px;letter-spacing:1px;color:var(--accent2);">${editingTypeIdx===-1?'➕ NOU TIPUS':'✏️ EDITAR TIPUS'}</h4>
+      <div class="cfg-form-row">
+        <label>NOM DEL TIPUS</label>
+        <input type="text" id="ct-label" value="${editT?editT.label:''}" placeholder="p.ex. Gimnàs, Estudi..."/>
+      </div>
+      <div class="cfg-form-row">
+        <label>ID (sense espais, minúscules)</label>
+        <input type="text" id="ct-id" value="${editT?editT.id:''}" placeholder="p.ex. gym, estudi..." ${editT?'readonly style="opacity:0.5"':''}/>
+      </div>
+      <div class="cfg-form-row">
+        <label>COLOR</label>
+        <input type="color" id="ct-color" value="${editT? (editT.color.startsWith('#')?editT.color:'#7c3aed') :'#7c3aed'}" style="width:60px;height:36px;padding:2px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:transparent;"/>
+      </div>
+      <div class="cfg-form-btns" style="margin-top:14px;gap:8px;">
+        <button class="cfg-save-btn" onclick="saveType()" style="flex:1;">💾 Guardar</button>
+        <button class="cfg-cancel-btn" onclick="editingTypeIdx=null;renderConfigTab()">Cancel·lar</button>
+      </div>
+    </div>` :
+    `<button class="cfg-add-btn" onclick="editingTypeIdx=-1;renderConfigTab()" style="width:100%;margin-top:12px;">＋ Afegir nou tipus</button>`;
+
+  body.innerHTML = `
+    <div style="padding:4px 0 12px;font-size:11px;color:var(--muted);">Gestiona els tipus de blocs de l'horari. Cada tipus té un nom, un identificador únic i un color.</div>
+    <div class="cfg-block-list">${rows}</div>
+    ${formHtml}`;
+}
+
+function editTypeIdx(i) { editingTypeIdx = i; renderConfigTab(); }
+
+function deleteType(i) {
+  if(customBlockTypes.length <= 1) { alert('Cal tenir almenys un tipus.'); return; }
+  customBlockTypes.splice(i,1);
+  saveCustomBlockTypes();
+  renderConfigTab();
+}
+
+function saveType() {
+  const label = document.getElementById('ct-label').value.trim();
+  const id    = document.getElementById('ct-id').value.trim().replace(/\s+/g,'_').toLowerCase();
+  const color = document.getElementById('ct-color').value;
+  if(!label || !id) { alert('Cal posar nom i ID.'); return; }
+  if(editingTypeIdx === -1) {
+    if(customBlockTypes.find(t=>t.id===id)) { alert('Ja existeix un tipus amb aquest ID.'); return; }
+    customBlockTypes.push({id, label, color});
+  } else {
+    customBlockTypes[editingTypeIdx].label = label;
+    customBlockTypes[editingTypeIdx].color = color;
+  }
+  saveCustomBlockTypes();
+  editingTypeIdx = null;
+  renderConfigTab();
+  renderWeekGrid(); // Actualitzar l'horari amb els nous colors
+}
+
 function renderProfileTab(body) {
   const userName = profileData.username || profileData.name || '';
   const notifDays = profileData.notifDays !== undefined ? profileData.notifDays : 2;
