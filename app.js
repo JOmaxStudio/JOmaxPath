@@ -332,8 +332,9 @@ function applyViewMode(mode) {
 //  PROFILE, GOAL, MOTO
 // ══════════════════════════════════════════════════════
 function renderProfile() {
-  document.getElementById('header-name').textContent = profileData.name || 'JOmaxPath';
-  document.getElementById('header-sub').textContent  = profileData.sub  || 'El teu planificador personal';
+  document.getElementById('header-name').textContent = 'JOmaxPath';
+  const subEl = document.getElementById('header-sub');
+  if(subEl) subEl.innerHTML = 'Developed by JOmax <span class="jomaxpath-version">v2.0</span>';
 }
 function renderGoal() {
   document.getElementById('goal-icon').textContent   = goalData.icon  || '🚀';
@@ -4653,11 +4654,10 @@ document.addEventListener('keydown', e => {
 const _baseRenderProfile = typeof renderProfile === 'function' ? renderProfile : null;
 function renderProfile() {
   const nameEl = document.getElementById('header-name');
-  if(nameEl) nameEl.textContent = profileData.name || 'JOmaxPath';
+  if(nameEl) nameEl.textContent = 'JOmaxPath';
   const subEl = document.getElementById('header-sub');
   if(subEl) {
-    subEl.innerHTML = (profileData.sub || '17 anys · Mollerussa · Futur fundador') + 
-      ' <span class="jomaxpath-version">v2.0</span>';
+    subEl.innerHTML = 'Developed by JOmax <span class="jomaxpath-version">v2.0</span>';
   }
 }
 
