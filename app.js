@@ -213,6 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Apply saved view
   const savedView = 'pages';
   applyViewMode(savedView);
+  // Restore layout mode (Ample / Compacta)
+  const savedLayout = localStorage.getItem('layout_mode') || 'compacta';
+  applyLayoutMode(savedLayout);
   // Render all sections
   renderProfile();
   renderGoal();
@@ -326,6 +329,21 @@ function applyViewMode(mode) {
   localStorage.setItem('view_mode', 'pages');
   const active = document.querySelector('.app-page.page-active');
   if(!active) navTo('home');
+}
+
+// ── Layout Mode: Ample / Compacta ─────────────────────
+function setLayoutMode(mode) {
+  localStorage.setItem('layout_mode', mode);
+  applyLayoutMode(mode);
+  toggleDrawer();
+}
+function applyLayoutMode(mode) {
+  document.body.classList.toggle('layout-ample',    mode === 'ample');
+  document.body.classList.toggle('layout-compacta', mode === 'compacta');
+  const btnAmple    = document.getElementById('ndw-layout-ample');
+  const btnCompacta = document.getElementById('ndw-layout-compacta');
+  if (btnAmple)    btnAmple.classList.toggle('active', mode === 'ample');
+  if (btnCompacta) btnCompacta.classList.toggle('active', mode === 'compacta');
 }
 
 // ══════════════════════════════════════════════════════
@@ -6723,34 +6741,3 @@ renderKanbanCard = function(task, boardId, isPersonal) {
   }
   return html;
 };
-
-// ══════════════════════════════════════════════════════
-//  LAYOUT WIDTH — Ample / Compacta
-// ══════════════════════════════════════════════════════
-function setLayoutWidth(w) {
-  localStorage.setItem('layout_width', w);
-  _applyLW(w);
-  setTimeout(function() {
-    var d = document.getElementById('nav-drawer');
-    if (d && d.classList.contains('open') && typeof toggleDrawer === 'function') toggleDrawer();
-  }, 60);
-}
-
-function _applyLW(w) {
-  document.body.classList.toggle('layout-narrow', w === 'narrow');
-  var bW = document.getElementById('ndw-layout-wide');
-  var bN = document.getElementById('ndw-layout-narrow');
-  if (bW && bN) {
-    if (w !== 'narrow') {
-      bW.style.cssText = 'color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
-      bN.style.cssText = 'color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
-    } else {
-      bW.style.cssText = 'color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
-      bN.style.cssText = 'color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
-    }
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  _applyLW(localStorage.getItem('layout_width') || 'wide');
-});
