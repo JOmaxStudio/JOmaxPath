@@ -207,8 +207,8 @@ body.theme-blanc .ndw-layout-btn.ndw-active {
   </div>
   <div class="ndw-section">Amplada</div>
   <div class="ndw-layout-row">
-    <button class="ndw-layout-btn ndw-active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')">⬌ Ample</button>
-    <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')">▣ Estret</button>
+    <button class="ndw-layout-btn ndw-active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')"   style="color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;">⬌ Ample</button>
+    <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')" style="color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;">▣ Estret</button>
   </div>
   <div class="ndw-section" data-i18n="drawer_nav">Navegació</div>
   <div class="ndw-item" onclick="navTo('home')"><div class="ndw-item-icon">🏠</div><div><div class="ndw-item-text" data-i18n="menu_home">Inici</div><div class="ndw-item-sub" data-i18n="menu_home_sub">Objectiu · Progrés · Ratxa</div></div></div>
@@ -1062,27 +1062,6 @@ body.theme-blanc .ndw-layout-btn.ndw-active {
 
 
 <script src="app.js" defer></script>
-<script>
-// ── Layout Width ──
-function setLayoutWidth(w) {
-  localStorage.setItem('layout_width', w);
-  _applyLW(w);
-  setTimeout(function() {
-    var d = document.getElementById('nav-drawer');
-    if (d && d.classList.contains('open') && typeof toggleDrawer === 'function') toggleDrawer();
-  }, 60);
-}
-function _applyLW(w) {
-  document.body.classList.toggle('layout-narrow', w === 'narrow');
-  var bW = document.getElementById('ndw-layout-wide');
-  var bN = document.getElementById('ndw-layout-narrow');
-  if (bW) bW.classList.toggle('ndw-active', w !== 'narrow');
-  if (bN) bN.classList.toggle('ndw-active', w === 'narrow');
-}
-_applyLW(localStorage.getItem('layout_width') || 'wide');
-document.addEventListener('DOMContentLoaded', function() {
-  _applyLW(localStorage.getItem('layout_width') || 'wide');
-});
-</script>
+<script src="layout.js"></script>
 </body>
 </html>
