@@ -150,7 +150,7 @@ let customBlockTypes = (function() {
   };
   let changed = false;
   if(typeof daySchedule !== 'undefined') {
-    daySchedule.forEach(day => {
+    Object.values(daySchedule).forEach(day => {
       (day?.blocks||[]).forEach(b => {
         if(legacyMap[b.t] && !customBlockTypes.find(x=>x.id===b.t)) {
           customBlockTypes.push(legacyMap[b.t]);
