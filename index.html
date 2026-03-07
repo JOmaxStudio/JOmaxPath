@@ -217,7 +217,7 @@ body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
 body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 
 /* ══════════════════════════════════════════════════════════════
-   MODE ESTRET (layout-narrow) — vista centrada tipus mòbil/tablet
+   MODE ESTRET (layout-narrow)
 ══════════════════════════════════════════════════════════════ */
 body.layout-narrow .container {
   max-width: 680px !important;
@@ -225,49 +225,29 @@ body.layout-narrow .container {
   margin-right: auto !important;
   padding: 28px 24px 48px !important;
 }
-/* Lletra més gran en mode estret */
-body.layout-narrow {
-  font-size: 17px !important;
-}
-body.layout-narrow .day-card,
-body.layout-narrow .stat-card,
-body.layout-narrow .section-title,
-body.layout-narrow .page-title-text h2 {
-  font-size: 1.05em !important;
-}
-body.layout-narrow .bnav-lbl {
-  font-size: 10px !important;
-}
-/* En mode estret: 1 columna en lloc de 2/7 */
+body.layout-narrow { font-size: 17px !important; }
 body.layout-narrow .home-two-col,
 body.layout-narrow .focus-two-col,
-body.layout-narrow .cal-two-col {
-  grid-template-columns: 1fr !important;
-}
-body.layout-narrow .week-grid {
-  grid-template-columns: repeat(2, 1fr) !important;
-}
-body.layout-narrow .kanban-board {
-  grid-template-columns: 1fr !important;
-}
-body.layout-narrow .stats-grid {
-  grid-template-columns: repeat(2, 1fr) !important;
-}
+body.layout-narrow .cal-two-col { grid-template-columns: 1fr !important; }
+body.layout-narrow .week-grid   { grid-template-columns: repeat(2, 1fr) !important; }
+body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
+body.layout-narrow .stats-grid  { grid-template-columns: repeat(2, 1fr) !important; }
 
-/* Botó layout al drawer */
+/* Botons amplada al drawer */
 .ndw-layout-btn {
   flex: 1 !important;
-  padding: 7px 10px !important;
+  padding: 8px 10px !important;
   border-radius: 8px !important;
   border: 1px solid var(--border) !important;
   background: transparent !important;
   color: var(--muted) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   cursor: pointer !important;
   transition: all 0.2s !important;
+  font-family: inherit !important;
 }
 .ndw-layout-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; color: var(--text) !important; }
-.ndw-layout-btn.active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
+.ndw-layout-btn.ndw-active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
 
 </style>
 <!-- LAYOUT-FIX-END -->
@@ -341,9 +321,9 @@ body.layout-narrow .stats-grid {
     <button class="ndw-view-btn active" id="ndw-view-pages"  onclick="setViewMode('pages')" data-i18n="drawer_sections">📑 Apartats</button>
   </div>
   <div class="ndw-section">Amplada</div>
-  <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 4px;">
-    <button class="ndw-layout-btn active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')">⬌ Ample</button>
-    <button class="ndw-layout-btn"        id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')">▣ Estret</button>
+  <div class="ndw-view-row" style="display:flex;gap:8px;padding:8px 16px 12px;">
+    <button class="ndw-layout-btn ndw-active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')">⬌ Ample</button>
+    <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')">▣ Estret</button>
   </div>
   <div class="ndw-section" data-i18n="drawer_nav">Navegació</div>
   <div class="ndw-item" onclick="navTo('home')"><div class="ndw-item-icon">🏠</div><div><div class="ndw-item-text" data-i18n="menu_home">Inici</div><div class="ndw-item-sub" data-i18n="menu_home_sub">Objectiu · Progrés · Ratxa</div></div></div>
@@ -1398,5 +1378,40 @@ body.layout-narrow .stats-grid {
 </div>
 
 <script src="app.js" defer></script>
+<script>
+// ── Layout Width: Ample / Estret ──
+function setLayoutWidth(mode) {
+  localStorage.setItem('layout_width', mode);
+  applyLayoutWidth(mode);
+  var drawer = document.getElementById('nav-drawer');
+  if(drawer && drawer.classList.contains('open')) {
+    if(typeof toggleDrawer === 'function') toggleDrawer();
+  }
+}
+function applyLayoutWidth(mode) {
+  if(mode === 'narrow') {
+    document.body.classList.add('layout-narrow');
+  } else {
+    document.body.classList.remove('layout-narrow');
+  }
+  var btnWide   = document.getElementById('ndw-layout-wide');
+  var btnNarrow = document.getElementById('ndw-layout-narrow');
+  if(btnWide) {
+    btnWide.classList.toggle('ndw-active', mode !== 'narrow');
+  }
+  if(btnNarrow) {
+    btnNarrow.classList.toggle('ndw-active', mode === 'narrow');
+  }
+}
+// Aplicar preferència desada al carregar
+(function() {
+  var saved = localStorage.getItem('layout_width') || 'wide';
+  applyLayoutWidth(saved);
+  // Re-aplicar quan el DOM estigui llest del tot
+  document.addEventListener('DOMContentLoaded', function() {
+    applyLayoutWidth(localStorage.getItem('layout_width') || 'wide');
+  });
+})();
+</script>
 </body>
 </html>
