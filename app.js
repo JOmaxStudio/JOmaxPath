@@ -6723,3 +6723,33 @@ renderKanbanCard = function(task, boardId, isPersonal) {
   }
   return html;
 };
+
+// ══════════════════════════════════════════════════════
+//  LAYOUT WIDTH — Ample / Estret
+// ══════════════════════════════════════════════════════
+function setLayoutWidth(mode) {
+  localStorage.setItem('layout_width', mode);
+  applyLayoutWidth(mode);
+  // Tanca el drawer
+  const drawer = document.getElementById('nav-drawer');
+  if(drawer && drawer.classList.contains('open')) toggleDrawer();
+}
+
+function applyLayoutWidth(mode) {
+  if(mode === 'narrow') {
+    document.body.classList.add('layout-narrow');
+  } else {
+    document.body.classList.remove('layout-narrow');
+  }
+  // Actualitza botons del drawer
+  const btnWide   = document.getElementById('ndw-layout-wide');
+  const btnNarrow = document.getElementById('ndw-layout-narrow');
+  if(btnWide)   btnWide.classList.toggle('active',   mode !== 'narrow');
+  if(btnNarrow) btnNarrow.classList.toggle('active', mode === 'narrow');
+}
+
+// Aplicar al carregar la pàgina
+(function() {
+  const saved = localStorage.getItem('layout_width') || 'wide';
+  applyLayoutWidth(saved);
+})();
