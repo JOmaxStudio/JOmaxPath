@@ -11,27 +11,12 @@
 
 <!-- LAYOUT-FIX-START -->
 <style>
-/* ═══════════════════════════════════════════════════════════
-   JOMAXPATH — LAYOUT FULLSCREEN FINAL
-   Afegir al final de styles.css
-═══════════════════════════════════════════════════════════ */
 
-/* ── Reset base ── */
-html, body { height: 100%; }
+/* ══════════════════════════════════════════════════════
+   JOMAXPATH — LAYOUT + TEMA BLANC — VERSIÓ DEFINITIVA
+══════════════════════════════════════════════════════ */
 
-/* ── Cada pàgina ocupa mínim 100vh ── */
-body.view-pages {
-  padding-bottom: 68px;
-}
-body.view-pages .app-page {
-  display: none !important;
-}
-body.view-pages .app-page.page-active {
-  display: block !important;
-  min-height: calc(100vh - 68px);
-}
-
-/* ── Container: ample màxim, padding generós ── */
+/* ── Container sempre 100% ── */
 .container {
   width: 100% !important;
   max-width: 100% !important;
@@ -42,9 +27,12 @@ body.view-pages .app-page.page-active {
   .container { padding: 16px 12px 32px !important; }
 }
 
-/* ════════════════════════════════════════════
-   HOME — 2 columnes que omplen l'alçada
-════════════════════════════════════════════ */
+/* ── Pàgines: mínim 100vh ── */
+body.view-pages .app-page.page-active {
+  min-height: calc(100vh - 68px);
+}
+
+/* ── HOME: 2 columnes ── */
 @media(min-width:900px) {
   .home-two-col {
     display: grid !important;
@@ -58,51 +46,31 @@ body.view-pages .app-page.page-active {
   flex-direction: column !important;
   gap: 20px !important;
 }
-/* L'últim bloc de cada columna s'estira */
-.home-col-left > *:last-child,
-.home-col-right > *:last-child {
-  flex: 1 !important;
-  min-height: 120px !important;
-}
+.home-col-left > *, .home-col-right > * { margin-bottom: 0 !important; }
 
-/* ════════════════════════════════════════════
-   HORARI — week-grid sempre 100% ample
-════════════════════════════════════════════ */
+/* ── HORARI: 7 columnes ── */
 @media(min-width:1024px) {
   .week-grid {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
     gap: 10px !important;
   }
-  .week-grid .day-card:nth-child(5),
-  .week-grid .day-card:nth-child(6),
-  .week-grid .day-card:nth-child(7) {
-    grid-column: auto !important;
-  }
+  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
 }
 @media(min-width:600px) and (max-width:1023px) {
-  .week-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
-  .week-grid .day-card:nth-child(n) {
-    grid-column: auto !important;
-  }
+  .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
+  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
 }
-/* Targetes de dia: estiren el contingut */
 .week-grid .day-card {
   display: flex !important;
   flex-direction: column !important;
   min-height: 200px !important;
 }
-.day-card .day-body {
-  flex: 1 !important;
-}
+.day-card .day-body { flex: 1 !important; }
 
-/* ════════════════════════════════════════════
-   FOCUS — 2 columnes
-════════════════════════════════════════════ */
+/* ── FOCUS / CALENDARI: 2 columnes ── */
 @media(min-width:900px) {
-  .focus-two-col {
+  .focus-two-col, .cal-two-col {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 24px !important;
@@ -110,75 +78,201 @@ body.view-pages .app-page.page-active {
   }
 }
 .focus-col-left, .focus-col-right {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 20px !important;
+  display: flex !important; flex-direction: column !important; gap: 20px !important;
 }
 
-/* ════════════════════════════════════════════
-   CALENDARI — 2 columnes
-════════════════════════════════════════════ */
-@media(min-width:900px) {
-  .cal-two-col {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 24px !important;
-    align-items: start !important;
-  }
-}
-
-/* ════════════════════════════════════════════
-   JULIANS AI — ocupa tota l'alçada
-════════════════════════════════════════════ */
+/* ── JULIANS AI: alçada total ── */
 #page-julians.page-active {
-  display: flex !important;
-  flex-direction: column !important;
+  display: flex !important; flex-direction: column !important;
   min-height: calc(100vh - 68px) !important;
 }
 #page-julians.page-active > .container {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  flex: 1 !important; display: flex !important; flex-direction: column !important;
 }
-#ai-section {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  margin-bottom: 0 !important;
-}
-#ai-section-card {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-#ai-layout {
-  flex: 1 !important;
-  height: auto !important;
-  min-height: 480px !important;
-  max-height: none !important;
-}
+#ai-section { flex: 1 !important; display: flex !important; flex-direction: column !important; margin-bottom: 0 !important; }
+#ai-section-card { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+#ai-layout { flex: 1 !important; height: auto !important; min-height: 480px !important; max-height: none !important; }
 
-/* ════════════════════════════════════════════
-   GRIDS GENERALS — sempre ample màxim
-════════════════════════════════════════════ */
-.stats-grid {
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+/* ── GRIDS ── */
+.stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+.tips-grid, .screen-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+.boards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; }
+.kanban-board { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 16px !important; width: 100% !important; }
+@media(max-width:600px) { .kanban-board { grid-template-columns: 1fr !important; } }
+
+/* ══════════════════════════════════════════════════════
+   TEMA BLANC — Fix complet
+══════════════════════════════════════════════════════ */
+body.theme-blanc {
+  --bg: #f0f2f8; --card: #ffffff; --card2: #eef0f7;
+  --accent: #6d28d9; --accent2: #7c3aed;
+  --text: #1a1a2e; --muted: #64748b; --border: rgba(109,40,217,0.15);
+  --green: #059669; --orange: #d97706; --red: #dc2626;
+  --blue: #2563eb; --pink: #db2777; --yellow: #ca8a04; --teal: #0d9488;
 }
-.tips-grid, .screen-grid {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+body.theme-blanc::before {
+  background: radial-gradient(ellipse at 20% 15%,rgba(109,40,217,0.06) 0%,transparent 45%),
+              radial-gradient(ellipse at 80% 85%,rgba(37,99,235,0.04) 0%,transparent 45%);
 }
-.boards-grid {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+body.theme-blanc::after { display: none; }
+
+/* Cards visibles en blanc */
+body.theme-blanc .day-card,
+body.theme-blanc .goal-banner,
+body.theme-blanc .daily-quote,
+body.theme-blanc .today-panel,
+body.theme-blanc .progress-section,
+body.theme-blanc .streak-widget,
+body.theme-blanc .habits-section,
+body.theme-blanc .weekly-summary,
+body.theme-blanc .stat-card,
+body.theme-blanc .tip-card,
+body.theme-blanc .exam-section,
+body.theme-blanc .matches-section,
+body.theme-blanc .monthly-section,
+body.theme-blanc .screen-section,
+body.theme-blanc .victories-section,
+body.theme-blanc .pomodoro-section,
+body.theme-blanc .kanban-col,
+body.theme-blanc .board-card,
+body.theme-blanc .next-up-bar,
+body.theme-blanc .moto {
+  background: #ffffff !important;
+  border-color: rgba(109,40,217,0.12) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
 }
-.kanban-board {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 16px !important;
-  width: 100% !important;
+body.theme-blanc .goal-banner { background: linear-gradient(135deg,rgba(109,40,217,0.07),rgba(37,99,235,0.04)) !important; }
+body.theme-blanc .streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.08),rgba(239,68,68,0.04)) !important; }
+body.theme-blanc .today-panel { background: linear-gradient(135deg,rgba(109,40,217,0.06),rgba(37,99,235,0.03)) !important; }
+
+/* Textos */
+body.theme-blanc .day-name,
+body.theme-blanc .block-label,
+body.theme-blanc .stat-number,
+body.theme-blanc .tip-title,
+body.theme-blanc .moto-text,
+body.theme-blanc h2, body.theme-blanc h3 { color: #1a1a2e !important; }
+body.theme-blanc .block-time,
+body.theme-blanc .day-sleep,
+body.theme-blanc .moto-sub { color: #94a3b8 !important; }
+
+/* Header */
+body.theme-blanc .jomaxpath-hero-title {
+  color: #2d1b69 !important;
+  -webkit-text-fill-color: #2d1b69 !important;
+  text-shadow: 0 0 20px rgba(109,40,217,0.2) !important;
 }
-@media(max-width:600px) {
-  .kanban-board { grid-template-columns: 1fr !important; }
+body.theme-blanc #header-name {
+  color: #1a1a2e !important;
+  text-shadow: 0 0 20px rgba(109,40,217,0.3) !important;
 }
+body.theme-blanc .jomaxpath-user { color: #64748b !important; }
+
+/* Nav */
+body.theme-blanc #nav-hamburger { background: #fff !important; border-color: rgba(109,40,217,0.2) !important; }
+body.theme-blanc #nav-hamburger span { background: #1a1a2e !important; }
+body.theme-blanc #nav-clock { background: #fff !important; color: #7c3aed !important; border-color: rgba(109,40,217,0.2) !important; }
+body.theme-blanc #nav-drawer,
+body.theme-blanc #nav-drawer * { background-color: inherit; color: inherit; }
+body.theme-blanc #nav-drawer { background: #fff !important; }
+body.theme-blanc .ndw-item-text { color: #1a1a2e !important; }
+body.theme-blanc .ndw-item:hover { background: rgba(109,40,217,0.05) !important; }
+body.theme-blanc #bnav { background: rgba(255,255,255,0.96) !important; border-top-color: rgba(109,40,217,0.1) !important; }
+body.theme-blanc .bnav-lbl { color: #94a3b8 !important; }
+body.theme-blanc .bnav-icon { opacity: 0.5; }
+body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1; filter: drop-shadow(0 0 4px rgba(109,40,217,0.5)); }
+
+/* IA chat */
+body.theme-blanc #ai-section-card { background: #fff !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc #ai-sidebar { background: #f5f5fb !important; }
+body.theme-blanc #ai-main-header { background: #f8f8fc !important; }
+body.theme-blanc .ai-chat-messages { background: #fafafa !important; }
+body.theme-blanc .ai-msg.user { background: linear-gradient(135deg,rgba(109,40,217,0.1),rgba(109,40,217,0.06)) !important; color: #1a1a2e !important; border-color: rgba(109,40,217,0.18) !important; }
+body.theme-blanc .ai-msg.assistant { background: #ffffff !important; color: #1a1a2e !important; border-color: rgba(0,0,0,0.08) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; }
+body.theme-blanc .ai-msg.thinking { background: #f0f0f8 !important; color: #64748b !important; }
+body.theme-blanc .ai-chat-item { color: #64748b !important; }
+body.theme-blanc .ai-chat-item:hover { background: rgba(109,40,217,0.06) !important; color: #1a1a2e !important; }
+body.theme-blanc .ai-chat-item.active { background: rgba(109,40,217,0.1) !important; color: #7c3aed !important; }
+body.theme-blanc .ai-sidebar-title { color: #7c3aed !important; }
+body.theme-blanc #ai-chat-input { background: #f5f5fb !important; border-color: rgba(109,40,217,0.2) !important; color: #1a1a2e !important; }
+body.theme-blanc #ai-chat-input::placeholder { color: #94a3b8 !important; }
+body.theme-blanc .ai-chat-input-row { background: #f0f0f8 !important; }
+body.theme-blanc .ai-mode-row { background: #f5f5fb !important; }
+body.theme-blanc .ai-mode-btn { background: rgba(0,0,0,0.04) !important; color: #64748b !important; border-color: rgba(0,0,0,0.08) !important; }
+body.theme-blanc .ai-mode-btn.active { background: rgba(109,40,217,0.12) !important; color: #7c3aed !important; border-color: rgba(109,40,217,0.4) !important; }
+body.theme-blanc .ai-suggestion { background: rgba(109,40,217,0.06) !important; border-color: rgba(109,40,217,0.2) !important; color: #7c3aed !important; }
+body.theme-blanc .ai-chip-row { background: transparent !important; }
+body.theme-blanc .ai-new-chat-btn { background: rgba(109,40,217,0.1) !important; border-color: rgba(109,40,217,0.25) !important; color: #7c3aed !important; }
+body.theme-blanc .ai-clear-btn { background: transparent !important; border-color: rgba(0,0,0,0.1) !important; color: #64748b !important; }
+body.theme-blanc .ai-chat-title-display { color: #1a1a2e !important; }
+body.theme-blanc .ai-subtitle-sm { color: #94a3b8 !important; }
+body.theme-blanc #ai-sidebar-resize:hover { background: rgba(109,40,217,0.15) !important; }
+
+/* Blocs horari */
+body.theme-blanc .block-rest { background: rgba(0,0,0,0.03) !important; }
+body.theme-blanc .day-header { background: rgba(109,40,217,0.03) !important; border-bottom-color: rgba(0,0,0,0.06) !important; }
+
+/* Progress section */
+body.theme-blanc .progress-bar { background: rgba(0,0,0,0.07) !important; }
+body.theme-blanc .chapter-dot { background: rgba(0,0,0,0.08) !important; }
+body.theme-blanc .progress-btn { background: rgba(109,40,217,0.08) !important; border-color: rgba(109,40,217,0.2) !important; color: #7c3aed !important; }
+
+/* Streak */
+body.theme-blanc .streak-number { text-shadow: none !important; }
+body.theme-blanc .streak-day-dot { border-color: rgba(0,0,0,0.1) !important; color: #94a3b8 !important; }
+body.theme-blanc .streak-day-dot.done { background: rgba(245,158,11,0.15) !important; border-color: rgba(245,158,11,0.4) !important; color: #d97706 !important; }
+body.theme-blanc .streak-btn { background: rgba(245,158,11,0.1) !important; border-color: rgba(245,158,11,0.25) !important; color: #d97706 !important; }
+
+/* Hàbits */
+body.theme-blanc .habit-dot { border-color: rgba(0,0,0,0.1) !important; color: #94a3b8 !important; }
+body.theme-blanc .habit-dot.done { background: rgba(5,150,105,0.15) !important; border-color: rgba(5,150,105,0.4) !important; color: #059669 !important; }
+
+/* Inputs */
+body.theme-blanc input,
+body.theme-blanc select,
+body.theme-blanc textarea {
+  background: #f5f5fb !important;
+  color: #1a1a2e !important;
+  border-color: rgba(0,0,0,0.12) !important;
+}
+body.theme-blanc select option { background: #fff !important; color: #1a1a2e !important; }
+body.theme-blanc input::placeholder,
+body.theme-blanc textarea::placeholder { color: #94a3b8 !important; }
+
+/* Decos laterals */
+body.theme-blanc .side-deco-left { background: linear-gradient(to bottom, transparent 0%, rgba(109,40,217,0.25) 30%, rgba(109,40,217,0.15) 70%, transparent 100%) !important; }
+body.theme-blanc .side-deco-right { background: linear-gradient(to bottom, transparent 0%, rgba(13,148,136,0.2) 30%, rgba(109,40,217,0.12) 70%, transparent 100%) !important; }
+
+/* FABs */
+body.theme-blanc #add-note-fab { box-shadow: 0 4px 16px rgba(109,40,217,0.3) !important; }
+body.theme-blanc #config-btn { background: #fff !important; border-color: rgba(109,40,217,0.2) !important; color: #7c3aed !important; }
+body.theme-blanc #search-fab { background: #fff !important; border-color: rgba(0,0,0,0.1) !important; color: #1a1a2e !important; }
+body.theme-blanc #quick-capture-btn { box-shadow: 0 4px 14px rgba(5,150,105,0.25) !important; }
+
+/* Modals */
+body.theme-blanc #config-panel { background: #fff !important; }
+body.theme-blanc #config-panel .config-header,
+body.theme-blanc #config-panel .config-tabs { border-color: rgba(0,0,0,0.08) !important; }
+body.theme-blanc .config-tab { color: #64748b !important; }
+body.theme-blanc .config-tab.active { color: #7c3aed !important; border-bottom-color: #7c3aed !important; }
+body.theme-blanc #timed-modal,
+body.theme-blanc #day-modal,
+body.theme-blanc #month-modal,
+body.theme-blanc #month-modal-overlay #month-modal { background: #fff !important; color: #1a1a2e !important; }
+body.theme-blanc .modal-field label,
+body.theme-blanc .tdm-field-lbl { color: #64748b !important; }
+
+/* Scrollbar */
+body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2) !important; }
+body.theme-blanc ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04) !important; }
+
+/* Section titles */
+body.theme-blanc .section-title { color: #94a3b8 !important; }
+body.theme-blanc .section-title::after { background: rgba(0,0,0,0.08) !important; }
+
+/* Page title bar */
+body.theme-blanc .page-title-text h2 { color: #1a1a2e !important; -webkit-text-fill-color: #1a1a2e !important; }
+body.theme-blanc .page-title-text p { color: #64748b !important; }
 
 </style>
 <!-- LAYOUT-FIX-END -->
