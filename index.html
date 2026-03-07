@@ -15,16 +15,16 @@
    JOMAXPATH — LAYOUT AMPLE/ESTRET + BOTONS v6
 ════════════════════════════════════════════════ */
 
-/* ── MODE AMPLE (per defecte): tot l'espai ── */
+/* ── MODE AMPLE (per defecte): tot l'espai amb marge ── */
 body:not(.layout-narrow) .container {
   max-width: 100% !important;
   width: 100% !important;
   margin: 0 !important;
-  padding: 32px 40px 48px !important;
+  padding: 32px 56px 48px !important;
   box-sizing: border-box !important;
 }
 @media(max-width:700px) {
-  body:not(.layout-narrow) .container { padding: 16px 14px 32px !important; }
+  body:not(.layout-narrow) .container { padding: 16px 20px 32px !important; }
 }
 body:not(.layout-narrow) .home-two-col,
 body:not(.layout-narrow) .focus-two-col,
@@ -71,14 +71,14 @@ body.view-pages .app-page.page-active {
   min-height: calc(100vh - 68px) !important;
 }
 
-/* ── MODE ESTRET: centrat, lletra gran ── */
+/* ── MODE COMPACTA: igual que la versió original (centrat 1100px) ── */
 body.layout-narrow .container {
-  max-width: 700px !important;
+  max-width: 1100px !important;
   margin: 0 auto !important;
-  padding: 28px 24px 48px !important;
+  padding: 40px 20px !important;
   box-sizing: border-box !important;
 }
-body.layout-narrow { font-size: 17px !important; }
+body.layout-narrow { font-size: 16px !important; }
 body.layout-narrow .home-two-col,
 body.layout-narrow .focus-two-col,
 body.layout-narrow .cal-two-col {
@@ -88,11 +88,11 @@ body.layout-narrow .cal-two-col {
 }
 body.layout-narrow .week-grid {
   display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 10px !important;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+  gap: 16px !important;
 }
 body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
-body.layout-narrow .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+body.layout-narrow .stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
 
 /* ── BOTONS AMPLADA — visibles en tots els temes ── */
 .ndw-layout-row {
@@ -208,7 +208,7 @@ body.theme-blanc .ndw-layout-btn.ndw-active {
   <div class="ndw-section">Amplada</div>
   <div class="ndw-layout-row">
     <button class="ndw-layout-btn ndw-active" id="ndw-layout-wide"   onclick="setLayoutWidth('wide')"   style="color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;">⬌ Ample</button>
-    <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')" style="color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;">▣ Estret</button>
+    <button class="ndw-layout-btn"            id="ndw-layout-narrow" onclick="setLayoutWidth('narrow')" style="color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;">▣ Compacta</button>
   </div>
   <div class="ndw-section" data-i18n="drawer_nav">Navegació</div>
   <div class="ndw-item" onclick="navTo('home')"><div class="ndw-item-icon">🏠</div><div><div class="ndw-item-text" data-i18n="menu_home">Inici</div><div class="ndw-item-sub" data-i18n="menu_home_sub">Objectiu · Progrés · Ratxa</div></div></div>
