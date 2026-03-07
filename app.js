@@ -6725,7 +6725,7 @@ renderKanbanCard = function(task, boardId, isPersonal) {
 };
 
 // ══════════════════════════════════════════════════════
-//  LAYOUT WIDTH — Ample / Estret
+//  LAYOUT WIDTH — Ample / Compacta
 // ══════════════════════════════════════════════════════
 function setLayoutWidth(w) {
   localStorage.setItem('layout_width', w);
@@ -6740,7 +6740,7 @@ function _applyLW(w) {
   document.body.classList.toggle('layout-narrow', w === 'narrow');
   var bW = document.getElementById('ndw-layout-wide');
   var bN = document.getElementById('ndw-layout-narrow');
-  if (bW) {
+  if (bW && bN) {
     if (w !== 'narrow') {
       bW.style.cssText = 'color:#a78bfa!important;background:rgba(124,58,237,0.3)!important;border:1px solid #a78bfa!important;font-weight:700!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
       bN.style.cssText = 'color:rgba(255,255,255,0.8)!important;background:rgba(255,255,255,0.08)!important;border:1px solid rgba(255,255,255,0.25)!important;flex:1;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;';
@@ -6751,7 +6751,6 @@ function _applyLW(w) {
   }
 }
 
-// Aplicar preferència guardada quan el DOM estigui llest
 document.addEventListener('DOMContentLoaded', function() {
   _applyLW(localStorage.getItem('layout_width') || 'wide');
 });
