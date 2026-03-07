@@ -332,7 +332,8 @@ function applyViewMode(mode) {
 //  PROFILE, GOAL, MOTO
 // ══════════════════════════════════════════════════════
 function renderProfile() {
-  document.getElementById('header-name').textContent = 'JOmaxPath';
+  const nameEl = document.getElementById('header-name');
+  if(nameEl) nameEl.textContent = 'JOmaxPath';
   const subEl = document.getElementById('header-sub');
   if(subEl) subEl.innerHTML = 'Developed by JOmax <span class="jomaxpath-version">v2.0</span>';
 }
@@ -4656,9 +4657,7 @@ function renderProfile() {
   const nameEl = document.getElementById('header-name');
   if(nameEl) nameEl.textContent = 'JOmaxPath';
   const subEl = document.getElementById('header-sub');
-  if(subEl) {
-    subEl.innerHTML = 'Developed by JOmax <span class="jomaxpath-version">v2.0</span>';
-  }
+  if(subEl) subEl.innerHTML = 'Developed by JOmax <span class="jomaxpath-version">v2.0</span>';
 }
 
 // ══════════════════════════════════════════════════════
