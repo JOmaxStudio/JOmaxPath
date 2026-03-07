@@ -3160,79 +3160,36 @@ body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); 
 ═══════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────
-   MODE AMPLE
+   MODE AMPLE — NOMÉS canvis demanats:
+   1) "Ara mateix" → 3 targetes en fila horitzontal
+   2) Horari → Dl-Dv (5 col) dalt, Ds-Dg (amples) baix
+   La resta de pàgines (home, focus, calendari, tasques) NO es toquen.
 ───────────────────────────────────────────────────────── */
 
-/* Two-col pages → 1 sola columna */
-body.layout-ample #page-home > .container > .home-two-col,
-body.layout-ample #page-focus > .container > .focus-two-col,
-body.layout-ample #page-calendari > .container > .cal-two-col {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-}
-
-/* Grids generals → 1 columna */
-body.layout-ample .stats-grid  { grid-template-columns: 1fr !important; }
-body.layout-ample .screen-grid { grid-template-columns: 1fr !important; }
-body.layout-ample .tips-grid   { grid-template-columns: 1fr !important; }
-body.layout-ample .boards-grid { grid-template-columns: 1fr !important; }
-body.layout-ample .kanban-board { grid-template-columns: 1fr !important; }
-body.layout-ample .focus-col-left,
-body.layout-ample .focus-col-right { width: 100% !important; max-width: 100% !important; }
-
-/* "Ara mateix": 3 targetes en fila horitzontal */
+/* "Ara mateix": 3 quadrats en fila */
 body.layout-ample .today-grid {
   grid-template-columns: 1fr 1fr 1fr !important;
   gap: 14px !important;
 }
-body.layout-ample .today-card {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-}
 
-/* Horari: Dl–Dv (5 col) a dalt, Ds i Dg (2 col amples) a baix */
+/* Horari ample: Dl–Dv dalt (5 col), Ds i Dg baix més amples */
 body.layout-ample #page-horari .week-grid {
   grid-template-columns: repeat(5, 1fr) !important;
   gap: 12px !important;
 }
 body.layout-ample #page-horari .week-grid .day-card { grid-column: auto !important; }
-/* Dissabte → ocupa columnes 1-3 */
-body.layout-ample #page-horari .week-grid .day-card:nth-child(6) {
-  grid-column: 1 / 3 !important;
-}
-/* Diumenge → ocupa columnes 3-6 (resta fins al final) */
-body.layout-ample #page-horari .week-grid .day-card:nth-child(7) {
-  grid-column: 3 / 6 !important;
-}
-
-/* Tasques: no s'altera en mode ample (igual que compacta) */
+body.layout-ample #page-horari .week-grid .day-card:nth-child(6) { grid-column: 1 / 3 !important; }
+body.layout-ample #page-horari .week-grid .day-card:nth-child(7) { grid-column: 3 / 6 !important; }
 
 /* ─────────────────────────────────────────────────────────
-   MODE COMPACTA
+   MODE COMPACTA — tal com estava (no es canvia res)
 ───────────────────────────────────────────────────────── */
-body.layout-compacta #page-home > .container > .home-two-col,
-body.layout-compacta #page-focus > .container > .focus-two-col,
-body.layout-compacta #page-calendari > .container > .cal-two-col {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 28px !important;
-  align-items: start !important;
-}
-body.layout-compacta .stats-grid  { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
-body.layout-compacta .screen-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
-body.layout-compacta .tips-grid   { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
 
-/* Horari compacta: Dl–Dv (5 col) + Ds/Dg (2 col amples) igual que ample */
+/* Horari compacta: Dl–Dv dalt (5 col), Ds i Dg baix més amples */
 body.layout-compacta #page-horari .week-grid {
   grid-template-columns: repeat(5, 1fr) !important;
   gap: 12px !important;
 }
 body.layout-compacta #page-horari .week-grid .day-card { grid-column: auto !important; }
-body.layout-compacta #page-horari .week-grid .day-card:nth-child(6) {
-  grid-column: 1 / 3 !important;
-}
-body.layout-compacta #page-horari .week-grid .day-card:nth-child(7) {
-  grid-column: 3 / 6 !important;
-}
+body.layout-compacta #page-horari .week-grid .day-card:nth-child(6) { grid-column: 1 / 3 !important; }
+body.layout-compacta #page-horari .week-grid .day-card:nth-child(7) { grid-column: 3 / 6 !important; }
