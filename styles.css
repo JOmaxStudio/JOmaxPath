@@ -3168,16 +3168,50 @@ body.layout-ample #page-calendari > .container > .cal-two-col {
   grid-template-columns: 1fr !important;
   display: grid !important;
 }
-body.layout-ample .week-grid   { grid-template-columns: 1fr !important; }
 body.layout-ample .stats-grid  { grid-template-columns: 1fr !important; }
 body.layout-ample .screen-grid { grid-template-columns: 1fr !important; }
 body.layout-ample .tips-grid   { grid-template-columns: 1fr !important; }
-body.layout-ample .today-grid  { grid-template-columns: 1fr !important; }
 body.layout-ample .boards-grid { grid-template-columns: 1fr !important; }
 body.layout-ample .kanban-board { grid-template-columns: 1fr !important; }
 body.layout-ample .focus-col-left,
 body.layout-ample .focus-col-right { width: 100% !important; max-width: 100% !important; }
-body.layout-ample .week-grid .day-card { grid-column: auto !important; }
+
+/* today-grid en mode ample: targes horitzontals full-width */
+body.layout-ample .today-grid {
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+body.layout-ample .today-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  text-align: left !important;
+  padding: 14px 20px !important;
+  gap: 18px !important;
+}
+body.layout-ample .today-card .tc-icon { font-size: 28px !important; margin-bottom: 0 !important; flex-shrink: 0; }
+body.layout-ample .today-card .tc-val  { font-size: 26px !important; margin-bottom: 0 !important; min-width: 36px; }
+body.layout-ample .today-card .tc-lbl  { font-size: 13px !important; flex: 1; }
+
+/* ── HORARI week-grid: Dl-Dv dalt (5 col), Ds-Dg baix (2 col)
+   S'aplica als DOS modes. Ha de guanyar el repeat(7,1fr) del fullscreen. */
+body.layout-ample .week-grid,
+body.layout-compacta .week-grid {
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 10px !important;
+}
+/* Els 5 primers (Dl-Dv) queden a la fila 1 automàticament */
+body.layout-ample .week-grid .day-card,
+body.layout-compacta .week-grid .day-card { grid-column: auto !important; }
+/* Dissabte (6è) i Diumenge (7è): ampliem a 2 columnes i centrem */
+body.layout-ample .week-grid .day-card:nth-child(6),
+body.layout-compacta .week-grid .day-card:nth-child(6) {
+  grid-column: 2 / 4 !important;
+}
+body.layout-ample .week-grid .day-card:nth-child(7),
+body.layout-compacta .week-grid .day-card:nth-child(7) {
+  grid-column: 4 / 6 !important;
+}
 
 /* ── COMPACTA: 2 columnes, tota la pantalla ── */
 body.layout-compacta #page-home > .container > .home-two-col,
