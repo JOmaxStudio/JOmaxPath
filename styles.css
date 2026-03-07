@@ -137,7 +137,10 @@
   .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 
   /* DAY CARDS */
-  .week-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:50px; }
+  .week-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:50px; }
+  .week-grid .day-card:nth-child(5) { grid-column: 1; }
+  .week-grid .day-card:nth-child(6) { grid-column: 2; }
+  .week-grid .day-card:nth-child(7) { grid-column: 3; }
   .day-card {
     background:var(--card); border:1px solid var(--border);
     border-radius:16px; overflow:hidden; transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;
@@ -864,6 +867,10 @@
   @media (max-width:600px) {
     .goal-banner{flex-direction:column;text-align:center;}
     .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .week-grid{grid-template-columns:repeat(2,1fr)!important;}
+    .week-grid .day-card:nth-child(5){grid-column:auto!important;}
+    .week-grid .day-card:nth-child(6){grid-column:auto!important;}
+    .week-grid .day-card:nth-child(7){grid-column:auto!important;}
     #add-note-fab{bottom:20px;right:20px;}
     #ai-fab{bottom:20px;left:14px;}
     #config-btn{bottom:90px;right:16px;}
@@ -877,6 +884,12 @@
     body.view-pages #add-note-fab{bottom:82px;right:16px;}
     body.view-pages #ai-fab{bottom:82px;left:14px;}
     body.view-pages #config-btn{bottom:152px;right:16px;}
+  }
+  @media (min-width:601px) and (max-width:900px) {
+    .week-grid{grid-template-columns:repeat(3,1fr)!important;}
+    .week-grid .day-card:nth-child(5){grid-column:auto!important;}
+    .week-grid .day-card:nth-child(6){grid-column:auto!important;}
+    .week-grid .day-card:nth-child(7){grid-column:auto!important;}
   }
 
   /* ── TODAY PANEL ──────────────────────────────────── */
