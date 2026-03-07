@@ -2587,27 +2587,14 @@ function clearCurrentChat() {
 function scrollToBottom(animate=true) {
   const box = document.getElementById('ai-messages');
   if (!box) return;
-
-  const doScroll = (smooth) => {
-    // Prova 1: scroll intern del box (si té overflow propi)
-    box.scrollTop = box.scrollHeight;
-
-    // Prova 2: scroll de la finestra fins al final del box
-    const rect = box.getBoundingClientRect();
-    const absBottom = window.scrollY + rect.bottom;
-    window.scrollTo({ top: absBottom - window.innerHeight + 80, behavior: smooth ? 'smooth' : 'instant' });
-  };
-
   if (animate) {
-    doScroll(true);
-    setTimeout(() => doScroll(true), 100);
-    setTimeout(() => doScroll(true), 300);
+    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
   } else {
-    requestAnimationFrame(() => {
-      doScroll(false);
-      setTimeout(() => doScroll(false), 100);
-      setTimeout(() => doScroll(false), 300);
-    });
+    // Instantani — múltiples intents per quan el DOM acaba de pintar
+    box.scrollTop = box.scrollHeight;
+    requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 300);
   }
 }
 
