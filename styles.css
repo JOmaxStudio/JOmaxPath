@@ -2831,3 +2831,116 @@ select option {
 @media(min-width:1200px) {
   .container { padding-left: 32px; padding-right: 32px; }
 }
+/* ═══════════════════════════════════════════════════════════
+   JOMAXPATH — FULLSCREEN SECTIONS (cada pàgina = 100% ample)
+═══════════════════════════════════════════════════════════ */
+
+/* El container no limita l'ample */
+.container {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 32px 28px 40px !important;
+  box-sizing: border-box !important;
+}
+
+/* Cada pàgina activa ocupa almenys tota la pantalla */
+body.view-pages .app-page.page-active {
+  min-height: calc(100vh - 68px);
+  width: 100%;
+}
+
+/* ── Week grid: 7 columnes quan hi ha espai ── */
+@media(min-width:1024px) {
+  .week-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 10px !important;
+  }
+  .week-grid .day-card:nth-child(5),
+  .week-grid .day-card:nth-child(6),
+  .week-grid .day-card:nth-child(7) {
+    grid-column: auto !important;
+  }
+}
+
+@media(min-width:600px) and (max-width:1023px) {
+  .week-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .week-grid .day-card:nth-child(5),
+  .week-grid .day-card:nth-child(6),
+  .week-grid .day-card:nth-child(7) {
+    grid-column: auto !important;
+  }
+}
+
+/* ── Stats: omplir ample ── */
+.stats-grid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+}
+
+/* ── HOME: dues columnes en desktop ── */
+@media(min-width:1100px) {
+  #page-home > .container > .home-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+}
+
+/* ── FOCUS: dues columnes en desktop ── */
+@media(min-width:1100px) {
+  #page-focus > .container > .focus-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+}
+
+/* ── CALENDARI: dues columnes en desktop ── */
+@media(min-width:1100px) {
+  #page-calendari > .container > .cal-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+}
+
+/* ── Kanban: 3 columnes iguals ── */
+.kanban-board {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+/* ── Boards grid: omplir ample ── */
+.boards-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+}
+
+/* ── Tips i screen grids: omplir ample ── */
+.tips-grid, .screen-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+}
+
+/* ── Julians AI: altura màxima ── */
+#ai-layout {
+  height: calc(100vh - 220px) !important;
+  max-height: none !important;
+}
+
+/* ── Horari: weekly summary i week grid prenen tot l'ample ── */
+#page-horari .weekly-summary,
+#page-horari .week-grid {
+  width: 100% !important;
+}
+
+/* ── Padding en mòbil ── */
+@media(max-width:600px) {
+  .container { padding: 16px 10px 20px !important; }
+  .kanban-board { grid-template-columns: 1fr !important; }
+}
