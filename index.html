@@ -15,7 +15,7 @@
    JOMAXPATH — LAYOUT AMPLE/ESTRET + BOTONS v6
 ════════════════════════════════════════════════ */
 
-/* ── MODE AMPLE (per defecte): tot l'espai amb marge ── */
+/* ── MODE AMPLE (per defecte): 1 columna, amplada total amb marge ── */
 body:not(.layout-narrow) .container {
   max-width: 100% !important;
   width: 100% !important;
@@ -29,10 +29,9 @@ body:not(.layout-narrow) .container {
 body:not(.layout-narrow) .home-two-col,
 body:not(.layout-narrow) .focus-two-col,
 body:not(.layout-narrow) .cal-two-col {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 28px !important;
-  align-items: start !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
 }
 body:not(.layout-narrow) .home-col-left,
 body:not(.layout-narrow) .home-col-right,
@@ -44,25 +43,13 @@ body:not(.layout-narrow) .focus-col-right {
 }
 body:not(.layout-narrow) .week-grid {
   display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  gap: 10px !important;
-}
-@media(max-width:1200px) {
-  body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
-}
-@media(max-width:800px) {
-  body:not(.layout-narrow) .week-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  body:not(.layout-narrow) .home-two-col,
-  body:not(.layout-narrow) .focus-two-col,
-  body:not(.layout-narrow) .cal-two-col { grid-template-columns: 1fr !important; }
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+  gap: 16px !important;
 }
 body:not(.layout-narrow) .kanban-board {
   display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
+  grid-template-columns: 1fr !important;
   gap: 16px !important;
-}
-@media(max-width:800px) {
-  body:not(.layout-narrow) .kanban-board { grid-template-columns: 1fr !important; }
 }
 body:not(.layout-narrow) .stats-grid {
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
@@ -71,7 +58,7 @@ body.view-pages .app-page.page-active {
   min-height: calc(100vh - 68px) !important;
 }
 
-/* ── MODE COMPACTA: igual que la versió original (centrat 1100px) ── */
+/* ── MODE COMPACTA: 2 columnes, centrat 1100px ── */
 body.layout-narrow .container {
   max-width: 1100px !important;
   margin: 0 auto !important;
@@ -82,16 +69,43 @@ body.layout-narrow { font-size: 16px !important; }
 body.layout-narrow .home-two-col,
 body.layout-narrow .focus-two-col,
 body.layout-narrow .cal-two-col {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 28px !important;
+  align-items: start !important;
+}
+body.layout-narrow .home-col-left,
+body.layout-narrow .home-col-right,
+body.layout-narrow .focus-col-left,
+body.layout-narrow .focus-col-right {
   display: flex !important;
   flex-direction: column !important;
   gap: 20px !important;
 }
+@media(max-width:800px) {
+  body.layout-narrow .home-two-col,
+  body.layout-narrow .focus-two-col,
+  body.layout-narrow .cal-two-col { grid-template-columns: 1fr !important; }
+}
 body.layout-narrow .week-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 10px !important;
+}
+@media(max-width:1200px) {
+  body.layout-narrow .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
+@media(max-width:800px) {
+  body.layout-narrow .week-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+body.layout-narrow .kanban-board {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
   gap: 16px !important;
 }
-body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
+@media(max-width:800px) {
+  body.layout-narrow .kanban-board { grid-template-columns: 1fr !important; }
+}
 body.layout-narrow .stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
 
 /* ── BOTONS AMPLADA — visibles en tots els temes ── */
