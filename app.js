@@ -2821,10 +2821,10 @@ async function sendAIBase() {
 
   // Check API key
   if(!getAPIKey()) {
-    const chatLog = document.getElementById('ai-chat-log');
+    const chatLog = document.getElementById('ai-messages');
     const warn = document.createElement('div');
-    warn.style.cssText = 'background:#ff980022;border:1px solid #ff9800;border-radius:10px;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.6;color:var(--text);';
-    warn.innerHTML = '⚠️ <strong>Sense API Key configurada.</strong><br>Ves a <strong>⚙️ Configuració → 🔑 IA</strong> per afegir la teva clau de Groq i que Julians pugui funcionar.';
+    warn.className = 'ai-msg assistant';
+    warn.innerHTML = '<span style="color:#fcd34d;">⚠️ <strong>Sense API Key configurada.</strong><br>Ves a <strong>⚙️ Configuració → 🔑 IA</strong> per afegir la teva clau de Groq.</span>';
     chatLog?.appendChild(warn);
     chatLog?.scrollTo(0,chatLog.scrollHeight);
     return;
