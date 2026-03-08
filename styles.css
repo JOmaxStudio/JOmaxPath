@@ -2887,6 +2887,22 @@ select option {
   box-sizing: border-box !important;
 }
 
+/* ── MAX-WIDTH en pantalles grans — les columnes no arriben a la punta ── */
+@media(min-width:1400px) {
+  .container {
+    max-width: 1320px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+}
+@media(min-width:1800px) {
+  .container {
+    max-width: 1560px !important;
+  }
+}
+
 /* Cada pàgina activa ocupa almenys tota la pantalla */
 body.view-pages .app-page.page-active {
   min-height: calc(100vh - 68px);
@@ -3205,3 +3221,154 @@ body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); 
 
 /* ── "Ara mateix" ample: 3 targetes en fila (gestionat via JS) ── */
 /* ── Horari ample/compacta: Dl-Dv dalt, Ds-Dg baix (gestionat via JS) ── */
+
+
+/* ══════════════════════════════════════════════════════════════
+   MILLORES VISUALS GENERALS — JomaxPath
+══════════════════════════════════════════════════════════════ */
+
+/* ── Transicions globals suaus ── */
+* { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.card, .goal-banner, .stat-card, .habit-item,
+.exam-item, .day-card, .board-card, .kanban-col,
+.screen-tip, .victory-field, .streak-card {
+  transition: box-shadow 0.22s, transform 0.18s, border-color 0.22s !important;
+}
+
+/* ── Cards amb hover subtil ── */
+.card:hover, .goal-banner:hover, .stat-card:hover {
+  box-shadow: 0 8px 32px rgba(124,58,237,0.1) !important;
+  transform: translateY(-1px) !important;
+}
+.exam-item:hover {
+  border-color: rgba(124,58,237,0.35) !important;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.08) !important;
+}
+.board-card:hover {
+  border-color: rgba(124,58,237,0.4) !important;
+  box-shadow: 0 6px 20px rgba(124,58,237,0.12) !important;
+  transform: translateY(-2px) !important;
+}
+.day-card:hover {
+  box-shadow: 0 4px 20px rgba(124,58,237,0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Section titles — línia decorativa lateral ── */
+.section-title {
+  position: relative;
+  padding-left: 14px !important;
+}
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 70%;
+  background: linear-gradient(180deg, var(--accent), var(--cyan));
+  border-radius: 3px;
+}
+
+/* ── Kanban columnes — millora visual ── */
+.kanban-col {
+  border-radius: 16px !important;
+  padding: 16px !important;
+}
+.kanban-col-header {
+  margin-bottom: 14px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.kanban-col-title {
+  font-size: 10px !important;
+  letter-spacing: 1.5px !important;
+  font-weight: 800 !important;
+}
+.kanban-add-area {
+  border-radius: 10px !important;
+  margin-top: 10px !important;
+  font-size: 11px !important;
+  opacity: 0.6;
+  transition: opacity 0.2s !important;
+}
+.kanban-add-area:hover { opacity: 1 !important; }
+
+/* ── Habit items — millora ── */
+.habit-item {
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+}
+.habit-item:hover {
+  background: rgba(124,58,237,0.06) !important;
+}
+
+/* ── Stat cards — uniformitat ── */
+.stat-card {
+  border-radius: 14px !important;
+  padding: 16px 20px !important;
+}
+
+/* ── Scroll bars estilitzats ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(124,58,237,0.25);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124,58,237,0.45);
+}
+
+/* ── Botó "Avui" i botons secundaris ── */
+.avui-btn, .add-exam-btn, .add-habit-btn {
+  border-radius: 20px !important;
+  transition: all 0.18s !important;
+}
+.avui-btn:hover, .add-exam-btn:hover, .add-habit-btn:hover {
+  transform: scale(1.04) !important;
+}
+
+/* ── Screen tips — millora ── */
+.screen-tip {
+  border-radius: 14px !important;
+  padding: 18px 20px !important;
+}
+.screen-tip:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Page title bar — refinament ── */
+.page-title-bar {
+  margin-bottom: 20px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+/* ── Inputs i selects — uniformitat ── */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], textarea, select {
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+input[type="text"]:focus, input[type="email"]:focus,
+input[type="password"]:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+}
+
+/* ── Animació entrada de pàgina ── */
+body.view-pages .app-page.page-active {
+  animation: pageEnter 0.2s ease forwards;
+}
+@keyframes pageEnter {
+  from { opacity: 0.7; transform: translateY(6px); }
+  to   { opacity: 1;   transform: translateY(0); }
+}
+
+/* ── Focus page & Calendar — columnes centrades en ultra-wide ── */
+@media(min-width:1400px) {
+  #page-home .home-two-col,
+  #page-focus .focus-two-col,
+  #page-calendari .cal-two-col {
+    gap: 36px !important;
+  }
+}
