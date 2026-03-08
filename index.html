@@ -463,7 +463,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div id="tasks-personal-view">
       <!-- Sub-switcher: Llista / Kanban personal -->
       <div class="tasks-view-toggle">
-        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')" id="tvt-list-lbl">☰ Llista</button>
+        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
         <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
       </div>
 
@@ -498,7 +498,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <!-- Vista Kanban personal -->
       <div id="personal-kanban-view" style="display:none;">
         <div class="personal-kanban-header">
-          <button class="board-add-task-btn" id="personal-kanban-add-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
+          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
         </div>
         <div id="personal-kanban-board"></div>
       </div>
@@ -509,7 +509,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <!-- Sub-switcher: Llista taulers / Detall kanban -->
       <div id="shared-boards-list-view">
         <div class="tasks-view-toggle" style="margin-bottom:18px;">
-          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')" id="tvt-shared-list-lbl">☰ Llista</button>
+          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
           <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
         </div>
         <!-- Vista llista de taulers -->
@@ -891,7 +891,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
             <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
           </div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub" id="pomo-xp-sub-init">Completa pomodoros per pujar de nivell</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub">Completa pomodoros per pujar de nivell</div>
         </div>
       </div>
 
@@ -907,7 +907,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="pomo-goal-dots"></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status" id="pomo-goal-status-init">Comença el primer pomodoro!</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status">Comença el primer pomodoro!</div>
       </div>
 
       <!-- Rewards row -->
@@ -1020,12 +1020,12 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div class="screen-section">
       <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_screen_tips">📵 trucs per no mirar tant les pantalles <button class="info-btn" onclick="showInfo('pantalles')" title="Com funciona?">i</button></div>
       <div class="screen-grid">
-        <div class="screen-tip"><div class="tip-icon">⚫</div><div class="tip-title" data-stip-title="0">Mode escala de grisos</div><div class="tip-text">Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors.</div></div>
-        <div class="screen-tip"><div class="tip-icon">🎯</div><div class="tip-title" data-stip-title="1">Intenció prèvia</div><div class="tip-text">Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris.</div></div>
-        <div class="screen-tip"><div class="tip-icon">⏱️</div><div class="tip-title" data-stip-title="2">Tècnica Pomodoro</div><div class="tip-text">25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.</div></div>
-        <div class="screen-tip"><div class="tip-icon">📵</div><div class="tip-title" data-stip-title="3">Zones sense mòbil</div><div class="tip-text">Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals.</div></div>
-        <div class="screen-tip"><div class="tip-icon">🌙</div><div class="tip-title" data-stip-title="4">Ritual nocturn</div><div class="tip-text">Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper.</div></div>
-        <div class="screen-tip"><div class="tip-icon">🔔</div><div class="tip-title" data-stip-title="5">Silencia les notificacions</div><div class="tip-text">Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.</div></div>
+        <div class="screen-tip"><div class="tip-icon">⚫</div><div class="tip-title">Mode escala de grisos</div><div class="tip-text">Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🎯</div><div class="tip-title">Intenció prèvia</div><div class="tip-text">Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris.</div></div>
+        <div class="screen-tip"><div class="tip-icon">⏱️</div><div class="tip-title">Tècnica Pomodoro</div><div class="tip-text">25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.</div></div>
+        <div class="screen-tip"><div class="tip-icon">📵</div><div class="tip-title">Zones sense mòbil</div><div class="tip-text">Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🌙</div><div class="tip-title">Ritual nocturn</div><div class="tip-text">Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🔔</div><div class="tip-title">Silencia les notificacions</div><div class="tip-text">Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.</div></div>
       </div>
     </div>
 
@@ -1226,15 +1226,13 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
   <span class="premium-fab-bolt">⚡</span>
   <span class="premium-fab-label">PRO</span>
 </button>
-
-<!-- Toast Properament disponible -->
 <div id="premium-soon-toast">⚡ &nbsp;Properament disponible</div>
 
 <!-- Dev Mode Modal -->
 <div id="devmode-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;">
   <div id="devmode-panel" style="background:#0d0d1a;border:1px solid rgba(124,58,237,0.4);border-radius:20px;padding:36px 32px;width:min(420px,92vw);position:relative;box-shadow:0 0 60px rgba(124,58,237,0.2);">
     <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:18px;">⚡ Versió Desenvolupador</div>
-    <h2 style="font-size:22px;font-weight:800;letter-spacing:-1px;margin:0 0 6px;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Accés restringit</h2>
+    <h2 style="font-size:22px;font-weight:800;margin:0 0 6px;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Accés restringit</h2>
     <p style="font-size:13px;color:#64748b;margin:0 0 24px;line-height:1.6;">Introdueix les credencials per activar totes les funcions Premium.</p>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
       <div>
@@ -1251,7 +1249,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <button id="dev-submit-btn" onclick="submitDevMode()" style="flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#00b8d9);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Accedir</button>
       <button onclick="closeDevMode()" style="padding:12px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#64748b;font-size:14px;cursor:pointer;">Cancel·lar</button>
     </div>
-    <div id="dev-active-badge" style="display:none;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#6ee7b7;text-align:center;">✅ Mode Desenvolupador actiu — Premium desbloquejat</div>
+    <div id="dev-active-badge" style="display:none;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#6ee7b7;text-align:center;">✅ Mode Desenvolupador actiu</div>
   </div>
 </div>
 <!-- Julians FAB -->
