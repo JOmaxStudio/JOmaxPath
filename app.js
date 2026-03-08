@@ -200,10 +200,8 @@ function defaultSchedule() {
 //  INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  // Premium caché immediat (evita parpelleig FAB)
   if(localStorage.getItem('premium_status')==='1'||localStorage.getItem('dev_mode')==='1') applyPremiumUI(true);
-  // Aplicar idioma als tips en carregar
-  setTimeout(()=>applyLanguage(currentLang), 250);
+  setTimeout(()=>applyLanguage(currentLang), 200);
 
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
@@ -3174,28 +3172,77 @@ let pomoPhase    = 'focus'; // focus | break | long-break
 let pomoSessionsDone = 0;
 const POMO_CIRCLE = 2 * Math.PI * 80; // 502.65
 
-const DAILY_QUOTES = [
-  {t:"El millor moment per plantar un arbre era fa 20 anys. El segon millor és ara.", a:"PROVERBI XINÈS"},
-  {t:"No és que tingui poc temps, és que perdo el que tinc.", a:"SÈNECA"},
-  {t:"La disciplina és triar entre el que vols ara i el que vols més.", a:"ABRAHAM LINCOLN"},
-  {t:"El futur pertany als qui creuen en la bellesa dels seus somnis.", a:"ELEANOR ROOSEVELT"},
-  {t:"Fes avui el que els altres no volen fer. Demà viuràs el que els altres no podran viure.", a:"JERRY RICE"},
-  {t:"No et preocupis per fracassar. Preocupa't per les oportunitats que perds si ni ho intentes.", a:"JACK CANFIELD"},
-  {t:"El secret per avançar és començar. El secret per començar és dividir les tasques complexes en tasques petites i gestionables.", a:"MARK TWAIN"},
-  {t:"La motivació et fa arrencar. L'hàbit et fa continuar.", a:"JIM RYUN"},
-  {t:"Èxit és la suma de petits esforços repetits dia rere dia.", a:"ROBERT COLLIER"},
-  {t:"No busquis el temps, crea'l.", a:"CHARLES BUXTON"},
-  {t:"Cada dia fes una cosa que et fa por. Així creixeràs.", a:"ELEANOR ROOSEVELT"},
-  {t:"La productivitat no es tracta de fer moltes coses. Es tracta de fer les coses correctes.", a:"UNKNOWN"},
-  {t:"Un objectiu sense un pla és només un desig.", a:"ANTOINE DE SAINT-EXUPÉRY"},
-  {t:"La clau no és dedicar prioritat al que tens a l'agenda, sinó planificar les prioritats.", a:"STEPHEN COVEY"},
-  {t:"Qui diu que no pot, normalment no vol.", a:"WINSTON CHURCHILL"},
-  {t:"No esperis que les circumstàncies siguin perfectes per actuar. Actua i les circumstàncies milloraran.", a:"UNKNOWN"},
-  {t:"El temps és el recurs més escàs. Si no el gestiones, no pots gestionar res.", a:"PETER DRUCKER"},
-  {t:"Fes sempre el màxim que puguis. El que plantes ara ho recolliràs més tard.", a:"OG MANDINO"},
-  {t:"Quan vulguis desistir, recorda per quin motiu vas començar.", a:"UNKNOWN"},
-  {t:"La diferència entre el que som i el que podrem ser és el que fem.", a:"RALPH WALDO EMERSON"},
-];
+const DAILY_QUOTES_I18N = {
+  ca: [
+    {t:"El millor moment per plantar un arbre era fa 20 anys. El segon millor és ara.", a:"PROVERBI XINÈS"},
+    {t:"No és que tingui poc temps, és que perdo el que tinc.", a:"SÈNECA"},
+    {t:"La disciplina és triar entre el que vols ara i el que vols més.", a:"ABRAHAM LINCOLN"},
+    {t:"El futur pertany als qui creuen en la bellesa dels seus somnis.", a:"ELEANOR ROOSEVELT"},
+    {t:"Fes avui el que els altres no volen fer. Demà viuràs el que els altres no podran viure.", a:"JERRY RICE"},
+    {t:"No et preocupis per fracassar. Preocupa't per les oportunitats que perds si ni ho intentes.", a:"JACK CANFIELD"},
+    {t:"El secret per avançar és començar. El secret per començar és dividir les tasques complexes en tasques petites.", a:"MARK TWAIN"},
+    {t:"La motivació et fa arrencar. L'hàbit et fa continuar.", a:"JIM RYUN"},
+    {t:"Èxit és la suma de petits esforços repetits dia rere dia.", a:"ROBERT COLLIER"},
+    {t:"No busquis el temps, crea'l.", a:"CHARLES BUXTON"},
+    {t:"Cada dia fes una cosa que et fa por. Així creixeràs.", a:"ELEANOR ROOSEVELT"},
+    {t:"La productivitat no es tracta de fer moltes coses. Es tracta de fer les coses correctes.", a:"DESCONEGUT"},
+    {t:"Un objectiu sense un pla és només un desig.", a:"ANTOINE DE SAINT-EXUPÉRY"},
+    {t:"La clau no és dedicar prioritat al que tens a l'agenda, sinó planificar les prioritats.", a:"STEPHEN COVEY"},
+    {t:"Qui diu que no pot, normalment no vol.", a:"WINSTON CHURCHILL"},
+    {t:"No esperis que les circumstàncies siguin perfectes per actuar. Actua i les circumstàncies milloraran.", a:"DESCONEGUT"},
+    {t:"El temps és el recurs més escàs. Si no el gestiones, no pots gestionar res.", a:"PETER DRUCKER"},
+    {t:"Fes sempre el màxim que puguis. El que plantes ara ho recolliràs més tard.", a:"OG MANDINO"},
+    {t:"Quan vulguis desistir, recorda per quin motiu vas començar.", a:"DESCONEGUT"},
+    {t:"La diferència entre el que som i el que podrem ser és el que fem.", a:"RALPH WALDO EMERSON"},
+  ],
+  es: [
+    {t:"El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor es ahora.", a:"PROVERBIO CHINO"},
+    {t:"No es que tenga poco tiempo, es que pierdo el que tengo.", a:"SÉNECA"},
+    {t:"La disciplina es elegir entre lo que quieres ahora y lo que más quieres.", a:"ABRAHAM LINCOLN"},
+    {t:"El futuro pertenece a quienes creen en la belleza de sus sueños.", a:"ELEANOR ROOSEVELT"},
+    {t:"Haz hoy lo que otros no quieren hacer. Mañana vivirás lo que otros no podrán vivir.", a:"JERRY RICE"},
+    {t:"No te preocupes por fracasar. Preocúpate por las oportunidades que pierdes si ni lo intentas.", a:"JACK CANFIELD"},
+    {t:"El secreto para avanzar es empezar. Divide las tareas complejas en tareas pequeñas y manejables.", a:"MARK TWAIN"},
+    {t:"La motivación te hace arrancar. El hábito te hace continuar.", a:"JIM RYUN"},
+    {t:"El éxito es la suma de pequeños esfuerzos repetidos día tras día.", a:"ROBERT COLLIER"},
+    {t:"No busques el tiempo, créalo.", a:"CHARLES BUXTON"},
+    {t:"Cada día haz algo que te dé miedo. Así crecerás.", a:"ELEANOR ROOSEVELT"},
+    {t:"La productividad no se trata de hacer muchas cosas. Se trata de hacer las cosas correctas.", a:"DESCONOCIDO"},
+    {t:"Un objetivo sin un plan es solo un deseo.", a:"ANTOINE DE SAINT-EXUPÉRY"},
+    {t:"La clave no es priorizar lo que tienes en la agenda, sino planificar las prioridades.", a:"STEPHEN COVEY"},
+    {t:"Quien dice que no puede, normalmente no quiere.", a:"WINSTON CHURCHILL"},
+    {t:"No esperes que las circunstancias sean perfectas para actuar.", a:"DESCONOCIDO"},
+    {t:"El tiempo es el recurso más escaso. Si no lo gestionas, no puedes gestionar nada.", a:"PETER DRUCKER"},
+    {t:"Haz siempre lo máximo que puedas. Lo que siembres ahora lo cosecharás más tarde.", a:"OG MANDINO"},
+    {t:"Cuando quieras rendirte, recuerda por qué empezaste.", a:"DESCONOCIDO"},
+    {t:"La diferencia entre lo que somos y lo que podemos ser es lo que hacemos.", a:"RALPH WALDO EMERSON"},
+  ],
+  en: [
+    {t:"The best time to plant a tree was 20 years ago. The second best time is now.", a:"CHINESE PROVERB"},
+    {t:"It's not that I have too little time. It's that I lose the time I have.", a:"SENECA"},
+    {t:"Discipline is choosing between what you want now and what you want most.", a:"ABRAHAM LINCOLN"},
+    {t:"The future belongs to those who believe in the beauty of their dreams.", a:"ELEANOR ROOSEVELT"},
+    {t:"Do today what others won't do. Tomorrow you'll live what others can't.", a:"JERRY RICE"},
+    {t:"Don't worry about failing. Worry about the chances you miss when you don't even try.", a:"JACK CANFIELD"},
+    {t:"The secret to getting ahead is getting started. Break complex tasks into small, manageable ones.", a:"MARK TWAIN"},
+    {t:"Motivation gets you going. Habit keeps you going.", a:"JIM RYUN"},
+    {t:"Success is the sum of small efforts repeated day after day.", a:"ROBERT COLLIER"},
+    {t:"Don't find the time. Make it.", a:"CHARLES BUXTON"},
+    {t:"Every day do one thing that scares you. That's how you grow.", a:"ELEANOR ROOSEVELT"},
+    {t:"Productivity is not about doing many things. It's about doing the right things.", a:"UNKNOWN"},
+    {t:"A goal without a plan is just a wish.", a:"ANTOINE DE SAINT-EXUPÉRY"},
+    {t:"The key is not to prioritize what's on your schedule, but to schedule your priorities.", a:"STEPHEN COVEY"},
+    {t:"Those who say they can't, usually won't.", a:"WINSTON CHURCHILL"},
+    {t:"Don't wait for the perfect moment. Act, and the moment will improve.", a:"UNKNOWN"},
+    {t:"Time is the scarcest resource. If you don't manage it, you can't manage anything.", a:"PETER DRUCKER"},
+    {t:"Always do your best. What you plant now, you will harvest later.", a:"OG MANDINO"},
+    {t:"When you feel like giving up, remember why you started.", a:"UNKNOWN"},
+    {t:"The difference between who we are and who we could be is what we do.", a:"RALPH WALDO EMERSON"},
+  ],
+};
+// Backward compat
+const DAILY_QUOTES = DAILY_QUOTES_I18N.ca;
+
 
 // ── DAILY QUOTE ─────────────────────────────────────
 function renderDailyQuote() {
@@ -3206,7 +3253,8 @@ function renderDailyQuote() {
     localStorage.setItem('quote_idx', quoteIndex);
     localStorage.setItem('quote_date', today);
   }
-  const q = DAILY_QUOTES[quoteIndex % DAILY_QUOTES.length];
+  const qList = DAILY_QUOTES_I18N[currentLang] || DAILY_QUOTES_I18N.ca;
+  const q = qList[quoteIndex % qList.length];
   document.getElementById('dq-text').textContent = '"' + q.t + '"';
   document.getElementById('dq-author').textContent = '— ' + q.a;
 }
@@ -5042,7 +5090,7 @@ function applyLanguage(lang) {
 
 
   // === Tips traduccions ===
-  const STIPS={ca:[
+  const _STIPS={ca:[
     {t:'Mode escala de grisos',x:"Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors."},
     {t:'Intenció prèvia',x:"Abans d'obrir el mòbil, di't: \"Obro el mòbil per...\". Si no pots completar la frase, no l'obris."},
     {t:'Tècnica Pomodoro',x:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.'},
@@ -5058,43 +5106,24 @@ function applyLanguage(lang) {
     {t:'Silencia las notificaciones',x:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.'},
   ],en:[
     {t:'Grayscale mode',x:"Enable grayscale mode on your phone. Your brain stops finding apps attractive without color."},
-    {t:'Prior intention',x:"Before opening your phone, say: \"I'm opening it to...\". If you can't finish the sentence, don't open it."},
+    {t:'Prior intention',x:"Before opening your phone say: \"I'm opening it to...\". If you can't finish the sentence, don't open it."},
     {t:'Pomodoro technique',x:'25 minutes of full focus, 5 of rest. During focus time, phone face-down and silent.'},
     {t:'Phone-free zones',x:'Study desk, bed and meals = no-phone zones. Create physical limits, not mental ones.'},
     {t:'Night ritual',x:'No screens 45 min before sleep. Read, write or plan tomorrow on paper.'},
     {t:'Silence notifications',x:'Turn off all notifications except calls. You decide when to look, not the apps.'},
   ]};
-  const MTIPS={ca:[
-    {t:'Actua primer',x:"La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol."},
-    {t:'No trenquis la cadena',x:"Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció."},
-    {t:'Mini-objectius diaris',x:'Cada dia, un objectiu concret i assolible. No \"programar\", sinó \"completar l\'exercici 3 del capítol 5\".'},
-    {t:'Mesura el progrés',x:'El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.'},
-    {t:'Recorda el per què',x:'Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.'},
-    {t:'El son és productivitat',x:"8h de son = el doble de rendiment. No et privis de dormir per estudiar més."},
-  ],es:[
-    {t:'Actúa primero',x:'La motivación llega DESPUÉS de actuar, no antes. Empieza 5 minutos y el cerebro se enganchará solo.'},
-    {t:'No rompas la cadena',x:'¿Un día fallas? Bien. ¿Dos días seguidos? Peligro. La cadena es el sistema, no la excepción.'},
-    {t:'Mini-objetivos diarios',x:'Cada día, un objetivo concreto y alcanzable.'},
-    {t:'Mide el progreso',x:'Lo que se mide mejora. Anota cada sesión.'},
-    {t:'Recuerda el por qué',x:'Empresa propia a los 18. Cada vez que no tienes ganas, recuerda para quién lo haces.'},
-    {t:'El sueño es productividad',x:'8h de sueño = el doble de rendimiento. No te prives de dormir para estudiar más.'},
-  ],en:[
-    {t:'Act first',x:'Motivation comes AFTER acting, not before. Start for 5 minutes and your brain will get hooked.'},
-    {t:"Don't break the chain",x:'Miss one day? Fine. Two days in a row? Danger. The chain is the system, not the exception.'},
-    {t:'Daily mini-goals',x:'Each day, one concrete and achievable goal.'},
-    {t:'Measure progress',x:'What gets measured improves. Log every session.'},
-    {t:'Remember your why',x:"Your own company at 18. Every time you lack motivation, remember who you're doing it for."},
-    {t:'Sleep is productivity',x:"8h sleep = double performance. Don't deprive yourself of sleep to study more."},
-  ]};
-  (STIPS[lang]||STIPS.ca).forEach((tip,i)=>{
+  (_STIPS[lang]||_STIPS.ca).forEach((tip,i)=>{
     const tt=document.querySelector(`[data-stip-title="${i}"]`);
     const tx=document.querySelector(`[data-stip-text="${i}"]`);
     if(tt)tt.textContent=tip.t; if(tx)tx.textContent=tip.x;
   });
-  (MTIPS[lang]||MTIPS.ca).forEach((tip,i)=>{
-    const tt=document.querySelector(`[data-mtip-title="${i}"]`);
-    if(tt)tt.textContent=tip.t;
-  });
+
+  // === 9c. Tasks tabs ===
+  const tmodePers = document.getElementById('tmode-personal');
+  const tmodeShared = document.getElementById('tmode-shared');
+  if(tmodePers) tmodePers.innerHTML = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang] + (tmodePers.innerHTML.includes('bnav-premium') ? tmodePers.querySelector('.bnav-premium-badge')?.outerHTML||'' : '');
+  if(tmodePers) tmodePers.childNodes[0].textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
+  if(tmodeShared) tmodeShared.childNodes[0].textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
 
   // === 10. Lang button active state ===
   document.querySelectorAll('.lang-btn').forEach(b => {
@@ -5370,7 +5399,6 @@ function authShowMenu() {
 }
 
 
-
 // ════════════════════════════════════════════
 //  PREMIUM STATUS
 // ════════════════════════════════════════════
@@ -5463,7 +5491,7 @@ async function submitDevMode(){
 })();
 
 // ════════════════════════════════════════════
-//  PREMIUM SOON TOAST (temporal fins activar pagament)
+//  PREMIUM SOON TOAST
 // ════════════════════════════════════════════
 let _premSoonTimer=null;
 function showPremiumSoon(){
