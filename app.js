@@ -200,11 +200,6 @@ function defaultSchedule() {
 //  INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  // Estat premium cachejat (evita parpelleig)
-  if(localStorage.getItem('premium_status') === '1') applyPremiumUI(true);
-  // Dev mode persistent entre sessions
-  if(localStorage.getItem('dev_mode') === '1') applyPremiumUI(true);
-
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
 
@@ -4853,6 +4848,8 @@ const LANG_STRINGS = {
     btn_save:'💾 GUARDAR', btn_cancel:'Cancel·lar', btn_today:'↩ AVUI',
     // Misc
     streak_label:'dies consecutius',
+    kanban_add_board:'+ Nou tauler', kanban_no_boards:'Cap tauler creat. Prem + per crear-ne un.',
+    kanban_tab_personal:'Personal', kanban_tab_shared:'Compartit',
     add_task:'+ AFEGIR',
     pomo_focus:'FOCUS', pomo_break:'DESCANS', pomo_long:'DESCANS LLARG',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REPRENDRE', pomo_reset:'↺ RESET',
@@ -4894,6 +4891,8 @@ const LANG_STRINGS = {
     btn_add:'+ AÑADIR', btn_add_match:'+ AÑADIR PARTIDO',
     btn_save:'💾 GUARDAR', btn_cancel:'Cancelar', btn_today:'↩ HOY',
     streak_label:'días consecutivos programando',
+    kanban_add_board:'+ Nuevo tablero', kanban_no_boards:'Sin tableros. Pulsa + para crear uno.',
+    kanban_tab_personal:'Personal', kanban_tab_shared:'Compartido',
     add_task:'+ AÑADIR',
     pomo_focus:'ENFOQUE', pomo_break:'DESCANSO', pomo_long:'DESCANSO LARGO',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REANUDAR', pomo_reset:'↺ RESET',
@@ -4935,6 +4934,8 @@ const LANG_STRINGS = {
     btn_add:'+ ADD', btn_add_match:'+ ADD MATCH',
     btn_save:'💾 SAVE', btn_cancel:'Cancel', btn_today:'↩ TODAY',
     streak_label:'consecutive days coding',
+    kanban_add_board:'+ New board', kanban_no_boards:'No boards yet. Press + to create one.',
+    kanban_tab_personal:'Personal', kanban_tab_shared:'Shared',
     add_task:'+ ADD',
     pomo_focus:'FOCUS', pomo_break:'BREAK', pomo_long:'LONG BREAK',
     pomo_start:'▶ START', pomo_pause:'⏸ PAUSE', pomo_resume:'▶ RESUME', pomo_reset:'↺ RESET',
@@ -5039,6 +5040,87 @@ function applyLanguage(lang) {
   const stats = document.querySelectorAll('.pomo-stat-lbl');
   const statKeys = ['pomo_today','pomo_week','pomo_total'];
   stats.forEach((el,i) => { if(statKeys[i]) el.textContent = t(statKeys[i]); });
+
+
+  // === 11b. Screen Tips ===
+  const SCREEN_TIPS = {
+    ca: [
+      {title:'Mode escala de grisos',   text:"Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors."},
+      {title:'Intenció prèvia',          text:"Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris."},
+      {title:'Tècnica Pomodoro',         text:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.'},
+      {title:'Zones sense mòbil',        text:"Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals."},
+      {title:'Ritual nocturn',           text:"Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper."},
+      {title:'Silencia les notificacions',text:'Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.'},
+    ],
+    es: [
+      {title:'Modo escala de grises',    text:'Activa el modo escala de grises en el móvil. El cerebro deja de encontrar las apps atractivas sin colores.'},
+      {title:'Intención previa',         text:'Antes de abrir el móvil, dite: "Abro el móvil para...". Si no puedes completar la frase, no lo abras.'},
+      {title:'Técnica Pomodoro',         text:'25 minutos de foco total, 5 de descanso. Durante el foco, el móvil boca abajo y en silencio.'},
+      {title:'Zonas sin móvil',          text:'Mesa de estudio, cama y comidas = zonas sin teléfono. Crea límites físicos, no mentales.'},
+      {title:'Ritual nocturno',          text:'Sin pantallas 45 min antes de dormir. Lee, escribe o planifica el día siguiente en papel.'},
+      {title:'Silencia las notificaciones',text:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.'},
+    ],
+    en: [
+      {title:'Grayscale mode',           text:'Enable grayscale mode on your phone. Your brain stops finding apps attractive without color.'},
+      {title:'Prior intention',          text:'Before opening your phone, say: "I'm opening it to...". If you can't finish the sentence, don't open it.'},
+      {title:'Pomodoro technique',       text:'25 minutes of full focus, 5 of rest. During focus time, phone face-down and silent.'},
+      {title:'Phone-free zones',         text:'Study desk, bed and meals = no-phone zones. Create physical limits, not mental ones.'},
+      {title:'Night ritual',             text:'No screens 45 min before sleep. Read, write or plan tomorrow on paper.'},
+      {title:'Silence notifications',    text:'Turn off all notifications except calls. You decide when to look, not the apps.'},
+    ],
+  };
+  const MOTO_TIPS = {
+    ca: [
+      {title:'Actua primer',             text:"La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol."},
+      {title:'No trenquis la cadena',    text:"Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció."},
+      {title:'Mini-objectius diaris',    text:'Cada dia, un objectiu concret i assolible. No "programar", sinó "completar l'exercici 3 del capítol 5".'},
+      {title:'Mesura el progrés',        text:'El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.'},
+      {title:'Recorda el per què',       text:'Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.'},
+      {title:'El son és productivitat',  text:'8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.'},
+    ],
+    es: [
+      {title:'Actúa primero',            text:'La motivación llega DESPUÉS de actuar, no antes. Empieza 5 minutos y el cerebro se enganchará solo.'},
+      {title:'No rompas la cadena',      text:'¿Un día fallas? Bien. ¿Dos días seguidos? Peligro. La cadena es el sistema, no la excepción.'},
+      {title:'Mini-objetivos diarios',   text:'Cada día, un objetivo concreto y alcanzable. No "programar", sino "completar el ejercicio 3 del capítulo 5".'},
+      {title:'Mide el progreso',         text:'Lo que se mide mejora. Anota cada sesión. Ver el registro te motiva a continuar.'},
+      {title:'Recuerda el por qué',      text:'Empresa propia a los 18. Cada vez que no tienes ganas, recuerda para quién lo haces y qué futuro construyes.'},
+      {title:'El sueño es productividad',text:'8h de sueño = el doble de rendimiento. No te prives de dormir para estudiar más.'},
+    ],
+    en: [
+      {title:'Act first',                text:'Motivation comes AFTER acting, not before. Start for 5 minutes and your brain will get hooked.'},
+      {title:"Don't break the chain",    text:'Miss one day? Fine. Two days in a row? Danger. The chain is the system, not the exception.'},
+      {title:'Daily mini-goals',         text:'Each day, one concrete and achievable goal. Not "study", but "complete exercise 3 of chapter 5".'},
+      {title:'Measure progress',         text:'What gets measured improves. Log every session. Seeing the record motivates you to continue.'},
+      {title:'Remember your why',        text:'Your own company at 18. Every time you lack motivation, remember who you're doing it for.'},
+      {title:'Sleep is productivity',    text:'8h sleep = double performance. Don't deprive yourself of sleep to study more.'},
+    ],
+  };
+  // Aplicar traduccions als tips
+  const stips = SCREEN_TIPS[lang] || SCREEN_TIPS.ca;
+  stips.forEach((tip, i) => {
+    const title = document.querySelector(`[data-stip-title="${i}"]`);
+    const text  = document.querySelector(`[data-stip-text="${i}"]`);
+    if(title) title.textContent = tip.title;
+    if(text)  text.textContent  = tip.text;
+  });
+  const mtips = MOTO_TIPS[lang] || MOTO_TIPS.ca;
+  mtips.forEach((tip, i) => {
+    const title = document.querySelector(`[data-mtip-title="${i}"]`);
+    const text  = document.querySelector(`[data-mtip-text="${i}"]`);
+    if(title) title.textContent = tip.title;
+    if(text)  text.textContent  = tip.text;
+  });
+
+  // === 9b. Kanban ===
+  const kanbanTabs = document.querySelectorAll('.tvt-btn');
+  const tvtKanban = document.getElementById('tvt-kanban');
+  const tvtSharedKanban = document.getElementById('tvt-shared-kanban');
+  if(tvtKanban) tvtKanban.childNodes[0].textContent = '⠿ '+{ca:'Kanban',es:'Kanban',en:'Kanban'}[lang];
+  const personalKanbanBtn = document.querySelector('.personal-kanban-header .board-add-task-btn');
+  if(personalKanbanBtn) personalKanbanBtn.textContent = {ca:'+ Nova tasca',es:'+ Nueva tarea',en:'+ New task'}[lang];
+  // Re-render kanban si és visible
+  if(typeof personalView !== 'undefined' && personalView === 'kanban') renderPersonalKanban();
+  if(typeof sharedView !== 'undefined' && sharedView === 'kanban') renderSharedKanbanDirect();
 
   // === 10. Lang button active state ===
   document.querySelectorAll('.lang-btn').forEach(b => {
@@ -5241,7 +5323,6 @@ async function authLogin() {
   if(error) { authMsg(error.message,'error'); return; }
   supaUser = data.user;
   await loadFromSupabase();
-  checkPremiumStatus(supaUser.id);
   hideAuthOverlay();
   updateAuthIndicator();
   showSyncToast('✅ Sessió iniciada');
@@ -5312,149 +5393,6 @@ function authShowMenu() {
     authLogout();
   }
 }
-
-
-// ════════════════════════════════════════════════════════════
-//  PREMIUM STATUS
-// ════════════════════════════════════════════════════════════
-
-async function checkPremiumStatus(userId) {
-  if(!userId) return;
-  try {
-    const res = await fetch(`/api/subscription-status?userId=${encodeURIComponent(userId)}`);
-    if(!res.ok) return;
-    const { isPremium } = await res.json();
-    applyPremiumUI(isPremium);
-    localStorage.setItem('premium_status', isPremium ? '1' : '0');
-  } catch(e) {
-    // Fallback: usar caché local
-    const cached = localStorage.getItem('premium_status');
-    if(cached !== null) applyPremiumUI(cached === '1');
-  }
-}
-
-function applyPremiumUI(isPremium) {
-  if(isPremium) {
-    document.body.classList.add('is-premium');
-  } else {
-    document.body.classList.remove('is-premium');
-  }
-}
-
-
-// ════════════════════════════════════════════════════════════
-//  DEV MODE — Drecera secreta
-//  Combinació: mantenir D premut 3 cops seguits + Ctrl+Shift
-//  Activa Premium sense pagament per a desenvolupadors
-// ════════════════════════════════════════════════════════════
-
-// Credencials emmagatzemades com a hash SHA-256 (no llegibles al codi)
-// Clau dev:   Jx9#mP2$kL7!devQ
-// Clau admin: Zr4@nW8&vT1#admK
-const DEV_HASHES = [
-  { email: 'dev@jomaxpath.com',   hash: '9f64e3051f20d32e3b17df3756e65f695327da99c1c7ddafd11dbefcc1e41e1c' },
-  { email: 'admin@jomaxpath.com', hash: 'b64ebfe018a884ab5633c12f747c49e048daaef563ce9752cc31b0fe54e798c0' },
-];
-
-// Hash SHA-256 en el navegador (async, via SubtleCrypto)
-async function hashPass(pass) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-// ── Detecció de la drecera: Ctrl+Shift+D+D+D ──
-// L'usuari ha de mantenir Ctrl+Shift i prémer D tres vegades seguides
-let _devDCount = 0;
-let _devDTimer = null;
-
-document.addEventListener('keydown', (e) => {
-  // Escape tanca el modal si és obert
-  if(e.key === 'Escape') {
-    const overlay = document.getElementById('devmode-overlay');
-    if(overlay && overlay.style.display === 'flex') { closeDevMode(); return; }
-  }
-
-  // Seqüència Ctrl+Shift+D×3
-  if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'D') {
-    e.preventDefault();
-    _devDCount++;
-    clearTimeout(_devDTimer);
-    if(_devDCount >= 3) {
-      _devDCount = 0;
-      openDevMode();
-    } else {
-      _devDTimer = setTimeout(() => { _devDCount = 0; }, 1200);
-    }
-  } else if(!e.ctrlKey || !e.shiftKey) {
-    _devDCount = 0;
-  }
-});
-
-function openDevMode() {
-  const overlay = document.getElementById('devmode-overlay');
-  if(!overlay) return;
-  overlay.style.display = 'flex';
-  document.getElementById('dev-error').textContent = '';
-  document.getElementById('dev-pass').value = '';
-  if(localStorage.getItem('dev_mode') === '1') {
-    document.getElementById('dev-active-badge').style.display = 'block';
-    document.getElementById('dev-email').value = localStorage.getItem('dev_email') || '';
-  }
-  setTimeout(() => document.getElementById('dev-email').focus(), 100);
-}
-
-function closeDevMode() {
-  const overlay = document.getElementById('devmode-overlay');
-  if(overlay) overlay.style.display = 'none';
-}
-
-async function submitDevMode() {
-  const email = document.getElementById('dev-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('dev-pass').value;
-  const errEl = document.getElementById('dev-error');
-  const btn   = document.getElementById('dev-submit-btn');
-
-  if(!email || !pass) { errEl.textContent = '⚠ Omple tots els camps'; return; }
-
-  // Bloquejar botó mentre comprova
-  btn.disabled = true;
-  btn.textContent = 'Verificant...';
-
-  const inputHash = await hashPass(pass);
-  const cred = DEV_HASHES.find(c => c.email === email);
-  const valid = cred && cred.hash === inputHash;
-
-  btn.disabled = false;
-  btn.textContent = 'Accedir';
-
-  if(!valid) {
-    errEl.textContent = '✗ Credencials incorrectes';
-    document.getElementById('dev-pass').value = '';
-    document.getElementById('dev-pass').focus();
-    const panel = document.getElementById('devmode-panel');
-    panel.style.animation = 'devShake 0.4s ease';
-    setTimeout(() => panel.style.animation = '', 400);
-    return;
-  }
-
-  // ✅ Accés concedit
-  localStorage.setItem('dev_mode', '1');
-  localStorage.setItem('dev_email', email);
-  localStorage.setItem('premium_status', '1');
-  applyPremiumUI(true);
-  errEl.textContent = '';
-  document.getElementById('dev-active-badge').style.display = 'block';
-  setTimeout(() => closeDevMode(), 1600);
-}
-
-// Shake animation
-(function addDevStyles() {
-  const s = document.createElement('style');
-  s.textContent = '@keyframes devShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
-  document.head.appendChild(s);
-})();
-
-
 
 async function authLogout() {
   if(supa) await supa.auth.signOut();
@@ -5615,7 +5553,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       supaUser = session.user;
       updateAuthIndicator();
       await loadFromSupabase();
-      checkPremiumStatus(supaUser.id);
     } else {
       // Sense sessió — mostrar login NOMÉS si no ha dit "Continuar sense compte"
       if(!localStorage.getItem('auth_skipped')) {
@@ -6129,9 +6066,9 @@ function renderBoardDetail(boardId) {
   const detail = document.getElementById('shared-board-detail');
 
   const cols = [
-    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
-    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
   ];
 
   const tasks = board.tasks || {};
@@ -6144,7 +6081,7 @@ function renderBoardDetail(boardId) {
         <div class="board-detail-name">${board.name}</div>
         <div class="board-members-row">👥 ${memberList}</div>
       </div>
-      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">${{ca:'+ Tasca',es:'+ Tarea',en:'+ Task'}[currentLang]||'+ Tasca'}</button>
     </div>
     <div class="kanban-board">
       ${cols.map(col => {
@@ -6156,7 +6093,7 @@ function renderBoardDetail(boardId) {
             <span class="kanban-col-count">${colTasks.length}</span>
           </div>
           ${colTasks.map(task=>renderKanbanCard(task, boardId, false)).join('')}
-          <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">+ Afegir tasca</div>
+          <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">${{ca:'+ Afegir tasca',es:'+ Añadir tarea',en:'+ Add task'}[currentLang]||'+ Afegir tasca'}</div>
         </div>`;
       }).join('')}
     </div>`;
@@ -6553,9 +6490,9 @@ function renderPersonalKanban() {
   const board = document.getElementById('personal-kanban-board');
   if(!board) return;
   const cols = [
-    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
-    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
   ];
   board.className = 'kanban-board';
   board.innerHTML = cols.map(col => {
@@ -6570,7 +6507,7 @@ function renderPersonalKanban() {
         <span class="kanban-col-count">${tasks.length}</span>
       </div>
       ${tasks.map(t=>renderKanbanCard(t,'',true)).join('')}
-      <div class="kanban-add-area" onclick="openPersonalKanbanModal('${col.id}')">+ Afegir tasca</div>
+      <div class="kanban-add-area" onclick="openPersonalKanbanModal('${col.id}')">${{ca:'+ Afegir tasca',es:'+ Añadir tarea',en:'+ Add task'}[currentLang]||'+ Afegir tasca'}</div>
     </div>`;
   }).join('');
 }
@@ -6714,14 +6651,14 @@ function renderSharedKanbanDirect() {
   // Renderitzar kanban del board seleccionat
   const board = sharedBoards[sharedKanbanActiveBoardId];
   const cols = [
-    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
-    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
+    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
   ];
   const tasks = board.tasks || {};
   container.innerHTML = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">${{ca:'+ Tasca',es:'+ Tarea',en:'+ Task'}[currentLang]||'+ Tasca'}</button>
     </div>
     <div class="kanban-board">
       ${cols.map(col=>{
@@ -6736,7 +6673,7 @@ function renderSharedKanbanDirect() {
             <span class="kanban-col-count">${colTasks.length}</span>
           </div>
           ${colTasks.map(task=>renderKanbanCard(task, sharedKanbanActiveBoardId, false)).join('')}
-          <div class="kanban-add-area" onclick="activeBoardId=sharedKanbanActiveBoardId;openBoardTaskModal('${col.id}')">+ Afegir</div>
+          <div class="kanban-add-area" onclick="activeBoardId=sharedKanbanActiveBoardId;openBoardTaskModal('${col.id}')">${{ca:'+ Afegir',es:'+ Añadir',en:'+ Add'}[currentLang]||'+ Afegir'}</div>
         </div>`;
       }).join('')}
     </div>`;
