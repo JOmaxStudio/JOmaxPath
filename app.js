@@ -201,8 +201,6 @@ function defaultSchedule() {
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   if(localStorage.getItem('premium_status')==='1'||localStorage.getItem('dev_mode')==='1') applyPremiumUI(true);
-  setTimeout(()=>applyLanguage(currentLang), 200);
-
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
 
@@ -3172,96 +3170,91 @@ let pomoPhase    = 'focus'; // focus | break | long-break
 let pomoSessionsDone = 0;
 const POMO_CIRCLE = 2 * Math.PI * 80; // 502.65
 
-const DAILY_QUOTES_I18N = {
-  ca: [
-    {t:"El millor moment per plantar un arbre era fa 20 anys. El segon millor és ara.", a:"PROVERBI XINÈS"},
-    {t:"No és que tingui poc temps, és que perdo el que tinc.", a:"SÈNECA"},
-    {t:"La disciplina és triar entre el que vols ara i el que vols més.", a:"ABRAHAM LINCOLN"},
-    {t:"El futur pertany als qui creuen en la bellesa dels seus somnis.", a:"ELEANOR ROOSEVELT"},
-    {t:"Fes avui el que els altres no volen fer. Demà viuràs el que els altres no podran viure.", a:"JERRY RICE"},
-    {t:"No et preocupis per fracassar. Preocupa't per les oportunitats que perds si ni ho intentes.", a:"JACK CANFIELD"},
-    {t:"El secret per avançar és començar. El secret per començar és dividir les tasques complexes en tasques petites.", a:"MARK TWAIN"},
-    {t:"La motivació et fa arrencar. L'hàbit et fa continuar.", a:"JIM RYUN"},
-    {t:"Èxit és la suma de petits esforços repetits dia rere dia.", a:"ROBERT COLLIER"},
-    {t:"No busquis el temps, crea'l.", a:"CHARLES BUXTON"},
-    {t:"Cada dia fes una cosa que et fa por. Així creixeràs.", a:"ELEANOR ROOSEVELT"},
-    {t:"La productivitat no es tracta de fer moltes coses. Es tracta de fer les coses correctes.", a:"DESCONEGUT"},
-    {t:"Un objectiu sense un pla és només un desig.", a:"ANTOINE DE SAINT-EXUPÉRY"},
-    {t:"La clau no és dedicar prioritat al que tens a l'agenda, sinó planificar les prioritats.", a:"STEPHEN COVEY"},
-    {t:"Qui diu que no pot, normalment no vol.", a:"WINSTON CHURCHILL"},
-    {t:"No esperis que les circumstàncies siguin perfectes per actuar. Actua i les circumstàncies milloraran.", a:"DESCONEGUT"},
-    {t:"El temps és el recurs més escàs. Si no el gestiones, no pots gestionar res.", a:"PETER DRUCKER"},
-    {t:"Fes sempre el màxim que puguis. El que plantes ara ho recolliràs més tard.", a:"OG MANDINO"},
-    {t:"Quan vulguis desistir, recorda per quin motiu vas començar.", a:"DESCONEGUT"},
-    {t:"La diferència entre el que som i el que podrem ser és el que fem.", a:"RALPH WALDO EMERSON"},
-  ],
-  es: [
-    {t:"El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor es ahora.", a:"PROVERBIO CHINO"},
-    {t:"No es que tenga poco tiempo, es que pierdo el que tengo.", a:"SÉNECA"},
-    {t:"La disciplina es elegir entre lo que quieres ahora y lo que más quieres.", a:"ABRAHAM LINCOLN"},
-    {t:"El futuro pertenece a quienes creen en la belleza de sus sueños.", a:"ELEANOR ROOSEVELT"},
-    {t:"Haz hoy lo que otros no quieren hacer. Mañana vivirás lo que otros no podrán vivir.", a:"JERRY RICE"},
-    {t:"No te preocupes por fracasar. Preocúpate por las oportunidades que pierdes si ni lo intentas.", a:"JACK CANFIELD"},
-    {t:"El secreto para avanzar es empezar. Divide las tareas complejas en tareas pequeñas y manejables.", a:"MARK TWAIN"},
-    {t:"La motivación te hace arrancar. El hábito te hace continuar.", a:"JIM RYUN"},
-    {t:"El éxito es la suma de pequeños esfuerzos repetidos día tras día.", a:"ROBERT COLLIER"},
-    {t:"No busques el tiempo, créalo.", a:"CHARLES BUXTON"},
-    {t:"Cada día haz algo que te dé miedo. Así crecerás.", a:"ELEANOR ROOSEVELT"},
-    {t:"La productividad no se trata de hacer muchas cosas. Se trata de hacer las cosas correctas.", a:"DESCONOCIDO"},
-    {t:"Un objetivo sin un plan es solo un deseo.", a:"ANTOINE DE SAINT-EXUPÉRY"},
-    {t:"La clave no es priorizar lo que tienes en la agenda, sino planificar las prioridades.", a:"STEPHEN COVEY"},
-    {t:"Quien dice que no puede, normalmente no quiere.", a:"WINSTON CHURCHILL"},
-    {t:"No esperes que las circunstancias sean perfectas para actuar.", a:"DESCONOCIDO"},
-    {t:"El tiempo es el recurso más escaso. Si no lo gestionas, no puedes gestionar nada.", a:"PETER DRUCKER"},
-    {t:"Haz siempre lo máximo que puedas. Lo que siembres ahora lo cosecharás más tarde.", a:"OG MANDINO"},
-    {t:"Cuando quieras rendirte, recuerda por qué empezaste.", a:"DESCONOCIDO"},
-    {t:"La diferencia entre lo que somos y lo que podemos ser es lo que hacemos.", a:"RALPH WALDO EMERSON"},
-  ],
-  en: [
-    {t:"The best time to plant a tree was 20 years ago. The second best time is now.", a:"CHINESE PROVERB"},
-    {t:"It's not that I have too little time. It's that I lose the time I have.", a:"SENECA"},
-    {t:"Discipline is choosing between what you want now and what you want most.", a:"ABRAHAM LINCOLN"},
-    {t:"The future belongs to those who believe in the beauty of their dreams.", a:"ELEANOR ROOSEVELT"},
-    {t:"Do today what others won't do. Tomorrow you'll live what others can't.", a:"JERRY RICE"},
-    {t:"Don't worry about failing. Worry about the chances you miss when you don't even try.", a:"JACK CANFIELD"},
-    {t:"The secret to getting ahead is getting started. Break complex tasks into small, manageable ones.", a:"MARK TWAIN"},
-    {t:"Motivation gets you going. Habit keeps you going.", a:"JIM RYUN"},
-    {t:"Success is the sum of small efforts repeated day after day.", a:"ROBERT COLLIER"},
-    {t:"Don't find the time. Make it.", a:"CHARLES BUXTON"},
-    {t:"Every day do one thing that scares you. That's how you grow.", a:"ELEANOR ROOSEVELT"},
-    {t:"Productivity is not about doing many things. It's about doing the right things.", a:"UNKNOWN"},
-    {t:"A goal without a plan is just a wish.", a:"ANTOINE DE SAINT-EXUPÉRY"},
-    {t:"The key is not to prioritize what's on your schedule, but to schedule your priorities.", a:"STEPHEN COVEY"},
-    {t:"Those who say they can't, usually won't.", a:"WINSTON CHURCHILL"},
-    {t:"Don't wait for the perfect moment. Act, and the moment will improve.", a:"UNKNOWN"},
-    {t:"Time is the scarcest resource. If you don't manage it, you can't manage anything.", a:"PETER DRUCKER"},
-    {t:"Always do your best. What you plant now, you will harvest later.", a:"OG MANDINO"},
-    {t:"When you feel like giving up, remember why you started.", a:"UNKNOWN"},
-    {t:"The difference between who we are and who we could be is what we do.", a:"RALPH WALDO EMERSON"},
-  ],
-};
-// Backward compat
-const DAILY_QUOTES = DAILY_QUOTES_I18N.ca;
-
+const DAILY_QUOTES_CA = [
+  {t:'El millor moment per plantar un arbre era fa 20 anys. El segon millor és ara.',a:'PROVERBI XINÈS'},
+  {t:'No és que tingui poc temps, és que perdo el que tinc.',a:'SÈNECA'},
+  {t:'La disciplina és triar entre el que vols ara i el que vols més.',a:'ABRAHAM LINCOLN'},
+  {t:'El futur pertany als qui creuen en la bellesa dels seus somnis.',a:'ELEANOR ROOSEVELT'},
+  {t:'Fes avui el que els altres no volen fer. Demà viuràs el que els altres no podran viure.',a:'JERRY RICE'},
+  {t:"No et preocupis per fracassar. Preocupa't per les oportunitats que perds si ni ho intentes.",a:'JACK CANFIELD'},
+  {t:'El secret per avançar és començar. Divideix les tasques complexes en petites.',a:'MARK TWAIN'},
+  {t:"La motivació et fa arrencar. L'hàbit et fa continuar.",a:'JIM RYUN'},
+  {t:'Èxit és la suma de petits esforços repetits dia rere dia.',a:'ROBERT COLLIER'},
+  {t:"No busquis el temps, crea'l.",a:'CHARLES BUXTON'},
+  {t:'Cada dia fes una cosa que et fa por. Així creixeràs.',a:'ELEANOR ROOSEVELT'},
+  {t:'La productivitat no es tracta de fer moltes coses. Es tracta de fer les coses correctes.',a:'DESCONEGUT'},
+  {t:'Un objectiu sense un pla és només un desig.',a:'ANTOINE DE SAINT-EXUPÉRY'},
+  {t:"La clau és planificar les prioritats, no prioritzar el que tens a l'agenda.",a:'STEPHEN COVEY'},
+  {t:'Qui diu que no pot, normalment no vol.',a:'WINSTON CHURCHILL'},
+  {t:'No esperis que les circumstàncies siguin perfectes per actuar.',a:'DESCONEGUT'},
+  {t:'El temps és el recurs més escàs. Si no el gestiones, no pots gestionar res.',a:'PETER DRUCKER'},
+  {t:'Fes sempre el màxim que puguis. El que plantes ara ho recolliràs més tard.',a:'OG MANDINO'},
+  {t:'Quan vulguis desistir, recorda per quin motiu vas començar.',a:'DESCONEGUT'},
+  {t:'La diferència entre el que som i el que podrem ser és el que fem.',a:'RALPH WALDO EMERSON'}
+];
+const DAILY_QUOTES_ES = [
+  {t:'El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor es ahora.',a:'PROVERBIO CHINO'},
+  {t:'No es que tenga poco tiempo, es que pierdo el que tengo.',a:'SÉNECA'},
+  {t:'La disciplina es elegir entre lo que quieres ahora y lo que más quieres.',a:'ABRAHAM LINCOLN'},
+  {t:'El futuro pertenece a quienes creen en la belleza de sus sueños.',a:'ELEANOR ROOSEVELT'},
+  {t:'Haz hoy lo que otros no quieren hacer. Mañana vivirás lo que otros no podrán.',a:'JERRY RICE'},
+  {t:'No te preocupes por fracasar. Preocúpate por las oportunidades que pierdes si no lo intentas.',a:'JACK CANFIELD'},
+  {t:'El secreto para avanzar es empezar. Divide las tareas complejas en pequeñas.',a:'MARK TWAIN'},
+  {t:'La motivación te hace arrancar. El hábito te hace continuar.',a:'JIM RYUN'},
+  {t:'El éxito es la suma de pequeños esfuerzos repetidos día tras día.',a:'ROBERT COLLIER'},
+  {t:'No busques el tiempo, créalo.',a:'CHARLES BUXTON'},
+  {t:'Cada día haz algo que te dé miedo. Así crecerás.',a:'ELEANOR ROOSEVELT'},
+  {t:'La productividad no es hacer muchas cosas. Es hacer las cosas correctas.',a:'DESCONOCIDO'},
+  {t:'Un objetivo sin un plan es solo un deseo.',a:'ANTOINE DE SAINT-EXUPÉRY'},
+  {t:'La clave es planificar las prioridades, no priorizar lo que tienes en la agenda.',a:'STEPHEN COVEY'},
+  {t:'Quien dice que no puede, normalmente no quiere.',a:'WINSTON CHURCHILL'},
+  {t:'No esperes que las circunstancias sean perfectas para actuar.',a:'DESCONOCIDO'},
+  {t:'El tiempo es el recurso más escaso. Si no lo gestionas, no puedes gestionar nada.',a:'PETER DRUCKER'},
+  {t:'Haz siempre lo máximo que puedas. Lo que siembres ahora lo cosecharás más tarde.',a:'OG MANDINO'},
+  {t:'Cuando quieras rendirte, recuerda por qué empezaste.',a:'DESCONOCIDO'},
+  {t:'La diferencia entre lo que somos y lo que podemos ser es lo que hacemos.',a:'RALPH WALDO EMERSON'}
+];
+const DAILY_QUOTES_EN = [
+  {t:'The best time to plant a tree was 20 years ago. The second best time is now.',a:'CHINESE PROVERB'},
+  {t:'It is not that I have so little time. It is that I lose so much of it.',a:'SENECA'},
+  {t:'Discipline is choosing between what you want now and what you want most.',a:'ABRAHAM LINCOLN'},
+  {t:'The future belongs to those who believe in the beauty of their dreams.',a:'ELEANOR ROOSEVELT'},
+  {t:"Do today what others won't. Tomorrow you will live what others can't.",a:'JERRY RICE'},
+  {t:"Don't worry about failing. Worry about the chances you miss when you don't even try.",a:'JACK CANFIELD'},
+  {t:'The secret of getting ahead is getting started. Break complex tasks into small ones.',a:'MARK TWAIN'},
+  {t:'Motivation gets you going. Habit keeps you going.',a:'JIM RYUN'},
+  {t:'Success is the sum of small efforts repeated day after day.',a:'ROBERT COLLIER'},
+  {t:"Don't find the time. Make it.",a:'CHARLES BUXTON'},
+  {t:'Do one thing every day that scares you. That is how you grow.',a:'ELEANOR ROOSEVELT'},
+  {t:'Productivity is not about doing many things. It is about doing the right things.',a:'UNKNOWN'},
+  {t:'A goal without a plan is just a wish.',a:'ANTOINE DE SAINT-EXUPERY'},
+  {t:'The key is to schedule your priorities, not prioritize your schedule.',a:'STEPHEN COVEY'},
+  {t:'Those who say they cannot usually mean they will not.',a:'WINSTON CHURCHILL'},
+  {t:'Do not wait for perfect circumstances. Act, and they will improve.',a:'UNKNOWN'},
+  {t:'Time is the scarcest resource. If you do not manage it, you manage nothing.',a:'PETER DRUCKER'},
+  {t:'Always do your best. What you plant now, you will harvest later.',a:'OG MANDINO'},
+  {t:'When you want to give up, remember why you started.',a:'UNKNOWN'},
+  {t:'The gap between who we are and who we could be is what we do.',a:'RALPH WALDO EMERSON'}
+];
+function getDailyQuotes() { return currentLang==="es"?DAILY_QUOTES_ES:currentLang==="en"?DAILY_QUOTES_EN:DAILY_QUOTES_CA; }
 
 // ── DAILY QUOTE ─────────────────────────────────────
 function renderDailyQuote() {
   const today = new Date().toDateString();
   const savedDate = localStorage.getItem('quote_date');
   if(savedDate !== today) {
-    quoteIndex = Math.floor(Math.random() * DAILY_QUOTES.length);
+    quoteIndex = Math.floor(Math.random() * getDailyQuotes().length);
     localStorage.setItem('quote_idx', quoteIndex);
     localStorage.setItem('quote_date', today);
   }
-  const qList = DAILY_QUOTES_I18N[currentLang] || DAILY_QUOTES_I18N.ca;
-  const q = qList[quoteIndex % qList.length];
+  const _ql = getDailyQuotes(); const q = _ql[quoteIndex % _ql.length];
   document.getElementById('dq-text').textContent = '"' + q.t + '"';
   document.getElementById('dq-author').textContent = '— ' + q.a;
 }
 function refreshQuote() {
   const el = document.querySelector('.dq-refresh');
   if(el) { el.style.transform='rotate(360deg)'; setTimeout(()=>el.style.transform='',400); }
-  quoteIndex = (quoteIndex + 1) % DAILY_QUOTES.length;
+  quoteIndex = (quoteIndex + 1) % getDailyQuotes().length;
   localStorage.setItem('quote_idx', quoteIndex);
   renderDailyQuote();
 }
@@ -3282,17 +3275,17 @@ function renderTodayDashboard() {
     <div class="today-card">
       <div class="tc-icon">📋</div>
       <div class="tc-val" style="color:var(--yellow)">${pending}</div>
-      <div class="tc-lbl">${{ca:'Tasques pendents',es:'Tareas pendientes',en:'Pending tasks'}[currentLang]||'Tasques pendents'}</div>
+      <div class="tc-lbl">${currentLang==='es'?'Tareas pendientes':currentLang==='en'?'Pending tasks':'Tasques pendents'}</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">📅</div>
       <div class="tc-val" style="color:var(--accent2)">${evCount}</div>
-      <div class="tc-lbl">${{ca:'Events avui',es:'Eventos hoy',en:'Events today'}[currentLang]||'Events avui'}</div>
+      <div class="tc-lbl">${currentLang==='es'?'Eventos hoy':currentLang==='en'?'Events today':'Events avui'}</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">🍅</div>
       <div class="tc-val" style="color:var(--red)">${pomoToday}</div>
-      <div class="tc-lbl">${{ca:'Pomodoros avui',es:'Pomodoros hoy',en:'Pomodoros today'}[currentLang]||'Pomodoros avui'}</div>
+      <div class="tc-lbl">${currentLang==='es'?'Pomodoros hoy':currentLang==='en'?'Pomodoros today':'Pomodoros avui'}</div>
     </div>
   `;
   // Now indicator
@@ -3301,7 +3294,7 @@ function renderTodayDashboard() {
   const nowEl = document.getElementById('today-now');
   const nowTxt = document.getElementById('today-now-txt');
   if(currentBlock && nowEl && nowTxt) {
-    nowTxt.textContent = `${{ca:'Ara',es:'Ahora',en:'Now'}[currentLang]||'Ara'}: ${currentBlock.label}  ·  ${currentBlock.time}`;
+    nowTxt.textContent = `Ara: ${currentBlock.label}  ·  ${currentBlock.time}`;
     nowEl.style.display='flex';
   } else if(nowEl) nowEl.style.display='none';
 }
@@ -3335,18 +3328,6 @@ function adjustPomoCust(type, delta) {
   if(cf) cf.textContent = pomoCustFocus;
   if(cb) cb.textContent = brk;
   updatePomoRatioLabel(pomoCustFocus, brk);
-}
-function updatePomoRatioLabel() {
-  const fmin = parseInt(document.getElementById('pomo-cust-focus')?.textContent||'25');
-  const bmin = parseInt(document.getElementById('pomo-cust-break')?.textContent||'5');
-  const el = document.getElementById('pomo-ratio-lbl');
-  if(!el) return;
-  const ratio = fmin > 0 ? `1:${(bmin/fmin).toFixed(1).replace(/\.0$/,'')}` : '1:0.2';
-  el.textContent = {
-    ca:`Ràtio ${ratio} · ${bmin} min de descans per ${fmin} de treball`,
-    es:`Ratio ${ratio} · ${bmin} min de descanso por ${fmin} de trabajo`,
-    en:`Ratio ${ratio} · ${bmin} min break per ${fmin} work`,
-  }[currentLang] || `Ratio ${ratio}`;
 }
 function applyPomoCustom() {
   const brk = Math.max(1, Math.round(pomoCustFocus / 5));
@@ -3429,82 +3410,29 @@ function pomoReset() {
   updatePomoDisplay();
 }
 // ── POMODORO GAMIFICATION ────────────────────────────
-const POMO_LEVELS_I18N = {
-  ca: [
-    {min:0,   max:50,  name:'APRENENT',       emoji:'🌱', color:'#6ee7b7'},
-    {min:50,  max:150, name:'ESTUDIANT',       emoji:'📚', color:'#93c5fd'},
-    {min:150, max:350, name:'CONCENTRAT',      emoji:'🎯', color:'#c4b5fd'},
-    {min:350, max:700, name:'ENFOCADOR',       emoji:'🔥', color:'#fcd34d'},
-    {min:700, max:1400,name:'FLOW STATE',      emoji:'⚡', color:'#fb923c'},
-    {min:1400,max:3000,name:'DEEP WORKER',     emoji:'💎', color:'#f472b6'},
-    {min:3000,max:Infinity,name:'MESTRE DEL FOCUS',emoji:'🏆',color:'#fbbf24'},
-  ],
-  es: [
-    {min:0,   max:50,  name:'APRENDIZ',        emoji:'🌱', color:'#6ee7b7'},
-    {min:50,  max:150, name:'ESTUDIANTE',       emoji:'📚', color:'#93c5fd'},
-    {min:150, max:350, name:'CONCENTRADO',      emoji:'🎯', color:'#c4b5fd'},
-    {min:350, max:700, name:'ENFOCADO',         emoji:'🔥', color:'#fcd34d'},
-    {min:700, max:1400,name:'FLOW STATE',       emoji:'⚡', color:'#fb923c'},
-    {min:1400,max:3000,name:'DEEP WORKER',      emoji:'💎', color:'#f472b6'},
-    {min:3000,max:Infinity,name:'MAESTRO FOCUS',emoji:'🏆',color:'#fbbf24'},
-  ],
-  en: [
-    {min:0,   max:50,  name:'LEARNER',          emoji:'🌱', color:'#6ee7b7'},
-    {min:50,  max:150, name:'STUDENT',           emoji:'📚', color:'#93c5fd'},
-    {min:150, max:350, name:'FOCUSED',           emoji:'🎯', color:'#c4b5fd'},
-    {min:350, max:700, name:'SHARPENED',         emoji:'🔥', color:'#fcd34d'},
-    {min:700, max:1400,name:'FLOW STATE',        emoji:'⚡', color:'#fb923c'},
-    {min:1400,max:3000,name:'DEEP WORKER',       emoji:'💎', color:'#f472b6'},
-    {min:3000,max:Infinity,name:'FOCUS MASTER',  emoji:'🏆',color:'#fbbf24'},
-  ],
-};
-function getPomoLevels() { return POMO_LEVELS_I18N[currentLang] || POMO_LEVELS_I18N.ca; }
 const POMO_LEVELS = [
-  {min:0,   max:50,  name:'APRENENT',   emoji:'🌱', color:'#6ee7b7'},
-  {min:50,  max:150, name:'ESTUDIANT',  emoji:'📚', color:'#93c5fd'},
-  {min:150, max:350, name:'CONCENTRAT', emoji:'🎯', color:'#c4b5fd'},
-  {min:350, max:700, name:'ENFOCADOR',  emoji:'🔥', color:'#fcd34d'},
-  {min:700, max:1400,name:'FLOW STATE', emoji:'⚡', color:'#fb923c'},
-  {min:1400,max:3000,name:'DEEP WORKER',emoji:'💎', color:'#f472b6'},
-  {min:3000,max:Infinity, name:'MESTRE DEL FOCUS', emoji:'🏆', color:'#fbbf24'}
+  {min:0,   max:50,  get name(){return currentLang==='es'?'APRENDIZ':currentLang==='en'?'LEARNER':'APRENENT'},   emoji:'🌱', color:'#6ee7b7'},
+  {min:50,  max:150, get name(){return currentLang==='es'?'ESTUDIANTE':currentLang==='en'?'STUDENT':'ESTUDIANT'},  emoji:'📚', color:'#93c5fd'},
+  {min:150, max:350, get name(){return currentLang==='es'?'CONCENTRADO':currentLang==='en'?'FOCUSED':'CONCENTRAT'}, emoji:'🎯', color:'#c4b5fd'},
+  {min:350, max:700, get name(){return currentLang==='es'?'ENFOCADO':currentLang==='en'?'SHARPENED':'ENFOCADOR'},  emoji:'🔥', color:'#fcd34d'},
+  {min:700, max:1400,get name(){return 'FLOW STATE'},                                                               emoji:'⚡', color:'#fb923c'},
+  {min:1400,max:3000,get name(){return currentLang==='es'?'DEEP WORKER':currentLang==='en'?'DEEP WORKER':'DEEP WORKER'},emoji:'💎', color:'#f472b6'},
+  {min:3000,max:Infinity, get name(){return currentLang==='es'?'MAESTRO FOCUS':currentLang==='en'?'FOCUS MASTER':'MESTRE DEL FOCUS'}, emoji:'🏆', color:'#fbbf24'}
 ];
-const POMO_REWARDS_I18N = {
-  ca: [
-    {id:'first',   need:10,   emoji:'🍅', label:'Primer Pomo',  desc:'El primer sempre costa més! +10 XP'},
-    {id:'five',    need:50,   emoji:'🔥', label:'En Ratxa',     desc:'50 XP acumulats'},
-    {id:'ten',     need:150,  emoji:'⚡', label:'Enfocador',    desc:'150 XP — Vas per bon camí!'},
-    {id:'goal',    need:'goal',emoji:'🎯',label:'Objectiu Avui',desc:'Meta diària assolida!'},
-    {id:'twenty',  need:350,  emoji:'💎', label:'Focus Profund',desc:'350 XP — Treball profund activat'},
-    {id:'fifty',   need:700,  emoji:'🏆', label:'Mestre',       desc:'700 XP — Nivell Flow State'},
-    {id:'hundred', need:1400, emoji:'👑', label:'Llegenda',     desc:'1400 XP — Deep Worker llegenda'},
-  ],
-  es: [
-    {id:'first',   need:10,   emoji:'🍅', label:'Primer Pomo',  desc:'¡El primero siempre cuesta más! +10 XP'},
-    {id:'five',    need:50,   emoji:'🔥', label:'En Racha',     desc:'50 XP acumulados'},
-    {id:'ten',     need:150,  emoji:'⚡', label:'Enfocado',     desc:'150 XP — ¡Vas por buen camino!'},
-    {id:'goal',    need:'goal',emoji:'🎯',label:'Objetivo Hoy', desc:'¡Meta diaria lograda!'},
-    {id:'twenty',  need:350,  emoji:'💎', label:'Focus Profundo',desc:'350 XP — Trabajo profundo activado'},
-    {id:'fifty',   need:700,  emoji:'🏆', label:'Maestro',      desc:'700 XP — Nivel Flow State'},
-    {id:'hundred', need:1400, emoji:'👑', label:'Leyenda',      desc:'1400 XP — Deep Worker leyenda'},
-  ],
-  en: [
-    {id:'first',   need:10,   emoji:'🍅', label:'First Pomo',   desc:'The first one always hurts! +10 XP'},
-    {id:'five',    need:50,   emoji:'🔥', label:'On a Roll',    desc:'50 XP accumulated'},
-    {id:'ten',     need:150,  emoji:'⚡', label:'Focused',      desc:'150 XP — You're on track!'},
-    {id:'goal',    need:'goal',emoji:'🎯',label:'Daily Goal',   desc:'Daily goal reached!'},
-    {id:'twenty',  need:350,  emoji:'💎', label:'Deep Focus',   desc:'350 XP — Deep work activated'},
-    {id:'fifty',   need:700,  emoji:'🏆', label:'Master',       desc:'700 XP — Flow State level'},
-    {id:'hundred', need:1400, emoji:'👑', label:'Legend',       desc:'1400 XP — Deep Worker legend'},
-  ],
-};
-function getPomoRewards() { return POMO_REWARDS_I18N[currentLang] || POMO_REWARDS_I18N.ca; }
-const POMO_REWARDS = POMO_REWARDS_I18N.ca;
+const POMO_REWARDS = [
+  {id:'first',   need:10,   emoji:'🍅', get label(){return currentLang==='es'?'Primer Pomo':currentLang==='en'?'First Pomo':'Primer Pomo'},      get desc(){return currentLang==='es'?'El primero siempre cuesta! +10 XP':currentLang==='en'?'First one always hurts! +10 XP':'El primer sempre costa! +10 XP'}},
+  {id:'five',    need:50,   emoji:'🔥', get label(){return currentLang==='es'?'En Racha':currentLang==='en'?'On a Roll':'En Ratxa'},              get desc(){return currentLang==='es'?'50 XP acumulados':currentLang==='en'?'50 XP accumulated':'50 XP acumulats'}},
+  {id:'ten',     need:150,  emoji:'⚡', get label(){return currentLang==='es'?'Enfocado':currentLang==='en'?'Focused':'Enfocador'},               get desc(){return currentLang==='es'?'150 XP - Buen camino!':currentLang==='en'?'150 XP - On track!':'150 XP - Vas be!'}},
+  {id:'goal',    need:'goal',emoji:'🎯',get label(){return currentLang==='es'?'Objetivo Hoy':currentLang==='en'?'Daily Goal':'Objectiu Avui'},    get desc(){return currentLang==='es'?'Meta diaria lograda!':currentLang==='en'?'Daily goal reached!':'Meta diaria assolida!'}},
+  {id:'twenty',  need:350,  emoji:'💎', get label(){return currentLang==='es'?'Focus Profundo':currentLang==='en'?'Deep Focus':'Focus Profund'},  get desc(){return currentLang==='es'?'350 XP - Deep work':currentLang==='en'?'350 XP - Deep work activated':'350 XP - Treball profund'}},
+  {id:'fifty',   need:700,  emoji:'🏆', get label(){return currentLang==='es'?'Maestro':currentLang==='en'?'Master':'Mestre'},                    get desc(){return currentLang==='es'?'700 XP - Flow State':currentLang==='en'?'700 XP - Flow State level':'700 XP - Nivell Flow State'}},
+  {id:'hundred', need:1400, emoji:'👑', get label(){return currentLang==='es'?'Leyenda':currentLang==='en'?'Legend':'Llegenda'},                  get desc(){return currentLang==='es'?'1400 XP - Deep Worker':currentLang==='en'?'1400 XP - Deep Worker legend':'1400 XP - Deep Worker llegenda'}},
+];
 let pomoGameData = JSON.parse(localStorage.getItem('pomo_game_v1') || '{"xp":0,"dailyGoal":4,"earnedRewards":[]}');
 let pomoDailyGoal = pomoGameData.dailyGoal || 4;
 
 function getPomoLevel(xp) {
-  const lvls = getPomoLevels();
-  return lvls.find(l => xp >= l.min && xp < l.max) || lvls[lvls.length-1];
+  return POMO_LEVELS.find(l => xp >= l.min && xp < l.max) || POMO_LEVELS[POMO_LEVELS.length-1];
 }
 function changeDailyGoal(delta) {
   pomoDailyGoal = Math.max(1, Math.min(16, pomoDailyGoal + delta));
@@ -3516,7 +3444,7 @@ function renderPomoGame() {
   const xp = pomoGameData.xp || 0;
   const todayCount = pomoData.today || 0;
   const level = getPomoLevel(xp);
-  const nextLevel = getPomoLevels().find(l => l.min > xp);
+  const nextLevel = POMO_LEVELS.find(l => l.min > xp);
   
   // Level badge
   const badge = document.getElementById('pomo-level-badge');
@@ -3536,12 +3464,10 @@ function renderPomoGame() {
   if(xpBar) { xpBar.style.width = pct + '%'; xpBar.style.background = `linear-gradient(90deg,${level.color},var(--accent))`; }
   const xpSub = document.getElementById('pomo-xp-sub');
   if(xpSub) {
-    const xpSubTxt = {
-      ca: nextLevel ? `${xpNeeded - xpInLevel} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell màxim assolit!',
-      es: nextLevel ? `${xpNeeded - xpInLevel} XP para "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 ¡Nivel máximo alcanzado!',
-      en: nextLevel ? `${xpNeeded - xpInLevel} XP to reach "${nextLevel.name}" ${nextLevel.emoji} · Every 5min = 10 XP` : '🏆 Max level reached!',
-    }[currentLang] || '';
-    xpSub.textContent = xpSubTxt;
+    const _left = xpNeeded - xpInLevel;
+    if(currentLang==='es') xpSub.textContent = nextLevel ? `${_left} XP para "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivel maximo alcanzado!';
+    else if(currentLang==='en') xpSub.textContent = nextLevel ? `${_left} XP to reach "${nextLevel.name}" ${nextLevel.emoji} · Every 5min = 10 XP` : '🏆 Max level reached!';
+    else xpSub.textContent = nextLevel ? `${_left} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell maxim assolit!';
   }
 
   // Daily goal dots
@@ -3569,7 +3495,7 @@ function renderPomoGame() {
   // Rewards
   const rewardsEl = document.getElementById('pomo-rewards-row');
   if(rewardsEl) {
-    rewardsEl.innerHTML = getPomoRewards().map(r => {
+    rewardsEl.innerHTML = POMO_REWARDS.map(r => {
       const earned = r.id === 'goal'
         ? todayCount >= pomoDailyGoal
         : (pomoGameData.earnedRewards || []).includes(r.id);
@@ -3587,7 +3513,7 @@ function checkPomoRewards() {
   const todayCount = pomoData.today || 0;
   const earned = pomoGameData.earnedRewards || [];
   let newReward = null;
-  getPomoRewards().forEach(r => {
+  POMO_REWARDS.forEach(r => {
     if(r.id === 'goal') return;
     if(typeof r.need === 'number' && xp >= r.need && !earned.includes(r.id)) {
       earned.push(r.id);
@@ -3597,7 +3523,7 @@ function checkPomoRewards() {
   if(todayCount >= pomoDailyGoal && !earned.includes('goal_today_'+new Date().toDateString())) {
     earned.push('goal_today_'+new Date().toDateString());
     pomoGameData.xp += pomoDailyGoal * 10; // bonus XP
-    newReward = getPomoRewards().find(r=>r.id==='goal');
+    newReward = POMO_REWARDS.find(r=>r.id==='goal');
   }
   pomoGameData.earnedRewards = earned;
   localStorage.setItem('pomo_game_v1', JSON.stringify(pomoGameData));
@@ -5160,97 +5086,30 @@ function applyLanguage(lang) {
   const statKeys = ['pomo_today','pomo_week','pomo_total'];
   stats.forEach((el,i) => { if(statKeys[i]) el.textContent = t(statKeys[i]); });
 
-
-  // === Tips traduccions ===
-  const _STIPS={ca:[
-    {t:'Mode escala de grisos',x:"Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors."},
-    {t:'Intenció prèvia',x:"Abans d'obrir el mòbil, di't: \"Obro el mòbil per...\". Si no pots completar la frase, no l'obris."},
-    {t:'Tècnica Pomodoro',x:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.'},
-    {t:'Zones sense mòbil',x:"Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals."},
-    {t:'Ritual nocturn',x:"Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper."},
-    {t:'Silencia les notificacions',x:'Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.'},
-  ],es:[
-    {t:'Modo escala de grises',x:'Activa el modo escala de grises en el móvil. El cerebro deja de encontrar las apps atractivas sin colores.'},
-    {t:'Intención previa',x:'Antes de abrir el móvil, dite: "Abro el móvil para...". Si no puedes completar la frase, no lo abras.'},
-    {t:'Técnica Pomodoro',x:'25 minutos de foco total, 5 de descanso. Durante el foco, el móvil boca abajo y en silencio.'},
-    {t:'Zonas sin móvil',x:'Mesa de estudio, cama y comidas = zonas sin teléfono. Crea límites físicos, no mentales.'},
-    {t:'Ritual nocturno',x:'Sin pantallas 45 min antes de dormir. Lee, escribe o planifica el día siguiente en papel.'},
-    {t:'Silencia las notificaciones',x:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.'},
-  ],en:[
-    {t:'Grayscale mode',x:"Enable grayscale mode on your phone. Your brain stops finding apps attractive without color."},
-    {t:'Prior intention',x:"Before opening your phone say: \"I'm opening it to...\". If you can't finish the sentence, don't open it."},
-    {t:'Pomodoro technique',x:'25 minutes of full focus, 5 of rest. During focus time, phone face-down and silent.'},
-    {t:'Phone-free zones',x:'Study desk, bed and meals = no-phone zones. Create physical limits, not mental ones.'},
-    {t:'Night ritual',x:'No screens 45 min before sleep. Read, write or plan tomorrow on paper.'},
-    {t:'Silence notifications',x:'Turn off all notifications except calls. You decide when to look, not the apps.'},
-  ]};
-  (_STIPS[lang]||_STIPS.ca).forEach((tip,i)=>{
-    const tt=document.querySelector(`[data-stip-title="${i}"]`);
-    const tx=document.querySelector(`[data-stip-text="${i}"]`);
-    if(tt)tt.textContent=tip.t; if(tx)tx.textContent=tip.x;
-  });
-
-  // === 9c. Tasks tabs ===
-  const tmodePers = document.getElementById('tmode-personal');
-  const tmodeShared = document.getElementById('tmode-shared');
-  if(tmodePers) tmodePers.innerHTML = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang] + (tmodePers.innerHTML.includes('bnav-premium') ? tmodePers.querySelector('.bnav-premium-badge')?.outerHTML||'' : '');
-  if(tmodePers) tmodePers.childNodes[0].textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
-  if(tmodeShared) tmodeShared.childNodes[0].textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
-
-
-  // === Extra: Pomodoro UI labels ===
-  const _el = (id) => document.getElementById(id);
-  const _L = {
-    'pomo-treball-lbl': {ca:'TREBALL', es:'TRABAJO', en:'WORK'},
-    'pomo-descans-lbl': {ca:'DESCANS', es:'DESCANSO', en:'BREAK'},
-    'pomo-auto-lbl':    {ca:'(auto)',  es:'(auto)',   en:'(auto)'},
-    'pomo-aplicar-btn': {ca:'APLICAR', es:'APLICAR',  en:'APPLY'},
-    'pomo-goal-title':  {ca:"🎯 OBJECTIU D'AVUI", es:'🎯 OBJETIVO DE HOY', en:'🎯 TODAY\'S GOAL'},
-    'pomo-rewards-title':{ca:'🏆 RECOMPENSES', es:'🏆 RECOMPENSAS', en:'🏆 REWARDS'},
-  };
-  Object.entries(_L).forEach(([id, map]) => {
-    const el = _el(id); if(el) el.textContent = map[lang] || map.ca;
-  });
-  // Llista / Kanban sub-buttons
-  const _tvtList = _el('tvt-list-lbl');
-  if(_tvtList) _tvtList.childNodes[0].textContent = {ca:'☰ Llista',es:'☰ Lista',en:'☰ List'}[lang];
-  const _tvtShList = _el('tvt-shared-list-lbl');
-  if(_tvtShList) _tvtShList.childNodes[0].textContent = {ca:'☰ Llista',es:'☰ Lista',en:'☰ List'}[lang];
-  // Kanban "Kanban" button text
-  const _tvtKan = _el('tvt-kanban');
-  if(_tvtKan) _tvtKan.textContent = '⠿ Kanban';
-  const _tvtShKan = _el('tvt-shared-kanban');
-  if(_tvtShKan) _tvtShKan.textContent = '⠿ Kanban';
-  // Personal kanban add button
-  const _pkBtn = _el('personal-kanban-add-btn');
-  if(_pkBtn) _pkBtn.textContent = {ca:'+ Nova tasca',es:'+ Nueva tarea',en:'+ New task'}[lang];
-  // Tasks mode buttons (safer innerHTML approach)
-  const _tmodePers = _el('tmode-personal');
-  if(_tmodePers) _tmodePers.textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
-  const _tmodeShared = _el('tmode-shared');
-  if(_tmodeShared) _tmodeShared.textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
-  // Pomo ratio label
-  const _ratioEl = _el('pomo-ratio-lbl');
-  if(_ratioEl) {
-    const fmin = parseInt(_el('pomo-cust-focus')?.textContent||'25');
-    const bmin = parseInt(_el('pomo-cust-break')?.textContent||'5');
-    const ratio = fmin > 0 ? `1:${(bmin/fmin).toFixed(1).replace(/\.0$/,'')}` : '1:0.2';
-    const ratioTxt = {
-      ca:`Ràtio ${ratio} · ${bmin} min de descans per ${fmin} de treball`,
-      es:`Ratio ${ratio} · ${bmin} min de descanso por ${fmin} de trabajo`,
-      en:`Ratio ${ratio} · ${bmin} min break per ${fmin} work`,
-    }[lang];
-    _ratioEl.textContent = ratioTxt;
-  }
-  // Re-render pomo game with new lang (level names, rewards)
-  if(typeof renderPomoGame === 'function') renderPomoGame();
-  // Re-render today dashboard (label translation)
-  if(typeof renderTodayDashboard === 'function') renderTodayDashboard();
-
-  // === 9d. Daily quote in current lang ===
-  if(typeof renderDailyQuote === 'function') renderDailyQuote();
-
   // === 10. Lang button active state ===
+  if(typeof renderDailyQuote==='function') renderDailyQuote();
+  const _tp=document.getElementById('tmode-personal');
+  if(_tp) _tp.textContent=currentLang==='es'?'\uD83D\uDCCB Mis tareas':currentLang==='en'?'\uD83D\uDCCB My tasks':'\uD83D\uDCCB Les meves tasques';
+  const _ts=document.getElementById('tmode-shared');
+  if(_ts) _ts.textContent=currentLang==='es'?'\uD83E\uDD1D Listas compartidas':currentLang==='en'?'\uD83E\uDD1D Shared lists':'\uD83E\uDD1D Llistes compartides';
+  const _tvL=document.getElementById('tvt-list');
+  if(_tvL) _tvL.textContent=currentLang==='es'?'\u2630 Lista':currentLang==='en'?'\u2630 List':'\u2630 Llista';
+  const _tvSL=document.getElementById('tvt-shared-list');
+  if(_tvSL) _tvSL.textContent=currentLang==='es'?'\u2630 Lista':currentLang==='en'?'\u2630 List':'\u2630 Llista';
+  const _ptl=document.getElementById('pomo-treball-lbl');
+  if(_ptl) _ptl.textContent=currentLang==='es'?'TRABAJO':currentLang==='en'?'WORK':'TREBALL';
+  const _pdl=document.getElementById('pomo-descans-lbl');
+  if(_pdl) _pdl.textContent=currentLang==='es'?'DESCANSO':currentLang==='en'?'BREAK':'DESCANS';
+  const _pal=document.getElementById('pomo-auto-lbl');
+  if(_pal) _pal.textContent='(auto)';
+  const _pab=document.getElementById('pomo-aplicar-btn');
+  if(_pab) _pab.textContent=currentLang==='es'?'APLICAR':currentLang==='en'?'APPLY':'APLICAR';
+  const _pgt=document.getElementById('pomo-goal-title');
+  if(_pgt) _pgt.textContent=currentLang==='es'?'\uD83C\uDFAF OBJETIVO DE HOY':currentLang==='en'?"\uD83C\uDFAF TODAY'S GOAL":"\uD83C\uDFAF OBJECTIU D'AVUI";
+  const _prt=document.getElementById('pomo-rewards-title');
+  if(_prt) _prt.textContent=currentLang==='es'?'\uD83C\uDFC6 RECOMPENSAS':currentLang==='en'?'\uD83C\uDFC6 REWARDS':'\uD83C\uDFC6 RECOMPENSES';
+  if(typeof renderPomoGame==='function') renderPomoGame();
+  if(typeof renderTodayDashboard==='function') renderTodayDashboard();
   document.querySelectorAll('.lang-btn').forEach(b => {
     const isActive = b.dataset.lang === lang;
     b.classList.toggle('active', isActive);
@@ -5451,7 +5310,6 @@ async function authLogin() {
   if(error) { authMsg(error.message,'error'); return; }
   supaUser = data.user;
   await loadFromSupabase();
-  checkPremiumStatus(supaUser.id);
   hideAuthOverlay();
   updateAuthIndicator();
   showSyncToast('✅ Sessió iniciada');
@@ -5521,114 +5379,6 @@ function authShowMenu() {
   if(confirm('Compte: ' + supaUser.email + '\n\nVols tancar sessió?')) {
     authLogout();
   }
-}
-
-
-// ════════════════════════════════════════════
-//  PREMIUM STATUS
-// ════════════════════════════════════════════
-async function checkPremiumStatus(userId) {
-  if(!userId) return;
-  try {
-    const res = await fetch(`/api/subscription-status?userId=${encodeURIComponent(userId)}`);
-    if(!res.ok) return;
-    const { isPremium } = await res.json();
-    applyPremiumUI(isPremium);
-    localStorage.setItem('premium_status', isPremium ? '1' : '0');
-  } catch(e) {
-    const cached = localStorage.getItem('premium_status');
-    if(cached !== null) applyPremiumUI(cached === '1');
-  }
-}
-function applyPremiumUI(isPremium) {
-  document.body.classList.toggle('is-premium', isPremium);
-}
-
-// ════════════════════════════════════════════
-//  DEV MODE — Ctrl+Shift+D x3
-// ════════════════════════════════════════════
-const DEV_HASHES = [
-  { email:'dev@jomaxpath.com',   hash:'9f64e3051f20d32e3b17df3756e65f695327da99c1c7ddafd11dbefcc1e41e1c' },
-  { email:'admin@jomaxpath.com', hash:'b64ebfe018a884ab5633c12f747c49e048daaef563ce9752cc31b0fe54e798c0' },
-];
-async function hashPass(p) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-let _devD=0, _devDt=null;
-document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){
-    const o=document.getElementById('devmode-overlay');
-    if(o&&o.style.display==='flex') closeDevMode();
-  }
-  if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==='D'){
-    e.preventDefault();
-    _devD++; clearTimeout(_devDt);
-    if(_devD>=3){ _devD=0; openDevMode(); }
-    else _devDt=setTimeout(()=>_devD=0, 1200);
-  } else if(!e.ctrlKey||!e.shiftKey) _devD=0;
-});
-function openDevMode(){
-  const o=document.getElementById('devmode-overlay'); if(!o) return;
-  o.style.display='flex';
-  document.getElementById('dev-error').textContent='';
-  document.getElementById('dev-pass').value='';
-  if(localStorage.getItem('dev_mode')==='1'){
-    document.getElementById('dev-active-badge').style.display='block';
-    document.getElementById('dev-email').value=localStorage.getItem('dev_email')||'';
-  }
-  setTimeout(()=>document.getElementById('dev-email').focus(),100);
-}
-function closeDevMode(){
-  const o=document.getElementById('devmode-overlay'); if(o) o.style.display='none';
-}
-async function submitDevMode(){
-  const email=document.getElementById('dev-email').value.trim().toLowerCase();
-  const pass=document.getElementById('dev-pass').value;
-  const errEl=document.getElementById('dev-error');
-  const btn=document.getElementById('dev-submit-btn');
-  if(!email||!pass){ errEl.textContent='⚠ Omple tots els camps'; return; }
-  btn.disabled=true; btn.textContent='Verificant...';
-  const inputHash=await hashPass(pass);
-  const cred=DEV_HASHES.find(c=>c.email===email);
-  const valid=cred&&cred.hash===inputHash;
-  btn.disabled=false; btn.textContent='Accedir';
-  if(!valid){
-    errEl.textContent='✗ Credencials incorrectes';
-    document.getElementById('dev-pass').value='';
-    document.getElementById('dev-pass').focus();
-    const p=document.getElementById('devmode-panel');
-    p.style.animation='devShake 0.4s ease';
-    setTimeout(()=>p.style.animation='',400);
-    return;
-  }
-  localStorage.setItem('dev_mode','1');
-  localStorage.setItem('dev_email',email);
-  localStorage.setItem('premium_status','1');
-  applyPremiumUI(true);
-  document.getElementById('dev-active-badge').style.display='block';
-  setTimeout(()=>closeDevMode(),1600);
-}
-(function(){
-  const s=document.createElement('style');
-  s.textContent='@keyframes devShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
-  document.head.appendChild(s);
-})();
-
-// ════════════════════════════════════════════
-//  PREMIUM SOON TOAST
-// ════════════════════════════════════════════
-let _premSoonTimer=null;
-function showPremiumSoon(){
-  const t=document.getElementById('premium-soon-toast');
-  if(!t) return;
-  clearTimeout(_premSoonTimer);
-  t.style.opacity='1';
-  t.style.transform='translateX(-50%) translateY(0)';
-  _premSoonTimer=setTimeout(()=>{
-    t.style.opacity='0';
-    t.style.transform='translateX(-50%) translateY(12px)';
-  },2400);
 }
 
 async function authLogout() {
@@ -5790,7 +5540,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       supaUser = session.user;
       updateAuthIndicator();
       await loadFromSupabase();
-      checkPremiumStatus(supaUser.id);
     } else {
       // Sense sessió — mostrar login NOMÉS si no ha dit "Continuar sense compte"
       if(!localStorage.getItem('auth_skipped')) {
@@ -6304,9 +6053,9 @@ function renderBoardDetail(boardId) {
   const detail = document.getElementById('shared-board-detail');
 
   const cols = [
-    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
+    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
   ];
 
   const tasks = board.tasks || {};
@@ -6331,7 +6080,7 @@ function renderBoardDetail(boardId) {
             <span class="kanban-col-count">${colTasks.length}</span>
           </div>
           ${colTasks.map(task=>renderKanbanCard(task, boardId, false)).join('')}
-          <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">${{ca:'+ Afegir tasca',es:'+ Añadir tarea',en:'+ Add task'}[currentLang]||'+ Afegir tasca'}</div>
+          <div class="kanban-add-area" onclick="openBoardTaskModal('${col.id}')">+ Afegir tasca</div>
         </div>`;
       }).join('')}
     </div>`;
@@ -6728,9 +6477,9 @@ function renderPersonalKanban() {
   const board = document.getElementById('personal-kanban-board');
   if(!board) return;
   const cols = [
-    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
+    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
   ];
   board.className = 'kanban-board';
   board.innerHTML = cols.map(col => {
@@ -6745,7 +6494,7 @@ function renderPersonalKanban() {
         <span class="kanban-col-count">${tasks.length}</span>
       </div>
       ${tasks.map(t=>renderKanbanCard(t,'',true)).join('')}
-      <div class="kanban-add-area" onclick="openPersonalKanbanModal('${col.id}')">${{ca:'+ Afegir tasca',es:'+ Añadir tarea',en:'+ Add task'}[currentLang]||'+ Afegir tasca'}</div>
+      <div class="kanban-add-area" onclick="openPersonalKanbanModal('${col.id}')">+ Afegir tasca</div>
     </div>`;
   }).join('');
 }
@@ -6889,9 +6638,9 @@ function renderSharedKanbanDirect() {
   // Renderitzar kanban del board seleccionat
   const board = sharedBoards[sharedKanbanActiveBoardId];
   const cols = [
-    { id:'todo',  label:{ca:'PER COMENÇAR',es:'POR HACER',   en:'TO DO'}[currentLang]||'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:{ca:'EN CURS',      es:'EN PROGRESO', en:'IN PROGRESS'}[currentLang]||'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:{ca:'FINALITZADES', es:'HECHO',       en:'DONE'}[currentLang]||'FINALITZADES', cls:'kcol-done' },
+    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
+    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
   ];
   const tasks = board.tasks || {};
   container.innerHTML = `
@@ -6911,7 +6660,7 @@ function renderSharedKanbanDirect() {
             <span class="kanban-col-count">${colTasks.length}</span>
           </div>
           ${colTasks.map(task=>renderKanbanCard(task, sharedKanbanActiveBoardId, false)).join('')}
-          <div class="kanban-add-area" onclick="activeBoardId=sharedKanbanActiveBoardId;openBoardTaskModal('${col.id}')">${{ca:'+ Afegir',es:'+ Añadir',en:'+ Add'}[currentLang]||'+ Afegir'}</div>
+          <div class="kanban-add-area" onclick="activeBoardId=sharedKanbanActiveBoardId;openBoardTaskModal('${col.id}')">+ Afegir</div>
         </div>`;
       }).join('')}
     </div>`;
@@ -7163,3 +6912,84 @@ renderKanbanCard = function(task, boardId, isPersonal) {
   }
   return html;
 };
+
+// ══ PREMIUM STATUS ══
+async function checkPremiumStatus(userId) {
+  if(!userId) return;
+  try {
+    const res = await fetch('/api/subscription-status?userId='+encodeURIComponent(userId));
+    if(!res.ok) return;
+    const data = await res.json();
+    applyPremiumUI(data.isPremium);
+    localStorage.setItem('premium_status', data.isPremium?'1':'0');
+  } catch(e) {
+    const c = localStorage.getItem('premium_status');
+    if(c!==null) applyPremiumUI(c==='1');
+  }
+}
+function applyPremiumUI(on) { document.body.classList.toggle('is-premium', on); }
+
+// ══ DEV MODE ══
+const DEV_HASHES=[
+  {email:'dev@jomaxpath.com',hash:'9f64e3051f20d32e3b17df3756e65f695327da99c1c7ddafd11dbefcc1e41e1c'},
+  {email:'admin@jomaxpath.com',hash:'b64ebfe018a884ab5633c12f747c49e048daaef563ce9752cc31b0fe54e798c0'},
+];
+async function hashPass(p){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+let _devD=0,_devDt=null;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const o=document.getElementById('devmode-overlay');if(o&&o.style.display==='flex')closeDevMode();}
+  if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==='D'){
+    e.preventDefault();_devD++;clearTimeout(_devDt);
+    if(_devD>=3){_devD=0;openDevMode();}
+    else _devDt=setTimeout(()=>_devD=0,1200);
+  }else if(!e.ctrlKey||!e.shiftKey)_devD=0;
+});
+function openDevMode(){
+  const o=document.getElementById('devmode-overlay');if(!o)return;
+  o.style.display='flex';
+  document.getElementById('dev-error').textContent='';
+  document.getElementById('dev-pass').value='';
+  if(localStorage.getItem('dev_mode')==='1'){
+    document.getElementById('dev-active-badge').style.display='block';
+    document.getElementById('dev-email').value=localStorage.getItem('dev_email')||'';
+  }
+  setTimeout(()=>document.getElementById('dev-email').focus(),100);
+}
+function closeDevMode(){
+  const o=document.getElementById('devmode-overlay');if(o)o.style.display='none';
+}
+async function submitDevMode(){
+  const email=document.getElementById('dev-email').value.trim().toLowerCase();
+  const pass=document.getElementById('dev-pass').value;
+  const errEl=document.getElementById('dev-error');
+  const btn=document.getElementById('dev-submit-btn');
+  if(!email||!pass){errEl.textContent='Omple tots els camps';return;}
+  btn.disabled=true;btn.textContent='Verificant...';
+  const ih=await hashPass(pass);
+  const cred=DEV_HASHES.find(c=>c.email===email);
+  const ok=cred&&cred.hash===ih;
+  btn.disabled=false;btn.textContent='Accedir';
+  if(!ok){
+    errEl.textContent='Credencials incorrectes';
+    document.getElementById('dev-pass').value='';
+    return;
+  }
+  localStorage.setItem('dev_mode','1');
+  localStorage.setItem('dev_email',email);
+  localStorage.setItem('premium_status','1');
+  applyPremiumUI(true);
+  document.getElementById('dev-active-badge').style.display='block';
+  setTimeout(()=>closeDevMode(),1500);
+}
+
+// ══ PREMIUM SOON TOAST ══
+let _pst=null;
+function showPremiumSoon(){
+  const t=document.getElementById('premium-soon-toast');if(!t)return;
+  clearTimeout(_pst);
+  t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  _pst=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
+}
