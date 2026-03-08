@@ -1220,18 +1220,60 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 </div>
 <button id="add-note-fab" onclick="toggleNotePicker()" title="Captura ràpida">✏️</button>
 
-<!-- Premium FAB (sobre Julians) -->
+<!-- Premium FAB (esquerra, sobre Julians) -->
 <button id="premium-fab" onclick="window.location.href='pricing.html'" title="Aconseguir Premium">
-  <span class="premium-fab-inner">
-    <span class="premium-fab-bolt">⚡</span>
-    <span class="premium-fab-label">PRO</span>
-  </span>
+  <span class="premium-fab-bolt">⚡</span>
+  <span class="premium-fab-label">PRO</span>
 </button>
 
 <!-- Julians FAB -->
 <button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
   <img id="julians-fab-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J"/>
 </button>
+
+<!-- ══ DEV MODE MODAL ══ -->
+<div id="devmode-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div id="devmode-panel" style="background:#0d0d1a;border:1px solid rgba(124,58,237,0.4);border-radius:20px;padding:36px 32px;width:min(420px,92vw);position:relative;box-shadow:0 0 60px rgba(124,58,237,0.2);">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:18px;">⚡ Versió Desenvolupador</div>
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-1px;margin-bottom:6px;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Accés restringit</h2>
+    <p style="font-size:13px;color:#64748b;margin-bottom:28px;line-height:1.6;">Introdueix les credencials de desenvolupador per activar totes les funcions Premium.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div>
+        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Correu</label>
+        <input id="dev-email" type="email" placeholder="dev@jomaxpath.com"
+          style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='rgba(124,58,237,0.6)'" onblur="this.style.borderColor='rgba(124,58,237,0.25)'"
+          onkeydown="if(event.key==='Enter')document.getElementById('dev-pass').focus()"/>
+      </div>
+      <div>
+        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Clau secreta</label>
+        <input id="dev-pass" type="password" placeholder="••••••••••••"
+          style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='rgba(124,58,237,0.6)'" onblur="this.style.borderColor='rgba(124,58,237,0.25)'"
+          onkeydown="if(event.key==='Enter')submitDevMode()"/>
+      </div>
+    </div>
+
+    <div id="dev-error" style="font-size:12px;color:#fca5a5;font-family:'Space Mono',monospace;margin-bottom:14px;min-height:16px;"></div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="submitDevMode()"
+        style="flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#00b8d9);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:box-shadow 0.2s;"
+        onmouseover="this.style.boxShadow='0 4px 20px rgba(124,58,237,0.6)'" onmouseout="this.style.boxShadow=''">
+        Accedir
+      </button>
+      <button onclick="closeDevMode()"
+        style="padding:12px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#64748b;font-size:14px;cursor:pointer;">
+        Cancel·lar
+      </button>
+    </div>
+
+    <div id="dev-active-badge" style="display:none;margin-top:16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#6ee7b7;text-align:center;">
+      ✅ Mode Desenvolupador actiu — Premium desbloquejat
+    </div>
+  </div>
+</div>
 
 <!-- Config button -->
 <button id="config-btn" onclick="openConfig()" title="Configuració">⚙️</button>
