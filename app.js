@@ -200,6 +200,11 @@ function defaultSchedule() {
 //  INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  // Premium caché immediat (evita parpelleig FAB)
+  if(localStorage.getItem('premium_status')==='1'||localStorage.getItem('dev_mode')==='1') applyPremiumUI(true);
+  // Aplicar idioma als tips en carregar
+  setTimeout(()=>applyLanguage(currentLang), 250);
+
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
 
@@ -4848,8 +4853,6 @@ const LANG_STRINGS = {
     btn_save:'💾 GUARDAR', btn_cancel:'Cancel·lar', btn_today:'↩ AVUI',
     // Misc
     streak_label:'dies consecutius',
-    kanban_add_board:'+ Nou tauler', kanban_no_boards:'Cap tauler creat. Prem + per crear-ne un.',
-    kanban_tab_personal:'Personal', kanban_tab_shared:'Compartit',
     add_task:'+ AFEGIR',
     pomo_focus:'FOCUS', pomo_break:'DESCANS', pomo_long:'DESCANS LLARG',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REPRENDRE', pomo_reset:'↺ RESET',
@@ -4891,8 +4894,6 @@ const LANG_STRINGS = {
     btn_add:'+ AÑADIR', btn_add_match:'+ AÑADIR PARTIDO',
     btn_save:'💾 GUARDAR', btn_cancel:'Cancelar', btn_today:'↩ HOY',
     streak_label:'días consecutivos programando',
-    kanban_add_board:'+ Nuevo tablero', kanban_no_boards:'Sin tableros. Pulsa + para crear uno.',
-    kanban_tab_personal:'Personal', kanban_tab_shared:'Compartido',
     add_task:'+ AÑADIR',
     pomo_focus:'ENFOQUE', pomo_break:'DESCANSO', pomo_long:'DESCANSO LARGO',
     pomo_start:'▶ INICIAR', pomo_pause:'⏸ PAUSA', pomo_resume:'▶ REANUDAR', pomo_reset:'↺ RESET',
@@ -4934,8 +4935,6 @@ const LANG_STRINGS = {
     btn_add:'+ ADD', btn_add_match:'+ ADD MATCH',
     btn_save:'💾 SAVE', btn_cancel:'Cancel', btn_today:'↩ TODAY',
     streak_label:'consecutive days coding',
-    kanban_add_board:'+ New board', kanban_no_boards:'No boards yet. Press + to create one.',
-    kanban_tab_personal:'Personal', kanban_tab_shared:'Shared',
     add_task:'+ ADD',
     pomo_focus:'FOCUS', pomo_break:'BREAK', pomo_long:'LONG BREAK',
     pomo_start:'▶ START', pomo_pause:'⏸ PAUSE', pomo_resume:'▶ RESUME', pomo_reset:'↺ RESET',
@@ -5042,85 +5041,60 @@ function applyLanguage(lang) {
   stats.forEach((el,i) => { if(statKeys[i]) el.textContent = t(statKeys[i]); });
 
 
-  // === 11b. Screen Tips ===
-  const SCREEN_TIPS = {
-    ca: [
-      {title:'Mode escala de grisos',   text:"Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors."},
-      {title:'Intenció prèvia',          text:"Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris."},
-      {title:'Tècnica Pomodoro',         text:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.'},
-      {title:'Zones sense mòbil',        text:"Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals."},
-      {title:'Ritual nocturn',           text:"Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper."},
-      {title:'Silencia les notificacions',text:'Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.'},
-    ],
-    es: [
-      {title:'Modo escala de grises',    text:'Activa el modo escala de grises en el móvil. El cerebro deja de encontrar las apps atractivas sin colores.'},
-      {title:'Intención previa',         text:'Antes de abrir el móvil, dite: "Abro el móvil para...". Si no puedes completar la frase, no lo abras.'},
-      {title:'Técnica Pomodoro',         text:'25 minutos de foco total, 5 de descanso. Durante el foco, el móvil boca abajo y en silencio.'},
-      {title:'Zonas sin móvil',          text:'Mesa de estudio, cama y comidas = zonas sin teléfono. Crea límites físicos, no mentales.'},
-      {title:'Ritual nocturno',          text:'Sin pantallas 45 min antes de dormir. Lee, escribe o planifica el día siguiente en papel.'},
-      {title:'Silencia las notificaciones',text:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.'},
-    ],
-    en: [
-      {title:'Grayscale mode',           text:'Enable grayscale mode on your phone. Your brain stops finding apps attractive without color.'},
-      {title:'Prior intention',          text:'Before opening your phone, say: "I'm opening it to...". If you can't finish the sentence, don't open it.'},
-      {title:'Pomodoro technique',       text:'25 minutes of full focus, 5 of rest. During focus time, phone face-down and silent.'},
-      {title:'Phone-free zones',         text:'Study desk, bed and meals = no-phone zones. Create physical limits, not mental ones.'},
-      {title:'Night ritual',             text:'No screens 45 min before sleep. Read, write or plan tomorrow on paper.'},
-      {title:'Silence notifications',    text:'Turn off all notifications except calls. You decide when to look, not the apps.'},
-    ],
-  };
-  const MOTO_TIPS = {
-    ca: [
-      {title:'Actua primer',             text:"La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol."},
-      {title:'No trenquis la cadena',    text:"Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció."},
-      {title:'Mini-objectius diaris',    text:'Cada dia, un objectiu concret i assolible. No "programar", sinó "completar l'exercici 3 del capítol 5".'},
-      {title:'Mesura el progrés',        text:'El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.'},
-      {title:'Recorda el per què',       text:'Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.'},
-      {title:'El son és productivitat',  text:'8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.'},
-    ],
-    es: [
-      {title:'Actúa primero',            text:'La motivación llega DESPUÉS de actuar, no antes. Empieza 5 minutos y el cerebro se enganchará solo.'},
-      {title:'No rompas la cadena',      text:'¿Un día fallas? Bien. ¿Dos días seguidos? Peligro. La cadena es el sistema, no la excepción.'},
-      {title:'Mini-objetivos diarios',   text:'Cada día, un objetivo concreto y alcanzable. No "programar", sino "completar el ejercicio 3 del capítulo 5".'},
-      {title:'Mide el progreso',         text:'Lo que se mide mejora. Anota cada sesión. Ver el registro te motiva a continuar.'},
-      {title:'Recuerda el por qué',      text:'Empresa propia a los 18. Cada vez que no tienes ganas, recuerda para quién lo haces y qué futuro construyes.'},
-      {title:'El sueño es productividad',text:'8h de sueño = el doble de rendimiento. No te prives de dormir para estudiar más.'},
-    ],
-    en: [
-      {title:'Act first',                text:'Motivation comes AFTER acting, not before. Start for 5 minutes and your brain will get hooked.'},
-      {title:"Don't break the chain",    text:'Miss one day? Fine. Two days in a row? Danger. The chain is the system, not the exception.'},
-      {title:'Daily mini-goals',         text:'Each day, one concrete and achievable goal. Not "study", but "complete exercise 3 of chapter 5".'},
-      {title:'Measure progress',         text:'What gets measured improves. Log every session. Seeing the record motivates you to continue.'},
-      {title:'Remember your why',        text:'Your own company at 18. Every time you lack motivation, remember who you're doing it for.'},
-      {title:'Sleep is productivity',    text:'8h sleep = double performance. Don't deprive yourself of sleep to study more.'},
-    ],
-  };
-  // Aplicar traduccions als tips
-  const stips = SCREEN_TIPS[lang] || SCREEN_TIPS.ca;
-  stips.forEach((tip, i) => {
-    const title = document.querySelector(`[data-stip-title="${i}"]`);
-    const text  = document.querySelector(`[data-stip-text="${i}"]`);
-    if(title) title.textContent = tip.title;
-    if(text)  text.textContent  = tip.text;
+  // === Tips traduccions ===
+  const STIPS={ca:[
+    {t:'Mode escala de grisos',x:"Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors."},
+    {t:'Intenció prèvia',x:"Abans d'obrir el mòbil, di't: \"Obro el mòbil per...\". Si no pots completar la frase, no l'obris."},
+    {t:'Tècnica Pomodoro',x:'25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.'},
+    {t:'Zones sense mòbil',x:"Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals."},
+    {t:'Ritual nocturn',x:"Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper."},
+    {t:'Silencia les notificacions',x:'Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.'},
+  ],es:[
+    {t:'Modo escala de grises',x:'Activa el modo escala de grises en el móvil. El cerebro deja de encontrar las apps atractivas sin colores.'},
+    {t:'Intención previa',x:'Antes de abrir el móvil, dite: "Abro el móvil para...". Si no puedes completar la frase, no lo abras.'},
+    {t:'Técnica Pomodoro',x:'25 minutos de foco total, 5 de descanso. Durante el foco, el móvil boca abajo y en silencio.'},
+    {t:'Zonas sin móvil',x:'Mesa de estudio, cama y comidas = zonas sin teléfono. Crea límites físicos, no mentales.'},
+    {t:'Ritual nocturno',x:'Sin pantallas 45 min antes de dormir. Lee, escribe o planifica el día siguiente en papel.'},
+    {t:'Silencia las notificaciones',x:'Desactiva todas las notificaciones excepto llamadas. Tú decides cuándo mirar, no las apps.'},
+  ],en:[
+    {t:'Grayscale mode',x:"Enable grayscale mode on your phone. Your brain stops finding apps attractive without color."},
+    {t:'Prior intention',x:"Before opening your phone, say: \"I'm opening it to...\". If you can't finish the sentence, don't open it."},
+    {t:'Pomodoro technique',x:'25 minutes of full focus, 5 of rest. During focus time, phone face-down and silent.'},
+    {t:'Phone-free zones',x:'Study desk, bed and meals = no-phone zones. Create physical limits, not mental ones.'},
+    {t:'Night ritual',x:'No screens 45 min before sleep. Read, write or plan tomorrow on paper.'},
+    {t:'Silence notifications',x:'Turn off all notifications except calls. You decide when to look, not the apps.'},
+  ]};
+  const MTIPS={ca:[
+    {t:'Actua primer',x:"La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol."},
+    {t:'No trenquis la cadena',x:"Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció."},
+    {t:'Mini-objectius diaris',x:'Cada dia, un objectiu concret i assolible. No \"programar\", sinó \"completar l\'exercici 3 del capítol 5\".'},
+    {t:'Mesura el progrés',x:'El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.'},
+    {t:'Recorda el per què',x:'Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.'},
+    {t:'El son és productivitat',x:"8h de son = el doble de rendiment. No et privis de dormir per estudiar més."},
+  ],es:[
+    {t:'Actúa primero',x:'La motivación llega DESPUÉS de actuar, no antes. Empieza 5 minutos y el cerebro se enganchará solo.'},
+    {t:'No rompas la cadena',x:'¿Un día fallas? Bien. ¿Dos días seguidos? Peligro. La cadena es el sistema, no la excepción.'},
+    {t:'Mini-objetivos diarios',x:'Cada día, un objetivo concreto y alcanzable.'},
+    {t:'Mide el progreso',x:'Lo que se mide mejora. Anota cada sesión.'},
+    {t:'Recuerda el por qué',x:'Empresa propia a los 18. Cada vez que no tienes ganas, recuerda para quién lo haces.'},
+    {t:'El sueño es productividad',x:'8h de sueño = el doble de rendimiento. No te prives de dormir para estudiar más.'},
+  ],en:[
+    {t:'Act first',x:'Motivation comes AFTER acting, not before. Start for 5 minutes and your brain will get hooked.'},
+    {t:"Don't break the chain",x:'Miss one day? Fine. Two days in a row? Danger. The chain is the system, not the exception.'},
+    {t:'Daily mini-goals',x:'Each day, one concrete and achievable goal.'},
+    {t:'Measure progress',x:'What gets measured improves. Log every session.'},
+    {t:'Remember your why',x:"Your own company at 18. Every time you lack motivation, remember who you're doing it for."},
+    {t:'Sleep is productivity',x:"8h sleep = double performance. Don't deprive yourself of sleep to study more."},
+  ]};
+  (STIPS[lang]||STIPS.ca).forEach((tip,i)=>{
+    const tt=document.querySelector(`[data-stip-title="${i}"]`);
+    const tx=document.querySelector(`[data-stip-text="${i}"]`);
+    if(tt)tt.textContent=tip.t; if(tx)tx.textContent=tip.x;
   });
-  const mtips = MOTO_TIPS[lang] || MOTO_TIPS.ca;
-  mtips.forEach((tip, i) => {
-    const title = document.querySelector(`[data-mtip-title="${i}"]`);
-    const text  = document.querySelector(`[data-mtip-text="${i}"]`);
-    if(title) title.textContent = tip.title;
-    if(text)  text.textContent  = tip.text;
+  (MTIPS[lang]||MTIPS.ca).forEach((tip,i)=>{
+    const tt=document.querySelector(`[data-mtip-title="${i}"]`);
+    if(tt)tt.textContent=tip.t;
   });
-
-  // === 9b. Kanban ===
-  const kanbanTabs = document.querySelectorAll('.tvt-btn');
-  const tvtKanban = document.getElementById('tvt-kanban');
-  const tvtSharedKanban = document.getElementById('tvt-shared-kanban');
-  if(tvtKanban) tvtKanban.childNodes[0].textContent = '⠿ '+{ca:'Kanban',es:'Kanban',en:'Kanban'}[lang];
-  const personalKanbanBtn = document.querySelector('.personal-kanban-header .board-add-task-btn');
-  if(personalKanbanBtn) personalKanbanBtn.textContent = {ca:'+ Nova tasca',es:'+ Nueva tarea',en:'+ New task'}[lang];
-  // Re-render kanban si és visible
-  if(typeof personalView !== 'undefined' && personalView === 'kanban') renderPersonalKanban();
-  if(typeof sharedView !== 'undefined' && sharedView === 'kanban') renderSharedKanbanDirect();
 
   // === 10. Lang button active state ===
   document.querySelectorAll('.lang-btn').forEach(b => {
@@ -5323,6 +5297,7 @@ async function authLogin() {
   if(error) { authMsg(error.message,'error'); return; }
   supaUser = data.user;
   await loadFromSupabase();
+  checkPremiumStatus(supaUser.id);
   hideAuthOverlay();
   updateAuthIndicator();
   showSyncToast('✅ Sessió iniciada');
@@ -5392,6 +5367,115 @@ function authShowMenu() {
   if(confirm('Compte: ' + supaUser.email + '\n\nVols tancar sessió?')) {
     authLogout();
   }
+}
+
+
+
+// ════════════════════════════════════════════
+//  PREMIUM STATUS
+// ════════════════════════════════════════════
+async function checkPremiumStatus(userId) {
+  if(!userId) return;
+  try {
+    const res = await fetch(`/api/subscription-status?userId=${encodeURIComponent(userId)}`);
+    if(!res.ok) return;
+    const { isPremium } = await res.json();
+    applyPremiumUI(isPremium);
+    localStorage.setItem('premium_status', isPremium ? '1' : '0');
+  } catch(e) {
+    const cached = localStorage.getItem('premium_status');
+    if(cached !== null) applyPremiumUI(cached === '1');
+  }
+}
+function applyPremiumUI(isPremium) {
+  document.body.classList.toggle('is-premium', isPremium);
+}
+
+// ════════════════════════════════════════════
+//  DEV MODE — Ctrl+Shift+D x3
+// ════════════════════════════════════════════
+const DEV_HASHES = [
+  { email:'dev@jomaxpath.com',   hash:'9f64e3051f20d32e3b17df3756e65f695327da99c1c7ddafd11dbefcc1e41e1c' },
+  { email:'admin@jomaxpath.com', hash:'b64ebfe018a884ab5633c12f747c49e048daaef563ce9752cc31b0fe54e798c0' },
+];
+async function hashPass(p) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+let _devD=0, _devDt=null;
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const o=document.getElementById('devmode-overlay');
+    if(o&&o.style.display==='flex') closeDevMode();
+  }
+  if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==='D'){
+    e.preventDefault();
+    _devD++; clearTimeout(_devDt);
+    if(_devD>=3){ _devD=0; openDevMode(); }
+    else _devDt=setTimeout(()=>_devD=0, 1200);
+  } else if(!e.ctrlKey||!e.shiftKey) _devD=0;
+});
+function openDevMode(){
+  const o=document.getElementById('devmode-overlay'); if(!o) return;
+  o.style.display='flex';
+  document.getElementById('dev-error').textContent='';
+  document.getElementById('dev-pass').value='';
+  if(localStorage.getItem('dev_mode')==='1'){
+    document.getElementById('dev-active-badge').style.display='block';
+    document.getElementById('dev-email').value=localStorage.getItem('dev_email')||'';
+  }
+  setTimeout(()=>document.getElementById('dev-email').focus(),100);
+}
+function closeDevMode(){
+  const o=document.getElementById('devmode-overlay'); if(o) o.style.display='none';
+}
+async function submitDevMode(){
+  const email=document.getElementById('dev-email').value.trim().toLowerCase();
+  const pass=document.getElementById('dev-pass').value;
+  const errEl=document.getElementById('dev-error');
+  const btn=document.getElementById('dev-submit-btn');
+  if(!email||!pass){ errEl.textContent='⚠ Omple tots els camps'; return; }
+  btn.disabled=true; btn.textContent='Verificant...';
+  const inputHash=await hashPass(pass);
+  const cred=DEV_HASHES.find(c=>c.email===email);
+  const valid=cred&&cred.hash===inputHash;
+  btn.disabled=false; btn.textContent='Accedir';
+  if(!valid){
+    errEl.textContent='✗ Credencials incorrectes';
+    document.getElementById('dev-pass').value='';
+    document.getElementById('dev-pass').focus();
+    const p=document.getElementById('devmode-panel');
+    p.style.animation='devShake 0.4s ease';
+    setTimeout(()=>p.style.animation='',400);
+    return;
+  }
+  localStorage.setItem('dev_mode','1');
+  localStorage.setItem('dev_email',email);
+  localStorage.setItem('premium_status','1');
+  applyPremiumUI(true);
+  document.getElementById('dev-active-badge').style.display='block';
+  setTimeout(()=>closeDevMode(),1600);
+}
+(function(){
+  const s=document.createElement('style');
+  s.textContent='@keyframes devShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
+  document.head.appendChild(s);
+})();
+
+// ════════════════════════════════════════════
+//  PREMIUM SOON TOAST (temporal fins activar pagament)
+// ════════════════════════════════════════════
+let _premSoonTimer=null;
+function showPremiumSoon(){
+  const t=document.getElementById('premium-soon-toast');
+  if(!t) return;
+  clearTimeout(_premSoonTimer);
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  _premSoonTimer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(12px)';
+  },2400);
 }
 
 async function authLogout() {
@@ -5553,6 +5637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       supaUser = session.user;
       updateAuthIndicator();
       await loadFromSupabase();
+      checkPremiumStatus(supaUser.id);
     } else {
       // Sense sessió — mostrar login NOMÉS si no ha dit "Continuar sense compte"
       if(!localStorage.getItem('auth_skipped')) {
@@ -6081,7 +6166,7 @@ function renderBoardDetail(boardId) {
         <div class="board-detail-name">${board.name}</div>
         <div class="board-members-row">👥 ${memberList}</div>
       </div>
-      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">${{ca:'+ Tasca',es:'+ Tarea',en:'+ Task'}[currentLang]||'+ Tasca'}</button>
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
     </div>
     <div class="kanban-board">
       ${cols.map(col => {
@@ -6658,7 +6743,7 @@ function renderSharedKanbanDirect() {
   const tasks = board.tasks || {};
   container.innerHTML = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">${{ca:'+ Tasca',es:'+ Tarea',en:'+ Task'}[currentLang]||'+ Tasca'}</button>
+      <button class="board-add-task-btn" onclick="openBoardTaskModal('todo')">+ Tasca</button>
     </div>
     <div class="kanban-board">
       ${cols.map(col=>{
