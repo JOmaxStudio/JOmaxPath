@@ -463,7 +463,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div id="tasks-personal-view">
       <!-- Sub-switcher: Llista / Kanban personal -->
       <div class="tasks-view-toggle">
-        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
+        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')" id="tvt-list-lbl">☰ Llista</button>
         <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
       </div>
 
@@ -498,7 +498,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <!-- Vista Kanban personal -->
       <div id="personal-kanban-view" style="display:none;">
         <div class="personal-kanban-header">
-          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
+          <button class="board-add-task-btn" id="personal-kanban-add-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
         </div>
         <div id="personal-kanban-board"></div>
       </div>
@@ -509,7 +509,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <!-- Sub-switcher: Llista taulers / Detall kanban -->
       <div id="shared-boards-list-view">
         <div class="tasks-view-toggle" style="margin-bottom:18px;">
-          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
+          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')" id="tvt-shared-list-lbl">☰ Llista</button>
           <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
         </div>
         <!-- Vista llista de taulers -->
@@ -891,14 +891,14 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
             <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
           </div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub">Completa pomodoros per pujar de nivell</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub" id="pomo-xp-sub-init">Completa pomodoros per pujar de nivell</div>
         </div>
       </div>
 
       <!-- Daily Goal -->
       <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">🎯 OBJECTIU D'AVUI</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-goal-title">🎯 OBJECTIU D'AVUI</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <button onclick="changeDailyGoal(-1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
             <span id="pomo-goal-num" style="font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
@@ -907,11 +907,11 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="pomo-goal-dots"></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status">Comença el primer pomodoro!</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status" id="pomo-goal-status-init">Comença el primer pomodoro!</div>
       </div>
 
       <!-- Rewards row -->
-      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">🏆 RECOMPENSES</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;" id="pomo-rewards-title">🏆 RECOMPENSES</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
     </div>
 
@@ -922,7 +922,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
       <!-- Custom timer input -->
       <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">TREBALL</label>
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-treball-lbl">TREBALL</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
             <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
             <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
@@ -932,14 +932,14 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
         </div>
         <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;">DESCANS</label>
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;" id="pomo-descans-lbl">DESCANS</label>
           <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
             <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
             <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
           </div>
-          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;">(auto)</span>
+          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;" id="pomo-auto-lbl">(auto)</span>
         </div>
-        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;">APLICAR</button>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;" id="pomo-aplicar-btn">APLICAR</button>
       </div>
       <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
 
