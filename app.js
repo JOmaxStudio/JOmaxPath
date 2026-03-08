@@ -1,10 +1,8 @@
 // ── Day names i18n ──────────────────────────────────
 function getDayNames() {
-  return {
-    ca: getDayNames(),
-    es: ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
-    en: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
-  }[currentLang] || getDayNames();
+  if(currentLang==='es') return ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  if(currentLang==='en') return ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  return ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
 }
 function getDayNamesShort() {
   return {
@@ -5033,10 +5031,14 @@ function applyLanguage(lang) {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     const val = t(key);
-    // For section-title elements that have an info button inside, preserve the button
-    const infoBtn = el.querySelector('.info-btn');
-    if(infoBtn) {
-      el.childNodes[0].textContent = val + ' ';
+    // Preserve any inner elements (info buttons etc.)
+    const innerEls = Array.from(el.querySelectorAll('*'));
+    const saved = innerEls.map(e => e.outerHTML);
+    if(innerEls.length > 0) {
+      // Remove all child nodes, set text, re-append saved elements
+      while(el.firstChild) el.removeChild(el.firstChild);
+      el.appendChild(document.createTextNode(val + ' '));
+      innerEls.forEach(e => el.appendChild(e));
     } else {
       el.textContent = val;
     }
@@ -5336,14 +5338,20 @@ async function authLogin() {
   setAuthBtnLoading(true);
   authMsg('Entrant...','');
   if(!supa){authMsg('Error de connexió. Torna-ho a intentar.','error');setAuthBtnLoading(false);return;}
-  const { data, error } = await supa.auth.signInWithPassword({ email, password:pass });
-  setAuthBtnLoading(false);
-  if(error) { authMsg(error.message,'error'); return; }
-  supaUser = data.user;
-  await loadFromSupabase();
-  hideAuthOverlay();
-  updateAuthIndicator();
-  showSyncToast('✅ Sessió iniciada');
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password:pass });
+    setAuthBtnLoading(false);
+    if(error) { authMsg(error.message,'error'); return; }
+    supaUser = data.user;
+    await loadFromSupabase();
+    hideAuthOverlay();
+    updateAuthIndicator();
+    showSyncToast('✅ Sessió iniciada');
+  } catch(e) {
+    setAuthBtnLoading(false);
+    authMsg('Error de xarxa. Comprova la connexió.','error');
+    console.warn('[Auth] Login error:', e);
+  }
 }
 
 async function authRegister() {
