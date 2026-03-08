@@ -1,3 +1,19 @@
+// ── Day names i18n ──────────────────────────────────
+function getDayNames() {
+  return {
+    ca: getDayNames(),
+    es: ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
+    en: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+  }[currentLang] || getDayNames();
+}
+function getDayNamesShort() {
+  return {
+    ca: ['DL','DM','DC','DJ','DV','DS','DG'],
+    es: ['L','M','X','J','V','S','D'],
+    en: ['Mo','Tu','We','Th','Fr','Sa','Su'],
+  }[currentLang] || ['DL','DM','DC','DJ','DV','DS','DG'];
+}
+
 /* JOmaxPath app.js */
 // ══════════════════════════════════════════════════════
 //  DATA
@@ -190,7 +206,7 @@ let motoData    = JSON.parse(localStorage.getItem('moto_v2') || '{"text":"El mil
 //  DEFAULT SCHEDULE
 // ══════════════════════════════════════════════════════
 function defaultSchedule() {
-  const names = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const names = getDayNames();
   const result = {};
   names.forEach((n,i) => { result[i] = {name:n, sleep:'23:00', blocks:[]}; });
   return result;
@@ -744,7 +760,7 @@ function renderWeekGrid() {
   const grid = document.getElementById('week-grid'); if(!grid) return;
   grid.innerHTML='';
   const today = toLocalDateKey(new Date());
-  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const dayNames=getDayNames();
   for(let i=0;i<7;i++){
     const sched = daySchedule[i] || {name:dayNames[i],sleep:'23:00',blocks:[]};
     const dateKey = getDateForCard(i);
@@ -809,7 +825,7 @@ function renderWeekGrid() {
 
 function editDayName(dayIdx, e) {
   e.stopPropagation();
-  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const dayNames=getDayNames();
   const current = daySchedule[dayIdx]?.name || dayNames[dayIdx];
   const newName = prompt("Edita l'etiqueta del dia:", current);
   if(newName === null) return; // cancel
@@ -936,8 +952,7 @@ function editCalendariSub() {
 
 function openDayModal(dayIdx, dateKey) {
   activeDayTarget=dayIdx; activeDayDateKey=dateKey;
-  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
-  document.getElementById('day-modal-title').textContent={ca:'Afegir al ',es:'Añadir al ',en:'Add to '}[currentLang] + (daySchedule[dayIdx]?.name||dayNames[dayIdx]);
+  document.getElementById('day-modal-title').textContent={ca:'Afegir al ',es:'Añadir al ',en:'Add to '}[currentLang] + (daySchedule[dayIdx]?.name||getDayNames()[dayIdx]);
   document.getElementById('dm-text').value='';
   document.getElementById('dm-time').value='';
   document.getElementById('day-modal-overlay').classList.add('open');
@@ -1350,7 +1365,7 @@ function renderConfigTab() {
   else renderResetTab(body);
 }
 function renderBlocksTab(body) {
-  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const dayNames=getDayNames();
   const sched=daySchedule[configActiveDay]||{name:dayNames[configActiveDay],sleep:'23:00',blocks:[]};
   const daySel=dayNames.map((n,i)=>`<button class="day-sel-btn${configActiveDay===i?' active':''}" onclick="configActiveDay=${i};editingBlockIdx=null;renderConfigTab()">${n.substring(0,2)}</button>`).join('');
 
@@ -2236,14 +2251,14 @@ function executeAITool(name, input) {
 
     if(name === 'add_schedule_block') {
       const d = parseInt(input.day);
-      if(!daySchedule[d]) daySchedule[d]={name:['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'][d],sleep:'23:00',blocks:[]};
+      if(!daySchedule[d]) daySchedule[d]={name:getDayNames()[d],sleep:'23:00',blocks:[]};
       const block = {t:input.type||'rest', time:input.time||'', label:input.label, note:input.note||''};
       daySchedule[d].blocks.push(block);
       // Sort by time
       daySchedule[d].blocks.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
       localStorage.setItem('schedule_v2', JSON.stringify(daySchedule));
       renderWeekGrid(); renderStats();
-      const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+      const dayNames=getDayNames();
       return `✅ Bloc "${input.label}" afegit al ${dayNames[d]}${input.time?' ('+input.time+')':''}.`;
     }
 
@@ -2275,7 +2290,7 @@ function executeAITool(name, input) {
     }
 
     if(name === 'clear_week_schedule') {
-      const names=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+      const names=getDayNames();
       names.forEach((_,i)=>{ if(daySchedule[i]) daySchedule[i].blocks=[]; else daySchedule[i]={name:names[i],sleep:'23:00',blocks:[]}; });
       localStorage.setItem('schedule_v2',JSON.stringify(daySchedule));
       renderWeekGrid(); renderStats();
@@ -2283,7 +2298,7 @@ function executeAITool(name, input) {
     }
 
     if(name === 'set_week_schedule') {
-      const names=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+      const names=getDayNames();
       // Clear first
       names.forEach((_,i)=>{ if(daySchedule[i]) daySchedule[i].blocks=[]; else daySchedule[i]={name:names[i],sleep:'23:00',blocks:[]}; });
       // Add all blocks
@@ -2333,7 +2348,7 @@ function executeAITool(name, input) {
       daySchedule[d].sleep = input.sleep_time;
       localStorage.setItem('schedule_v2', JSON.stringify(daySchedule));
       renderWeekGrid();
-      const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+      const dayNames=getDayNames();
       return `✅ Hora de dormir del ${dayNames[d]} actualitzada a les ${input.sleep_time}.`;
     }
 
@@ -2420,7 +2435,7 @@ function buildCalendarContext() {
   const pending = examList.filter(e=>!e.done).slice(0,6).map(e=>`${e.name}${e.date?' ('+e.date+')':''}`);
   const todayEvs = (monthEvents[today]||[]).map(e=>e.text);
   const streakCount = parseInt(document.getElementById('streak-num')?.textContent||'0');
-  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  const dayNames=getDayNames();
   const todayDow = new Date().getDay(); const dayIdx = todayDow===0?6:todayDow-1;
   // Timed events this week
   const now = new Date();
@@ -3862,7 +3877,7 @@ function runSearch(q) {
   Object.entries(daySchedule).forEach(([di, day]) => {
     (day.blocks||[]).forEach(b => {
       if(b.label.toLowerCase().includes(ql)) {
-        const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+        const dayNames=getDayNames();
         results.push({
           icon:'📅', text:b.label, meta:`${dayNames[di]} · ${b.time||''}`, cat:'HORARI',
           action:()=>{ closeSearch(); navTo('horari'); }
@@ -4006,9 +4021,18 @@ function updateClock() {
   // Date on fullscreen
   var fsD = document.getElementById('fs-clock-date');
   if(fsD) {
-    var days = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
-    var months = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
-    fsD.textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' de ' + now.getFullYear();
+    const _dSun = {
+      ca: ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'],
+      es: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
+      en: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    }[currentLang] || ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+    const _mon = {
+      ca: ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'],
+      es: ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
+      en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    }[currentLang] || ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+    const _de = currentLang==='en' ? ' ' : ' de ';
+    fsD.textContent = _dSun[now.getDay()] + ', ' + now.getDate() + _de + _mon[now.getMonth()] + _de + now.getFullYear();
   }
 }
 
@@ -5087,6 +5111,13 @@ function applyLanguage(lang) {
   stats.forEach((el,i) => { if(statKeys[i]) el.textContent = t(statKeys[i]); });
 
   // === 10. Lang button active state ===
+
+  // === Cal header days ===
+  const _calHeader = document.querySelector('.cal-grid-header');
+  if(_calHeader) {
+    const shorts = getDayNamesShort();
+    _calHeader.innerHTML = shorts.map(d=>`<span>${d}</span>`).join('');
+  }
   if(typeof renderDailyQuote==='function') renderDailyQuote();
   const _tp=document.getElementById('tmode-personal');
   if(_tp) _tp.textContent=currentLang==='es'?'\uD83D\uDCCB Mis tareas':currentLang==='en'?'\uD83D\uDCCB My tasks':'\uD83D\uDCCB Les meves tasques';
