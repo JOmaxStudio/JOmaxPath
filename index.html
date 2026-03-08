@@ -1218,7 +1218,15 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div class="color-pick-btn" style="background:#fed7aa" onclick="createNote('orange')"></div>
   </div>
 </div>
-<button id="add-note-fab" onclick="toggleNotePicker()" title="Afegir nota">📝</button>
+<button id="add-note-fab" onclick="toggleNotePicker()" title="Captura ràpida">✏️</button>
+
+<!-- Premium FAB (sobre Julians) -->
+<button id="premium-fab" onclick="window.location.href='pricing.html'" title="Aconseguir Premium">
+  <span class="premium-fab-inner">
+    <span class="premium-fab-bolt">⚡</span>
+    <span class="premium-fab-label">PRO</span>
+  </span>
+</button>
 
 <!-- Julians FAB -->
 <button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
