@@ -3282,17 +3282,17 @@ function renderTodayDashboard() {
     <div class="today-card">
       <div class="tc-icon">📋</div>
       <div class="tc-val" style="color:var(--yellow)">${pending}</div>
-      <div class="tc-lbl">Tasques pendents</div>
+      <div class="tc-lbl">${{ca:'Tasques pendents',es:'Tareas pendientes',en:'Pending tasks'}[currentLang]||'Tasques pendents'}</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">📅</div>
       <div class="tc-val" style="color:var(--accent2)">${evCount}</div>
-      <div class="tc-lbl">Events avui</div>
+      <div class="tc-lbl">${{ca:'Events avui',es:'Eventos hoy',en:'Events today'}[currentLang]||'Events avui'}</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">🍅</div>
       <div class="tc-val" style="color:var(--red)">${pomoToday}</div>
-      <div class="tc-lbl">Pomodoros avui</div>
+      <div class="tc-lbl">${{ca:'Pomodoros avui',es:'Pomodoros hoy',en:'Pomodoros today'}[currentLang]||'Pomodoros avui'}</div>
     </div>
   `;
   // Now indicator
@@ -3301,7 +3301,7 @@ function renderTodayDashboard() {
   const nowEl = document.getElementById('today-now');
   const nowTxt = document.getElementById('today-now-txt');
   if(currentBlock && nowEl && nowTxt) {
-    nowTxt.textContent = `Ara: ${currentBlock.label}  ·  ${currentBlock.time}`;
+    nowTxt.textContent = `${{ca:'Ara',es:'Ahora',en:'Now'}[currentLang]||'Ara'}: ${currentBlock.label}  ·  ${currentBlock.time}`;
     nowEl.style.display='flex';
   } else if(nowEl) nowEl.style.display='none';
 }
@@ -3335,6 +3335,18 @@ function adjustPomoCust(type, delta) {
   if(cf) cf.textContent = pomoCustFocus;
   if(cb) cb.textContent = brk;
   updatePomoRatioLabel(pomoCustFocus, brk);
+}
+function updatePomoRatioLabel() {
+  const fmin = parseInt(document.getElementById('pomo-cust-focus')?.textContent||'25');
+  const bmin = parseInt(document.getElementById('pomo-cust-break')?.textContent||'5');
+  const el = document.getElementById('pomo-ratio-lbl');
+  if(!el) return;
+  const ratio = fmin > 0 ? `1:${(bmin/fmin).toFixed(1).replace(/\.0$/,'')}` : '1:0.2';
+  el.textContent = {
+    ca:`Ràtio ${ratio} · ${bmin} min de descans per ${fmin} de treball`,
+    es:`Ratio ${ratio} · ${bmin} min de descanso por ${fmin} de trabajo`,
+    en:`Ratio ${ratio} · ${bmin} min break per ${fmin} work`,
+  }[currentLang] || `Ratio ${ratio}`;
 }
 function applyPomoCustom() {
   const brk = Math.max(1, Math.round(pomoCustFocus / 5));
@@ -3417,6 +3429,36 @@ function pomoReset() {
   updatePomoDisplay();
 }
 // ── POMODORO GAMIFICATION ────────────────────────────
+const POMO_LEVELS_I18N = {
+  ca: [
+    {min:0,   max:50,  name:'APRENENT',       emoji:'🌱', color:'#6ee7b7'},
+    {min:50,  max:150, name:'ESTUDIANT',       emoji:'📚', color:'#93c5fd'},
+    {min:150, max:350, name:'CONCENTRAT',      emoji:'🎯', color:'#c4b5fd'},
+    {min:350, max:700, name:'ENFOCADOR',       emoji:'🔥', color:'#fcd34d'},
+    {min:700, max:1400,name:'FLOW STATE',      emoji:'⚡', color:'#fb923c'},
+    {min:1400,max:3000,name:'DEEP WORKER',     emoji:'💎', color:'#f472b6'},
+    {min:3000,max:Infinity,name:'MESTRE DEL FOCUS',emoji:'🏆',color:'#fbbf24'},
+  ],
+  es: [
+    {min:0,   max:50,  name:'APRENDIZ',        emoji:'🌱', color:'#6ee7b7'},
+    {min:50,  max:150, name:'ESTUDIANTE',       emoji:'📚', color:'#93c5fd'},
+    {min:150, max:350, name:'CONCENTRADO',      emoji:'🎯', color:'#c4b5fd'},
+    {min:350, max:700, name:'ENFOCADO',         emoji:'🔥', color:'#fcd34d'},
+    {min:700, max:1400,name:'FLOW STATE',       emoji:'⚡', color:'#fb923c'},
+    {min:1400,max:3000,name:'DEEP WORKER',      emoji:'💎', color:'#f472b6'},
+    {min:3000,max:Infinity,name:'MAESTRO FOCUS',emoji:'🏆',color:'#fbbf24'},
+  ],
+  en: [
+    {min:0,   max:50,  name:'LEARNER',          emoji:'🌱', color:'#6ee7b7'},
+    {min:50,  max:150, name:'STUDENT',           emoji:'📚', color:'#93c5fd'},
+    {min:150, max:350, name:'FOCUSED',           emoji:'🎯', color:'#c4b5fd'},
+    {min:350, max:700, name:'SHARPENED',         emoji:'🔥', color:'#fcd34d'},
+    {min:700, max:1400,name:'FLOW STATE',        emoji:'⚡', color:'#fb923c'},
+    {min:1400,max:3000,name:'DEEP WORKER',       emoji:'💎', color:'#f472b6'},
+    {min:3000,max:Infinity,name:'FOCUS MASTER',  emoji:'🏆',color:'#fbbf24'},
+  ],
+};
+function getPomoLevels() { return POMO_LEVELS_I18N[currentLang] || POMO_LEVELS_I18N.ca; }
 const POMO_LEVELS = [
   {min:0,   max:50,  name:'APRENENT',   emoji:'🌱', color:'#6ee7b7'},
   {min:50,  max:150, name:'ESTUDIANT',  emoji:'📚', color:'#93c5fd'},
@@ -3426,20 +3468,43 @@ const POMO_LEVELS = [
   {min:1400,max:3000,name:'DEEP WORKER',emoji:'💎', color:'#f472b6'},
   {min:3000,max:Infinity, name:'MESTRE DEL FOCUS', emoji:'🏆', color:'#fbbf24'}
 ];
-const POMO_REWARDS = [
-  {id:'first',   need:10,   emoji:'🍅', label:'Primer Pomo',      desc:'El primer sempre costa més! +10 XP'},
-  {id:'five',    need:50,   emoji:'🔥', label:'En Ratxa',         desc:'50 XP acumulats (5 pomodoros de 5min)'},
-  {id:'ten',     need:150,  emoji:'⚡', label:'Enfocador',        desc:'150 XP — Vas per bon camí!'},
-  {id:'goal',    need:'goal',emoji:'🎯', label:'Objectiu Avui',   desc:'Meta diària assolida!'},
-  {id:'twenty',  need:350,  emoji:'💎', label:'Focus Profund',    desc:'350 XP — Treball profund activat'},
-  {id:'fifty',   need:700,  emoji:'🏆', label:'Mestre',           desc:'700 XP — Nivell Flow State'},
-  {id:'hundred', need:1400, emoji:'👑', label:'Llegenda',         desc:'1400 XP — Deep Worker llegenda'},
-];
+const POMO_REWARDS_I18N = {
+  ca: [
+    {id:'first',   need:10,   emoji:'🍅', label:'Primer Pomo',  desc:'El primer sempre costa més! +10 XP'},
+    {id:'five',    need:50,   emoji:'🔥', label:'En Ratxa',     desc:'50 XP acumulats'},
+    {id:'ten',     need:150,  emoji:'⚡', label:'Enfocador',    desc:'150 XP — Vas per bon camí!'},
+    {id:'goal',    need:'goal',emoji:'🎯',label:'Objectiu Avui',desc:'Meta diària assolida!'},
+    {id:'twenty',  need:350,  emoji:'💎', label:'Focus Profund',desc:'350 XP — Treball profund activat'},
+    {id:'fifty',   need:700,  emoji:'🏆', label:'Mestre',       desc:'700 XP — Nivell Flow State'},
+    {id:'hundred', need:1400, emoji:'👑', label:'Llegenda',     desc:'1400 XP — Deep Worker llegenda'},
+  ],
+  es: [
+    {id:'first',   need:10,   emoji:'🍅', label:'Primer Pomo',  desc:'¡El primero siempre cuesta más! +10 XP'},
+    {id:'five',    need:50,   emoji:'🔥', label:'En Racha',     desc:'50 XP acumulados'},
+    {id:'ten',     need:150,  emoji:'⚡', label:'Enfocado',     desc:'150 XP — ¡Vas por buen camino!'},
+    {id:'goal',    need:'goal',emoji:'🎯',label:'Objetivo Hoy', desc:'¡Meta diaria lograda!'},
+    {id:'twenty',  need:350,  emoji:'💎', label:'Focus Profundo',desc:'350 XP — Trabajo profundo activado'},
+    {id:'fifty',   need:700,  emoji:'🏆', label:'Maestro',      desc:'700 XP — Nivel Flow State'},
+    {id:'hundred', need:1400, emoji:'👑', label:'Leyenda',      desc:'1400 XP — Deep Worker leyenda'},
+  ],
+  en: [
+    {id:'first',   need:10,   emoji:'🍅', label:'First Pomo',   desc:'The first one always hurts! +10 XP'},
+    {id:'five',    need:50,   emoji:'🔥', label:'On a Roll',    desc:'50 XP accumulated'},
+    {id:'ten',     need:150,  emoji:'⚡', label:'Focused',      desc:'150 XP — You're on track!'},
+    {id:'goal',    need:'goal',emoji:'🎯',label:'Daily Goal',   desc:'Daily goal reached!'},
+    {id:'twenty',  need:350,  emoji:'💎', label:'Deep Focus',   desc:'350 XP — Deep work activated'},
+    {id:'fifty',   need:700,  emoji:'🏆', label:'Master',       desc:'700 XP — Flow State level'},
+    {id:'hundred', need:1400, emoji:'👑', label:'Legend',       desc:'1400 XP — Deep Worker legend'},
+  ],
+};
+function getPomoRewards() { return POMO_REWARDS_I18N[currentLang] || POMO_REWARDS_I18N.ca; }
+const POMO_REWARDS = POMO_REWARDS_I18N.ca;
 let pomoGameData = JSON.parse(localStorage.getItem('pomo_game_v1') || '{"xp":0,"dailyGoal":4,"earnedRewards":[]}');
 let pomoDailyGoal = pomoGameData.dailyGoal || 4;
 
 function getPomoLevel(xp) {
-  return POMO_LEVELS.find(l => xp >= l.min && xp < l.max) || POMO_LEVELS[POMO_LEVELS.length-1];
+  const lvls = getPomoLevels();
+  return lvls.find(l => xp >= l.min && xp < l.max) || lvls[lvls.length-1];
 }
 function changeDailyGoal(delta) {
   pomoDailyGoal = Math.max(1, Math.min(16, pomoDailyGoal + delta));
@@ -3451,7 +3516,7 @@ function renderPomoGame() {
   const xp = pomoGameData.xp || 0;
   const todayCount = pomoData.today || 0;
   const level = getPomoLevel(xp);
-  const nextLevel = POMO_LEVELS.find(l => l.min > xp);
+  const nextLevel = getPomoLevels().find(l => l.min > xp);
   
   // Level badge
   const badge = document.getElementById('pomo-level-badge');
@@ -3470,7 +3535,14 @@ function renderPomoGame() {
   const xpBar = document.getElementById('pomo-xp-bar');
   if(xpBar) { xpBar.style.width = pct + '%'; xpBar.style.background = `linear-gradient(90deg,${level.color},var(--accent))`; }
   const xpSub = document.getElementById('pomo-xp-sub');
-  if(xpSub) xpSub.textContent = nextLevel ? `${xpNeeded - xpInLevel} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell màxim assolit!';
+  if(xpSub) {
+    const xpSubTxt = {
+      ca: nextLevel ? `${xpNeeded - xpInLevel} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell màxim assolit!',
+      es: nextLevel ? `${xpNeeded - xpInLevel} XP para "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 ¡Nivel máximo alcanzado!',
+      en: nextLevel ? `${xpNeeded - xpInLevel} XP to reach "${nextLevel.name}" ${nextLevel.emoji} · Every 5min = 10 XP` : '🏆 Max level reached!',
+    }[currentLang] || '';
+    xpSub.textContent = xpSubTxt;
+  }
 
   // Daily goal dots
   const goalEl = document.getElementById('pomo-goal-num');
@@ -3497,7 +3569,7 @@ function renderPomoGame() {
   // Rewards
   const rewardsEl = document.getElementById('pomo-rewards-row');
   if(rewardsEl) {
-    rewardsEl.innerHTML = POMO_REWARDS.map(r => {
+    rewardsEl.innerHTML = getPomoRewards().map(r => {
       const earned = r.id === 'goal'
         ? todayCount >= pomoDailyGoal
         : (pomoGameData.earnedRewards || []).includes(r.id);
@@ -3515,7 +3587,7 @@ function checkPomoRewards() {
   const todayCount = pomoData.today || 0;
   const earned = pomoGameData.earnedRewards || [];
   let newReward = null;
-  POMO_REWARDS.forEach(r => {
+  getPomoRewards().forEach(r => {
     if(r.id === 'goal') return;
     if(typeof r.need === 'number' && xp >= r.need && !earned.includes(r.id)) {
       earned.push(r.id);
@@ -3525,7 +3597,7 @@ function checkPomoRewards() {
   if(todayCount >= pomoDailyGoal && !earned.includes('goal_today_'+new Date().toDateString())) {
     earned.push('goal_today_'+new Date().toDateString());
     pomoGameData.xp += pomoDailyGoal * 10; // bonus XP
-    newReward = POMO_REWARDS.find(r=>r.id==='goal');
+    newReward = getPomoRewards().find(r=>r.id==='goal');
   }
   pomoGameData.earnedRewards = earned;
   localStorage.setItem('pomo_game_v1', JSON.stringify(pomoGameData));
@@ -5124,6 +5196,56 @@ function applyLanguage(lang) {
   if(tmodePers) tmodePers.innerHTML = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang] + (tmodePers.innerHTML.includes('bnav-premium') ? tmodePers.querySelector('.bnav-premium-badge')?.outerHTML||'' : '');
   if(tmodePers) tmodePers.childNodes[0].textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
   if(tmodeShared) tmodeShared.childNodes[0].textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
+
+
+  // === Extra: Pomodoro UI labels ===
+  const _el = (id) => document.getElementById(id);
+  const _L = {
+    'pomo-treball-lbl': {ca:'TREBALL', es:'TRABAJO', en:'WORK'},
+    'pomo-descans-lbl': {ca:'DESCANS', es:'DESCANSO', en:'BREAK'},
+    'pomo-auto-lbl':    {ca:'(auto)',  es:'(auto)',   en:'(auto)'},
+    'pomo-aplicar-btn': {ca:'APLICAR', es:'APLICAR',  en:'APPLY'},
+    'pomo-goal-title':  {ca:"🎯 OBJECTIU D'AVUI", es:'🎯 OBJETIVO DE HOY', en:'🎯 TODAY\'S GOAL'},
+    'pomo-rewards-title':{ca:'🏆 RECOMPENSES', es:'🏆 RECOMPENSAS', en:'🏆 REWARDS'},
+  };
+  Object.entries(_L).forEach(([id, map]) => {
+    const el = _el(id); if(el) el.textContent = map[lang] || map.ca;
+  });
+  // Llista / Kanban sub-buttons
+  const _tvtList = _el('tvt-list-lbl');
+  if(_tvtList) _tvtList.childNodes[0].textContent = {ca:'☰ Llista',es:'☰ Lista',en:'☰ List'}[lang];
+  const _tvtShList = _el('tvt-shared-list-lbl');
+  if(_tvtShList) _tvtShList.childNodes[0].textContent = {ca:'☰ Llista',es:'☰ Lista',en:'☰ List'}[lang];
+  // Kanban "Kanban" button text
+  const _tvtKan = _el('tvt-kanban');
+  if(_tvtKan) _tvtKan.textContent = '⠿ Kanban';
+  const _tvtShKan = _el('tvt-shared-kanban');
+  if(_tvtShKan) _tvtShKan.textContent = '⠿ Kanban';
+  // Personal kanban add button
+  const _pkBtn = _el('personal-kanban-add-btn');
+  if(_pkBtn) _pkBtn.textContent = {ca:'+ Nova tasca',es:'+ Nueva tarea',en:'+ New task'}[lang];
+  // Tasks mode buttons (safer innerHTML approach)
+  const _tmodePers = _el('tmode-personal');
+  if(_tmodePers) _tmodePers.textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
+  const _tmodeShared = _el('tmode-shared');
+  if(_tmodeShared) _tmodeShared.textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
+  // Pomo ratio label
+  const _ratioEl = _el('pomo-ratio-lbl');
+  if(_ratioEl) {
+    const fmin = parseInt(_el('pomo-cust-focus')?.textContent||'25');
+    const bmin = parseInt(_el('pomo-cust-break')?.textContent||'5');
+    const ratio = fmin > 0 ? `1:${(bmin/fmin).toFixed(1).replace(/\.0$/,'')}` : '1:0.2';
+    const ratioTxt = {
+      ca:`Ràtio ${ratio} · ${bmin} min de descans per ${fmin} de treball`,
+      es:`Ratio ${ratio} · ${bmin} min de descanso por ${fmin} de trabajo`,
+      en:`Ratio ${ratio} · ${bmin} min break per ${fmin} work`,
+    }[lang];
+    _ratioEl.textContent = ratioTxt;
+  }
+  // Re-render pomo game with new lang (level names, rewards)
+  if(typeof renderPomoGame === 'function') renderPomoGame();
+  // Re-render today dashboard (label translation)
+  if(typeof renderTodayDashboard === 'function') renderTodayDashboard();
 
   // === 9d. Daily quote in current lang ===
   if(typeof renderDailyQuote === 'function') renderDailyQuote();
