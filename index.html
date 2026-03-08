@@ -1221,10 +1221,15 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 <button id="add-note-fab" onclick="toggleNotePicker()" title="Captura ràpida">✏️</button>
 
 <!-- Premium FAB (esquerra, sobre Julians) -->
-<button id="premium-fab" onclick="window.location.href='pricing.html'" title="Aconseguir Premium">
+<button id="premium-fab" onclick="showPremiumSoon()" title="Aconseguir Premium">
   <span class="premium-fab-bolt">⚡</span>
   <span class="premium-fab-label">PRO</span>
 </button>
+
+<!-- Toast "Properament disponible" — TEMPORAL: quan actives Premium, canvia onclick per: window.location.href='pricing.html' -->
+<div id="premium-soon-toast" style="display:none;position:fixed;bottom:160px;left:50%;transform:translateX(-50%);background:#0f0f1a;border:1px solid rgba(124,58,237,0.5);border-radius:12px;padding:12px 22px;font-family:'Space Mono',monospace;font-size:12px;color:#a78bfa;z-index:9999;box-shadow:0 8px 32px rgba(124,58,237,0.25);white-space:nowrap;animation:fadeUp 0.25s ease;">
+  ⚡ Properament disponible
+</div>
 
 <!-- Julians FAB -->
 <button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
@@ -1258,7 +1263,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div id="dev-error" style="font-size:12px;color:#fca5a5;font-family:'Space Mono',monospace;margin-bottom:14px;min-height:16px;"></div>
 
     <div style="display:flex;gap:10px;">
-      <button onclick="submitDevMode()"
+      <button id="dev-submit-btn" onclick="submitDevMode()"
         style="flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#00b8d9);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:box-shadow 0.2s;"
         onmouseover="this.style.boxShadow='0 4px 20px rgba(124,58,237,0.6)'" onmouseout="this.style.boxShadow=''">
         Accedir
@@ -1384,5 +1389,15 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 </div>
 
 <script src="app.js" defer></script>
+<!-- TEMPORAL: funció "Properament disponible" — quan actives Premium, esborra aquest bloc i el toast de dalt -->
+<script>
+let _premSoonTimer = null;
+function showPremiumSoon() {
+  const t = document.getElementById('premium-soon-toast');
+  t.style.display = 'block';
+  clearTimeout(_premSoonTimer);
+  _premSoonTimer = setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+</script>
 </body>
 </html>
