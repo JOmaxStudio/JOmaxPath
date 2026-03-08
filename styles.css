@@ -1171,65 +1171,21 @@
   #config-btn            { bottom: 92px !important; right: 24px !important; }
   #search-fab            { bottom: 156px !important; right: 24px !important; }
   #quick-capture-btn     { bottom: 220px !important; right: 24px !important; }
-  /* Left: Julians + Premium */
+  /* Left: Julians */
   #ai-fab                { bottom: 28px !important; left: 24px !important; right: auto !important; }
-  #premium-fab           { bottom: 90px !important; left: 24px !important; right: auto !important; display: none; }
-
+  
   /* Pages mode: push up above bottom nav (68px height) */
   body.view-pages #add-note-fab      { bottom: 96px !important; }
   body.view-pages #config-btn        { bottom: 160px !important; }
   body.view-pages #search-fab        { bottom: 224px !important; }
   body.view-pages #quick-capture-btn { bottom: 288px !important; }
   body.view-pages #ai-fab            { bottom: 96px !important; }
-  body.view-pages #premium-fab       { bottom: 158px !important; }
-
-  /* Mostra el Premium FAB — el JS ho gestiona via is-premium */
-  body.view-pages #premium-fab       { display: flex; }
-  body.is-premium #premium-fab       { display: none !important; }
-
+  
   /* FAB sizes — consistent */
   #add-note-fab, #config-btn, #search-fab, #quick-capture-btn {
     width: 48px !important; height: 48px !important;
   }
-  #ai-fab    { width: 52px !important; height: 52px !important; }
-  #premium-fab { width: 48px !important; height: 48px !important; }
-
-  /* ── Premium FAB estils ── */
-  #premium-fab {
-    position: fixed;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #7c3aed, #00b8d9);
-    border: none; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.55);
-    align-items: center; justify-content: center;
-    z-index: 1600;
-    transition: transform 0.2s, box-shadow 0.2s;
-    animation: premium-pulse 3s ease-in-out infinite;
-    overflow: hidden;
-    flex-direction: column;
-    gap: 1px;
-  }
-  #premium-fab:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(124,58,237,0.75); }
-  .premium-fab-bolt {
-    font-size: 17px;
-    line-height: 1;
-    filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
-    animation: bolt-flicker 2.5s ease-in-out infinite;
-  }
-  .premium-fab-label {
-    font-size: 7px; font-weight: 800; letter-spacing: 1.5px;
-    color: rgba(255,255,255,0.92);
-    font-family: 'Space Mono', monospace;
-    line-height: 1;
-  }
-  @keyframes premium-pulse {
-    0%,100% { box-shadow: 0 4px 20px rgba(124,58,237,0.55); }
-    50%      { box-shadow: 0 4px 28px rgba(0,184,217,0.7), 0 0 0 5px rgba(124,58,237,0.1); }
-  }
-  @keyframes bolt-flicker {
-    0%,100% { opacity:1; transform:scale(1); }
-    50%      { opacity:0.8; transform:scale(1.18); }
-  }
+  #ai-fab { width: 52px !important; height: 52px !important; }
   
   /* FAB group label on hover (tooltip) */
   .fab-tooltip {
@@ -2887,22 +2843,6 @@ select option {
   box-sizing: border-box !important;
 }
 
-/* ── MAX-WIDTH en pantalles grans — les columnes no arriben a la punta ── */
-@media(min-width:1400px) {
-  .container {
-    max-width: 1320px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding-left: 40px !important;
-    padding-right: 40px !important;
-  }
-}
-@media(min-width:1800px) {
-  .container {
-    max-width: 1560px !important;
-  }
-}
-
 /* Cada pàgina activa ocupa almenys tota la pantalla */
 body.view-pages .app-page.page-active {
   min-height: calc(100vh - 68px);
@@ -3224,151 +3164,213 @@ body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); 
 
 
 /* ══════════════════════════════════════════════════════════════
-   MILLORES VISUALS GENERALS — JomaxPath
+   JOMAXPATH — MILLORES VISUALS v3
 ══════════════════════════════════════════════════════════════ */
 
-/* ── Transicions globals suaus ── */
-* { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-.card, .goal-banner, .stat-card, .habit-item,
-.exam-item, .day-card, .board-card, .kanban-col,
-.screen-tip, .victory-field, .streak-card {
-  transition: box-shadow 0.22s, transform 0.18s, border-color 0.22s !important;
+/* ── 1. MAX-WIDTH en pantalles grans ── */
+@media(min-width:1400px) {
+  .container {
+    max-width: 1340px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+}
+@media(min-width:1800px) {
+  .container { max-width: 1560px !important; }
 }
 
-/* ── Cards amb hover subtil ── */
-.card:hover, .goal-banner:hover, .stat-card:hover {
-  box-shadow: 0 8px 32px rgba(124,58,237,0.1) !important;
-  transform: translateY(-1px) !important;
+/* ── 2. Scroll bars estilitzats ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.5); }
+
+/* ── 3. Cards hover subtil (SENSe trencar layout) ── */
+.exam-item {
+  transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 .exam-item:hover {
-  border-color: rgba(124,58,237,0.35) !important;
+  border-color: rgba(124,58,237,0.4) !important;
   box-shadow: 0 4px 16px rgba(124,58,237,0.08) !important;
 }
+.board-card {
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.18s !important;
+}
 .board-card:hover {
-  border-color: rgba(124,58,237,0.4) !important;
+  border-color: rgba(124,58,237,0.45) !important;
   box-shadow: 0 6px 20px rgba(124,58,237,0.12) !important;
   transform: translateY(-2px) !important;
+}
+.day-card {
+  transition: box-shadow 0.2s, transform 0.18s !important;
 }
 .day-card:hover {
   box-shadow: 0 4px 20px rgba(124,58,237,0.1) !important;
   transform: translateY(-1px) !important;
 }
-
-/* ── Section titles — línia decorativa lateral ── */
-.section-title {
-  position: relative;
-  padding-left: 14px !important;
-}
-.section-title::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 50%;
-  transform: translateY(-50%);
-  width: 3px; height: 70%;
-  background: linear-gradient(180deg, var(--accent), var(--cyan));
-  border-radius: 3px;
-}
-
-/* ── Kanban columnes — millora visual ── */
-.kanban-col {
-  border-radius: 16px !important;
-  padding: 16px !important;
-}
-.kanban-col-header {
-  margin-bottom: 14px !important;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid var(--border) !important;
-}
-.kanban-col-title {
-  font-size: 10px !important;
-  letter-spacing: 1.5px !important;
-  font-weight: 800 !important;
-}
-.kanban-add-area {
-  border-radius: 10px !important;
-  margin-top: 10px !important;
-  font-size: 11px !important;
-  opacity: 0.6;
-  transition: opacity 0.2s !important;
-}
-.kanban-add-area:hover { opacity: 1 !important; }
-
-/* ── Habit items — millora ── */
 .habit-item {
-  border-radius: 12px !important;
-  padding: 10px 14px !important;
+  transition: background 0.18s !important;
 }
 .habit-item:hover {
-  background: rgba(124,58,237,0.06) !important;
+  background: rgba(124,58,237,0.07) !important;
 }
-
-/* ── Stat cards — uniformitat ── */
-.stat-card {
-  border-radius: 14px !important;
-  padding: 16px 20px !important;
+.screen-tip, .tip-card {
+  transition: box-shadow 0.2s, transform 0.18s !important;
 }
-
-/* ── Scroll bars estilitzats ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(124,58,237,0.25);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(124,58,237,0.45);
-}
-
-/* ── Botó "Avui" i botons secundaris ── */
-.avui-btn, .add-exam-btn, .add-habit-btn {
-  border-radius: 20px !important;
-  transition: all 0.18s !important;
-}
-.avui-btn:hover, .add-exam-btn:hover, .add-habit-btn:hover {
-  transform: scale(1.04) !important;
-}
-
-/* ── Screen tips — millora ── */
-.screen-tip {
-  border-radius: 14px !important;
-  padding: 18px 20px !important;
-}
-.screen-tip:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+.screen-tip:hover, .tip-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
   transform: translateY(-1px) !important;
 }
 
-/* ── Page title bar — refinament ── */
+/* ── 4. Section-title accent (amb la línia gradient lateral) ── */
+/* NO toquem ::before ni ::after — ja té ::after per la línia horitzontal */
+/* Afegim un accent de color a l'emoji del davant via text-shadow */
+.section-title {
+  border-left: 3px solid transparent !important;
+  border-image: linear-gradient(180deg, var(--accent), var(--cyan)) 1 !important;
+  padding-left: 10px !important;
+  border-radius: 0 !important;
+}
+/* Però la section-title és display:flex amb ::after, el border-left funciona bé */
+
+/* ── 5. Page-title-bar separador subtil ── */
 .page-title-bar {
-  margin-bottom: 20px !important;
-  padding-bottom: 16px !important;
+  margin-bottom: 22px !important;
+  padding-bottom: 14px !important;
   border-bottom: 1px solid rgba(255,255,255,0.04) !important;
 }
 
-/* ── Inputs i selects — uniformitat ── */
-input[type="text"], input[type="email"], input[type="password"],
-input[type="number"], textarea, select {
-  transition: border-color 0.2s, box-shadow 0.2s !important;
+/* ── 6. Animació d'entrada de pàgina suau ── */
+@keyframes jomaxPageIn {
+  from { opacity: 0.6; transform: translateY(8px); }
+  to   { opacity: 1;   transform: translateY(0px); }
 }
-input[type="text"]:focus, input[type="email"]:focus,
-input[type="password"]:focus, textarea:focus {
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
-}
-
-/* ── Animació entrada de pàgina ── */
 body.view-pages .app-page.page-active {
-  animation: pageEnter 0.2s ease forwards;
-}
-@keyframes pageEnter {
-  from { opacity: 0.7; transform: translateY(6px); }
-  to   { opacity: 1;   transform: translateY(0); }
+  animation: jomaxPageIn 0.22s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 
-/* ── Focus page & Calendar — columnes centrades en ultra-wide ── */
+/* ── 7. Inputs focus glow ── */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.14) !important;
+}
+
+/* ── 8. Kanban refinament visual ── */
+.kanban-col {
+  border-radius: 16px !important;
+  padding: 14px 14px 16px !important;
+}
+.kanban-col-header {
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  margin-bottom: 12px !important;
+}
+.kanban-col-title {
+  font-size: 10px !important;
+  letter-spacing: 2px !important;
+}
+.kanban-add-area {
+  margin-top: 8px !important;
+  border-radius: 10px !important;
+  opacity: 0.55;
+  font-size: 11px !important;
+  transition: opacity 0.18s, background 0.18s !important;
+}
+.kanban-add-area:hover { opacity: 1 !important; }
+
+/* ── 9. Botó "avui" i botons petits ── */
+.avui-btn, .add-exam-btn, .add-habit-btn, .board-add-task-btn {
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.avui-btn:hover, .add-exam-btn:hover,
+.add-habit-btn:hover, .board-add-task-btn:hover {
+  transform: scale(1.04) !important;
+}
+
+/* ── 10. Premium FAB ── */
+#premium-fab {
+  position: fixed;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #00b8d9);
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.55);
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 1px;
+  z-index: 1600;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: premium-pulse 3s ease-in-out infinite;
+}
+#premium-fab:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(124,58,237,0.75); }
+body.view-pages #premium-fab { display: flex; }
+body.is-premium #premium-fab { display: none !important; }
+
+.premium-fab-bolt {
+  font-size: 17px; line-height: 1;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
+  animation: bolt-flicker 2.5s ease-in-out infinite;
+}
+.premium-fab-label {
+  font-size: 7px; font-weight: 800; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.92);
+  font-family: 'Space Mono', monospace; line-height: 1;
+}
+@keyframes premium-pulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(124,58,237,0.55); }
+  50%      { box-shadow: 0 4px 28px rgba(0,184,217,0.7), 0 0 0 5px rgba(124,58,237,0.1); }
+}
+@keyframes bolt-flicker {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.8; transform:scale(1.18); }
+}
+
+/* ── 11. FAB Stack desktop ── */
+#add-note-fab          { bottom: 28px !important; right: 24px !important; }
+#config-btn            { bottom: 92px !important; right: 24px !important; }
+#search-fab            { bottom: 156px !important; right: 24px !important; }
+#ai-fab                { bottom: 28px !important; left: 24px !important; right: auto !important; }
+#premium-fab           { bottom: 90px !important; left: 24px !important; right: auto !important; width: 48px !important; height: 48px !important; }
+
+body.view-pages #add-note-fab { bottom: 96px !important; }
+body.view-pages #config-btn   { bottom: 160px !important; }
+body.view-pages #search-fab   { bottom: 224px !important; }
+body.view-pages #ai-fab       { bottom: 96px !important; }
+body.view-pages #premium-fab  { bottom: 158px !important; }
+
+@media(max-width:600px) {
+  #premium-fab { bottom: 80px !important; left: 14px !important; width: 44px !important; height: 44px !important; }
+  body.view-pages #premium-fab { bottom: 142px !important; }
+}
+
+/* ── 12. bnav Premium btn ── */
+.bnav-item.bnav-premium .bnav-lbl { color: var(--accent2) !important; font-weight: 700 !important; }
+.bnav-item.bnav-premium .bnav-icon {
+  background: linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,184,217,0.1));
+  border-radius: 8px; padding: 2px 4px;
+  filter: drop-shadow(0 0 6px rgba(124,58,237,0.6)) !important;
+}
+body.is-premium #bnav-premium-btn { display: none !important; }
+
+/* ── 13. Desktop col gaps millors ── */
 @media(min-width:1400px) {
   #page-home .home-two-col,
   #page-focus .focus-two-col,
-  #page-calendari .cal-two-col {
-    gap: 36px !important;
-  }
+  #page-calendari .cal-two-col { gap: 36px !important; }
+}
+
+/* ── 14. "Properament disponible" toast ── */
+#premium-soon-toast {
+  position: fixed; bottom: 160px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: linear-gradient(135deg,#0f0f1a,#161625);
+  border: 1px solid rgba(124,58,237,0.5); border-radius: 16px;
+  padding: 16px 32px;
+  font-family: 'Space Mono',monospace; font-size: 15px;
+  font-weight: 700; letter-spacing: 1px; color: #a78bfa;
+  z-index: 9999;
+  box-shadow: 0 12px 48px rgba(124,58,237,0.35), 0 0 0 1px rgba(124,58,237,0.1);
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
 }
