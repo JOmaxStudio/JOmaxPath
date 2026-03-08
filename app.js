@@ -5341,29 +5341,52 @@ function applyPremiumUI(isPremium) {
   }
 }
 
+
 // ════════════════════════════════════════════════════════════
-//  DEV MODE — Drecera: AltGr + Ctrl + Enter + Shift + A
+//  DEV MODE — Drecera secreta
+//  Combinació: mantenir D premut 3 cops seguits + Ctrl+Shift
 //  Activa Premium sense pagament per a desenvolupadors
 // ════════════════════════════════════════════════════════════
 
-// Credencials de dev (canvia-les!)
-const DEV_CREDENTIALS = [
-  { email: 'dev@jomaxpath.com',   pass: 'jomaxdev2025' },
-  { email: 'admin@jomaxpath.com', pass: 'adminjomax25' },
+// Credencials emmagatzemades com a hash SHA-256 (no llegibles al codi)
+// Clau dev:   Jx9#mP2$kL7!devQ
+// Clau admin: Zr4@nW8&vT1#admK
+const DEV_HASHES = [
+  { email: 'dev@jomaxpath.com',   hash: '9f64e3051f20d32e3b17df3756e65f695327da99c1c7ddafd11dbefcc1e41e1c' },
+  { email: 'admin@jomaxpath.com', hash: 'b64ebfe018a884ab5633c12f747c49e048daaef563ce9752cc31b0fe54e798c0' },
 ];
 
-let devKeyState = { ctrl: false, shift: false, alt: false, enter: false, a: false };
+// Hash SHA-256 en el navegador (async, via SubtleCrypto)
+async function hashPass(pass) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Detecció de la drecera: Ctrl+Shift+D+D+D ──
+// L'usuari ha de mantenir Ctrl+Shift i prémer D tres vegades seguides
+let _devDCount = 0;
+let _devDTimer = null;
 
 document.addEventListener('keydown', (e) => {
-  if(e.ctrlKey && e.shiftKey && e.altKey && e.key === 'Enter') {
-    // AltGr genera altKey+ctrlKey en alguns teclats, acceptem ambdós
-    openDevMode();
-    e.preventDefault();
+  // Escape tanca el modal si és obert
+  if(e.key === 'Escape') {
+    const overlay = document.getElementById('devmode-overlay');
+    if(overlay && overlay.style.display === 'flex') { closeDevMode(); return; }
   }
-  // Alternativa per teclats que no generen AltGr: Ctrl+Shift+Alt+A
-  if(e.ctrlKey && e.shiftKey && e.altKey && e.key.toLowerCase() === 'a') {
-    openDevMode();
+
+  // Seqüència Ctrl+Shift+D×3
+  if(e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'D') {
     e.preventDefault();
+    _devDCount++;
+    clearTimeout(_devDTimer);
+    if(_devDCount >= 3) {
+      _devDCount = 0;
+      openDevMode();
+    } else {
+      _devDTimer = setTimeout(() => { _devDCount = 0; }, 1200);
+    }
+  } else if(!e.ctrlKey || !e.shiftKey) {
+    _devDCount = 0;
   }
 });
 
@@ -5372,7 +5395,7 @@ function openDevMode() {
   if(!overlay) return;
   overlay.style.display = 'flex';
   document.getElementById('dev-error').textContent = '';
-  // Si ja és dev actiu, mostrar badge directament
+  document.getElementById('dev-pass').value = '';
   if(localStorage.getItem('dev_mode') === '1') {
     document.getElementById('dev-active-badge').style.display = 'block';
     document.getElementById('dev-email').value = localStorage.getItem('dev_email') || '';
@@ -5385,57 +5408,53 @@ function closeDevMode() {
   if(overlay) overlay.style.display = 'none';
 }
 
-function submitDevMode() {
+async function submitDevMode() {
   const email = document.getElementById('dev-email').value.trim().toLowerCase();
   const pass  = document.getElementById('dev-pass').value;
   const errEl = document.getElementById('dev-error');
+  const btn   = document.getElementById('dev-submit-btn');
 
-  if(!email || !pass) {
-    errEl.textContent = '⚠ Omple tots els camps';
-    return;
-  }
+  if(!email || !pass) { errEl.textContent = '⚠ Omple tots els camps'; return; }
 
-  const valid = DEV_CREDENTIALS.some(c =>
-    c.email.toLowerCase() === email && c.pass === pass
-  );
+  // Bloquejar botó mentre comprova
+  btn.disabled = true;
+  btn.textContent = 'Verificant...';
+
+  const inputHash = await hashPass(pass);
+  const cred = DEV_HASHES.find(c => c.email === email);
+  const valid = cred && cred.hash === inputHash;
+
+  btn.disabled = false;
+  btn.textContent = 'Accedir';
 
   if(!valid) {
     errEl.textContent = '✗ Credencials incorrectes';
     document.getElementById('dev-pass').value = '';
     document.getElementById('dev-pass').focus();
-    // Shake animation
     const panel = document.getElementById('devmode-panel');
     panel.style.animation = 'devShake 0.4s ease';
     setTimeout(() => panel.style.animation = '', 400);
     return;
   }
 
-  // Accés concedit!
+  // ✅ Accés concedit
   localStorage.setItem('dev_mode', '1');
   localStorage.setItem('dev_email', email);
   localStorage.setItem('premium_status', '1');
   applyPremiumUI(true);
-
   errEl.textContent = '';
   document.getElementById('dev-active-badge').style.display = 'block';
-
-  setTimeout(() => closeDevMode(), 1800);
+  setTimeout(() => closeDevMode(), 1600);
 }
 
-// Tancar amb Escape
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') {
-    const overlay = document.getElementById('devmode-overlay');
-    if(overlay && overlay.style.display === 'flex') closeDevMode();
-  }
-});
-
-// Afegir animació shake al head si no existeix
+// Shake animation
 (function addDevStyles() {
   const s = document.createElement('style');
   s.textContent = '@keyframes devShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
   document.head.appendChild(s);
 })();
+
+
 
 async function authLogout() {
   if(supa) await supa.auth.signOut();
