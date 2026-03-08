@@ -200,8 +200,10 @@ function defaultSchedule() {
 //  INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  // Aplicar estat Premium cachejat immediatament (evita parpelleig del FAB)
+  // Estat premium cachejat (evita parpelleig)
   if(localStorage.getItem('premium_status') === '1') applyPremiumUI(true);
+  // Dev mode persistent entre sessions
+  if(localStorage.getItem('dev_mode') === '1') applyPremiumUI(true);
 
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
@@ -5239,7 +5241,7 @@ async function authLogin() {
   if(error) { authMsg(error.message,'error'); return; }
   supaUser = data.user;
   await loadFromSupabase();
-  checkPremiumStatus(supaUser.id); // Comprovar estat Premium
+  checkPremiumStatus(supaUser.id);
   hideAuthOverlay();
   updateAuthIndicator();
   showSyncToast('✅ Sessió iniciada');
@@ -5312,8 +5314,10 @@ function authShowMenu() {
 }
 
 
-// ── Estat Premium ────────────────────────────────────
-// Comprova si l'usuari té Premium actiu i actualitza la UI
+// ════════════════════════════════════════════════════════════
+//  PREMIUM STATUS
+// ════════════════════════════════════════════════════════════
+
 async function checkPremiumStatus(userId) {
   if(!userId) return;
   try {
@@ -5321,18 +5325,14 @@ async function checkPremiumStatus(userId) {
     if(!res.ok) return;
     const { isPremium } = await res.json();
     applyPremiumUI(isPremium);
-    // Guardar localment per a càrregues ràpides (offline-first)
     localStorage.setItem('premium_status', isPremium ? '1' : '0');
   } catch(e) {
-    // Si no hi ha backend, llegir de localStorage com a fallback
+    // Fallback: usar caché local
     const cached = localStorage.getItem('premium_status');
     if(cached !== null) applyPremiumUI(cached === '1');
-    console.warn('[Premium] No s\'ha pogut comprovar l\'estat:', e.message);
   }
 }
 
-// Aplica o elimina la classe is-premium al body
-// Això controla la visibilitat del FAB Premium, el banner de la home i el botó del nav
 function applyPremiumUI(isPremium) {
   if(isPremium) {
     document.body.classList.add('is-premium');
@@ -5340,6 +5340,102 @@ function applyPremiumUI(isPremium) {
     document.body.classList.remove('is-premium');
   }
 }
+
+// ════════════════════════════════════════════════════════════
+//  DEV MODE — Drecera: AltGr + Ctrl + Enter + Shift + A
+//  Activa Premium sense pagament per a desenvolupadors
+// ════════════════════════════════════════════════════════════
+
+// Credencials de dev (canvia-les!)
+const DEV_CREDENTIALS = [
+  { email: 'dev@jomaxpath.com',   pass: 'jomaxdev2025' },
+  { email: 'admin@jomaxpath.com', pass: 'adminjomax25' },
+];
+
+let devKeyState = { ctrl: false, shift: false, alt: false, enter: false, a: false };
+
+document.addEventListener('keydown', (e) => {
+  if(e.ctrlKey && e.shiftKey && e.altKey && e.key === 'Enter') {
+    // AltGr genera altKey+ctrlKey en alguns teclats, acceptem ambdós
+    openDevMode();
+    e.preventDefault();
+  }
+  // Alternativa per teclats que no generen AltGr: Ctrl+Shift+Alt+A
+  if(e.ctrlKey && e.shiftKey && e.altKey && e.key.toLowerCase() === 'a') {
+    openDevMode();
+    e.preventDefault();
+  }
+});
+
+function openDevMode() {
+  const overlay = document.getElementById('devmode-overlay');
+  if(!overlay) return;
+  overlay.style.display = 'flex';
+  document.getElementById('dev-error').textContent = '';
+  // Si ja és dev actiu, mostrar badge directament
+  if(localStorage.getItem('dev_mode') === '1') {
+    document.getElementById('dev-active-badge').style.display = 'block';
+    document.getElementById('dev-email').value = localStorage.getItem('dev_email') || '';
+  }
+  setTimeout(() => document.getElementById('dev-email').focus(), 100);
+}
+
+function closeDevMode() {
+  const overlay = document.getElementById('devmode-overlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function submitDevMode() {
+  const email = document.getElementById('dev-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('dev-pass').value;
+  const errEl = document.getElementById('dev-error');
+
+  if(!email || !pass) {
+    errEl.textContent = '⚠ Omple tots els camps';
+    return;
+  }
+
+  const valid = DEV_CREDENTIALS.some(c =>
+    c.email.toLowerCase() === email && c.pass === pass
+  );
+
+  if(!valid) {
+    errEl.textContent = '✗ Credencials incorrectes';
+    document.getElementById('dev-pass').value = '';
+    document.getElementById('dev-pass').focus();
+    // Shake animation
+    const panel = document.getElementById('devmode-panel');
+    panel.style.animation = 'devShake 0.4s ease';
+    setTimeout(() => panel.style.animation = '', 400);
+    return;
+  }
+
+  // Accés concedit!
+  localStorage.setItem('dev_mode', '1');
+  localStorage.setItem('dev_email', email);
+  localStorage.setItem('premium_status', '1');
+  applyPremiumUI(true);
+
+  errEl.textContent = '';
+  document.getElementById('dev-active-badge').style.display = 'block';
+
+  setTimeout(() => closeDevMode(), 1800);
+}
+
+// Tancar amb Escape
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') {
+    const overlay = document.getElementById('devmode-overlay');
+    if(overlay && overlay.style.display === 'flex') closeDevMode();
+  }
+});
+
+// Afegir animació shake al head si no existeix
+(function addDevStyles() {
+  const s = document.createElement('style');
+  s.textContent = '@keyframes devShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
+  document.head.appendChild(s);
+})();
 
 async function authLogout() {
   if(supa) await supa.auth.signOut();
@@ -5500,7 +5596,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       supaUser = session.user;
       updateAuthIndicator();
       await loadFromSupabase();
-      checkPremiumStatus(supaUser.id); // Comprovar estat Premium en restaurar sessió
+      checkPremiumStatus(supaUser.id);
     } else {
       // Sense sessió — mostrar login NOMÉS si no ha dit "Continuar sense compte"
       if(!localStorage.getItem('auth_skipped')) {
