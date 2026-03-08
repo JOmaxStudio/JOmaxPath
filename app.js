@@ -5125,6 +5125,9 @@ function applyLanguage(lang) {
   if(tmodePers) tmodePers.childNodes[0].textContent = {ca:'📋 Les meves tasques',es:'📋 Mis tareas',en:'📋 My tasks'}[lang];
   if(tmodeShared) tmodeShared.childNodes[0].textContent = {ca:'🤝 Llistes compartides',es:'🤝 Listas compartidas',en:'🤝 Shared lists'}[lang];
 
+  // === 9d. Daily quote in current lang ===
+  if(typeof renderDailyQuote === 'function') renderDailyQuote();
+
   // === 10. Lang button active state ===
   document.querySelectorAll('.lang-btn').forEach(b => {
     const isActive = b.dataset.lang === lang;
