@@ -3380,12 +3380,16 @@ body.is-premium #bnav-premium-btn { display: none !important; }
 ══════════════════════════════════════════════════════════════ */
 
 /* L'arrel de la pàgina: alçada fixa = viewport - nav bar - page title */
-#page-julians {
+/* page-julians layout ONLY when active — otherwise display:none applies */
+body.view-pages #page-julians.page-active {
   display: flex !important;
   flex-direction: column !important;
-  height: calc(100vh - 68px) !important; /* 68px = bottom nav */
+  height: calc(100vh - 68px) !important;
   overflow: hidden !important;
   padding: 0 !important;
+}
+body.view-pages #page-julians:not(.page-active) {
+  display: none !important;
 }
 
 /* Page title bar: fixa, no ocupa espai del chat */
@@ -3663,7 +3667,7 @@ body.is-premium #bnav-premium-btn { display: none !important; }
 
 /* Mobile: col-direction */
 @media(max-width: 600px) {
-  #page-julians { height: calc(100vh - 68px) !important; }
+  body.view-pages #page-julians.page-active { height: calc(100vh - 68px) !important; }
   #ai-layout { flex-direction: column !important; }
   #ai-sidebar {
     width: 100% !important; max-width: 100% !important;
