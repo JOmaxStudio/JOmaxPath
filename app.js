@@ -200,6 +200,9 @@ function defaultSchedule() {
 //  INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  // Aplicar estat Premium cachejat immediatament (evita parpelleig del FAB)
+  if(localStorage.getItem('premium_status') === '1') applyPremiumUI(true);
+
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
 
@@ -5236,6 +5239,7 @@ async function authLogin() {
   if(error) { authMsg(error.message,'error'); return; }
   supaUser = data.user;
   await loadFromSupabase();
+  checkPremiumStatus(supaUser.id); // Comprovar estat Premium
   hideAuthOverlay();
   updateAuthIndicator();
   showSyncToast('✅ Sessió iniciada');
@@ -5304,6 +5308,36 @@ function authShowMenu() {
   }
   if(confirm('Compte: ' + supaUser.email + '\n\nVols tancar sessió?')) {
     authLogout();
+  }
+}
+
+
+// ── Estat Premium ────────────────────────────────────
+// Comprova si l'usuari té Premium actiu i actualitza la UI
+async function checkPremiumStatus(userId) {
+  if(!userId) return;
+  try {
+    const res = await fetch(`/api/subscription-status?userId=${encodeURIComponent(userId)}`);
+    if(!res.ok) return;
+    const { isPremium } = await res.json();
+    applyPremiumUI(isPremium);
+    // Guardar localment per a càrregues ràpides (offline-first)
+    localStorage.setItem('premium_status', isPremium ? '1' : '0');
+  } catch(e) {
+    // Si no hi ha backend, llegir de localStorage com a fallback
+    const cached = localStorage.getItem('premium_status');
+    if(cached !== null) applyPremiumUI(cached === '1');
+    console.warn('[Premium] No s\'ha pogut comprovar l\'estat:', e.message);
+  }
+}
+
+// Aplica o elimina la classe is-premium al body
+// Això controla la visibilitat del FAB Premium, el banner de la home i el botó del nav
+function applyPremiumUI(isPremium) {
+  if(isPremium) {
+    document.body.classList.add('is-premium');
+  } else {
+    document.body.classList.remove('is-premium');
   }
 }
 
@@ -5466,6 +5500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       supaUser = session.user;
       updateAuthIndicator();
       await loadFromSupabase();
+      checkPremiumStatus(supaUser.id); // Comprovar estat Premium en restaurar sessió
     } else {
       // Sense sessió — mostrar login NOMÉS si no ha dit "Continuar sense compte"
       if(!localStorage.getItem('auth_skipped')) {
