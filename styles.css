@@ -3180,6 +3180,29 @@ body.theme-blanc .chapter-dot  { background: rgba(0,0,0,0.08); }
 body.theme-blanc #config-btn { background: #fff; border-color: rgba(109,40,217,0.2); color: #7c3aed; }
 body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); color: #1a1a2e; }
 
+/* ── Tasques (llista personal) — tema blanc ── */
+body.theme-blanc .exam-item {
+  background: #f5f6fb;
+  border-left-color: rgba(109,40,217,0.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+body.theme-blanc .exam-item:hover {
+  background: #eef0f9;
+  transform: translateX(3px);
+}
+body.theme-blanc .exam-item.urgent { border-left-color: var(--red); }
+body.theme-blanc .exam-item.soon   { border-left-color: var(--orange); }
+body.theme-blanc .exam-item.ok     { border-left-color: var(--green); }
+body.theme-blanc .exam-name  { color: #1a1a2e; }
+body.theme-blanc .exam-type-badge { background: rgba(109,40,217,0.08); color: #7c3aed; }
+body.theme-blanc .exam-check { border-color: rgba(109,40,217,0.3); }
+body.theme-blanc .exam-check.checked { background: #7c3aed; border-color: #7c3aed; }
+
+/* ── Toggle Llista/Kanban — tema blanc ── */
+body.theme-blanc .tvt-btn { background: #eef0f7; border-color: rgba(109,40,217,0.2); color: #64748b; }
+body.theme-blanc .tvt-btn:hover { background: rgba(109,40,217,0.08); color: #1a1a2e; }
+body.theme-blanc .tvt-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+
 /* ═══════════════════════════════════════════════════════════
    LAYOUT MODE — AMPLE (1 columna) i COMPACTA (2 columnes)
    Ambdós modes ocupen tota la pantalla
