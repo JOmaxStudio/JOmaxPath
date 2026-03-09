@@ -1027,17 +1027,28 @@ function renderStats() {
   // 4. Progrés (capítol actual)
   stats.push({num: progData.chapter+'/'+progData.total, label: progData.unit || lbls.progress, color:'var(--teal)'});
 
-  // 5-N. Hàbits de l'usuari (fins a 4, % setmanal)
+  // 5-N. Hàbits de l'usuari (fins a 4, ratxa + % setmanal)
   const HABIT_COLORS = ['var(--accent2)','var(--blue)','var(--pink)','var(--cyan)'];
-  const today = toLocalDateKey(new Date());
   habitsData.slice(0, 4).forEach((h, i) => {
+    // % setmanal
     let weekDone = 0;
     for(let d=0; d<7; d++){
       const dd=new Date(); dd.setDate(dd.getDate()-d); dd.setHours(12,0,0,0);
       if(h.days[toLocalDateKey(dd)]) weekDone++;
     }
     const pct = Math.round(weekDone/7*100);
-    stats.push({num: pct+'%', label: (h.icon||'') + ' ' + h.name, color: HABIT_COLORS[i % HABIT_COLORS.length]});
+    // Ratxa
+    let hStreak = 0;
+    const hd = new Date(); hd.setHours(12,0,0,0);
+    while(h.days[toLocalDateKey(hd)]){ hStreak++; hd.setDate(hd.getDate()-1); }
+    const color = HABIT_COLORS[i % HABIT_COLORS.length];
+    const todayDone = !!h.days[toLocalDateKey(new Date())];
+    stats.push({
+      num: (h.icon||'⭐') + ' ' + pct + '%',
+      label: h.name + (hStreak > 0 ? ' · 🔥' + hStreak : ''),
+      color,
+      todayDone
+    });
   });
 
   // Si no hi ha hàbits, afegir events d'avui com a stat
@@ -1047,7 +1058,10 @@ function renderStats() {
   }
 
   document.getElementById('stats-grid').innerHTML = stats.map(s=>
-    `<div class="stat-card"><div class="stat-number" style="color:${s.color}">${s.num}</div><div class="stat-label">${s.label}</div></div>`
+    `<div class="stat-card" style="${s.todayDone ? 'border-color:rgba(16,185,129,0.35);box-shadow:0 0 0 1px rgba(16,185,129,0.15) inset;' : ''}">
+      <div class="stat-number" style="color:${s.color};font-size:${String(s.num).length > 6 ? '18px' : '26px'}">${s.num}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`
   ).join('');
 }
 
@@ -3644,6 +3658,7 @@ function renderHabits() {
   if(!habitsData.length){
     const emptyMsg={ca:'Cap hàbit. Afegeix el primer! 🌱',es:'No hay hábitos. ¡Añade el primero! 🌱',en:'No habits yet. Add your first! 🌱'}[currentLang];
     list.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">${emptyMsg}</div>`;
+    renderStats();
     return;
   }
   const today=toLocalDateKey(new Date());
@@ -3675,6 +3690,8 @@ function renderHabits() {
       <span class="habit-del" onclick="deleteHabit('${h.id}')">×</span>
     </div>`;
   }).join('');
+  renderStats();
+
 }
 
 // ── PRIORITY IN TASKS ────────────────────────────────
