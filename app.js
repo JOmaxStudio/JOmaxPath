@@ -1,15 +1,15 @@
 // ── Day names i18n ──────────────────────────────────
 function getDayNames() {
-  if(currentLang==='es') return ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-  if(currentLang==='en') return ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var lang = (typeof currentLang !== 'undefined') ? currentLang : (localStorage.getItem('jomaxpath_lang') || 'ca');
+  if(lang==='es') return ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  if(lang==='en') return ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   return ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
 }
 function getDayNamesShort() {
-  return {
-    ca: ['DL','DM','DC','DJ','DV','DS','DG'],
-    es: ['L','M','X','J','V','S','D'],
-    en: ['Mo','Tu','We','Th','Fr','Sa','Su'],
-  }[currentLang] || ['DL','DM','DC','DJ','DV','DS','DG'];
+  var lang = (typeof currentLang !== 'undefined') ? currentLang : (localStorage.getItem('jomaxpath_lang') || 'ca');
+  if(lang==='es') return ['L','M','X','J','V','S','D'];
+  if(lang==='en') return ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  return ['DL','DM','DC','DJ','DV','DS','DG'];
 }
 
 /* JOmaxPath app.js */
@@ -204,7 +204,7 @@ let motoData    = JSON.parse(localStorage.getItem('moto_v2') || '{"text":"El mil
 //  DEFAULT SCHEDULE
 // ══════════════════════════════════════════════════════
 function defaultSchedule() {
-  const names = getDayNames();
+  const names = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   const result = {};
   names.forEach((n,i) => { result[i] = {name:n, sleep:'23:00', blocks:[]}; });
   return result;
@@ -758,7 +758,7 @@ function renderWeekGrid() {
   const grid = document.getElementById('week-grid'); if(!grid) return;
   grid.innerHTML='';
   const today = toLocalDateKey(new Date());
-  const dayNames=getDayNames();
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   for(let i=0;i<7;i++){
     const sched = daySchedule[i] || {name:dayNames[i],sleep:'23:00',blocks:[]};
     const dateKey = getDateForCard(i);
@@ -823,7 +823,7 @@ function renderWeekGrid() {
 
 function editDayName(dayIdx, e) {
   e.stopPropagation();
-  const dayNames=getDayNames();
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   const current = daySchedule[dayIdx]?.name || dayNames[dayIdx];
   const newName = prompt("Edita l'etiqueta del dia:", current);
   if(newName === null) return; // cancel
@@ -950,7 +950,8 @@ function editCalendariSub() {
 
 function openDayModal(dayIdx, dateKey) {
   activeDayTarget=dayIdx; activeDayDateKey=dateKey;
-  document.getElementById('day-modal-title').textContent={ca:'Afegir al ',es:'Añadir al ',en:'Add to '}[currentLang] + (daySchedule[dayIdx]?.name||getDayNames()[dayIdx]);
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+  document.getElementById('day-modal-title').textContent={ca:'Afegir al ',es:'Añadir al ',en:'Add to '}[currentLang] + (daySchedule[dayIdx]?.name||dayNames[dayIdx]);
   document.getElementById('dm-text').value='';
   document.getElementById('dm-time').value='';
   document.getElementById('day-modal-overlay').classList.add('open');
@@ -1363,7 +1364,7 @@ function renderConfigTab() {
   else renderResetTab(body);
 }
 function renderBlocksTab(body) {
-  const dayNames=getDayNames();
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   const sched=daySchedule[configActiveDay]||{name:dayNames[configActiveDay],sleep:'23:00',blocks:[]};
   const daySel=dayNames.map((n,i)=>`<button class="day-sel-btn${configActiveDay===i?' active':''}" onclick="configActiveDay=${i};editingBlockIdx=null;renderConfigTab()">${n.substring(0,2)}</button>`).join('');
 
@@ -2249,14 +2250,14 @@ function executeAITool(name, input) {
 
     if(name === 'add_schedule_block') {
       const d = parseInt(input.day);
-      if(!daySchedule[d]) daySchedule[d]={name:getDayNames()[d],sleep:'23:00',blocks:[]};
+      if(!daySchedule[d]) daySchedule[d]={name:['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'][d],sleep:'23:00',blocks:[]};
       const block = {t:input.type||'rest', time:input.time||'', label:input.label, note:input.note||''};
       daySchedule[d].blocks.push(block);
       // Sort by time
       daySchedule[d].blocks.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
       localStorage.setItem('schedule_v2', JSON.stringify(daySchedule));
       renderWeekGrid(); renderStats();
-      const dayNames=getDayNames();
+      const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
       return `✅ Bloc "${input.label}" afegit al ${dayNames[d]}${input.time?' ('+input.time+')':''}.`;
     }
 
@@ -2288,7 +2289,7 @@ function executeAITool(name, input) {
     }
 
     if(name === 'clear_week_schedule') {
-      const names=getDayNames();
+      const names=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
       names.forEach((_,i)=>{ if(daySchedule[i]) daySchedule[i].blocks=[]; else daySchedule[i]={name:names[i],sleep:'23:00',blocks:[]}; });
       localStorage.setItem('schedule_v2',JSON.stringify(daySchedule));
       renderWeekGrid(); renderStats();
@@ -2296,7 +2297,7 @@ function executeAITool(name, input) {
     }
 
     if(name === 'set_week_schedule') {
-      const names=getDayNames();
+      const names=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
       // Clear first
       names.forEach((_,i)=>{ if(daySchedule[i]) daySchedule[i].blocks=[]; else daySchedule[i]={name:names[i],sleep:'23:00',blocks:[]}; });
       // Add all blocks
@@ -2346,7 +2347,7 @@ function executeAITool(name, input) {
       daySchedule[d].sleep = input.sleep_time;
       localStorage.setItem('schedule_v2', JSON.stringify(daySchedule));
       renderWeekGrid();
-      const dayNames=getDayNames();
+      const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
       return `✅ Hora de dormir del ${dayNames[d]} actualitzada a les ${input.sleep_time}.`;
     }
 
@@ -2433,7 +2434,7 @@ function buildCalendarContext() {
   const pending = examList.filter(e=>!e.done).slice(0,6).map(e=>`${e.name}${e.date?' ('+e.date+')':''}`);
   const todayEvs = (monthEvents[today]||[]).map(e=>e.text);
   const streakCount = parseInt(document.getElementById('streak-num')?.textContent||'0');
-  const dayNames=getDayNames();
+  const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   const todayDow = new Date().getDay(); const dayIdx = todayDow===0?6:todayDow-1;
   // Timed events this week
   const now = new Date();
@@ -3203,7 +3204,7 @@ const DAILY_QUOTES_CA = [
   {t:'El temps és el recurs més escàs. Si no el gestiones, no pots gestionar res.',a:'PETER DRUCKER'},
   {t:'Fes sempre el màxim que puguis. El que plantes ara ho recolliràs més tard.',a:'OG MANDINO'},
   {t:'Quan vulguis desistir, recorda per quin motiu vas començar.',a:'DESCONEGUT'},
-  {t:'La diferència entre el que som i el que podrem ser és el que fem.',a:'RALPH WALDO EMERSON'}
+  {t:'La diferència entre el que som i el que podrem ser és el que fem.',a:'RALPH WALDO EMERSON'},
 ];
 const DAILY_QUOTES_ES = [
   {t:'El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor es ahora.',a:'PROVERBIO CHINO'},
@@ -3225,7 +3226,7 @@ const DAILY_QUOTES_ES = [
   {t:'El tiempo es el recurso más escaso. Si no lo gestionas, no puedes gestionar nada.',a:'PETER DRUCKER'},
   {t:'Haz siempre lo máximo que puedas. Lo que siembres ahora lo cosecharás más tarde.',a:'OG MANDINO'},
   {t:'Cuando quieras rendirte, recuerda por qué empezaste.',a:'DESCONOCIDO'},
-  {t:'La diferencia entre lo que somos y lo que podemos ser es lo que hacemos.',a:'RALPH WALDO EMERSON'}
+  {t:'La diferencia entre lo que somos y lo que podemos ser es lo que hacemos.',a:'RALPH WALDO EMERSON'},
 ];
 const DAILY_QUOTES_EN = [
   {t:'The best time to plant a tree was 20 years ago. The second best time is now.',a:'CHINESE PROVERB'},
@@ -3247,9 +3248,9 @@ const DAILY_QUOTES_EN = [
   {t:'Time is the scarcest resource. If you do not manage it, you manage nothing.',a:'PETER DRUCKER'},
   {t:'Always do your best. What you plant now, you will harvest later.',a:'OG MANDINO'},
   {t:'When you want to give up, remember why you started.',a:'UNKNOWN'},
-  {t:'The gap between who we are and who we could be is what we do.',a:'RALPH WALDO EMERSON'}
+  {t:'The gap between who we are and who we could be is what we do.',a:'RALPH WALDO EMERSON'},
 ];
-function getDailyQuotes() { return currentLang==="es"?DAILY_QUOTES_ES:currentLang==="en"?DAILY_QUOTES_EN:DAILY_QUOTES_CA; }
+function getDailyQuotes() { return currentLang==='es'?DAILY_QUOTES_ES:currentLang==='en'?DAILY_QUOTES_EN:DAILY_QUOTES_CA; }
 
 // ── DAILY QUOTE ─────────────────────────────────────
 function renderDailyQuote() {
@@ -3260,7 +3261,8 @@ function renderDailyQuote() {
     localStorage.setItem('quote_idx', quoteIndex);
     localStorage.setItem('quote_date', today);
   }
-  const _ql = getDailyQuotes(); const q = _ql[quoteIndex % _ql.length];
+  const _ql = getDailyQuotes();
+  const q = _ql[quoteIndex % _ql.length];
   document.getElementById('dq-text').textContent = '"' + q.t + '"';
   document.getElementById('dq-author').textContent = '— ' + q.a;
 }
@@ -3288,17 +3290,17 @@ function renderTodayDashboard() {
     <div class="today-card">
       <div class="tc-icon">📋</div>
       <div class="tc-val" style="color:var(--yellow)">${pending}</div>
-      <div class="tc-lbl">${currentLang==='es'?'Tareas pendientes':currentLang==='en'?'Pending tasks':'Tasques pendents'}</div>
+      <div class="tc-lbl">Tasques pendents</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">📅</div>
       <div class="tc-val" style="color:var(--accent2)">${evCount}</div>
-      <div class="tc-lbl">${currentLang==='es'?'Eventos hoy':currentLang==='en'?'Events today':'Events avui'}</div>
+      <div class="tc-lbl">Events avui</div>
     </div>
     <div class="today-card">
       <div class="tc-icon">🍅</div>
       <div class="tc-val" style="color:var(--red)">${pomoToday}</div>
-      <div class="tc-lbl">${currentLang==='es'?'Pomodoros hoy':currentLang==='en'?'Pomodoros today':'Pomodoros avui'}</div>
+      <div class="tc-lbl">Pomodoros avui</div>
     </div>
   `;
   // Now indicator
@@ -3424,22 +3426,22 @@ function pomoReset() {
 }
 // ── POMODORO GAMIFICATION ────────────────────────────
 const POMO_LEVELS = [
-  {min:0,   max:50,  get name(){return currentLang==='es'?'APRENDIZ':currentLang==='en'?'LEARNER':'APRENENT'},   emoji:'🌱', color:'#6ee7b7'},
-  {min:50,  max:150, get name(){return currentLang==='es'?'ESTUDIANTE':currentLang==='en'?'STUDENT':'ESTUDIANT'},  emoji:'📚', color:'#93c5fd'},
-  {min:150, max:350, get name(){return currentLang==='es'?'CONCENTRADO':currentLang==='en'?'FOCUSED':'CONCENTRAT'}, emoji:'🎯', color:'#c4b5fd'},
-  {min:350, max:700, get name(){return currentLang==='es'?'ENFOCADO':currentLang==='en'?'SHARPENED':'ENFOCADOR'},  emoji:'🔥', color:'#fcd34d'},
-  {min:700, max:1400,get name(){return 'FLOW STATE'},                                                               emoji:'⚡', color:'#fb923c'},
-  {min:1400,max:3000,get name(){return currentLang==='es'?'DEEP WORKER':currentLang==='en'?'DEEP WORKER':'DEEP WORKER'},emoji:'💎', color:'#f472b6'},
+  {min:0,   max:50,  get name(){return currentLang==='es'?'APRENDIZ':currentLang==='en'?'LEARNER':'APRENENT'},             emoji:'🌱', color:'#6ee7b7'},
+  {min:50,  max:150, get name(){return currentLang==='es'?'ESTUDIANTE':currentLang==='en'?'STUDENT':'ESTUDIANT'},           emoji:'📚', color:'#93c5fd'},
+  {min:150, max:350, get name(){return currentLang==='es'?'CONCENTRADO':currentLang==='en'?'FOCUSED':'CONCENTRAT'},         emoji:'🎯', color:'#c4b5fd'},
+  {min:350, max:700, get name(){return currentLang==='es'?'ENFOCADO':currentLang==='en'?'SHARPENED':'ENFOCADOR'},           emoji:'🔥', color:'#fcd34d'},
+  {min:700, max:1400,get name(){return 'FLOW STATE'},                                                                        emoji:'⚡', color:'#fb923c'},
+  {min:1400,max:3000,get name(){return currentLang==='es'?'DEEP WORKER':currentLang==='en'?'DEEP WORKER':'DEEP WORKER'},    emoji:'💎', color:'#f472b6'},
   {min:3000,max:Infinity, get name(){return currentLang==='es'?'MAESTRO FOCUS':currentLang==='en'?'FOCUS MASTER':'MESTRE DEL FOCUS'}, emoji:'🏆', color:'#fbbf24'}
 ];
 const POMO_REWARDS = [
-  {id:'first',   need:10,   emoji:'🍅', get label(){return currentLang==='es'?'Primer Pomo':currentLang==='en'?'First Pomo':'Primer Pomo'},      get desc(){return currentLang==='es'?'El primero siempre cuesta! +10 XP':currentLang==='en'?'First one always hurts! +10 XP':'El primer sempre costa! +10 XP'}},
-  {id:'five',    need:50,   emoji:'🔥', get label(){return currentLang==='es'?'En Racha':currentLang==='en'?'On a Roll':'En Ratxa'},              get desc(){return currentLang==='es'?'50 XP acumulados':currentLang==='en'?'50 XP accumulated':'50 XP acumulats'}},
-  {id:'ten',     need:150,  emoji:'⚡', get label(){return currentLang==='es'?'Enfocado':currentLang==='en'?'Focused':'Enfocador'},               get desc(){return currentLang==='es'?'150 XP - Buen camino!':currentLang==='en'?'150 XP - On track!':'150 XP - Vas be!'}},
-  {id:'goal',    need:'goal',emoji:'🎯',get label(){return currentLang==='es'?'Objetivo Hoy':currentLang==='en'?'Daily Goal':'Objectiu Avui'},    get desc(){return currentLang==='es'?'Meta diaria lograda!':currentLang==='en'?'Daily goal reached!':'Meta diaria assolida!'}},
-  {id:'twenty',  need:350,  emoji:'💎', get label(){return currentLang==='es'?'Focus Profundo':currentLang==='en'?'Deep Focus':'Focus Profund'},  get desc(){return currentLang==='es'?'350 XP - Deep work':currentLang==='en'?'350 XP - Deep work activated':'350 XP - Treball profund'}},
-  {id:'fifty',   need:700,  emoji:'🏆', get label(){return currentLang==='es'?'Maestro':currentLang==='en'?'Master':'Mestre'},                    get desc(){return currentLang==='es'?'700 XP - Flow State':currentLang==='en'?'700 XP - Flow State level':'700 XP - Nivell Flow State'}},
-  {id:'hundred', need:1400, emoji:'👑', get label(){return currentLang==='es'?'Leyenda':currentLang==='en'?'Legend':'Llegenda'},                  get desc(){return currentLang==='es'?'1400 XP - Deep Worker':currentLang==='en'?'1400 XP - Deep Worker legend':'1400 XP - Deep Worker llegenda'}},
+  {id:'first',   need:10,   emoji:'🍅', get label(){return currentLang==='es'?'Primer Pomo':currentLang==='en'?'First Pomo':'Primer Pomo'},          get desc(){return currentLang==='es'?'El primero siempre cuesta! +10 XP':currentLang==='en'?'First one always hurts! +10 XP':'El primer sempre costa! +10 XP'}},
+  {id:'five',    need:50,   emoji:'🔥', get label(){return currentLang==='es'?'En Racha':currentLang==='en'?'On a Roll':'En Ratxa'},                  get desc(){return currentLang==='es'?'50 XP acumulados':currentLang==='en'?'50 XP accumulated':'50 XP acumulats'}},
+  {id:'ten',     need:150,  emoji:'⚡', get label(){return currentLang==='es'?'Enfocado':currentLang==='en'?'Focused':'Enfocador'},                   get desc(){return currentLang==='es'?'150 XP - Buen camino!':currentLang==='en'?'150 XP - On track!':'150 XP - Vas be!'}},
+  {id:'goal',    need:'goal',emoji:'🎯',get label(){return currentLang==='es'?'Objetivo Hoy':currentLang==='en'?'Daily Goal':'Objectiu Avui'},        get desc(){return currentLang==='es'?'Meta diaria lograda!':currentLang==='en'?'Daily goal reached!':'Meta diaria assolida!'}},
+  {id:'twenty',  need:350,  emoji:'💎', get label(){return currentLang==='es'?'Focus Profundo':currentLang==='en'?'Deep Focus':'Focus Profund'},      get desc(){return currentLang==='es'?'350 XP - Deep work':currentLang==='en'?'350 XP - Deep work activated':'350 XP - Treball profund'}},
+  {id:'fifty',   need:700,  emoji:'🏆', get label(){return currentLang==='es'?'Maestro':currentLang==='en'?'Master':'Mestre'},                        get desc(){return currentLang==='es'?'700 XP - Flow State':currentLang==='en'?'700 XP - Flow State level':'700 XP - Nivell Flow State'}},
+  {id:'hundred', need:1400, emoji:'👑', get label(){return currentLang==='es'?'Leyenda':currentLang==='en'?'Legend':'Llegenda'},                      get desc(){return currentLang==='es'?'1400 XP - Deep Worker':currentLang==='en'?'1400 XP - Deep Worker legend':'1400 XP - Deep Worker llegenda'}},
 ];
 let pomoGameData = JSON.parse(localStorage.getItem('pomo_game_v1') || '{"xp":0,"dailyGoal":4,"earnedRewards":[]}');
 let pomoDailyGoal = pomoGameData.dailyGoal || 4;
@@ -3476,12 +3478,7 @@ function renderPomoGame() {
   const xpBar = document.getElementById('pomo-xp-bar');
   if(xpBar) { xpBar.style.width = pct + '%'; xpBar.style.background = `linear-gradient(90deg,${level.color},var(--accent))`; }
   const xpSub = document.getElementById('pomo-xp-sub');
-  if(xpSub) {
-    const _left = xpNeeded - xpInLevel;
-    if(currentLang==='es') xpSub.textContent = nextLevel ? `${_left} XP para "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivel maximo alcanzado!';
-    else if(currentLang==='en') xpSub.textContent = nextLevel ? `${_left} XP to reach "${nextLevel.name}" ${nextLevel.emoji} · Every 5min = 10 XP` : '🏆 Max level reached!';
-    else xpSub.textContent = nextLevel ? `${_left} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell maxim assolit!';
-  }
+  if(xpSub) xpSub.textContent = nextLevel ? `${xpNeeded - xpInLevel} XP per a "${nextLevel.name}" ${nextLevel.emoji} · Cada 5min = 10 XP` : '🏆 Nivell màxim assolit!';
 
   // Daily goal dots
   const goalEl = document.getElementById('pomo-goal-num');
@@ -3875,7 +3872,7 @@ function runSearch(q) {
   Object.entries(daySchedule).forEach(([di, day]) => {
     (day.blocks||[]).forEach(b => {
       if(b.label.toLowerCase().includes(ql)) {
-        const dayNames=getDayNames();
+        const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
         results.push({
           icon:'📅', text:b.label, meta:`${dayNames[di]} · ${b.time||''}`, cat:'HORARI',
           action:()=>{ closeSearch(); navTo('horari'); }
@@ -4019,18 +4016,9 @@ function updateClock() {
   // Date on fullscreen
   var fsD = document.getElementById('fs-clock-date');
   if(fsD) {
-    const _dSun = {
-      ca: ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'],
-      es: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
-      en: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-    }[currentLang] || ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
-    const _mon = {
-      ca: ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'],
-      es: ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
-      en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-    }[currentLang] || ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
-    const _de = currentLang==='en' ? ' ' : ' de ';
-    fsD.textContent = _dSun[now.getDay()] + ', ' + now.getDate() + _de + _mon[now.getMonth()] + _de + now.getFullYear();
+    var days = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+    var months = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+    fsD.textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' de ' + now.getFullYear();
   }
 }
 
@@ -5031,14 +5019,11 @@ function applyLanguage(lang) {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     const val = t(key);
-    // Preserve any inner elements (info buttons etc.)
-    const innerEls = Array.from(el.querySelectorAll('*'));
-    const saved = innerEls.map(e => e.outerHTML);
+    const innerEls = Array.from(el.children);
     if(innerEls.length > 0) {
-      // Remove all child nodes, set text, re-append saved elements
-      while(el.firstChild) el.removeChild(el.firstChild);
-      el.appendChild(document.createTextNode(val + ' '));
-      innerEls.forEach(e => el.appendChild(e));
+      const saved = innerEls.map(e => { el.removeChild(e); return e; });
+      el.textContent = val + ' ';
+      saved.forEach(e => el.appendChild(e));
     } else {
       el.textContent = val;
     }
@@ -5113,36 +5098,6 @@ function applyLanguage(lang) {
   stats.forEach((el,i) => { if(statKeys[i]) el.textContent = t(statKeys[i]); });
 
   // === 10. Lang button active state ===
-
-  // === Cal header days ===
-  const _calHeader = document.querySelector('.cal-grid-header');
-  if(_calHeader) {
-    const shorts = getDayNamesShort();
-    _calHeader.innerHTML = shorts.map(d=>`<span>${d}</span>`).join('');
-  }
-  if(typeof renderDailyQuote==='function') renderDailyQuote();
-  const _tp=document.getElementById('tmode-personal');
-  if(_tp) _tp.textContent=currentLang==='es'?'\uD83D\uDCCB Mis tareas':currentLang==='en'?'\uD83D\uDCCB My tasks':'\uD83D\uDCCB Les meves tasques';
-  const _ts=document.getElementById('tmode-shared');
-  if(_ts) _ts.textContent=currentLang==='es'?'\uD83E\uDD1D Listas compartidas':currentLang==='en'?'\uD83E\uDD1D Shared lists':'\uD83E\uDD1D Llistes compartides';
-  const _tvL=document.getElementById('tvt-list');
-  if(_tvL) _tvL.textContent=currentLang==='es'?'\u2630 Lista':currentLang==='en'?'\u2630 List':'\u2630 Llista';
-  const _tvSL=document.getElementById('tvt-shared-list');
-  if(_tvSL) _tvSL.textContent=currentLang==='es'?'\u2630 Lista':currentLang==='en'?'\u2630 List':'\u2630 Llista';
-  const _ptl=document.getElementById('pomo-treball-lbl');
-  if(_ptl) _ptl.textContent=currentLang==='es'?'TRABAJO':currentLang==='en'?'WORK':'TREBALL';
-  const _pdl=document.getElementById('pomo-descans-lbl');
-  if(_pdl) _pdl.textContent=currentLang==='es'?'DESCANSO':currentLang==='en'?'BREAK':'DESCANS';
-  const _pal=document.getElementById('pomo-auto-lbl');
-  if(_pal) _pal.textContent='(auto)';
-  const _pab=document.getElementById('pomo-aplicar-btn');
-  if(_pab) _pab.textContent=currentLang==='es'?'APLICAR':currentLang==='en'?'APPLY':'APLICAR';
-  const _pgt=document.getElementById('pomo-goal-title');
-  if(_pgt) _pgt.textContent=currentLang==='es'?'\uD83C\uDFAF OBJETIVO DE HOY':currentLang==='en'?"\uD83C\uDFAF TODAY'S GOAL":"\uD83C\uDFAF OBJECTIU D'AVUI";
-  const _prt=document.getElementById('pomo-rewards-title');
-  if(_prt) _prt.textContent=currentLang==='es'?'\uD83C\uDFC6 RECOMPENSAS':currentLang==='en'?'\uD83C\uDFC6 REWARDS':'\uD83C\uDFC6 RECOMPENSES';
-  if(typeof renderPomoGame==='function') renderPomoGame();
-  if(typeof renderTodayDashboard==='function') renderTodayDashboard();
   document.querySelectorAll('.lang-btn').forEach(b => {
     const isActive = b.dataset.lang === lang;
     b.classList.toggle('active', isActive);
@@ -6092,9 +6047,9 @@ function renderBoardDetail(boardId) {
   const detail = document.getElementById('shared-board-detail');
 
   const cols = [
-    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
   ];
 
   const tasks = board.tasks || {};
@@ -6516,9 +6471,9 @@ function renderPersonalKanban() {
   const board = document.getElementById('personal-kanban-board');
   if(!board) return;
   const cols = [
-    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
   ];
   board.className = 'kanban-board';
   board.innerHTML = cols.map(col => {
@@ -6677,9 +6632,9 @@ function renderSharedKanbanDirect() {
   // Renderitzar kanban del board seleccionat
   const board = sharedBoards[sharedKanbanActiveBoardId];
   const cols = [
-    { id:'todo',  label:currentLang==='es'?'POR HACER':currentLang==='en'?'TO DO':'PER COMENÇAR', cls:'kcol-todo' },
-    { id:'doing', label:currentLang==='es'?'EN PROGRESO':currentLang==='en'?'IN PROGRESS':'EN CURS', cls:'kcol-doing' },
-    { id:'done',  label:currentLang==='es'?'HECHO':currentLang==='en'?'DONE':'FINALITZADES', cls:'kcol-done' }
+    { id:'todo',  label:'PER COMENÇAR', cls:'kcol-todo' },
+    { id:'doing', label:'EN CURS',       cls:'kcol-doing' },
+    { id:'done',  label:'FINALITZADES',  cls:'kcol-done' }
   ];
   const tasks = board.tasks || {};
   container.innerHTML = `
