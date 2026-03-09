@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStats();
   renderExams();
   renderNextUp();
-  renderCalendar();
-  renderMatches();
   renderVictories();
   renderAllDayEvents();
+  // Initialize horari tabs
+  switchHorariTab(activeHorariTab);
   // AI
   initAI();
   // Ara indicator
@@ -261,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // New features
   renderDailyQuote();
   renderTodayDashboard();
-  renderHabits();
   setInterval(renderTodayDashboard, 60000); // update every min
   updatePomoDisplay();
   pomoCurrent = pomoFocusMins * 60;
@@ -324,10 +323,10 @@ function navTo(page) {
   // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
   document.body.classList.toggle('on-julians', page === 'julians');
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
-    b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
+    b.classList.toggle('active', ['home','horari','tasques','julians','focus'][i] === page);
   });
   document.querySelectorAll('#nav-drawer .ndw-item').forEach((item,i) => {
-    item.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
+    item.classList.toggle('active', ['home','horari','tasques','julians','focus'][i] === page);
   });
   if (page === 'julians') {
     // No fem scroll a dalt — volem quedar-nos al final del xat
@@ -340,6 +339,37 @@ function navTo(page) {
   const drawer = document.getElementById('nav-drawer');
   if(drawer && drawer.classList.contains('open')) toggleDrawer();
 }
+
+// ── HORARI TABS ─────────────────────────────────────────────
+let activeHorariTab = localStorage.getItem('horari_tab') || 'setmanal';
+function switchHorariTab(tab) {
+  activeHorariTab = tab;
+  localStorage.setItem('horari_tab', tab);
+  ['setmanal','mensual','habits'].forEach(t => {
+    const view = document.getElementById('horari-'+t+'-view');
+    const btn  = document.getElementById('htab-'+t);
+    if(view) view.style.display = t === tab ? '' : 'none';
+    if(btn)  btn.classList.toggle('active', t === tab);
+  });
+  if(tab === 'mensual') { renderCalendar(); renderMatches(); }
+  if(tab === 'habits')  { renderHabits(); renderHabitColorPicker(); }
+}
+function renderHabitColorPicker() {
+  const picker = document.getElementById('habit-color-picker'); if(!picker) return;
+  if(picker.children.length) return; // already rendered
+  const COLORS = ['#10b981','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#ef4444','#06b6d4','#84cc16'];
+  picker.innerHTML = COLORS.map((c,i) => `<div onclick="selectHabitColor(this,'${c}')" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2px solid transparent;transition:all 0.15s;" data-color="${c}" ${i===0?'class="hc-selected"':''}></div>`).join('');
+  if(COLORS[0]) picker.children[0] && (picker.children[0].style.border = '2px solid white');
+}
+function selectHabitColor(el, color) {
+  document.querySelectorAll('#habit-color-picker div').forEach(d => d.style.border = '2px solid transparent');
+  el.style.border = '2px solid white';
+}
+function getSelectedHabitColor() {
+  const sel = document.querySelector('#habit-color-picker div[style*="2px solid white"]');
+  return sel ? sel.dataset.color : '#10b981';
+}
+
 function setViewMode(mode) {
   localStorage.setItem('view_mode', mode);
   applyViewMode(mode);
@@ -3627,17 +3657,24 @@ function updatePomoDisplay() {
 // ── MULTI-HABIT TRACKER ──────────────────────────────
 function toggleHabitForm() {
   const f=document.getElementById('habit-add-form');
-  f.classList.toggle('open');
-  if(f.classList.contains('open')) setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
+  const isOpen = f.style.display !== 'none' && f.style.display !== '';
+  f.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen) {
+    renderHabitColorPicker();
+    setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
+  }
 }
 function addHabit() {
   const name=document.getElementById('habit-name-inp').value.trim();
   const icon=document.getElementById('habit-icon-inp').value.trim()||'⭐';
+  const desc=document.getElementById('habit-desc-inp').value.trim();
+  const color=getSelectedHabitColor();
   if(!name) return;
-  habitsData.push({id:'h'+Date.now(),name,icon,days:{}});
+  habitsData.push({id:'h'+Date.now(),name,icon,desc,color,days:{}});
   localStorage.setItem('habits_v1',JSON.stringify(habitsData));
   document.getElementById('habit-name-inp').value='';
-  document.getElementById('habit-add-form').classList.remove('open');
+  document.getElementById('habit-desc-inp').value='';
+  toggleHabitForm();
   renderHabits();
 }
 function deleteHabit(id) {
@@ -3656,42 +3693,65 @@ function toggleHabitDay(habitId, dateKey) {
 function renderHabits() {
   const list=document.getElementById('habits-list'); if(!list) return;
   if(!habitsData.length){
-    const emptyMsg={ca:'Cap hàbit. Afegeix el primer! 🌱',es:'No hay hábitos. ¡Añade el primero! 🌱',en:'No habits yet. Add your first! 🌱'}[currentLang];
-    list.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">${emptyMsg}</div>`;
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 20px;border:1px dashed var(--border);border-radius:16px;">Cap hàbit afegit encara.<br><span style="font-size:11px;">Prem "+ NOU HÀBIT" per começar 🌱</span></div>';
     renderStats();
     return;
   }
   const today=toLocalDateKey(new Date());
+  // Determine dot grid columns based on screen width
+  const DAYS = 91; // ~13 weeks
+  const COLS = Math.min(DAYS, Math.max(30, Math.floor((window.innerWidth - 64) / 7)));
+  const ROWS = Math.ceil(DAYS / COLS);
+
   list.innerHTML=habitsData.map(h=>{
-    // Last 14 days
+    const color = h.color || '#10b981';
+    // Check if done today
+    const doneToday = !!h.days[today];
+    // Build dot grid (oldest first, left to right)
     const dots=[];
-    for(let i=13;i>=0;i--){
+    for(let i=DAYS-1;i>=0;i--){
       const d=new Date();d.setDate(d.getDate()-i);d.setHours(12,0,0,0);
       const k=toLocalDateKey(d);
       const isToday=k===today;
       const done=!!h.days[k];
-      dots.push(`<div class="habit-dot${done?' done':''}${isToday?' today-h':''}" onclick="toggleHabitDay('${h.id}','${k}')" title="${k}">${isToday?'●':''}${!isToday?d.getDate():''}</div>`);
+      const bg = done
+        ? color
+        : isToday
+          ? 'rgba(255,255,255,0.12)'
+          : 'rgba(255,255,255,0.05)';
+      dots.push(`<div class="habit-kit-dot${isToday?' today-dot':''}" style="background:${bg};" onclick="toggleHabitDay('${h.id}','${k}')" title="${k}"></div>`);
     }
     // Streak calc
     let streak=0;const dd=new Date();dd.setHours(12,0,0,0);
     while(h.days[toLocalDateKey(dd)]){streak++;dd.setDate(dd.getDate()-1);}
-    // Week pct
+    // This week %
     let weekDone=0;
     for(let i=0;i<7;i++){const dd2=new Date();dd2.setDate(dd2.getDate()-i);dd2.setHours(12,0,0,0);if(h.days[toLocalDateKey(dd2)])weekDone++;}
     const pct=Math.round(weekDone/7*100);
-    return `<div class="habit-row">
-      <span class="habit-icon-btn">${h.icon}</span>
-      <div class="habit-info">
-        <div class="habit-name">${h.name}</div>
-        <div class="habit-streak-txt">🔥 ${{ca:'Ratxa',es:'Racha',en:'Streak'}[currentLang]}: ${streak} ${{ca:'dies',es:'días',en:'days'}[currentLang]} · 7 ${{ca:'dies',es:'días',en:'days'}[currentLang]}: ${pct}%</div>
+    // Icon background
+    const iconBg = color + '28';
+    const checkStyle = doneToday
+      ? `background:${color};border-color:${color};`
+      : `border-color:${color};color:${color};`;
+    return `<div class="habit-kit-card">
+      <div class="habit-kit-header">
+        <div class="habit-kit-icon-wrap" style="background:${iconBg};">${h.icon||'⭐'}</div>
+        <div class="habit-kit-info">
+          <div class="habit-kit-name">${h.name}</div>
+          ${h.desc?`<div class="habit-kit-desc">${h.desc}</div>`:''}
+        </div>
+        <button class="habit-kit-check-btn${doneToday?' checked':''}" style="${checkStyle}" onclick="toggleHabitDay('${h.id}','${today}')" title="${doneToday?'Desmarcar':'Fet avui'}">
+          ${doneToday?'✓':'+'}
+        </button>
       </div>
-      <div class="habit-dots">${dots.join('')}</div>
-      <span class="habit-week-pct" style="color:${pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--muted)'};">${pct}%</span>
-      <span class="habit-del" onclick="deleteHabit('${h.id}')">×</span>
+      <div class="habit-kit-dot-grid" style="grid-template-columns:repeat(${COLS},1fr);">${dots.join('')}</div>
+      <div class="habit-kit-footer">
+        <span class="habit-kit-streak">🔥 ${streak} dies de ratxa · setmana: ${pct}%</span>
+        <button class="habit-kit-del" onclick="deleteHabit('${h.id}')">🗑️</button>
+      </div>
     </div>`;
   }).join('');
   renderStats();
-
 }
 
 // ── PRIORITY IN TASKS ────────────────────────────────
@@ -3899,7 +3959,7 @@ function runSearch(q) {
       if((ev.text||'').toLowerCase().includes(ql)) {
         results.push({
           icon: '📅', text: ev.text, meta: date+(ev.time?' · '+ev.time:''), cat:'EVENT',
-          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); navTo('calendari'); }
+          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); switchHorariTab('mensual');navTo('horari'); }
         });
       }
     });
@@ -3968,7 +4028,7 @@ document.addEventListener('keydown', e => {
     case '1': navTo('home'); break;
     case '2': navTo('tasques'); break;
     case '3': navTo('julians'); break;
-    case '4': navTo('calendari'); break;
+    case '4': switchHorariTab('mensual');navTo('horari'); break;
   }
 });
 
