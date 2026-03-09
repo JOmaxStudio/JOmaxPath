@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStats();
   renderExams();
   renderNextUp();
+  renderCalendar();
+  renderMatches();
   renderVictories();
   renderAllDayEvents();
-  // Initialize horari tabs
-  switchHorariTab(activeHorariTab);
   // AI
   initAI();
   // Ara indicator
@@ -261,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // New features
   renderDailyQuote();
   renderTodayDashboard();
+  renderHabits();
   setInterval(renderTodayDashboard, 60000); // update every min
   updatePomoDisplay();
   pomoCurrent = pomoFocusMins * 60;
@@ -340,45 +341,26 @@ function navTo(page) {
   if(drawer && drawer.classList.contains('open')) toggleDrawer();
 }
 
-// ── HORARI TABS ─────────────────────────────────────────────
-let activeHorariTab = localStorage.getItem('horari_tab') || 'setmanal';
+// ── Switch Horari Tabs ─────────────────────
 function switchHorariTab(tab) {
-  activeHorariTab = tab;
-  localStorage.setItem('horari_tab', tab);
-  ['setmanal','mensual','habits'].forEach(t => {
-    const view = document.getElementById('horari-'+t+'-view');
-    const btn  = document.getElementById('htab-'+t);
-    if(view) view.style.display = t === tab ? '' : 'none';
-    if(btn) {
-      btn.classList.toggle('active', t === tab);
-      if(t === tab) {
-        btn.style.background = 'rgba(0,180,216,0.15)';
-        btn.style.borderColor = 'rgba(0,180,216,0.35)';
-        btn.style.color = '#38bdf8';
-      } else {
-        btn.style.background = 'transparent';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = 'rgba(255,255,255,0.5)';
-      }
-    }
-  });
-  if(tab === 'mensual') { renderCalendar(); renderMatches(); }
-  if(tab === 'habits')  { renderHabits(); renderHabitColorPicker(); }
-}
-function renderHabitColorPicker() {
-  const picker = document.getElementById('habit-color-picker'); if(!picker) return;
-  if(picker.children.length) return; // already rendered
-  const COLORS = ['#10b981','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#ef4444','#06b6d4','#84cc16'];
-  picker.innerHTML = COLORS.map((c,i) => `<div onclick="selectHabitColor(this,'${c}')" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2px solid transparent;transition:all 0.15s;" data-color="${c}" ${i===0?'class="hc-selected"':''}></div>`).join('');
-  if(COLORS[0]) picker.children[0] && (picker.children[0].style.border = '2px solid white');
-}
-function selectHabitColor(el, color) {
-  document.querySelectorAll('#habit-color-picker div').forEach(d => d.style.border = '2px solid transparent');
-  el.style.border = '2px solid white';
-}
-function getSelectedHabitColor() {
-  const sel = document.querySelector('#habit-color-picker div[style*="2px solid white"]');
-  return sel ? sel.dataset.color : '#10b981';
+  // Remove active class from all tabs
+  document.querySelectorAll('.horari-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.horari-tab-content').forEach(c => c.style.display = 'none');
+  
+  // Add active class to selected tab
+  const tabBtn = document.getElementById('htab-' + tab);
+  const tabContent = document.getElementById('htab-content-' + tab);
+  
+  if (tabBtn) tabBtn.classList.add('active');
+  if (tabContent) tabContent.style.display = 'block';
+  
+  // Render content based on tab
+  if (tab === 'mensual') {
+    renderCalendarInTab();
+    renderMatches();
+  } else if (tab === 'habits') {
+    renderHabitKit();
+  }
 }
 
 function setViewMode(mode) {
@@ -3668,24 +3650,17 @@ function updatePomoDisplay() {
 // ── MULTI-HABIT TRACKER ──────────────────────────────
 function toggleHabitForm() {
   const f=document.getElementById('habit-add-form');
-  const isOpen = f.style.display !== 'none' && f.style.display !== '';
-  f.style.display = isOpen ? 'none' : 'block';
-  if(!isOpen) {
-    renderHabitColorPicker();
-    setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
-  }
+  f.classList.toggle('open');
+  if(f.classList.contains('open')) setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
 }
 function addHabit() {
   const name=document.getElementById('habit-name-inp').value.trim();
   const icon=document.getElementById('habit-icon-inp').value.trim()||'⭐';
-  const desc=document.getElementById('habit-desc-inp').value.trim();
-  const color=getSelectedHabitColor();
   if(!name) return;
-  habitsData.push({id:'h'+Date.now(),name,icon,desc,color,days:{}});
+  habitsData.push({id:'h'+Date.now(),name,icon,days:{}});
   localStorage.setItem('habits_v1',JSON.stringify(habitsData));
   document.getElementById('habit-name-inp').value='';
-  document.getElementById('habit-desc-inp').value='';
-  toggleHabitForm();
+  document.getElementById('habit-add-form').classList.remove('open');
   renderHabits();
 }
 function deleteHabit(id) {
@@ -3704,65 +3679,198 @@ function toggleHabitDay(habitId, dateKey) {
 function renderHabits() {
   const list=document.getElementById('habits-list'); if(!list) return;
   if(!habitsData.length){
-    list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 20px;border:1px dashed var(--border);border-radius:16px;">Cap hàbit afegit encara.<br><span style="font-size:11px;">Prem "+ NOU HÀBIT" per começar 🌱</span></div>';
+    const emptyMsg={ca:'Cap hàbit. Afegeix el primer! 🌱',es:'No hay hábitos. ¡Añade el primero! 🌱',en:'No habits yet. Add your first! 🌱'}[currentLang];
+    list.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">${emptyMsg}</div>`;
     renderStats();
     return;
   }
   const today=toLocalDateKey(new Date());
-  // Determine dot grid columns based on screen width
-  const DAYS = 91; // ~13 weeks
-  const COLS = Math.min(DAYS, Math.max(30, Math.floor((window.innerWidth - 64) / 7)));
-  const ROWS = Math.ceil(DAYS / COLS);
-
   list.innerHTML=habitsData.map(h=>{
-    const color = h.color || '#10b981';
-    // Check if done today
-    const doneToday = !!h.days[today];
-    // Build dot grid (oldest first, left to right)
+    // Last 14 days
     const dots=[];
-    for(let i=DAYS-1;i>=0;i--){
+    for(let i=13;i>=0;i--){
       const d=new Date();d.setDate(d.getDate()-i);d.setHours(12,0,0,0);
       const k=toLocalDateKey(d);
       const isToday=k===today;
       const done=!!h.days[k];
-      const bg = done
-        ? color
-        : isToday
-          ? 'rgba(255,255,255,0.12)'
-          : 'rgba(255,255,255,0.05)';
-      dots.push(`<div class="habit-kit-dot${isToday?' today-dot':''}" style="background:${bg};" onclick="toggleHabitDay('${h.id}','${k}')" title="${k}"></div>`);
+      dots.push(`<div class="habit-dot${done?' done':''}${isToday?' today-h':''}" onclick="toggleHabitDay('${h.id}','${k}')" title="${k}">${isToday?'●':''}${!isToday?d.getDate():''}</div>`);
     }
     // Streak calc
     let streak=0;const dd=new Date();dd.setHours(12,0,0,0);
     while(h.days[toLocalDateKey(dd)]){streak++;dd.setDate(dd.getDate()-1);}
-    // This week %
+    // Week pct
     let weekDone=0;
     for(let i=0;i<7;i++){const dd2=new Date();dd2.setDate(dd2.getDate()-i);dd2.setHours(12,0,0,0);if(h.days[toLocalDateKey(dd2)])weekDone++;}
     const pct=Math.round(weekDone/7*100);
-    // Icon background
-    const iconBg = color + '28';
-    const checkStyle = doneToday
-      ? `background:${color};border-color:${color};`
-      : `border-color:${color};color:${color};`;
-    return `<div class="habit-kit-card">
-      <div class="habit-kit-header">
-        <div class="habit-kit-icon-wrap" style="background:${iconBg};">${h.icon||'⭐'}</div>
-        <div class="habit-kit-info">
-          <div class="habit-kit-name">${h.name}</div>
-          ${h.desc?`<div class="habit-kit-desc">${h.desc}</div>`:''}
-        </div>
-        <button class="habit-kit-check-btn${doneToday?' checked':''}" style="${checkStyle}" onclick="toggleHabitDay('${h.id}','${today}')" title="${doneToday?'Desmarcar':'Fet avui'}">
-          ${doneToday?'✓':'+'}
-        </button>
+    return `<div class="habit-row">
+      <span class="habit-icon-btn">${h.icon}</span>
+      <div class="habit-info">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-streak-txt">🔥 ${{ca:'Ratxa',es:'Racha',en:'Streak'}[currentLang]}: ${streak} ${{ca:'dies',es:'días',en:'days'}[currentLang]} · 7 ${{ca:'dies',es:'días',en:'days'}[currentLang]}: ${pct}%</div>
       </div>
-      <div class="habit-kit-dot-grid" style="grid-template-columns:repeat(${COLS},1fr);">${dots.join('')}</div>
-      <div class="habit-kit-footer">
-        <span class="habit-kit-streak">🔥 ${streak} dies de ratxa · setmana: ${pct}%</span>
-        <button class="habit-kit-del" onclick="deleteHabit('${h.id}')">🗑️</button>
-      </div>
+      <div class="habit-dots">${dots.join('')}</div>
+      <span class="habit-week-pct" style="color:${pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--muted)'};">${pct}%</span>
+      <span class="habit-del" onclick="deleteHabit('${h.id}')">×</span>
     </div>`;
   }).join('');
   renderStats();
+
+}
+
+// ── HABITKIT (Grid de punts) ────────────────────────────────
+let habitKitData = JSON.parse(localStorage.getItem('habitkit_data') || '[]');
+
+function toggleHabitKitForm() {
+  const form = document.getElementById('habitkit-form');
+  if (form.style.display === 'none' || !form.style.display) {
+    form.style.display = 'block';
+  } else {
+    form.style.display = 'none';
+  }
+}
+
+function addHabitKit() {
+  const name = document.getElementById('hk-name').value.trim();
+  const icon = document.getElementById('hk-icon').value.trim() || '⭐';
+  const desc = document.getElementById('hk-desc').value.trim();
+  const color = document.getElementById('hk-color').value;
+  
+  if (!name) return alert('Escriu un nom per l\'hàbit!');
+  
+  const habit = {
+    id: Date.now() + '',
+    name,
+    icon,
+    desc,
+    color,
+    days: {} // { '2026-03-09': true, ... }
+  };
+  
+  habitKitData.push(habit);
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  
+  // Clear form
+  document.getElementById('hk-name').value = '';
+  document.getElementById('hk-icon').value = '⭐';
+  document.getElementById('hk-desc').value = '';
+  document.getElementById('habitkit-form').style.display = 'none';
+  
+  renderHabitKit();
+}
+
+function deleteHabitKit(id) {
+  if (!confirm('Segur que vols eliminar aquest hàbit?')) return;
+  habitKitData = habitKitData.filter(h => h.id !== id);
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  renderHabitKit();
+}
+
+function toggleHabitKitDay(habitId, dateKey) {
+  const habit = habitKitData.find(h => h.id === habitId);
+  if (!habit) return;
+  
+  if (habit.days[dateKey]) {
+    delete habit.days[dateKey];
+  } else {
+    habit.days[dateKey] = true;
+  }
+  
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  renderHabitKit();
+}
+
+function renderHabitKit() {
+  const list = document.getElementById('habitkit-list');
+  const empty = document.getElementById('habitkit-empty');
+  if (!list) return;
+  
+  if (!habitKitData.length) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  
+  if (empty) empty.style.display = 'none';
+  
+  const today = toLocalDateKey(new Date());
+  
+  list.innerHTML = habitKitData.map(h => {
+    // Generate 91 days grid (13 weeks × 7 days)
+    const dots = [];
+    for (let i = 90; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(12, 0, 0, 0);
+      const k = toLocalDateKey(d);
+      const isToday = k === today;
+      const done = !!h.days[k];
+      
+      dots.push(`
+        <div class="habitkit-dot ${done ? 'done' : ''} ${isToday ? 'today' : ''}" 
+             style="--habit-color: ${h.color};"
+             onclick="toggleHabitKitDay('${h.id}', '${k}')"
+             title="${k}">
+        </div>
+      `);
+    }
+    
+    // Calculate streak
+    let streak = 0;
+    const dd = new Date();
+    dd.setHours(12, 0, 0, 0);
+    while (h.days[toLocalDateKey(dd)]) {
+      streak++;
+      dd.setDate(dd.getDate() - 1);
+    }
+    
+    // Calculate week percentage
+    let weekDone = 0;
+    for (let i = 0; i < 7; i++) {
+      const dd2 = new Date();
+      dd2.setDate(dd2.getDate() - i);
+      dd2.setHours(12, 0, 0, 0);
+      if (h.days[toLocalDateKey(dd2)]) weekDone++;
+    }
+    const pct = Math.round(weekDone / 7 * 100);
+    
+    // Check if today is done
+    const todayDone = !!h.days[today];
+    
+    return `
+      <div class="habitkit-item">
+        <div class="habitkit-item-header">
+          <div class="habitkit-icon">${h.icon}</div>
+          <div class="habitkit-info">
+            <div class="habitkit-name">${h.name}</div>
+            ${h.desc ? `<div class="habitkit-desc">${h.desc}</div>` : ''}
+          </div>
+          <button class="habitkit-check-btn ${todayDone ? 'done' : ''}" 
+                  style="--habit-color: ${h.color}; border-color: ${h.color};"
+                  onclick="toggleHabitKitDay('${h.id}', '${today}')">
+            ${todayDone ? '✓' : ''}
+          </button>
+        </div>
+        <div class="habitkit-grid">
+          ${dots.join('')}
+        </div>
+        <div class="habitkit-stats">
+          <div class="habitkit-stat">
+            <span>🔥</span>
+            <span class="habitkit-stat-value">${streak}</span>
+            <span>dies</span>
+          </div>
+          <div class="habitkit-stat">
+            <span>📊</span>
+            <span class="habitkit-stat-value">${pct}%</span>
+            <span>setmana</span>
+          </div>
+        </div>
+        <button class="habitkit-delete-btn" onclick="deleteHabitKit('${h.id}')">
+          🗑️ Eliminar
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── PRIORITY IN TASKS ────────────────────────────────
@@ -3970,7 +4078,7 @@ function runSearch(q) {
       if((ev.text||'').toLowerCase().includes(ql)) {
         results.push({
           icon: '📅', text: ev.text, meta: date+(ev.time?' · '+ev.time:''), cat:'EVENT',
-          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); switchHorariTab('mensual');navTo('horari'); }
+          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); navTo('calendari'); }
         });
       }
     });
@@ -4039,7 +4147,7 @@ document.addEventListener('keydown', e => {
     case '1': navTo('home'); break;
     case '2': navTo('tasques'); break;
     case '3': navTo('julians'); break;
-    case '4': switchHorariTab('mensual');navTo('horari'); break;
+    case '4': navTo('calendari'); break;
   }
 });
 
@@ -7158,4 +7266,81 @@ function showPremiumSoon(){
   clearTimeout(_pst);
   t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
   _pst=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
+}
+
+// ── CALENDARI MENSUAL (dins tabs d'Horari) ────────────────────────────────
+function calendarPrevMonth() {
+  calMonth--;
+  if (calMonth < 0) {
+    calMonth = 11;
+    calYear--;
+  }
+  renderCalendarInTab();
+}
+
+function calendarNextMonth() {
+  calMonth++;
+  if (calMonth > 11) {
+    calMonth = 0;
+    calYear++;
+  }
+  renderCalendarInTab();
+}
+
+function renderCalendarInTab() {
+  const grid = document.getElementById('calendar-grid');
+  if (!grid) return;
+  
+  const monthNames = getMonthNames();
+  const monthTitle = document.getElementById('calendar-month');
+  if (monthTitle) {
+    monthTitle.textContent = monthNames[calMonth] + ' ' + calYear;
+  }
+  
+  grid.innerHTML = '';
+  const today = toLocalDateKey(new Date());
+  const firstDay = new Date(calYear, calMonth, 1);
+  const dow = firstDay.getDay(); // 0=Sun
+  const startOffset = dow === 0 ? 6 : dow - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  
+  // Day headers
+  const dayNames = {
+    ca: ['DL', 'DT', 'DC', 'DJ', 'DV', 'DS', 'DG'],
+    es: ['LU', 'MA', 'MI', 'JU', 'VI', 'SÁ', 'DO'],
+    en: ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']
+  }[currentLang] || ['DL', 'DT', 'DC', 'DJ', 'DV', 'DS', 'DG'];
+  
+  for (let i = 0; i < 7; i++) {
+    const headerCell = document.createElement('div');
+    headerCell.className = 'calendar-day calendar-day-header';
+    headerCell.textContent = dayNames[i];
+    grid.appendChild(headerCell);
+  }
+  
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    cell.style.opacity = '0';
+    cell.style.cursor = 'default';
+    grid.appendChild(cell);
+  }
+  
+  // Days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = dk === today;
+    const evs = monthEvents[dk] || [];
+    
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (evs.length ? ' has-event' : '');
+    cell.textContent = d;
+    cell.onclick = () => {
+      // Could open modal or navigate to week view
+      navigateToDate(dk);
+      switchHorariTab('setmanal');
+    };
+    grid.appendChild(cell);
+  }
 }
