@@ -349,7 +349,18 @@ function switchHorariTab(tab) {
     const view = document.getElementById('horari-'+t+'-view');
     const btn  = document.getElementById('htab-'+t);
     if(view) view.style.display = t === tab ? '' : 'none';
-    if(btn)  btn.classList.toggle('active', t === tab);
+    if(btn) {
+      btn.classList.toggle('active', t === tab);
+      if(t === tab) {
+        btn.style.background = 'rgba(0,180,216,0.15)';
+        btn.style.borderColor = 'rgba(0,180,216,0.35)';
+        btn.style.color = '#38bdf8';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = 'rgba(255,255,255,0.5)';
+      }
+    }
   });
   if(tab === 'mensual') { renderCalendar(); renderMatches(); }
   if(tab === 'habits')  { renderHabits(); renderHabitColorPicker(); }
