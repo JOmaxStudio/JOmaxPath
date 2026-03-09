@@ -3680,6 +3680,8 @@ function addExam() {
     localStorage.setItem('month_events_v2',JSON.stringify(monthEvents));
     refreshAllDayCards();
   }
+  // Sincronitzar al kanban si ja ha estat inicialitzat
+  if(Object.keys(personalKanbanTasks).length > 0) syncExamsToKanban();
 }
 
 function renderExams() {
@@ -5254,7 +5256,7 @@ function initSupabase() {
     return true;
   } catch(e) { console.warn('[Auth] Error init Supabase:', e); return false; }
 }
-const ALL_KEYS = ['exams_v3','month_events_v2','day_events_v2','timed_events_v1','streak_v2','prog_v2','goal_v2','moto_v2','victories_v2','schedule_v2','profile_v2','day_badges_v2','matches_v1','julians_chats_v2','theme_v1'];
+const ALL_KEYS = ['exams_v3','month_events_v2','day_events_v2','timed_events_v1','streak_v2','prog_v2','goal_v2','moto_v2','victories_v2','schedule_v2','profile_v2','day_badges_v2','matches_v1','julians_chats_v2','theme_v1','habits_v1','pomo_v1','personal_kanban_v1','custom_block_types_v1'];
 
 // ── Pàgina de login ──────────────────────────────────
 function showAuthOverlay() {
@@ -5356,12 +5358,20 @@ function updateAuthIndicator() {
     // Amaga el botó "Iniciar sessió" si existeix
     const loginBtn = document.getElementById('drawer-login-btn');
     if(loginBtn) loginBtn.style.display = 'none';
+    // Amaga avís de dades locals
+    const localWarn = document.getElementById('local-data-warning');
+    if(localWarn) localWarn.style.display = 'none';
   } else {
     // Amaga indicador
     if(ind) ind.style.display = 'none';
     // Mostra botó "Iniciar sessió"
     const loginBtn = document.getElementById('drawer-login-btn');
     if(loginBtn) loginBtn.style.display = 'flex';
+    // Mostra avís de dades locals si ha fet skip
+    if(localStorage.getItem('auth_skipped')) {
+      const localWarn = document.getElementById('local-data-warning');
+      if(localWarn) localWarn.style.display = 'flex';
+    }
   }
 }
 
@@ -5939,7 +5949,40 @@ function setPersonalView(view) {
   document.getElementById('tvt-kanban')?.classList.toggle('active', view==='kanban');
   document.getElementById('personal-list-view').style.display = view==='list' ? '' : 'none';
   document.getElementById('personal-kanban-view').style.display = view==='kanban' ? '' : 'none';
-  if(view==='kanban') renderPersonalKanban();
+  if(view==='kanban') {
+    syncExamsToKanban();
+    renderPersonalKanban();
+  }
+}
+
+// Sincronitza les tasques de la llista (examList) al kanban personal si no hi són ja
+function syncExamsToKanban() {
+  let changed = false;
+  // Recull els ids d'examList ja presents al kanban (via camp exam_id)
+  const existingExamIds = new Set(
+    Object.values(personalKanbanTasks).map(t => t.exam_id).filter(Boolean)
+  );
+  examList.forEach(ex => {
+    if(ex.done) return; // no sincronitzar les completades
+    if(existingExamIds.has(ex.id)) return; // ja existeix
+    const taskId = 'pk_exam_' + ex.id;
+    if(personalKanbanTasks[taskId]) return; // ja hi és per id
+    personalKanbanTasks[taskId] = {
+      id: taskId,
+      exam_id: ex.id,
+      title: ex.name,
+      desc: '',
+      assignees: [],
+      due: ex.date || '',
+      urgency: ex.prio === 1 ? 'red' : ex.prio === 2 ? 'yellow' : 'green',
+      status: 'todo',
+      notes: [],
+      links: [],
+      createdAt: new Date().toISOString()
+    };
+    changed = true;
+  });
+  if(changed) savePersonalKanban();
 }
 
 function setSharedView(view) {
