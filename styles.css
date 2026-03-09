@@ -3096,6 +3096,13 @@ body.theme-blanc .ndw-bottom { border-top-color: rgba(109,40,217,0.12); }
 body.theme-blanc .ndw-bottom-btn { background: #f0f2f8; border-color: rgba(109,40,217,0.15); color: #64748b; }
 body.theme-blanc .ndw-bottom-btn:hover { color: #7c3aed; border-color: #7c3aed; }
 
+/* Auth indicator — tema blanc */
+body.theme-blanc #auth-indicator { border-top-color: rgba(109,40,217,0.12); }
+body.theme-blanc #auth-indicator:hover { background: rgba(109,40,217,0.05); }
+body.theme-blanc #auth-user-email { color: #64748b; }
+body.theme-blanc #auth-signout-hint { color: #94a3b8; }
+body.theme-blanc #drawer-login-btn { border-top-color: rgba(109,40,217,0.1) !important; color: #7c3aed !important; }
+
 /* IA chat */
 body.theme-blanc .ai-msg.user {
   background: linear-gradient(135deg,rgba(109,40,217,0.12),rgba(109,40,217,0.08));
