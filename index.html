@@ -275,12 +275,21 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
   <div id="auth-indicator" onclick="authShowMenu()">
     <div class="auth-dot" id="auth-dot"></div>
     <span id="auth-user-email"></span>
-    <span id="auth-signout-hint">Sortir →</span>
+    <span id="auth-signout-hint" style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:6px;color:#fca5a5;font-size:9px;font-family:'Space Mono',monospace;white-space:nowrap;">🚪 Sortir</span>
   </div>
   <!-- Auth: sense sessió -->
   <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
     <div style="width:7px;height:7px;border-radius:50%;background:rgba(0,180,216,0.3);flex-shrink:0;"></div>
     <span>INICIAR SESSIÓ</span>
+  </div>
+  <!-- Avís: mode local sense compte -->
+  <div id="local-data-warning" style="display:none;align-items:center;gap:8px;padding:8px 16px;background:rgba(245,158,11,0.08);border-top:1px solid rgba(245,158,11,0.15);cursor:pointer;" onclick="showAuthOverlay();toggleDrawer()" title="Les dades només es guarden en aquest navegador">
+    <span style="font-size:13px;">⚠️</span>
+    <div style="flex:1;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#fcd34d;letter-spacing:1px;">DADES LOCALS</div>
+      <div style="font-size:9px;color:#94a3b8;margin-top:1px;">Crea un compte per no perdre-les</div>
+    </div>
+    <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,180,216,0.7);">→</span>
   </div>
 
   <div class="ndw-section">Vista</div>
