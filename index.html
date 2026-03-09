@@ -216,6 +216,147 @@ body.theme-blanc .ai-msg.assistant { background: #fff !important; box-shadow: 0 
 body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
 body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 
+/* ══════════════════════════════════════════════════════════════
+   HORARI TABS
+══════════════════════════════════════════════════════════════ */
+.horari-tabs-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 4px;
+}
+.horari-tab {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.horari-tab:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.horari-tab.active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent2);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HABITKIT TRACKER
+══════════════════════════════════════════════════════════════ */
+.habit-kit-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.habit-kit-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.habit-kit-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.habit-kit-info { flex: 1; min-width: 0; }
+.habit-kit-name {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.habit-kit-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.habit-kit-check-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.habit-kit-check-btn.checked { color: white; }
+.habit-kit-dot-grid {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+}
+.habit-kit-dot {
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  aspect-ratio: 1;
+}
+.habit-kit-dot:hover { transform: scale(1.3); }
+.habit-kit-dot.today-dot {
+  box-shadow: 0 0 0 1.5px white;
+}
+.habit-kit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.habit-kit-streak {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+.habit-kit-del {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.15);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.habit-kit-del:hover { color: #fca5a5; background: rgba(239,68,68,0.1); }
+.habit-add-form-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
 </style>
 <!-- LAYOUT-FIX-END -->
 </head><body class="view-pages">
@@ -311,7 +452,6 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
   <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
   <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
   <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
-  <div class="bnav-item" onclick="navTo('calendari')"><div class="bnav-icon">🗓️</div><div class="bnav-lbl">CALENDARI</div></div>
   <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
 </nav>
 
@@ -416,38 +556,158 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div class="page-title-bar">
       <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📅</div>
       <div class="page-title-text">
-        <h2 id="pt-horari-h2">HORARI <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?" style="vertical-align:middle;margin-left:6px;">i</button></h2>
+        <h2 id="pt-horari-h2">HORARI</h2>
+        <p>Setmanal · Mensual · Hàbits</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?">i</button>
+    </div>
+
+    <!-- Tabs: Setmanal | Mensual | Hàbits -->
+    <div class="horari-tabs-row">
+      <button class="horari-tab active" id="htab-setmanal" onclick="switchHorariTab('setmanal')">📅 Setmanal</button>
+      <button class="horari-tab" id="htab-mensual" onclick="switchHorariTab('mensual')">🗓️ Mensual</button>
+      <button class="horari-tab" id="htab-habits" onclick="switchHorariTab('habits')">🌱 Hàbits</button>
+    </div>
+
+    <!-- ── Vista: SETMANAL ── -->
+    <div id="horari-setmanal-view">
+      <!-- Next up -->
+      <div id="next-up-bar" style="display:none;" class="next-up-bar">
+        <div class="next-up-icon">📌</div>
+        <div class="next-up-info">
+          <div class="next-up-label" data-i18n="next_task">PRÒXIMA TASCA</div>
+          <div class="next-up-text" id="next-up-text"></div>
+          <div class="next-up-when" id="next-up-when"></div>
+        </div>
+        <div class="next-up-countdown" id="next-up-cd"></div>
+      </div>
+
+      <!-- Week nav -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="section-title" style="margin:0;flex:1;" data-i18n="sec_this_week">aquesta setmana</div>
+        <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
+        <div style="display:flex;gap:6px;">
+          <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
+          <div id="week-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
+          <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
+        </div>
+      </div>
+
+      <div class="week-grid" id="week-grid"></div>
+
+      <!-- Weekly summary -->
+      <div class="weekly-summary">
+        <div class="section-title" style="margin-bottom:0;" data-i18n="sec_weekly_summary">resum setmanal</div>
+        <div class="stats-grid" id="stats-grid"></div>
       </div>
     </div>
 
-    <!-- Next up -->
-    <div id="next-up-bar" style="display:none;" class="next-up-bar">
-      <div class="next-up-icon">📌</div>
-      <div class="next-up-info">
-        <div class="next-up-label" data-i18n="next_task">PRÒXIMA TASCA</div>
-        <div class="next-up-text" id="next-up-text"></div>
-        <div class="next-up-when" id="next-up-when"></div>
-      </div>
-      <div class="next-up-countdown" id="next-up-cd"></div>
+    <!-- ── Vista: MENSUAL ── -->
+    <div id="horari-mensual-view" style="display:none;">
+      <div class="cal-two-col">
+        <!-- Monthly Calendar -->
+        <div class="monthly-section">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+            <h3 id="cal-month-title">Març 2026</h3>
+            <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+          </div>
+          <div class="cal-grid-header" id="cal-grid-header">
+            <span>DL</span><span>DM</span><span>DC</span><span>DJ</span><span>DV</span><span>DS</span><span>DG</span>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-legend">
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;"></div><span id="cal-leg-exam">Examen/Entrega</span></div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#5eead4;"></div><span id="cal-leg-deures">Deures</span></div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;border-radius:50%;"></div><span id="cal-leg-partit">Partit</span></div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent2);"></div><span id="cal-leg-altres">Altres</span></div>
+          </div>
+        </div>
+
+        <!-- Matches -->
+        <div class="matches-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;">
+              <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
+              <button onclick="editMatchesTitle()" title="Editar títol" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:12px;padding:0;">✎</button>
+              <button class="info-btn" onclick="showInfo('partits')" title="Com funciona?">i</button>
+            </div>
+            <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
+          </div>
+
+          <!-- Add/Edit form -->
+          <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
+                <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
+                <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
+                <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
+                <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
+                <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
+                <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+              <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
+              <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
+              <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
+            </div>
+            <input type="hidden" id="mf-edit-id" value="" />
+            <div style="display:flex;gap:8px;">
+              <button onclick="saveMatch()" style="flex:1;background:var(--red);color:white;font-weight:700;font-size:12px;padding:9px;border-radius:8px;border:none;cursor:pointer;" data-i18n="btn_save">💾 GUARDAR</button>
+              <button onclick="toggleMatchForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;" data-i18n="btn_cancel">Cancel·lar</button>
+            </div>
+          </div>
+
+          <div id="matches-list"></div>
+        </div>
+      </div><!-- /cal-two-col -->
     </div>
 
-    <!-- Week nav -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-      <div class="section-title" style="margin:0;flex:1;" data-i18n="sec_this_week">aquesta setmana</div>
-      <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
-      <div style="display:flex;gap:6px;">
-        <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
-        <div id="week-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
-        <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
+    <!-- ── Vista: HÀBITS ── -->
+    <div id="horari-habits-view" style="display:none;">
+      <!-- Header hàbits -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="section-title" style="margin:0;">🌱 els meus hàbits</div>
+        <button onclick="toggleHabitForm()" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;">+ NOU HÀBIT</button>
       </div>
-    </div>
 
-    <div class="week-grid" id="week-grid"></div>
+      <!-- Formulari nou hàbit -->
+      <div id="habit-add-form" class="habit-add-form-panel" style="display:none;">
+        <div style="display:grid;grid-template-columns:56px 1fr;gap:10px;margin-bottom:10px;">
+          <input type="text" id="habit-icon-inp" placeholder="🌱" maxlength="4" style="text-align:center;font-size:22px;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:10px;padding:8px;outline:none;" />
+          <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." maxlength="40" style="background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:14px;border-radius:10px;padding:8px 12px;outline:none;" onkeydown="if(event.key==='Enter')addHabit()" />
+        </div>
+        <input type="text" id="habit-desc-inp" placeholder="Descripció breu (opcional)..." maxlength="60" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:12px;border-radius:10px;padding:8px 12px;outline:none;box-sizing:border-box;margin-bottom:10px;" />
+        <!-- Color picker -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">COLOR:</span>
+          <div id="habit-color-picker" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="addHabit()" style="flex:1;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-weight:700;font-size:12px;padding:9px;border-radius:8px;cursor:pointer;">✓ AFEGIR</button>
+          <button onclick="toggleHabitForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;">Cancel·lar</button>
+        </div>
+      </div>
 
-    <!-- Weekly summary -->
-    <div class="weekly-summary">
-      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_weekly_summary">resum setmanal</div>
-      <div class="stats-grid" id="stats-grid"></div>
+      <!-- Llista de hàbits estil HabitKit -->
+      <div id="habits-list"></div>
     </div>
   </div>
 
@@ -781,92 +1041,6 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     </div>
   </div>
 
-  <!-- ═══ PAGE: CALENDARI ═══ -->
-  <div class="app-page" id="page-calendari">
-    <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🗓️</div>
-      <div class="page-title-text">
-        <h2 id="pt-calendari-h2">CALENDARI</h2>
-        <p id="pt-calendari-sub" ondblclick="editCalendariSub()" title="Doble clic per editar" style="cursor:pointer">Events · Calendari mensual</p>
-      </div>
-      <button class="info-btn" onclick="showInfo('calendari')" title="Com funciona?">i</button>
-    </div>
-
-    <div class="cal-two-col">
-    <!-- Monthly Calendar -->
-    <div class="monthly-section">
-      <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
-        <h3 id="cal-month-title">Març 2026</h3>
-        <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
-      </div>
-      <div class="cal-grid-header" id="cal-grid-header">
-        <span>DL</span><span>DM</span><span>DC</span><span>DJ</span><span>DV</span><span>DS</span><span>DG</span>
-      </div>
-      <div class="cal-grid" id="cal-grid"></div>
-      <div class="cal-legend">
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;"></div><span id="cal-leg-exam">Examen/Entrega</span></div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#5eead4;"></div><span id="cal-leg-deures">Deures</span></div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fca5a5;border-radius:50%;"></div><span id="cal-leg-partit">Partit</span></div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent2);"></div><span id="cal-leg-altres">Altres</span></div>
-      </div>
-    </div>
-
-    <!-- Matches -->
-    <div class="matches-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:8px;flex:1;">
-          <span id="matches-title-display" ondblclick="editMatchesTitle()" title="Doble clic per editar" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;" data-key="matches_title">🏒 partits de la temporada</span>
-          <button onclick="editMatchesTitle()" title="Editar títol" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:12px;padding:0;">✎</button>
-          <button class="info-btn" onclick="showInfo('partits')" title="Com funciona?">i</button>
-        </div>
-        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;" data-i18n="btn_add_match">+ AFEGIR PARTIT</button>
-      </div>
-
-      <!-- Add/Edit form -->
-      <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
-            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
-            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
-            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
-            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
-            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
-            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
-          <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
-          <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
-        </div>
-        <input type="hidden" id="mf-edit-id" value="" />
-        <div style="display:flex;gap:8px;">
-          <button onclick="saveMatch()" style="flex:1;background:var(--red);color:white;font-weight:700;font-size:12px;padding:9px;border-radius:8px;border:none;cursor:pointer;" data-i18n="btn_save">💾 GUARDAR</button>
-          <button onclick="toggleMatchForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;" data-i18n="btn_cancel">Cancel·lar</button>
-        </div>
-      </div>
-
-      <div id="matches-list"></div>
-    </div>
-    </div><!-- /cal-two-col -->
-  </div>
 
   <!-- ═══ PAGE: FOCUS ═══ -->
   <div class="app-page" id="page-focus">
