@@ -241,6 +241,7 @@
   .exam-list { display:flex; flex-direction:column; gap:10px; }
   .exam-item {
     background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
     border-left: 3px solid var(--border);
     border-radius: 12px;
     padding: 14px 16px;
@@ -3182,12 +3183,13 @@ body.theme-blanc #search-fab { background: #fff; border-color: rgba(0,0,0,0.1); 
 
 /* ── Tasques (llista personal) — tema blanc ── */
 body.theme-blanc .exam-item {
-  background: #f5f6fb;
-  border-left-color: rgba(109,40,217,0.25);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  background: #eef0f9 !important;
+  border-color: rgba(109,40,217,0.2) !important;
+  border-left-color: rgba(109,40,217,0.5) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
 }
 body.theme-blanc .exam-item:hover {
-  background: #eef0f9;
+  background: #e4e7f5 !important;
   transform: translateX(3px);
 }
 body.theme-blanc .exam-item.urgent { border-left-color: var(--red); }
