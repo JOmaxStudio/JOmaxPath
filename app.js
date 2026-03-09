@@ -1001,33 +1001,52 @@ function editBadge(i, e) {
 //  STATS
 // ══════════════════════════════════════════════════════
 function renderStats() {
-  // Calculate from schedule
-  let progH=0, skolaH=0, hockeyH=0, robotH=0;
-  function calcH(t) {
-    const [s,e]=t.split('-');
-    if(!s||!e) return 0;
-    const [sh,sm]=s.split(':').map(Number);
-    const [eh,em]=e.split(':').map(Number);
-    return (eh*60+em-sh*60-(sm||0))/60;
+  const stats = [];
+  const lbls = {
+    ca: { pending:'Tasques pendents', streak:'Ratxa actual', progress:'Progrés', habitWeek:'% hàbits setmana', done:'Completades', events:'Events avui' },
+    es: { pending:'Tareas pendientes', streak:'Racha actual', progress:'Progreso', habitWeek:'% hábitos semana', done:'Completadas', events:'Eventos hoy' },
+    en: { pending:'Pending tasks', streak:'Current streak', progress:'Progress', habitWeek:'% habits week', done:'Completed', events:'Today events' }
+  }[currentLang] || { pending:'Pending tasks', streak:'Current streak', progress:'Progress', habitWeek:'% habits week', done:'Completed', events:'Today events' };
+
+  // 1. Tasques pendents
+  const pending = examList.filter(e=>!e.done).length;
+  const done    = examList.filter(e=>e.done).length;
+  stats.push({num: pending, label: lbls.pending, color:'var(--yellow)'});
+
+  // 2. Tasques completades
+  stats.push({num: done, label: lbls.done, color:'var(--green)'});
+
+  // 3. Ratxa (streak) — dies consecutius fins avui
+  let streakCount = 0;
+  const _sd = new Date(); _sd.setHours(12,0,0,0);
+  while(streakData.days && streakData.days[toLocalDateKey(_sd)]) {
+    streakCount++; _sd.setDate(_sd.getDate()-1);
   }
-  Object.values(daySchedule).forEach(d=>{
-    (d.blocks||[]).forEach(b=>{
-      const h=calcH(b.time||'');
-      if(b.t==='prog') progH+=h;
-      else if(b.t==='escola') skolaH+=h;
-      else if(b.t==='hockey') hockeyH+=h;
-      else if(b.t==='robotech') robotH+=h;
-    });
+  stats.push({num: streakCount + '🔥', label: lbls.streak, color:'var(--orange)'});
+
+  // 4. Progrés (capítol actual)
+  stats.push({num: progData.chapter+'/'+progData.total, label: progData.unit || lbls.progress, color:'var(--teal)'});
+
+  // 5-N. Hàbits de l'usuari (fins a 4, % setmanal)
+  const HABIT_COLORS = ['var(--accent2)','var(--blue)','var(--pink)','var(--cyan)'];
+  const today = toLocalDateKey(new Date());
+  habitsData.slice(0, 4).forEach((h, i) => {
+    let weekDone = 0;
+    for(let d=0; d<7; d++){
+      const dd=new Date(); dd.setDate(dd.getDate()-d); dd.setHours(12,0,0,0);
+      if(h.days[toLocalDateKey(dd)]) weekDone++;
+    }
+    const pct = Math.round(weekDone/7*100);
+    stats.push({num: pct+'%', label: (h.icon||'') + ' ' + h.name, color: HABIT_COLORS[i % HABIT_COLORS.length]});
   });
-  const stats=[
-    {num:progH.toFixed(1)+'h',label:'Programació setmanal',color:'var(--accent2)'},
-    {num:skolaH.toFixed(0)+'h',label:'Institut setmanal',color:'var(--blue)'},
-    {num:hockeyH.toFixed(1)+'h',label:'Hoquei setmanal',color:'var(--red)'},
-    {num:robotH.toFixed(1)+'h',label:'Robotech setmanal',color:'var(--green)'},
-    {num:examList.filter(e=>!e.done).length,label:'Tasques pendents',color:'var(--yellow)'},
-    {num:progData.chapter+'/'+progData.total,label:progData.unit||'Capítol'+' actual',color:'var(--teal)'}
-  ];
-  document.getElementById('stats-grid').innerHTML=stats.map(s=>
+
+  // Si no hi ha hàbits, afegir events d'avui com a stat
+  if(!habitsData.length) {
+    const todayEvents = (dayEvents[today]||[]).length + (Array.isArray(timedEvents) ? timedEvents.filter(e=>e.date===today).length : 0);
+    stats.push({num: todayEvents, label: lbls.events, color:'var(--blue)'});
+  }
+
+  document.getElementById('stats-grid').innerHTML = stats.map(s=>
     `<div class="stat-card"><div class="stat-number" style="color:${s.color}">${s.num}</div><div class="stat-label">${s.label}</div></div>`
   ).join('');
 }
