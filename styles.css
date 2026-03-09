@@ -3192,9 +3192,9 @@ body.theme-blanc .exam-item:hover {
   background: #e4e7f5 !important;
   transform: translateX(3px);
 }
-body.theme-blanc .exam-item.urgent { border-left-color: var(--red); }
-body.theme-blanc .exam-item.soon   { border-left-color: var(--orange); }
-body.theme-blanc .exam-item.ok     { border-left-color: var(--green); }
+body.theme-blanc .exam-item.urgent { border-left-color: var(--red) !important; }
+body.theme-blanc .exam-item.soon   { border-left-color: var(--orange) !important; }
+body.theme-blanc .exam-item.ok     { border-left-color: var(--green) !important; }
 body.theme-blanc .exam-name  { color: #1a1a2e; }
 body.theme-blanc .exam-type-badge { background: rgba(109,40,217,0.08); color: #7c3aed; }
 body.theme-blanc .exam-check { border-color: rgba(109,40,217,0.3); }
