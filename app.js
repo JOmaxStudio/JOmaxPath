@@ -1056,9 +1056,8 @@ function deleteExam(id) {
   }
   renderExams(); renderNextUp(); renderCalendar(); refreshAllDayCards();
 }
-function toggleExamDone(id) {
-  const e=examList.find(e=>e.id===id);
-  if(e){ e.done=!e.done; localStorage.setItem('exams_v3',JSON.stringify(examList)); renderExams(); renderNextUp(); }
+function _toggleExamDoneLegacy(id) {
+  // Substituïda per la versió completa més avall
 }
 
 function saveExamEdit(id) {
@@ -3963,6 +3962,14 @@ function toggleExamDone(id) {
   const wasUndone = !ex.done;
   ex.done = !ex.done;
   localStorage.setItem('exams_v3', JSON.stringify(examList));
+
+  // ── Sincronització bidireccional: actualitzar estat al kanban ──
+  const kanbanKey = 'pk_exam_' + id;
+  if(personalKanbanTasks[kanbanKey]) {
+    personalKanbanTasks[kanbanKey].status = ex.done ? 'done' : 'todo';
+    savePersonalKanban();
+  }
+
   // Animate
   const checkEl = document.querySelector(`#exam-${id} .exam-check`);
   const itemEl = document.getElementById('exam-'+id);
@@ -6582,6 +6589,21 @@ function movePersonalTask(taskId, newStatus) {
   const oldStatus = personalKanbanTasks[taskId].status;
   personalKanbanTasks[taskId].status = newStatus;
   savePersonalKanban();
+
+  // ── Sincronització bidireccional: actualitzar llista si és una tasca sincronitzada ──
+  if(taskId.startsWith('pk_exam_')) {
+    const examId = taskId.replace('pk_exam_', '');
+    const ex = examList.find(e=>e.id===examId);
+    if(ex) {
+      const shouldBeDone = (newStatus === 'done');
+      if(ex.done !== shouldBeDone) {
+        ex.done = shouldBeDone;
+        localStorage.setItem('exams_v3', JSON.stringify(examList));
+        renderExams(); renderNextUp();
+      }
+    }
+  }
+
   _playMoveAnimation(oldStatus, newStatus, ()=>renderPersonalKanban());
 }
 
