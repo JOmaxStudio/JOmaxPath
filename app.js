@@ -1024,6 +1024,7 @@ function editBadge(i, e) {
 //  STATS
 // ══════════════════════════════════════════════════════
 function renderStats() {
+  const today = toLocalDateKey(new Date());
   const stats = [];
   const lbls = {
     ca: { pending:'Tasques pendents', streak:'Ratxa actual', progress:'Progrés', habitWeek:'% hàbits setmana', done:'Completades', events:'Events avui' },
