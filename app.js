@@ -4078,7 +4078,7 @@ function runSearch(q) {
       if((ev.text||'').toLowerCase().includes(ql)) {
         results.push({
           icon: '📅', text: ev.text, meta: date+(ev.time?' · '+ev.time:''), cat:'EVENT',
-          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); navTo('calendari'); }
+          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendarInTab(); navTo('horari'); setTimeout(()=>switchHorariTab('mensual'), 100); }
         });
       }
     });
@@ -4147,7 +4147,7 @@ document.addEventListener('keydown', e => {
     case '1': navTo('home'); break;
     case '2': navTo('tasques'); break;
     case '3': navTo('julians'); break;
-    case '4': navTo('calendari'); break;
+    case '4': navTo('focus'); break;
   }
 });
 
