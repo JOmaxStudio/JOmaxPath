@@ -4020,7 +4020,7 @@ function addExam() {
   const type=document.getElementById('exam-type').value;
   const prio=document.getElementById('exam-prio')?.value||'3';
   if(!name) return;
-  const exam={id:Date.now()+'',name,date,type,prio:parseInt(prio),done:false};
+  const exam={id:Date.now()+'',name,date,type,prio:parseInt(prio),done:false,subtasks:[]};
   examList.push(exam);
   localStorage.setItem('exams_v3',JSON.stringify(examList));
   document.getElementById('exam-name').value='';
@@ -4083,11 +4083,30 @@ function renderExams() {
     }
     const pc=prioColors[ex.prio||3]||'prio-3';
     const pl=prioLabels[ex.prio||3]||'P3';
+    const subtasks = ex.subtasks || [];
+    const subtasksDone = subtasks.filter(s=>s.done).length;
+    const subtaskHTML = subtasks.length ? `
+      <div class="exam-subtasks">
+        ${subtasks.map((s,si)=>`
+          <div class="subtask-row ${s.done?'done':''}">
+            <div class="subtask-check ${s.done?'checked':''}" onclick="toggleSubtask('${ex.id}',${si})"></div>
+            <span class="subtask-name">${s.name}</span>
+            <span class="subtask-del" onclick="deleteSubtask('${ex.id}',${si})">×</span>
+          </div>`).join('')}
+      </div>` : '';
+    const subtaskAddHTML = `
+      <div class="subtask-add-row" id="sta-${ex.id}" style="display:none;">
+        <input type="text" class="subtask-inp" id="sti-${ex.id}" placeholder="Nova subtasca..." onkeydown="if(event.key==='Enter')addSubtask('${ex.id}')"/>
+        <button class="subtask-add-btn" onclick="addSubtask('${ex.id}')">+</button>
+      </div>`;
+    const stProgress = subtasks.length ? `<span class="subtask-progress">${subtasksDone}/${subtasks.length}</span>` : '';
     return `<div class="exam-item ${urgClass} ${ex.done?'done-item':''}" id="exam-${ex.id}">
       <div class="exam-check ${ex.done?'checked':''}" onclick="toggleExamDone('${ex.id}')"></div>
       <div class="exam-info">
-        <div class="exam-name"><span class="prio-badge ${pc}">${pl}</span>${ex.name}</div>
+        <div class="exam-name"><span class="prio-badge ${pc}">${pl}</span>${ex.name}${stProgress}</div>
         <div class="exam-meta">${typeLabel}${ex.date?' · '+ex.date:''}</div>
+        ${subtaskHTML}
+        ${subtaskAddHTML}
         <div class="exam-edit-form" id="ef-${ex.id}">
           <input type="text" id="ei-name-${ex.id}" value="${ex.name.replace(/"/g,'&quot;')}" />
           <input type="date" id="ei-date-${ex.id}" value="${ex.date||''}" />
@@ -4097,6 +4116,7 @@ function renderExams() {
         </div>
       </div>
       ${badge?`<span class="exam-badge ${urgClass}">${badge}</span>`:''}
+      <span class="subtask-toggle" onclick="toggleSubtaskAdd('${ex.id}')" title="Afegir subtasca">⊕</span>
       <span class="exam-edit" onclick="document.getElementById('ef-${ex.id}').classList.toggle('open')">✏️</span>
       <span class="exam-delete" onclick="deleteExam('${ex.id}')">×</span>
     </div>`;
@@ -4122,6 +4142,44 @@ function saveExamEdit(id) {
   }
   localStorage.setItem('month_events_v2',JSON.stringify(monthEvents));
   renderExams();renderNextUp();renderCalendar();refreshAllDayCards();
+}
+
+// ── SUBTASQUES ────────────────────────────────────
+function toggleSubtaskAdd(taskId) {
+  const row = document.getElementById('sta-'+taskId);
+  if (!row) return;
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'flex';
+  if (!visible) {
+    const inp = document.getElementById('sti-'+taskId);
+    if (inp) setTimeout(()=>inp.focus(), 50);
+  }
+}
+function addSubtask(taskId) {
+  const inp = document.getElementById('sti-'+taskId);
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) return;
+  const ex = examList.find(e=>e.id===taskId);
+  if (!ex) return;
+  if (!ex.subtasks) ex.subtasks = [];
+  ex.subtasks.push({id: Date.now()+'', name, done: false});
+  localStorage.setItem('exams_v3', JSON.stringify(examList));
+  renderExams(); renderNextUp();
+}
+function toggleSubtask(taskId, idx) {
+  const ex = examList.find(e=>e.id===taskId);
+  if (!ex || !ex.subtasks || !ex.subtasks[idx]) return;
+  ex.subtasks[idx].done = !ex.subtasks[idx].done;
+  localStorage.setItem('exams_v3', JSON.stringify(examList));
+  renderExams(); renderNextUp();
+}
+function deleteSubtask(taskId, idx) {
+  const ex = examList.find(e=>e.id===taskId);
+  if (!ex || !ex.subtasks) return;
+  ex.subtasks.splice(idx, 1);
+  localStorage.setItem('exams_v3', JSON.stringify(examList));
+  renderExams(); renderNextUp();
 }
 
 // ── QUICK CAPTURE ────────────────────────────────────
@@ -7463,15 +7521,40 @@ function renderCalendarInTab() {
   
   // Days
   for (let d = 1; d <= daysInMonth; d++) {
-    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const isToday = dk === today;
+    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;\n    const isToday = dk === today;
     const evs = monthEvents[dk] || [];
+    const dayOfWeek = new Date(calYear, calMonth, d).getDay(); // 0=Sun, 6=Sat
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     
     const cell = document.createElement('div');
-    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (evs.length ? ' has-event' : '');
-    cell.textContent = d;
+    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (evs.length ? ' has-event' : '') + (isWeekend ? ' weekend' : '');
+    
+    // Day number
+    const numEl = document.createElement('div');
+    numEl.className = 'cal-day-num';
+    numEl.textContent = d;
+    cell.appendChild(numEl);
+    
+    // Event dots (max 2)
+    if (evs.length) {
+      const evContainer = document.createElement('div');
+      evContainer.className = 'cal-day-events';
+      evs.slice(0, 2).forEach(ev => {
+        const dot = document.createElement('div');
+        dot.className = 'cal-day-ev-dot';
+        dot.textContent = ev.text ? ev.text.substring(0, 10) : '•';
+        evContainer.appendChild(dot);
+      });
+      if (evs.length > 2) {
+        const more = document.createElement('div');
+        more.className = 'cal-day-ev-dot';
+        more.textContent = `+${evs.length - 2}`;
+        evContainer.appendChild(more);
+      }
+      cell.appendChild(evContainer);
+    }
+    
     cell.onclick = () => {
-      // Could open modal or navigate to week view
       navigateToDate(dk);
       switchHorariTab('setmanal');
     };
