@@ -261,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // New features
   renderDailyQuote();
   renderTodayDashboard();
+  // Initial sync between home habits and horari habits
+  syncHabitsToKit();
   renderHabits();
   setInterval(renderTodayDashboard, 60000); // update every min
   updatePomoDisplay();
@@ -3732,8 +3734,14 @@ function updatePomoDisplay() {
 // ── MULTI-HABIT TRACKER ──────────────────────────────
 function toggleHabitForm() {
   const f=document.getElementById('habit-add-form');
+  const btn=document.querySelector('.add-habit-btn');
   f.classList.toggle('open');
-  if(f.classList.contains('open')) setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
+  if(f.classList.contains('open')) {
+    if(btn) { btn.textContent='✕ TANCAR'; btn.style.background='rgba(239,68,68,0.15)'; btn.style.borderColor='rgba(239,68,68,0.35)'; btn.style.color='#fca5a5'; }
+    setTimeout(()=>document.getElementById('habit-name-inp').focus(),50);
+  } else {
+    if(btn) { btn.textContent='+ AFEGIR'; btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
+  }
 }
 function addHabit() {
   const name=document.getElementById('habit-name-inp').value.trim();
@@ -3741,22 +3749,30 @@ function addHabit() {
   if(!name) return;
   habitsData.push({id:'h'+Date.now(),name,icon,days:{}});
   localStorage.setItem('habits_v1',JSON.stringify(habitsData));
+  syncHabitsToKit();
   document.getElementById('habit-name-inp').value='';
   document.getElementById('habit-add-form').classList.remove('open');
+  const btn=document.querySelector('.add-habit-btn');
+  if(btn) { btn.textContent='+ AFEGIR'; btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
   renderHabits();
+  renderHabitKit();
 }
 function deleteHabit(id) {
   if(!confirm('Eliminar hàbit?')) return;
   habitsData=habitsData.filter(h=>h.id!==id);
   localStorage.setItem('habits_v1',JSON.stringify(habitsData));
+  syncHabitsToKit();
   renderHabits();
+  renderHabitKit();
 }
 function toggleHabitDay(habitId, dateKey) {
   const h=habitsData.find(h=>h.id===habitId); if(!h) return;
   h.days[dateKey]=!h.days[dateKey];
   if(!h.days[dateKey]) delete h.days[dateKey];
   localStorage.setItem('habits_v1',JSON.stringify(habitsData));
+  syncHabitsToKit();
   renderHabits();
+  renderHabitKit();
 }
 function renderHabits() {
   const list=document.getElementById('habits-list'); if(!list) return;
@@ -3802,12 +3818,46 @@ function renderHabits() {
 // ── HABITKIT (Grid de punts) ────────────────────────────────
 let habitKitData = JSON.parse(localStorage.getItem('habitkit_data') || '[]');
 
+// ── SYNC: keeps habitsData (home) and habitKitData (horari) mirrored ──
+function syncHabitsToKit() {
+  // For each home habit, ensure it exists in habitKitData
+  habitsData.forEach(h => {
+    let kit = habitKitData.find(k => k.id === h.id);
+    if (!kit) {
+      habitKitData.push({ id: h.id, name: h.name, icon: h.icon, desc: '', color: '#10b981', days: h.days || {} });
+    } else {
+      kit.name = h.name; kit.icon = h.icon; kit.days = h.days;
+    }
+  });
+  // Remove from habitKitData any that no longer exist in habitsData
+  habitKitData = habitKitData.filter(k => habitsData.find(h => h.id === k.id));
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+}
+function syncKitToHabits() {
+  // For each kit habit, ensure it exists in habitsData
+  habitKitData.forEach(k => {
+    let h = habitsData.find(h => h.id === k.id);
+    if (!h) {
+      habitsData.push({ id: k.id, name: k.name, icon: k.icon, days: k.days || {} });
+    } else {
+      h.name = k.name; h.icon = k.icon; h.days = k.days;
+    }
+  });
+  // Remove from habitsData any that no longer exist in habitKitData
+  habitsData = habitsData.filter(h => habitKitData.find(k => k.id === h.id));
+  localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+}
+
 function toggleHabitKitForm() {
   const form = document.getElementById('habitkit-form');
-  if (form.style.display === 'none' || !form.style.display) {
+  const btn = document.querySelector('.habitkit-add-btn');
+  const isOpen = form.style.display === 'block';
+  if (!isOpen) {
     form.style.display = 'block';
+    if(btn) { btn.innerHTML='<span style="font-size:22px;position:relative;z-index:1;">✕</span>'; btn.style.background='rgba(239,68,68,0.2)'; btn.style.borderColor='rgba(239,68,68,0.4)'; }
   } else {
     form.style.display = 'none';
+    if(btn) { btn.innerHTML='<span style="font-size:22px;position:relative;z-index:1;">+</span>'; btn.style.background=''; btn.style.borderColor=''; }
   }
 }
 
@@ -3830,21 +3880,27 @@ function addHabitKit() {
   
   habitKitData.push(habit);
   localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  syncKitToHabits();
   
   // Clear form
   document.getElementById('hk-name').value = '';
   document.getElementById('hk-icon').value = '⭐';
   document.getElementById('hk-desc').value = '';
   document.getElementById('habitkit-form').style.display = 'none';
+  const hkBtn = document.querySelector('.habitkit-add-btn');
+  if(hkBtn) { hkBtn.innerHTML='<span style="font-size:22px;position:relative;z-index:1;">+</span>'; hkBtn.style.background=''; hkBtn.style.borderColor=''; }
   
   renderHabitKit();
+  renderHabits();
 }
 
 function deleteHabitKit(id) {
   if (!confirm('Segur que vols eliminar aquest hàbit?')) return;
   habitKitData = habitKitData.filter(h => h.id !== id);
   localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  syncKitToHabits();
   renderHabitKit();
+  renderHabits();
 }
 
 function toggleHabitKitDay(habitId, dateKey) {
@@ -3858,7 +3914,9 @@ function toggleHabitKitDay(habitId, dateKey) {
   }
   
   localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  syncKitToHabits();
   renderHabitKit();
+  renderHabits();
 }
 
 function renderHabitKit() {
@@ -5331,7 +5389,7 @@ function applyLanguage(lang) {
 
   // === 2. Bottom nav labels ===
   const bnavItems = document.querySelectorAll('.bnav-item .bnav-lbl');
-  const navKeys = ['nav_home','nav_horari','nav_tasques','nav_julians','nav_calendari','nav_focus'];
+  const navKeys = ['nav_home','nav_horari','nav_tasques','nav_julians','nav_focus'];
   bnavItems.forEach((el,i) => { if(navKeys[i]) el.textContent = t(navKeys[i]); });
 
   // === 3. Header tag ===
