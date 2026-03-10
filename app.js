@@ -1885,15 +1885,15 @@ function getAITools() {
     // ── TIMED EVENTS (hora inici–fi) ──
     {
       name: 'add_timed_event',
-      description: 'ÚNICAMENT per events que formen part de la RUTINA SETMANAL amb hora inici i hora fi (es mostren com a blocs de color a la graella horària setmanal). Exemples: bloc de gym de 18:00 a 19:30, classe de piano de 17 a 18h. NO USAR per recordatoris puntuals, notes, events del calendari mensual, ni per "afegir al dia" — per a això usa add_calendar_event.',
+      description: 'ÚNICAMENT per events que formen part de la RUTINA SETMANAL amb hora inici i hora fi (es mostren com a blocs de color a la graella horària setmanal). Exemples: bloc de gym de 18:00 a 19:30, classe de piano de 17 a 18h. NO USAR per recordatoris puntuals, notes, events del calendari mensual, ni per "afegir al dia" — per a això usa add_calendar_event. Format data: YYYY-MM-DD (una data concreta específica).',
       input_schema: {
         type:'object',
         properties:{
-          date:{type:'string',description:'Data YYYY-MM-DD'},
+          date:{type:'string',description:'Data YYYY-MM-DD d\'un dia concret específic. IMPORTANT: Calcula la data correcta basant-te en el context temporal!'},
           title:{type:'string',description:'Títol de l\'event'},
           start:{type:'string',description:'Hora d\'inici HH:MM (ex: 09:00)'},
           end:{type:'string',description:'Hora de fi HH:MM (ex: 10:30)'},
-          color:{type:'string',enum:['tec-purple','tec-blue','tec-green','tec-orange','tec-red','tec-pink','tec-teal'],description:'Color: tec-purple=deepwork, tec-blue=reunió, tec-green=esport, tec-orange=menjar, tec-red=urgent, tec-pink=personal, tec-teal=salut'}
+          color:{type:'string',enum:['tec-purple','tec-blue','tec-green','tec-orange','tec-red','tec-pink','tec-teal'],description:'Color: tec-purple=deepwork/estudi, tec-blue=reunió/classes, tec-green=esport, tec-orange=menjar, tec-red=urgent/examen, tec-pink=personal, tec-teal=salut'}
         },
         required:['date','title','start','end']
       }
@@ -1923,14 +1923,14 @@ function getAITools() {
     },
     {
       name: 'add_calendar_event',
-      description: 'ÉS EL BOTÓ "+ Afegir al dia". Usa SEMPRE aquesta eina quan l\'usuari digui: "afegeix al dia", "afegeix a dijous", "posa una nota a...", "recorda\'m...", "afegeix un recordatori", o qualsevol event puntual d\'un dia concret (examen, entrega, cita, dentista, recordatori, etc.). Apareix a la targeta del dia, NO a la graella horària.',
+      description: 'ÉS EL BOTÓ "+ Afegir al dia". Usa SEMPRE aquesta eina quan l\'usuari digui: "afegeix al dia", "afegeix a [dia de la setmana]", "posa una nota a...", "recorda\'m...", "afegeix un recordatori", o qualsevol event puntual d\'un dia concret (examen, entrega, cita, dentista, recordatori, etc.). Apareix a la TARGETA del dia, NO a la graella horària. IMPORTANT: Format data és YYYY-MM-DD. Si et diuen "dijous", "divendres", etc., has de calcular la data correcta! Exemple: si avui és dilluns 10 març i diuen "afegeix dijous", la data és 2026-03-13, NO 2026-03-10!',
       input_schema: {
         type:'object',
         properties:{
-          date:{type:'string',description:'Data YYYY-MM-DD (obligatori)'},
+          date:{type:'string',description:'Data YYYY-MM-DD (OBLIGATORI). CRITICAL: Calcula la data correcta! Si diuen "dijous" i avui és dilluns, suma els dies correctes!'},
           text:{type:'string',description:'Descripció de l\'event'},
-          time:{type:'string',description:'Hora HH:MM (opcional)'},
-          type:{type:'string',enum:['📌 Recordatori','📚 Escolar','🏒 Esport','💻 Programació','📝 Examen','📦 Entrega','🎯 Altres','exam','deures','partit','other'],description:'Prioritza els valors amb emoji (igual que el formulari manual). exam/other tambe funcionen.'}
+          time:{type:'string',description:'Hora HH:MM (opcional, només si especifiquen hora)'},
+          type:{type:'string',enum:['📌 Recordatori','📚 Escolar','🏒 Esport','💻 Programació','📝 Examen','📦 Entrega','🎯 Altres','exam','deures','partit','other'],description:'Tipus d\'event. Prioritza els valors amb emoji (són els del formulari manual). exam/other també funcionen per compatibilitat.'}
         },
         required:['date','text']
       }
@@ -1961,14 +1961,14 @@ function getAITools() {
     // ── SCHEDULE BLOCKS ──
     {
       name: 'add_schedule_block',
-      description: 'Afegeix un nou bloc a l\'horari setmanal d\'un dia concret.',
+      description: 'Afegeix un nou bloc a l\'horari setmanal d\'un dia concret. IMPORTANT: Els blocs setmanals són rutines FIXES que es repeteixen cada setmana (classes, gym, piano, etc.). day és 0-6 on 0=Dilluns, 1=Dimarts, 2=Dimecres, 3=Dijous, 4=Divendres, 5=Dissabte, 6=Diumenge. Time format: HH:MM-HH:MM (ex: 17:00-18:30). CRÍTIC: Si et demanen afegir blocs per múltiples dies, usa DIFERENTS valors de day (0-6), NO el mateix!',
       input_schema: {
         type:'object',
         properties:{
-          day:{type:'number',description:'Dia: 0=Dilluns, 1=Dimarts, 2=Dimecres, 3=Dijous, 4=Divendres, 5=Dissabte, 6=Diumenge'},
+          day:{type:'number',description:'Dia de la setmana: 0=Dilluns, 1=Dimarts, 2=Dimecres, 3=Dijous, 4=Divendres, 5=Dissabte, 6=Diumenge. CRITICAL: Usa el valor correcte segons quin dia volen!'},
           time:{type:'string',description:'Horari format HH:MM-HH:MM (ex: 17:00-18:30)'},
           label:{type:'string',description:'Nom del bloc'},
-          type:{type:'string',enum:['escola','prog','sport','activity','rest','sopar','prep','feina','other'],description:'Tipus de bloc visual: escola=blau, prog=morat, sport/activity=verd, rest=gris, sopar=groc, feina=teal, other=gris'},
+          type:{type:'string',enum:['escola','prog','sport','activity','rest','sopar','prep','feina','other'],description:'Tipus de bloc visual: escola=blau (classes), prog=morat (programació/estudi), sport/activity=verd (esport/activitats), rest=gris (descans), sopar=groc (menjar), feina=teal (treball), other=gris'},
           note:{type:'string',description:'Nota opcional'}
         },
         required:['day','label','type']
@@ -2038,7 +2038,7 @@ function getAITools() {
     },
     {
       name: 'add_match',
-      description: 'Afegeix un o múltiples partits al calendari de la temporada.',
+      description: 'Afegeix un o múltiples partits al calendari de la temporada. IMPORTANT: Pot afegir MOLTS partits d\'un cop! Cada partit ha de tenir la seva PRÒPIA DATA diferent. CRÍTIC: Si et demanen afegir partits de diferents dies/setmanes/mesos, calcula BÉ cada data individual - NO posis tots els partits el mateix dia! Format dates: YYYY-MM-DD. Exemple correcte: partit dia 5, partit dia 12, partit dia 19 → dates: 2026-03-05, 2026-03-12, 2026-03-19 (dates DIFERENTS!)',
       input_schema: {
         type:'object',
         properties:{
@@ -3037,48 +3037,129 @@ async function sendAIBase() {
   try {
     const mode = AI_MODES[aiMode]||AI_MODES.rapid;
 
-    const systemPrompt = `Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català.
+    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català de forma natural i propera.
 
-REGLA CRÍTICA: Quan l'usuari demani afegir, crear, editar o eliminar qualsevol cosa (tasca, event, examen, entrenament...), HAS D'USAR OBLIGATÒRIAMENT l'eina corresponent. MAI responguis dient que ho has fet sense haver cridat l'eina realment.
+╔══════════════════════════════════════════════════════════════╗
+║  INFORMACIÓ TEMPORAL CRÍTICA (LLEGEIX PRIMER)                ║
+╚══════════════════════════════════════════════════════════════╝
 
-EINES I QUAN USAR-LES:
-- add_task → afegir tasca, examen, entrega, deures, treball a la llista de Tasques
-- add_calendar_event → ÉS EL BOTÓ "+ Afegir al dia". Per events/notes puntuals d'un dia: recordatoris, cites, dentista, notes, examen al calendari, etc. Apareix a la targeta del dia. Types: '📌 Recordatori','📚 Escolar','🏒 Esport','💻 Programació','📝 Examen','📦 Entrega','🎯 Altres'
-- add_schedule_block → Per afegir blocs permanents a l'horari setmanal (rutines fixes: gym de 18-19h, classe de piano 17-18h). Apareix com a bloc de color a la graella. NO usar add_timed_event per a rutines setmanals.
-- add_timed_event → Per events puntuals amb hora en un dia concret (NO per rutines setmanals).
-- add_match → afegir UN O MOLTS partits a la taula de partits de la temporada (usa quan parlin de partits, jornades, rivals)
-- clear_matches → esborrar tots els partits de la temporada
-- delete_task / delete_calendar_event / delete_timed_event → eliminar/esborrar
-- edit_task / edit_schedule_block → editar/canviar
-- clear_week_schedule → esborrar tot l'horari setmanal
-- set_week_schedule → crear/substituir tot l'horari setmanal d'un cop
+DATA I HORA ACTUALS:
+• Avui és: ${new Date().toLocaleDateString('ca-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}
+• Data format sistema: ${toLocalDateKey(new Date())}
+• Hora actual: ${new Date().toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'})}
+• Dia de la setmana: ${['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'][new Date().getDay()]}
 
-REGLES CRÍTIQUES — SEGUEIX-LES SEMPRE:
+DIES DE LA SETMANA (per add_schedule_block):
+0=Dilluns, 1=Dimarts, 2=Dimecres, 3=Dijous, 4=Divendres, 5=Dissabte, 6=Diumenge
 
-1. QUAN L'USUARI DIU "afegeix al dia", "afegeix a [dia]", "afegeix nota a", "recorda'm", "posa un recordatori":
-   → USA SEMPRE: add_calendar_event (mai add_timed_event)
+INTERPRETACIÓ DE DATES RELATIVES:
+- "avui" → ${toLocalDateKey(new Date())}
+- "demà" → ${toLocalDateKey(new Date(Date.now() + 86400000))}
+- "dilluns", "dimarts", etc. → el proper dia d'aquesta setmana o següent
+- "dilluns que ve" → el dilluns de la setmana vinent
+- "la setmana que ve" → sumar 7 dies des d'avui
+- "aquest mes", "mes vinent" → calcula bé el mes i any
 
-2. QUAN L'USUARI DIU "afegeix bloc de", "posa de X a Y hores", "crea rutina de":
-   → USA: add_timed_event (blocs horaris a la graella setmanal)
+CRITICAL: SEMPRE calcula les dates correctament. No posis tots els events el mateix dia!
 
-3. QUAN DIUS "afegeix un (examen|tasca|deures|entrega) a [data]":
-   → USA: add_task I add_calendar_event
+╔══════════════════════════════════════════════════════════════╗
+║  REGLA D'OR: USA SEMPRE LES EINES CORRECTAMENT               ║
+╚══════════════════════════════════════════════════════════════╝
 
-4. PARTITS: sempre add_match, mai add_calendar_event
+QUAN L'USUARI DEMANA AFEGIR/CREAR/EDITAR/ELIMINAR ALGUNA COSA:
+→ HAS D'USAR OBLIGATÒRIAMENT l'eina corresponent
+→ MAI responguis dient "Ho he fet" sense haver cridat l'eina
+→ Si no estàs segur de la data, PREGUNTA abans d'afegir
 
-EXEMPLES CONCRETS:
-- "afegeix dentista dijous a les 16h" → add_calendar_event (type: '📌 Recordatori', time: '16:00')
-- "afegeix gym dilluns de 18 a 19:30h" → add_schedule_block (day:0, time:'18:00-19:30', label:'Gym', type:'esport')
-- "recorda'm trucar el metge dimarts" → add_calendar_event
-- "afegeix al dilluns: preparar presentació" → add_calendar_event
-- "posa bloc de deep work dijous de 9 a 11" → add_schedule_block (day:3, time:'09:00-11:00', label:'Deep Work', type:'prog')
+╔══════════════════════════════════════════════════════════════╗
+║  EINES I QUAN USAR-LES (GUIA COMPLETA)                       ║
+╚══════════════════════════════════════════════════════════════╝
 
-- get_all_data → consultar/veure les dades actuals
+📋 TASQUES (add_task):
+→ Per: exàmens, entreges, deures, treballs, tasques generals
+→ Si té data: apareix automàticament al calendari mensual
+→ Types: 'deures', 'treball', 'tasca', 'personal'
+→ Exemple: "Afegeix examen de mates el 15 de març"
+   → add_task(name:'Examen Matemàtiques', date:'2026-03-15', type:'treball')
 
-COLORS per add_timed_event: tec-purple=deepwork/estudi, tec-blue=classes/reunions, tec-green=esport, tec-orange=menjar, tec-red=examen/urgent, tec-pink=personal, tec-teal=salut
+📅 EVENTS DEL DIA (add_calendar_event):
+→ ÉS EL BOTÓ "+ Afegir al dia"
+→ Per: recordatoris, cites, notes, events puntuals d'un dia concret
+→ Apareix a la TARGETA del dia (no a la graella horària)
+→ Types amb emoji: '📌 Recordatori','📚 Escolar','🏒 Esport','💻 Programació','📝 Examen','📦 Entrega','🎯 Altres'
+→ IMPORTANT: Aquest és l'eina per defecte per afegir qualsevol cosa a un dia!
+→ Exemples:
+   - "Afegeix dentista dijous a les 16h" → add_calendar_event(date:'2026-03-13', text:'Dentista', time:'16:00', type:'📌 Recordatori')
+   - "Recorda'm trucar el metge dimarts" → add_calendar_event(date:'2026-03-11', text:'Trucar metge', type:'📌 Recordatori')
+   - "Afegeix al dilluns: preparar presentació" → add_calendar_event(date:'2026-03-10', text:'Preparar presentació', type:'💻 Programació')
 
+📊 BLOCS HORARIS SETMANALS (add_schedule_block):
+→ Per: rutines FIXES que es repeteixen cada setmana
+→ Exemples: classes, gym, piano, deep work sessions
+→ Apareix com a BLOC DE COLOR a la graella horària
+→ Types: 'escola','prog','sport','activity','rest','sopar','prep','feina','other'
+→ CRITICAL: day és 0-6 (0=Dilluns...6=Diumenge)
+→ Exemples:
+   - "Afegeix gym dilluns de 18 a 19:30h" → add_schedule_block(day:0, time:'18:00-19:30', label:'Gym', type:'sport')
+   - "Posa bloc de deep work dijous de 9 a 11" → add_schedule_block(day:3, time:'09:00-11:00', label:'Deep Work', type:'prog')
+   - "Afegeix classe de piano dimarts 17-18h" → add_schedule_block(day:1, time:'17:00-18:00', label:'Piano', type:'activity')
+
+⏰ EVENTS HORARIS PUNTUALS (add_timed_event):
+→ NOMÉS per events amb hora inici-fi en un DIA CONCRET (NO rutines setmanals)
+→ Exemple: reunió puntual un dia específic
+→ Colors: tec-purple=deepwork, tec-blue=reunió, tec-green=esport, tec-orange=menjar, tec-red=urgent, tec-pink=personal, tec-teal=salut
+
+⚽ PARTITS (add_match):
+→ Per afegir UN O MÚLTIPLES partits de la temporada
+→ IMPORTANT: Pot afegir molts partits d'un cop!
+→ Camps: date (YYYY-MM-DD), time (HH:MM), jornada (número), home (equip local), away (equip visitant), casa (boolean: true si juga a casa)
+→ Exemple: "Afegeix els partits de març: dia 5 vs Balaguer a casa jornada 12, dia 12 vs Tàrrega fora jornada 13, dia 19 vs Mollerussa a casa jornada 14"
+   → add_match(matches:[
+       {date:'2026-03-05', time:'18:00', jornada:12, home:'CH Mollerussa', away:'Balaguer', casa:true},
+       {date:'2026-03-12', time:'19:00', jornada:13, home:'Tàrrega', away:'CH Mollerussa', casa:false},
+       {date:'2026-03-19', time:'18:00', jornada:14, home:'CH Mollerussa', away:'Mollerussa', casa:true}
+     ])
+
+🔄 HORARI SETMANAL COMPLET (set_week_schedule):
+→ Per crear/substituir tot l'horari setmanal d'un cop
+→ Útil quan l'usuari diu: "fes-me un horari", "crea un planning setmanal"
+→ Recorda cridar clear_week_schedule ABANS!
+
+╔══════════════════════════════════════════════════════════════╗
+║  EXEMPLES PRÀCTICS AMB SOLUCIONS CORRECTES                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+❌ MAL: "Afegeix examen de física demà"
+   Resposta: "D'acord, he afegit l'examen" (SENSE usar cap eina)
+✅ BÉ: Usar add_task(name:'Examen Física', date:'[data de demà calculada]', type:'treball')
+      I després add_calendar_event per posar-lo també al calendari del dia
+
+❌ MAL: "Afegeix partits de tota la temporada" → afegir tots el mateix dia
+✅ BÉ: Calcular bé les dates de cada partit i afegir-los amb add_match amb dates diferents!
+
+❌ MAL: "Posa dentista dijous" → posar-ho dimarts perquè no calcules bé el dia
+✅ BÉ: Calcular quin és el proper dijous i usar add_calendar_event amb la data correcta
+
+❌ MAL: "Crea un horari setmanal" → afegir tot a l'horari del mateix dia
+✅ BÉ: Distribuir els blocs entre dilluns (day:0) fins diumenge (day:6)
+
+╔══════════════════════════════════════════════════════════════╗
+║  INTEL·LIGÈNCIA CONTEXTUAL                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+SÉ INTEL·LIGENT amb les peticions ambigües:
+- Si diuen "afegeix gym" sense dir quan → PREGUNTA: "Quin dia i a quina hora?"
+- Si diuen "afegeix partit contra Balaguer" → PREGUNTA: "Quina data, hora i jornada?"
+- Si diuen "crea horari" sense més info → PREGUNTA les preferències abans
+- Si et donen múltiples dates/events → CALCULA BÉ cada data, no repeteixis la mateixa!
+
+CONTEXT DEL CALENDARI:
 ${buildCalendarContext()}
-${mode.suffix}`;
+
+${mode.suffix}
+
+RECORDA: Ets un assistent INTEL·LIGENT. Pensa bé abans d'actuar. Calcula les dates correctament. No posis tot el mateix dia!`;
+
 
     // ── Missatges d'historial — filtrant buits/nulls i documents llargs ──
     const historyMsgs = chat.messages.slice(-12)
@@ -7337,4 +7418,33 @@ function renderCalendarInTab() {
     };
     grid.appendChild(cell);
   }
+}
+
+
+// ── HELPER: Calcular dates relatives per la IA ────────────────────────────────
+function getNextDayOfWeek(dayName) {
+  // dayName: 'dilluns', 'dimarts', etc.
+  const days = {
+    'dilluns': 1, 'dimarts': 2, 'dimecres': 3, 'dijous': 4, 
+    'divendres': 5, 'dissabte': 6, 'diumenge': 0
+  };
+  const targetDay = days[dayName.toLowerCase()];
+  if (targetDay === undefined) return null;
+  
+  const today = new Date();
+  const currentDay = today.getDay();
+  let daysToAdd = targetDay - currentDay;
+  
+  if (daysToAdd <= 0) daysToAdd += 7; // Si ja ha passat aquesta setmana, anar a la setmana que ve
+  
+  const result = new Date(today);
+  result.setDate(today.getDate() + daysToAdd);
+  return toLocalDateKey(result);
+}
+
+function getRelativeDate(offset) {
+  // offset en dies: 0=avui, 1=demà, -1=ahir, etc.
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return toLocalDateKey(date);
 }
