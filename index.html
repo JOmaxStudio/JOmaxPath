@@ -488,9 +488,12 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
     <div class="horari-tab-content" id="htab-content-habits" style="display:none;">
       <div class="habitkit-container">
         <div class="habitkit-header">
-          <h3>🌱 Seguiment d'hàbits</h3>
-          <button class="habitkit-add-btn" onclick="toggleHabitKitForm()">
-            <span style="font-size:18px;">+</span>
+          <div>
+            <h3>🌱 Seguiment d'hàbits</h3>
+            <p style="font-size:12px;color:rgba(255,255,255,0.5);margin:4px 0 0 0;font-family:'Share Tech Mono',monospace;">Segueix els teus hàbits durant 13 setmanes (91 dies)</p>
+          </div>
+          <button class="habitkit-add-btn" onclick="toggleHabitKitForm()" title="Afegir nou hàbit">
+            <span style="font-size:22px;position:relative;z-index:1;">+</span>
           </button>
         </div>
         
@@ -500,18 +503,19 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
             <input type="text" id="hk-name" placeholder="Nom de l'hàbit..." class="habitkit-input">
             <input type="text" id="hk-icon" placeholder="🎯" value="⭐" class="habitkit-input-icon">
           </div>
-          <textarea id="hk-desc" placeholder="Descripció opcional..." class="habitkit-textarea"></textarea>
+          <textarea id="hk-desc" placeholder="Descripció opcional (per què és important aquest hàbit?)..." class="habitkit-textarea"></textarea>
           <div class="habitkit-form-row">
             <select id="hk-color" class="habitkit-select">
-              <option value="#10b981">🟢 Verd</option>
-              <option value="#8b5cf6">🟣 Porpra</option>
-              <option value="#ef4444">🔴 Vermell</option>
-              <option value="#f59e0b">🟠 Taronja</option>
-              <option value="#3b82f6">🔵 Blau</option>
-              <option value="#ec4899">🌸 Rosa</option>
-              <option value="#14b8a6">💚 Turquesa</option>
+              <option value="#10b981">🟢 Verd - Salut</option>
+              <option value="#8b5cf6">🟣 Porpra - Creativitat</option>
+              <option value="#ef4444">🔴 Vermell - Energia</option>
+              <option value="#f59e0b">🟠 Taronja - Productivitat</option>
+              <option value="#3b82f6">🔵 Blau - Aprenentatge</option>
+              <option value="#ec4899">🌸 Rosa - Benestar</option>
+              <option value="#14b8a6">💚 Turquesa - Mindfulness</option>
+              <option value="#06b6d4">🩵 Cyan - Exercici</option>
             </select>
-            <button class="habitkit-save-btn" onclick="addHabitKit()">Afegir</button>
+            <button class="habitkit-save-btn" onclick="addHabitKit()">AFEGIR HÀBIT</button>
           </div>
         </div>
         
@@ -520,9 +524,10 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
         
         <!-- Missatge si no hi ha hàbits -->
         <div id="habitkit-empty" class="habitkit-empty">
-          <div style="font-size:48px;margin-bottom:10px;">🌱</div>
-          <div style="font-size:14px;color:var(--muted);">Encara no tens cap hàbit.</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Clica + per començar!</div>
+          <div style="font-size:64px;margin-bottom:16px;opacity:0.6;">🌱</div>
+          <div style="font-size:16px;color:rgba(255,255,255,0.7);font-weight:600;margin-bottom:8px;">Encara no tens cap hàbit</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;">Comença a construir els teus hàbits diaris</div>
+          <button onclick="toggleHabitKitForm()" style="padding:12px 24px;background:linear-gradient(135deg, var(--accent), var(--accent2));border:none;border-radius:12px;color:white;font-family:'Space Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:1px;">+ CREAR PRIMER HÀBIT</button>
         </div>
       </div>
     </div><!-- End htab-content-habits -->
