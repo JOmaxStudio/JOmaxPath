@@ -324,10 +324,10 @@ function navTo(page) {
   // Amagar FABs a la pàgina Julians per no tapar el botó d'enviar
   document.body.classList.toggle('on-julians', page === 'julians');
   document.querySelectorAll('.bnav-item').forEach((b,i) => {
-    b.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
+    b.classList.toggle('active', ['home','horari','tasques','julians','focus'][i] === page);
   });
   document.querySelectorAll('#nav-drawer .ndw-item').forEach((item,i) => {
-    item.classList.toggle('active', ['home','horari','tasques','julians','calendari','focus'][i] === page);
+    item.classList.toggle('active', ['home','horari','tasques','julians','focus'][i] === page);
   });
   if (page === 'julians') {
     // No fem scroll a dalt — volem quedar-nos al final del xat
@@ -340,6 +340,29 @@ function navTo(page) {
   const drawer = document.getElementById('nav-drawer');
   if(drawer && drawer.classList.contains('open')) toggleDrawer();
 }
+
+// ── Switch Horari Tabs ─────────────────────
+function switchHorariTab(tab) {
+  // Remove active class from all tabs
+  document.querySelectorAll('.horari-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.horari-tab-content').forEach(c => c.style.display = 'none');
+  
+  // Add active class to selected tab
+  const tabBtn = document.getElementById('htab-' + tab);
+  const tabContent = document.getElementById('htab-content-' + tab);
+  
+  if (tabBtn) tabBtn.classList.add('active');
+  if (tabContent) tabContent.style.display = 'block';
+  
+  // Render content based on tab
+  if (tab === 'mensual') {
+    renderCalendarInTab();
+    renderMatches();
+  } else if (tab === 'habits') {
+    renderHabitKit();
+  }
+}
+
 function setViewMode(mode) {
   localStorage.setItem('view_mode', mode);
   applyViewMode(mode);
@@ -3694,6 +3717,162 @@ function renderHabits() {
 
 }
 
+// ── HABITKIT (Grid de punts) ────────────────────────────────
+let habitKitData = JSON.parse(localStorage.getItem('habitkit_data') || '[]');
+
+function toggleHabitKitForm() {
+  const form = document.getElementById('habitkit-form');
+  if (form.style.display === 'none' || !form.style.display) {
+    form.style.display = 'block';
+  } else {
+    form.style.display = 'none';
+  }
+}
+
+function addHabitKit() {
+  const name = document.getElementById('hk-name').value.trim();
+  const icon = document.getElementById('hk-icon').value.trim() || '⭐';
+  const desc = document.getElementById('hk-desc').value.trim();
+  const color = document.getElementById('hk-color').value;
+  
+  if (!name) return alert('Escriu un nom per l\'hàbit!');
+  
+  const habit = {
+    id: Date.now() + '',
+    name,
+    icon,
+    desc,
+    color,
+    days: {} // { '2026-03-09': true, ... }
+  };
+  
+  habitKitData.push(habit);
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  
+  // Clear form
+  document.getElementById('hk-name').value = '';
+  document.getElementById('hk-icon').value = '⭐';
+  document.getElementById('hk-desc').value = '';
+  document.getElementById('habitkit-form').style.display = 'none';
+  
+  renderHabitKit();
+}
+
+function deleteHabitKit(id) {
+  if (!confirm('Segur que vols eliminar aquest hàbit?')) return;
+  habitKitData = habitKitData.filter(h => h.id !== id);
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  renderHabitKit();
+}
+
+function toggleHabitKitDay(habitId, dateKey) {
+  const habit = habitKitData.find(h => h.id === habitId);
+  if (!habit) return;
+  
+  if (habit.days[dateKey]) {
+    delete habit.days[dateKey];
+  } else {
+    habit.days[dateKey] = true;
+  }
+  
+  localStorage.setItem('habitkit_data', JSON.stringify(habitKitData));
+  renderHabitKit();
+}
+
+function renderHabitKit() {
+  const list = document.getElementById('habitkit-list');
+  const empty = document.getElementById('habitkit-empty');
+  if (!list) return;
+  
+  if (!habitKitData.length) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  
+  if (empty) empty.style.display = 'none';
+  
+  const today = toLocalDateKey(new Date());
+  
+  list.innerHTML = habitKitData.map(h => {
+    // Generate 91 days grid (13 weeks × 7 days)
+    const dots = [];
+    for (let i = 90; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(12, 0, 0, 0);
+      const k = toLocalDateKey(d);
+      const isToday = k === today;
+      const done = !!h.days[k];
+      
+      dots.push(`
+        <div class="habitkit-dot ${done ? 'done' : ''} ${isToday ? 'today' : ''}" 
+             style="--habit-color: ${h.color};"
+             onclick="toggleHabitKitDay('${h.id}', '${k}')"
+             title="${k}">
+        </div>
+      `);
+    }
+    
+    // Calculate streak
+    let streak = 0;
+    const dd = new Date();
+    dd.setHours(12, 0, 0, 0);
+    while (h.days[toLocalDateKey(dd)]) {
+      streak++;
+      dd.setDate(dd.getDate() - 1);
+    }
+    
+    // Calculate week percentage
+    let weekDone = 0;
+    for (let i = 0; i < 7; i++) {
+      const dd2 = new Date();
+      dd2.setDate(dd2.getDate() - i);
+      dd2.setHours(12, 0, 0, 0);
+      if (h.days[toLocalDateKey(dd2)]) weekDone++;
+    }
+    const pct = Math.round(weekDone / 7 * 100);
+    
+    // Check if today is done
+    const todayDone = !!h.days[today];
+    
+    return `
+      <div class="habitkit-item">
+        <div class="habitkit-item-header">
+          <div class="habitkit-icon">${h.icon}</div>
+          <div class="habitkit-info">
+            <div class="habitkit-name">${h.name}</div>
+            ${h.desc ? `<div class="habitkit-desc">${h.desc}</div>` : ''}
+          </div>
+          <button class="habitkit-check-btn ${todayDone ? 'done' : ''}" 
+                  style="--habit-color: ${h.color}; border-color: ${h.color};"
+                  onclick="toggleHabitKitDay('${h.id}', '${today}')">
+            ${todayDone ? '✓' : ''}
+          </button>
+        </div>
+        <div class="habitkit-grid">
+          ${dots.join('')}
+        </div>
+        <div class="habitkit-stats">
+          <div class="habitkit-stat">
+            <span>🔥</span>
+            <span class="habitkit-stat-value">${streak}</span>
+            <span>dies</span>
+          </div>
+          <div class="habitkit-stat">
+            <span>📊</span>
+            <span class="habitkit-stat-value">${pct}%</span>
+            <span>setmana</span>
+          </div>
+        </div>
+        <button class="habitkit-delete-btn" onclick="deleteHabitKit('${h.id}')">
+          🗑️ Eliminar
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
 // ── PRIORITY IN TASKS ────────────────────────────────
 function addExam() {
   const name=document.getElementById('exam-name').value.trim();
@@ -3899,7 +4078,7 @@ function runSearch(q) {
       if((ev.text||'').toLowerCase().includes(ql)) {
         results.push({
           icon: '📅', text: ev.text, meta: date+(ev.time?' · '+ev.time:''), cat:'EVENT',
-          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendar(); navTo('calendari'); }
+          action: ()=>{ closeSearch(); calYear=parseInt(date.split('-')[0]); calMonth=parseInt(date.split('-')[1])-1; renderCalendarInTab(); navTo('horari'); setTimeout(()=>switchHorariTab('mensual'), 100); }
         });
       }
     });
@@ -3968,7 +4147,7 @@ document.addEventListener('keydown', e => {
     case '1': navTo('home'); break;
     case '2': navTo('tasques'); break;
     case '3': navTo('julians'); break;
-    case '4': navTo('calendari'); break;
+    case '4': navTo('focus'); break;
   }
 });
 
@@ -4916,16 +5095,15 @@ const LANG_STRINGS = {
   ca: {
     // Nav
     nav_home:'INICI', nav_horari:'HORARI', nav_tasques:'TASQUES',
-    nav_julians:'JULIANS', nav_calendari:'CALENDARI', nav_focus:'FOCUS',
+    nav_julians:'JULIANS', nav_focus:'FOCUS',
     // Header
     header_tag:'✦ El teu espai de productivitat ✦',
-    header_sub_title:'CALENDARI PERSONAL',
+    header_sub_title:'PLANIFICADOR PERSONAL',
     // Page titles
     pt_home_h2:'INICI', pt_home_sub:'Objectiu · Progrés · Ratxa · Hàbits',
     pt_horari_h2:'HORARI', pt_horari_sub:'Setmana · Blocs · Estadístiques',
     pt_tasques_h2:'TASQUES', pt_tasques_sub:'Deures · Treballs · Prioritats',
     pt_julians_h2:'JULIANS AI', pt_julians_sub:'Assistent intel·ligent · Documents',
-    pt_calendari_h2:'CALENDARI', pt_calendari_sub:'Events · Calendari mensual',
     pt_focus_h2:'FOCUS', pt_focus_sub:'Pomodoro · Pantalles · Motivació',
     // Drawer
     drawer_view:'Vista', drawer_nav:'Navegació', drawer_themes:'Temes',
@@ -4935,7 +5113,6 @@ const LANG_STRINGS = {
     menu_horari:'Horari', menu_horari_sub:'Setmana · Resum',
     menu_tasques:'Tasques', menu_tasques_sub:'Deures · Treballs',
     menu_julians:'Julians AI', menu_julians_sub:'Assistent personal',
-    menu_calendari:'Calendari', menu_calendari_sub:'Mensual · Partits',
     menu_focus:'Focus', menu_focus_sub:'Pomodoro · Motivació · Pantalles',
     // Section titles
     sec_ara_mateix:'📍 ara mateix',
@@ -4963,14 +5140,13 @@ const LANG_STRINGS = {
   },
   es: {
     nav_home:'INICIO', nav_horari:'HORARIO', nav_tasques:'TAREAS',
-    nav_julians:'JULIANS', nav_calendari:'CALENDARIO', nav_focus:'FOCUS',
+    nav_julians:'JULIANS', nav_focus:'FOCUS',
     header_tag:'✦ Tu espacio de productividad ✦',
-    header_sub_title:'CALENDARIO PERSONAL',
+    header_sub_title:'PLANIFICADOR PERSONAL',
     pt_home_h2:'INICIO', pt_home_sub:'Objetivo · Progreso · Racha · Hábitos',
     pt_horari_h2:'HORARIO', pt_horari_sub:'Semana · Bloques · Estadísticas',
     pt_tasques_h2:'TAREAS', pt_tasques_sub:'Deberes · Trabajos · Prioridades',
     pt_julians_h2:'JULIANS AI', pt_julians_sub:'Asistente inteligente · Documentos',
-    pt_calendari_h2:'CALENDARIO', pt_calendari_sub:'Eventos · Calendario mensual',
     pt_focus_h2:'FOCUS', pt_focus_sub:'Pomodoro · Pantallas · Motivación',
     drawer_view:'Vista', drawer_nav:'Navegación', drawer_themes:'Temas',
     drawer_config:'⚙️ Configuración', drawer_julians:'🧠 Julians',
@@ -4979,7 +5155,6 @@ const LANG_STRINGS = {
     menu_horari:'Horario', menu_horari_sub:'Semana · Resumen',
     menu_tasques:'Tareas', menu_tasques_sub:'Deberes · Trabajos',
     menu_julians:'Julians AI', menu_julians_sub:'Asistente personal',
-    menu_calendari:'Calendario', menu_calendari_sub:'Mensual · Partidos',
     menu_focus:'Focus', menu_focus_sub:'Pomodoro · Motivación · Pantallas',
     sec_ara_mateix:'📍 ahora mismo',
     sec_habits:'🌱 hábitos diarios',
@@ -5004,14 +5179,13 @@ const LANG_STRINGS = {
   },
   en: {
     nav_home:'HOME', nav_horari:'SCHEDULE', nav_tasques:'TASKS',
-    nav_julians:'JULIANS', nav_calendari:'CALENDAR', nav_focus:'FOCUS',
+    nav_julians:'JULIANS', nav_focus:'FOCUS',
     header_tag:'✦ Your productivity space ✦',
-    header_sub_title:'PERSONAL CALENDAR',
+    header_sub_title:'PERSONAL PLANNER',
     pt_home_h2:'HOME', pt_home_sub:'Goal · Progress · Streak · Habits',
     pt_horari_h2:'SCHEDULE', pt_horari_sub:'Week · Blocks · Statistics',
     pt_tasques_h2:'TASKS', pt_tasques_sub:'Homework · Projects · Priorities',
     pt_julians_h2:'JULIANS AI', pt_julians_sub:'Smart assistant · Documents',
-    pt_calendari_h2:'CALENDAR', pt_calendari_sub:'Events · Monthly calendar',
     pt_focus_h2:'FOCUS', pt_focus_sub:'Pomodoro · Screens · Motivation',
     drawer_view:'View', drawer_nav:'Navigation', drawer_themes:'Themes',
     drawer_config:'⚙️ Settings', drawer_julians:'🧠 Julians',
@@ -5020,7 +5194,6 @@ const LANG_STRINGS = {
     menu_horari:'Schedule', menu_horari_sub:'Week · Summary',
     menu_tasques:'Tasks', menu_tasques_sub:'Homework · Projects',
     menu_julians:'Julians AI', menu_julians_sub:'Personal assistant',
-    menu_calendari:'Calendar', menu_calendari_sub:'Monthly · Matches',
     menu_focus:'Focus', menu_focus_sub:'Pomodoro · Motivation · Screens',
     sec_ara_mateix:'📍 right now',
     sec_habits:'🌱 daily habits',
@@ -7087,4 +7260,81 @@ function showPremiumSoon(){
   clearTimeout(_pst);
   t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
   _pst=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
+}
+
+// ── CALENDARI MENSUAL (dins tabs d'Horari) ────────────────────────────────
+function calendarPrevMonth() {
+  calMonth--;
+  if (calMonth < 0) {
+    calMonth = 11;
+    calYear--;
+  }
+  renderCalendarInTab();
+}
+
+function calendarNextMonth() {
+  calMonth++;
+  if (calMonth > 11) {
+    calMonth = 0;
+    calYear++;
+  }
+  renderCalendarInTab();
+}
+
+function renderCalendarInTab() {
+  const grid = document.getElementById('calendar-grid');
+  if (!grid) return;
+  
+  const monthNames = getMonthNames();
+  const monthTitle = document.getElementById('calendar-month');
+  if (monthTitle) {
+    monthTitle.textContent = monthNames[calMonth] + ' ' + calYear;
+  }
+  
+  grid.innerHTML = '';
+  const today = toLocalDateKey(new Date());
+  const firstDay = new Date(calYear, calMonth, 1);
+  const dow = firstDay.getDay(); // 0=Sun
+  const startOffset = dow === 0 ? 6 : dow - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  
+  // Day headers
+  const dayNames = {
+    ca: ['DL', 'DT', 'DC', 'DJ', 'DV', 'DS', 'DG'],
+    es: ['LU', 'MA', 'MI', 'JU', 'VI', 'SÁ', 'DO'],
+    en: ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']
+  }[currentLang] || ['DL', 'DT', 'DC', 'DJ', 'DV', 'DS', 'DG'];
+  
+  for (let i = 0; i < 7; i++) {
+    const headerCell = document.createElement('div');
+    headerCell.className = 'calendar-day calendar-day-header';
+    headerCell.textContent = dayNames[i];
+    grid.appendChild(headerCell);
+  }
+  
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    cell.style.opacity = '0';
+    cell.style.cursor = 'default';
+    grid.appendChild(cell);
+  }
+  
+  // Days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = dk === today;
+    const evs = monthEvents[dk] || [];
+    
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day' + (isToday ? ' today' : '') + (evs.length ? ' has-event' : '');
+    cell.textContent = d;
+    cell.onclick = () => {
+      // Could open modal or navigate to week view
+      navigateToDate(dk);
+      switchHorariTab('setmanal');
+    };
+    grid.appendChild(cell);
+  }
 }
