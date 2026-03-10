@@ -7521,7 +7521,8 @@ function renderCalendarInTab() {
   
   // Days
   for (let d = 1; d <= daysInMonth; d++) {
-    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;\n    const isToday = dk === today;
+    const dk = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = dk === today;
     const evs = monthEvents[dk] || [];
     const dayOfWeek = new Date(calYear, calMonth, d).getDay(); // 0=Sun, 6=Sat
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
