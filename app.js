@@ -3861,6 +3861,33 @@ function toggleHabitKitForm() {
   }
 }
 
+function selectHabitEmoji(btn) {
+  // Remove selected from all
+  document.querySelectorAll('#hk-emoji-grid .hk-emoji-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const emoji = btn.dataset.emoji;
+  document.getElementById('hk-icon').value = emoji;
+  document.getElementById('hk-emoji-preview').textContent = emoji;
+}
+
+function onCustomEmojiInput(input) {
+  // Deselect grid buttons and update preview
+  document.querySelectorAll('#hk-emoji-grid .hk-emoji-btn').forEach(b => b.classList.remove('selected'));
+  const val = input.value.trim() || '⭐';
+  document.getElementById('hk-emoji-preview').textContent = val;
+}
+
+function resetEmojiPicker() {
+  // Reset picker to default state
+  const defaultEmoji = '🏋️';
+  document.getElementById('hk-icon').value = defaultEmoji;
+  document.getElementById('hk-emoji-preview').textContent = defaultEmoji;
+  document.querySelectorAll('#hk-emoji-grid .hk-emoji-btn').forEach(b => {
+    b.classList.remove('selected');
+    if (b.dataset.emoji === defaultEmoji) b.classList.add('selected');
+  });
+}
+
 function addHabitKit() {
   const name = document.getElementById('hk-name').value.trim();
   const icon = document.getElementById('hk-icon').value.trim() || '⭐';
@@ -3884,7 +3911,7 @@ function addHabitKit() {
   
   // Clear form
   document.getElementById('hk-name').value = '';
-  document.getElementById('hk-icon').value = '⭐';
+  resetEmojiPicker();
   document.getElementById('hk-desc').value = '';
   document.getElementById('habitkit-form').style.display = 'none';
   const hkBtn = document.querySelector('.habitkit-add-btn');
@@ -3933,81 +3960,144 @@ function renderHabitKit() {
   if (empty) empty.style.display = 'none';
   
   const today = toLocalDateKey(new Date());
+  const todayDate = new Date(); todayDate.setHours(12,0,0,0);
   
+  // Day labels (Mon–Sun) in Catalan, starting Monday
+  const dayLabels = ['Dl','Dm','Dc','Dj','Dv','Ds','Dg'];
+
   list.innerHTML = habitKitData.map(h => {
-    // Generate 91 days grid (13 weeks × 7 days)
-    const dots = [];
-    for (let i = 90; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(12, 0, 0, 0);
-      const k = toLocalDateKey(d);
-      const isToday = k === today;
-      const done = !!h.days[k];
-      
-      dots.push(`
-        <div class="habitkit-dot ${done ? 'done' : ''} ${isToday ? 'today' : ''}" 
-             style="--habit-color: ${h.color};"
-             onclick="toggleHabitKitDay('${h.id}', '${k}')"
-             title="${k}">
-        </div>
-      `);
+    // Build 91-day grid aligned to weeks (Mon=0)
+    // Find the Monday 13 weeks ago
+    const startDate = new Date(todayDate);
+    startDate.setDate(startDate.getDate() - 90);
+    // Adjust startDate back to the nearest Monday
+    const startDow = (startDate.getDay() + 6) % 7; // Mon=0
+    startDate.setDate(startDate.getDate() - startDow);
+
+    // Build cells: 7 rows (days) × 13 cols (weeks) = 91 cells
+    // We'll display as 7 rows × 13 cols
+    const totalDays = 7 * 13; // 91
+    const cells = [];
+    const monthPositions = {}; // col -> month label
+
+    for (let col = 0; col < 13; col++) {
+      for (let row = 0; row < 7; row++) {
+        const cellIdx = col * 7 + row;
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + cellIdx);
+        d.setHours(12,0,0,0);
+        const k = toLocalDateKey(d);
+        const isFuture = d > todayDate;
+        const isToday = k === today;
+        const done = !isFuture && !!h.days[k];
+        // Track first occurrence of each month in this column
+        if (row === 0 && !monthPositions[col]) {
+          monthPositions[col] = d.toLocaleDateString('ca', { month: 'short' });
+        }
+        cells.push({ k, done, isToday, isFuture, col, row, id: h.id, day: d.getDate(), dateLabel: d.toLocaleDateString('ca', {day:'2-digit',month:'short'}) });
+      }
     }
-    
+
+    // Build month header row
+    let lastMonth = '';
+    const monthCells = Array.from({length: 13}, (_, col) => {
+      const label = monthPositions[col] || '';
+      if (label !== lastMonth) { lastMonth = label; return `<div class="hk2-month-label">${label}</div>`; }
+      return `<div class="hk2-month-label"></div>`;
+    }).join('');
+
+    // Build grid cells HTML
+    const gridCells = cells.map(c => {
+      let cls = 'hk2-cell';
+      if (c.done) cls += ' done';
+      if (c.isToday) cls += ' today';
+      if (c.isFuture) cls += ' future';
+      return `<div class="${cls}" style="--hc:${h.color};" onclick="${c.isFuture ? '' : `toggleHabitKitDay('${c.id}','${c.k}')`}" title="${c.dateLabel}"></div>`;
+    }).join('');
+
     // Calculate streak
     let streak = 0;
-    const dd = new Date();
-    dd.setHours(12, 0, 0, 0);
-    while (h.days[toLocalDateKey(dd)]) {
-      streak++;
-      dd.setDate(dd.getDate() - 1);
+    const sd = new Date(todayDate);
+    while (h.days[toLocalDateKey(sd)]) { streak++; sd.setDate(sd.getDate()-1); }
+
+    // Calculate total completions
+    const totalDone = Object.keys(h.days).filter(k => h.days[k]).length;
+
+    // Calculate last 4 weeks %
+    let last28Done = 0;
+    for (let i = 0; i < 28; i++) {
+      const dd2 = new Date(todayDate); dd2.setDate(dd2.getDate()-i);
+      if (h.days[toLocalDateKey(dd2)]) last28Done++;
     }
-    
-    // Calculate week percentage
-    let weekDone = 0;
-    for (let i = 0; i < 7; i++) {
-      const dd2 = new Date();
-      dd2.setDate(dd2.getDate() - i);
-      dd2.setHours(12, 0, 0, 0);
-      if (h.days[toLocalDateKey(dd2)]) weekDone++;
+    const pct28 = Math.round(last28Done / 28 * 100);
+
+    // Weekly completion for mini bar chart (last 7 weeks)
+    const weekBars = [];
+    for (let w = 6; w >= 0; w--) {
+      let cnt = 0;
+      for (let d2 = 0; d2 < 7; d2++) {
+        const dd3 = new Date(todayDate); dd3.setDate(dd3.getDate() - w*7 - d2);
+        if (h.days[toLocalDateKey(dd3)]) cnt++;
+      }
+      const h_pct = Math.round(cnt/7*100);
+      weekBars.push(`<div class="hk2-bar-col"><div class="hk2-bar-fill" style="height:${Math.max(4,h_pct)}%;background:${h.color};opacity:${w===0?1:0.5+w*0.05};"></div></div>`);
     }
-    const pct = Math.round(weekDone / 7 * 100);
-    
-    // Check if today is done
+
     const todayDone = !!h.days[today];
-    
+    // SVG ring for pct28
+    const r = 18, circ = 2 * Math.PI * r;
+    const dash = (pct28 / 100) * circ;
+
     return `
-      <div class="habitkit-item">
-        <div class="habitkit-item-header">
-          <div class="habitkit-icon">${h.icon}</div>
-          <div class="habitkit-info">
-            <div class="habitkit-name">${h.name}</div>
-            ${h.desc ? `<div class="habitkit-desc">${h.desc}</div>` : ''}
+      <div class="hk2-card" style="--hc:${h.color};">
+        <div class="hk2-accent-bar"></div>
+        <div class="hk2-top">
+          <div class="hk2-icon-wrap">${h.icon}</div>
+          <div class="hk2-title-group">
+            <div class="hk2-name">${h.name}</div>
+            ${h.desc ? `<div class="hk2-subdesc">${h.desc}</div>` : ''}
           </div>
-          <button class="habitkit-check-btn ${todayDone ? 'done' : ''}" 
-                  style="--habit-color: ${h.color}; border-color: ${h.color};"
-                  onclick="toggleHabitKitDay('${h.id}', '${today}')">
-            ${todayDone ? '✓' : ''}
-          </button>
-        </div>
-        <div class="habitkit-grid">
-          ${dots.join('')}
-        </div>
-        <div class="habitkit-stats">
-          <div class="habitkit-stat">
-            <span>🔥</span>
-            <span class="habitkit-stat-value">${streak}</span>
-            <span>dies</span>
-          </div>
-          <div class="habitkit-stat">
-            <span>📊</span>
-            <span class="habitkit-stat-value">${pct}%</span>
-            <span>setmana</span>
+          <div class="hk2-topright">
+            <button class="hk2-check ${todayDone ? 'done' : ''}" onclick="toggleHabitKitDay('${h.id}','${today}')">
+              <span class="hk2-check-icon">${todayDone ? '✓' : '+'}</span>
+              <span class="hk2-check-label">${todayDone ? 'Fet!' : 'Avui'}</span>
+            </button>
           </div>
         </div>
-        <button class="habitkit-delete-btn" onclick="deleteHabitKit('${h.id}')">
-          🗑️ Eliminar
-        </button>
+
+        <div class="hk2-grid-wrap">
+          <div class="hk2-day-labels">
+            ${dayLabels.map((l,i) => `<div class="hk2-day-lbl">${i%2===0?l:''}</div>`).join('')}
+          </div>
+          <div class="hk2-grid-area">
+            <div class="hk2-month-row">${monthCells}</div>
+            <div class="hk2-grid">${gridCells}</div>
+          </div>
+        </div>
+
+        <div class="hk2-footer">
+          <div class="hk2-stat-pill">
+            <span class="hk2-stat-icon">🔥</span>
+            <span class="hk2-stat-num">${streak}</span>
+            <span class="hk2-stat-unit">dies seguits</span>
+          </div>
+          <div class="hk2-stat-pill">
+            <span class="hk2-stat-icon">✅</span>
+            <span class="hk2-stat-num">${totalDone}</span>
+            <span class="hk2-stat-unit">total</span>
+          </div>
+          <div class="hk2-ring-wrap" title="${pct28}% últimes 4 setmanes">
+            <svg width="48" height="48" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
+              <circle cx="24" cy="24" r="${r}" fill="none" stroke="${h.color}" stroke-width="4"
+                stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round"
+                style="transition:stroke-dasharray 0.6s ease;"/>
+            </svg>
+            <div class="hk2-ring-label">${pct28}%</div>
+          </div>
+          <div class="hk2-bars">${weekBars.join('')}</div>
+          <button class="hk2-del" onclick="deleteHabitKit('${h.id}')" title="Eliminar">✕</button>
+        </div>
       </div>
     `;
   }).join('');
