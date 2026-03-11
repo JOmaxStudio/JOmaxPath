@@ -1734,26 +1734,73 @@ function saveGoalConfig() {
 function renderAPIKeyTab(body) {
   const saved = localStorage.getItem('groq_api_key') || '';
   const masked = saved ? saved.substring(0,8) + '••••••••••••••••••••' + saved.slice(-4) : '';
+  const savedStyle = localStorage.getItem('julians_style') || 'amic';
+
+  const styles = [
+    { id:'amic',    icon:'🤙', label:'Amic de confiança',   desc:'Proper, directe, sense filtres. Com un amic que t\'ajuda de veritat.' },
+    { id:'profe',   icon:'📚', label:'Professor pacient',   desc:'Explica bé les coses, amb exemples i sense presses.' },
+    { id:'coach',   icon:'🔥', label:'Coach motivador',     desc:'T\'empeny, et desafia i et recorda els teus objectius.' },
+    { id:'formal',  icon:'💼', label:'Assistent professional', desc:'Respostes netes, precises i sense cap floritura.' },
+    { id:'sarcastic',icon:'😏',label:'Sarcàstic & divertit', desc:'Amb gràcia i ironia, però sempre útil.' },
+  ];
+
+  const styleBtns = styles.map(s => `
+    <button onclick="saveJuliansStyle('${s.id}')" style="
+      display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;
+      padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:8px;
+      background:${savedStyle===s.id ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--card2)'};
+      border:1px solid ${savedStyle===s.id ? 'var(--accent2)' : 'var(--border)'};
+      color:var(--text);transition:all 0.2s;">
+      <span style="font-size:20px;line-height:1;">${s.icon}</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px;">${s.label}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.4;">${s.desc}</div>
+      </div>
+      ${savedStyle===s.id ? '<span style="margin-left:auto;color:var(--accent2);font-size:14px;padding-left:8px;">✓</span>' : ''}
+    </button>
+  `).join('');
+
   body.innerHTML = `
     <div style="padding:4px 0;">
-      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;">
-        Per usar Julians necessites una API Key de Groq (gratuïta i ràpida).<br><br>
-        <strong style="color:var(--text);">Com obtenir-la:</strong><br>
+
+      <p style="color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">🎭 Com vols que et tracti Julians?</p>
+      ${styleBtns}
+
+      <div style="height:1px;background:var(--border);margin:18px 0;"></div>
+
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px;">
+        Per usar Julians necessites una <strong style="color:var(--text);">API Key de Groq</strong> (gratuïta).<br><br>
         1. Ves a <a href="https://console.groq.com" target="_blank" style="color:var(--accent2);">console.groq.com</a><br>
-        2. Crea un compte o inicia sessió<br>
-        3. Ves a <em>API Keys</em> i clica <em>Create API Key</em><br>
-        4. Copia la clau i enganxa-la aquí sota
+        2. Crea compte → <em>API Keys</em> → <em>Create API Key</em><br>
+        3. Copia-la i enganxa-la aquí sota
       </p>
       ${saved ? `<p style="color:#4caf50;font-size:12px;margin-bottom:10px;">✅ Clau guardada: <code style="font-size:11px;">${masked}</code></p>` : `<p style="color:#ff9800;font-size:12px;margin-bottom:10px;">⚠️ Sense clau configurada — la IA no funcionarà</p>`}
-      <input type="password" id="api-key-input" value="${saved}" placeholder="gsk_..." 
+      <input type="password" id="api-key-input" value="${saved}" placeholder="gsk_..."
         style="width:100%;box-sizing:border-box;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:'Space Mono',monospace;font-size:12px;margin-bottom:12px;outline:none;" />
       <div style="display:flex;gap:10px;">
         <button onclick="saveAPIKey()" style="flex:1;background:var(--accent2);color:#000;border:none;border-radius:8px;padding:10px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">💾 GUARDAR</button>
         ${saved ? `<button onclick="if(confirm('Eliminar la clau?')){localStorage.removeItem('groq_api_key');renderConfigTab();}" style="background:var(--card2);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;cursor:pointer;">🗑️</button>` : ''}
       </div>
-      <p style="color:var(--muted);font-size:11px;margin-top:14px;line-height:1.5;">🔒 La clau es guarda localment al teu dispositiu. Mai es comparteix amb ningú excepte Groq per processar les teves peticions.</p>
+      <p style="color:var(--muted);font-size:11px;margin-top:14px;line-height:1.5;">🔒 La clau es guarda localment al teu dispositiu. Mai es comparteix amb ningú excepte Groq.</p>
     </div>
   `;
+}
+
+function saveJuliansStyle(styleId) {
+  localStorage.setItem('julians_style', styleId);
+  renderConfigTab();
+}
+
+function getJuliansStylePrompt() {
+  const style = localStorage.getItem('julians_style') || 'amic';
+  const prompts = {
+    amic: `El teu estil és d'AMIC DE CONFIANÇA: parla de tu a tu, sigues directe i sense filtres, com si fos un col·lega que sap molt. Res de formalitats, però sempre útil i al gra. Pots usar expressions col·loquials catalanes.`,
+    profe: `El teu estil és de PROFESSOR PACIENT: explica les coses amb claredat, usa exemples concrets, desglossa els conceptes pas a pas. Ets proper però professional. Si l'usuari no entén alguna cosa, busca una altra manera d'explicar-ho.`,
+    coach: `El teu estil és de COACH MOTIVADOR: ets enèrgic, empàtic i directe. Recorda a l'usuari els seus objectius, empeny-lo a actuar i felicita'l pels èxits. Cada resposta ha de deixar l'usuari amb ganes de fer coses.`,
+    formal: `El teu estil és d'ASSISTENT PROFESSIONAL: respostes netes, precises i sense cap floritura. Sense emojis excessius, sense col·loquialismes. Directe al punt, com un bon informe executiu.`,
+    sarcastic: `El teu estil és SARCÀSTIC I DIVERTIT: tens sentit de l'humor, uses la ironia amb gràcia i de vegades et burles (amigablement) de les preguntes fàcils. Però sempre acabes sent útil i donant la resposta correcta. Mai siguis maleducat.`,
+  };
+  return prompts[style] || prompts.amic;
 }
 
 function saveAPIKey() {
@@ -2781,7 +2828,7 @@ function setEstudiSubmode(sub) {
 // ══════════════════════════════════════════════════════
 
 function getEstudiSystemPrompt(submode, docContent) {
-  const base = `Ets Julians, l'assistent d'estudi personal de l'Julià Domingo (17 anys, estudiant). Parles SEMPRE en català. Ets com un professor particular expert en tècniques d'aprenentatge científicament provades: Spaced Repetition, Active Recall, Tècnica Feynman, mètode 2357 i interleaving.`;
+  const base = `Ets Julians, l'assistent d'estudi creat per Julià Domingo (14 anys, jove emprenedor) a JOmaxPath. Parles SEMPRE en català. Ets com un professor particular expert en tècniques d'aprenentatge científicament provades: Spaced Repetition, Active Recall, Tècnica Feynman, mètode 2357 i interleaving. ${getJuliansStylePrompt()}`;
 
   if(submode === 'pla') {
     return base + `
@@ -3040,7 +3087,19 @@ async function sendAIBase() {
   try {
     const mode = AI_MODES[aiMode]||AI_MODES.rapid;
 
-    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català de forma natural i propera.
+    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent creat per a JOmaxPath.
+
+SOBRE TU:
+- Vas ser creat per Julià Domingo, un jove emprenedor de 14 anys de Catalunya.
+- El Julià va construir JOmaxPath i Julians des de zero com a projecte personal.
+- Si algú et pregunta qui t'ha creat o qui és el teu creador, respon: "Em va crear el Julià Domingo, un emprenedor de 14 anys que va construir JOmaxPath des de zero. Bastant impressionant, oi?"
+- Si et pregunten per la web: jomaxpath.com
+- Parles SEMPRE en català (o en l'idioma que t'escriu l'usuari si canvia de llengua).
+- Ets directe, eficient i vas AL GRA. Mai divagues. Respon el que et demanen i prou.
+- Si no tens prou informació per fer alguna cosa, pregunta el mínim imprescindible.
+
+ESTIL DE TRACTAMENT ACTUAL:
+${getJuliansStylePrompt()}
 
 ╔══════════════════════════════════════════════════════════════╗
 ║  INFORMACIÓ TEMPORAL CRÍTICA (LLEGEIX PRIMER)                ║
@@ -3161,7 +3220,7 @@ ${buildCalendarContext()}
 
 ${mode.suffix}
 
-RECORDA: Ets un assistent INTEL·LIGENT. Pensa bé abans d'actuar. Calcula les dates correctament. No posis tot el mateix dia!`;
+RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calcula les dates correctament. No posis tot el mateix dia!`;
 
 
     // ── Missatges d'historial — filtrant buits/nulls i documents llargs ──
@@ -3177,7 +3236,7 @@ RECORDA: Ets un assistent INTEL·LIGENT. Pensa bé abans d'actuar. Calcula les d
     const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa al|afegeix al|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit)/i.test(text);
     const tools = isCasual ? [] : getAITools();
     const activePrompt = isCasual
-      ? "Ets Julians, l'assistent personal de l'Julià Domingo a JOmaxPath. Parles SEMPRE en català. Ets proper i directe."
+      ? `Ets Julians, l'assistent personal intel·ligent creat per Julià Domingo (14 anys) a JOmaxPath. Parles sempre en català. Ets directe, vas al gra i ets útil sense divagar. ${getJuliansStylePrompt()}`
       : systemPrompt;
 
     // ── PRIMERA CRIDA GROQ ──
@@ -4795,7 +4854,8 @@ async function sendAI() {
   try {
     const mode = AI_MODES[aiMode] || AI_MODES.rapid;
     
-    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent de l'Julià Domingo a JOmaxPath. Parles sempre en català.
+    const systemPrompt = `Ets Julians, l'assistent personal intel·ligent creat per Julià Domingo (14 anys, jove emprenedor) a JOmaxPath. Parles sempre en català. Ets directe i vas al gra.
+${getJuliansStylePrompt()}
 ${buildCalendarContext()}
 
 L'usuari t'ha adjuntat un document. La teva feina és:
