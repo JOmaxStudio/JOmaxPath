@@ -1732,7 +1732,7 @@ function saveGoalConfig() {
   renderGoal(); renderProgress(); closeConfig();
 }
 // ── Worker URL per la IA (cap API key visible a l'usuari) ──
-const JULIANS_WORKER_URL = 'https://jomaxpath-ai.YOUR_SUBDOMAIN.workers.dev'; // <-- canvia això
+const JULIANS_WORKER_URL = 'https://julians-ai.sortmind-jomax.workers.dev';
 
 function renderAPIKeyTab(body) {
   const savedStyle = localStorage.getItem('julians_style') || 'amic';
@@ -3018,7 +3018,13 @@ function getAIToolsAnthropic() {
 
 // ── Cridar Anthropic via Worker ──
 async function callAnthropicWorker(systemPrompt, messages, tools, maxTokens, temperature) {
-  const body = { system: systemPrompt, messages, max_tokens: maxTokens || 1024, temperature: temperature || 0.3 };
+  const body = {
+    model: 'claude-sonnet-4-5',
+    system: systemPrompt,
+    messages,
+    max_tokens: maxTokens || 1024,
+    temperature: temperature || 0.3
+  };
   if(tools && tools.length > 0) { body.tools = tools; body.tool_choice = { type: 'auto' }; }
   const resp = await fetch(JULIANS_WORKER_URL, {
     method: 'POST',
