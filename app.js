@@ -3006,6 +3006,39 @@ QUAN L'USUARI RESPON → valora i continua. Al final dóna una puntuació i reco
   return base;
 }
 
+
+// ── Convertir eines al format Anthropic ──
+function getAIToolsAnthropic() {
+  return getAITools().map(t => ({
+    name: t.function.name,
+    description: t.function.description,
+    input_schema: t.function.parameters
+  }));
+}
+
+// ── Cridar Anthropic via Worker ──
+async function callAnthropicWorker(systemPrompt, messages, tools, maxTokens, temperature) {
+  const body = { system: systemPrompt, messages, max_tokens: maxTokens || 1024, temperature: temperature || 0.3 };
+  if(tools && tools.length > 0) { body.tools = tools; body.tool_choice = { type: 'auto' }; }
+  const resp = await fetch(JULIANS_WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await resp.json();
+  return { resp, data };
+}
+
+// ── Parsejar resposta Anthropic ──
+function parseAnthropicResponse(data) {
+  const textBlock = (data.content || []).find(b => b.type === 'text');
+  const toolBlocks = (data.content || []).filter(b => b.type === 'tool_use');
+  return {
+    text: textBlock?.text || '',
+    toolCalls: toolBlocks
+  };
+}
+
 async function sendAIEstudi(userMsg, docContent) {
   const chat = aiChats[aiCurrentChatId];
   const box = document.getElementById('ai-messages');
@@ -3082,20 +3115,15 @@ async function sendAIEstudi(userMsg, docContent) {
       msgs[msgs.length-1].content = userContent;
     }
 
-    const resp = await fetch(JULIANS_WORKER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 3500,
-        temperature: 0.55,
-        messages: msgs
-      })
-    });
+    // Treure system dels missatges (Anthropic el vol separat)
+    const estudiSysPrompt = msgs[0].role === 'system' ? msgs[0].content : systemPrompt;
+    const estudiMsgs = msgs.filter(m => m.role !== 'system');
+    if(!estudiMsgs.length || estudiMsgs[estudiMsgs.length-1].role !== 'user') {
+      estudiMsgs.push({ role: 'user', content: userContent });
+    }
 
-    const data = await resp.json();
+    const { resp, data } = await callAnthropicWorker(estudiSysPrompt, estudiMsgs, [], 3500, 0.55);
+
     typingEl.remove();
     document.getElementById('ai-chat-send').disabled = false;
 
@@ -3103,7 +3131,7 @@ async function sendAIEstudi(userMsg, docContent) {
       const errMsg = data?.error?.message || JSON.stringify(data?.error);
       chat.messages.push({ role: 'assistant', text: '⚠️ Error IA (' + resp.status + '): ' + errMsg.substring(0, 200) });
     } else {
-      const answer = data.choices?.[0]?.message?.content || '⚠️ Sense resposta.';
+      const answer = parseAnthropicResponse(data).text || '⚠️ Sense resposta.';
       chat.messages.push({ role: 'assistant', text: answer });
 
       // Afegir botons d'acció contextuals segons el submode
@@ -3328,71 +3356,31 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
       : systemPrompt;
 
     // ── PRIMERA CRIDA GROQ ──
-    const groqMsgs1 = [
-      {role:'system', content: activePrompt},
-      ...historyMsgs
-    ];
-
-    const reqBody1 = {
-      model: isCasual ? 'llama-3.1-8b-instant' : 'llama-3.3-70b-versatile',
-      max_tokens: mode.max_tokens,
-      temperature: mode.temperature||0.3,
-      messages: groqMsgs1
-    };
-    if(tools.length > 0) { reqBody1.tools = tools; reqBody1.tool_choice = 'auto'; }
-
-    const resp1 = await fetch(JULIANS_WORKER_URL, {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-      },
-      body: JSON.stringify(reqBody1)
-    });
-    const data1 = await resp1.json();
-    console.log('[Julians] Resp 1:', JSON.stringify(data1).substring(0,400));
+    // ── CRIDA ANTHROPIC (format natiu) ──
+    const anthropicTools = isCasual ? [] : getAIToolsAnthropic();
+    const { resp: resp1, data: data1 } = await callAnthropicWorker(
+      activePrompt, historyMsgs, anthropicTools, mode.max_tokens, mode.temperature||0.3
+    );
 
     if(!resp1.ok) {
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
-      const _ec = data1?.error?.code || '';
-      const _em = String(data1?.error?.message || '');
-      let err;
-      if(_ec === 'rate_limit_exceeded' || _em.includes('rate_limit')) {
-        err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
-      } else {
-        err = '⚠️ Error IA (' + resp1.status + '): ' + (_em || JSON.stringify(data1?.error)).substring(0, 200);
-      }
-      chat.messages.push({role:'assistant', text:err});
+      const _em = String(data1?.error?.message || JSON.stringify(data1?.error) || 'Error desconegut');
+      chat.messages.push({role:'assistant', text:'⚠️ Error IA (' + resp1.status + '): ' + _em.substring(0, 200)});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
       renderAIMessages(); return;
     }
 
-    if(!data1.choices || !data1.choices[0]) {
-      typingEl.remove();
-      document.getElementById('ai-chat-send').disabled = false;
-      const raw = JSON.stringify(data1).substring(0,200);
-      chat.messages.push({role:'assistant', text:`⚠️ Resposta inesperada: ${raw}`});
-      localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
-      renderAIMessages(); return;
-    }
-
-    // ── PROCESSAR TOOL CALLS ──
-    const assistantMsg = data1.choices[0].message;
-    const toolCalls = assistantMsg.tool_calls || [];
+    // ── PROCESSAR TOOL USE (format Anthropic) ──
+    const { text: textFromFirst, toolCalls } = parseAnthropicResponse(data1);
     let toolResults = [];
-    let textFromFirst = assistantMsg.content || '';
-
-    console.log('[Julians] Tool calls:', toolCalls.length, toolCalls.map(tc=>tc.function?.name));
 
     for(const tc of toolCalls) {
-      let input = {};
-      try { input = JSON.parse(tc.function.arguments); } catch(e) {
-        console.warn('[Julians] Error args:', tc.function.arguments);
-      }
-      console.log('[Julians] Executant:', tc.function.name, input);
-      const result = executeAITool(tc.function.name, input);
+      const input = tc.input || {};
+      console.log('[Julians] Executant:', tc.name, input);
+      const result = executeAITool(tc.name, input);
       console.log('[Julians] Resultat:', result);
-      toolResults.push({role:'tool', tool_call_id: tc.id, content: String(result)});
+      toolResults.push({ type: 'tool_result', tool_use_id: tc.id, content: String(result) });
     }
 
     let finalText = textFromFirst;
@@ -3400,28 +3388,14 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
     // ── SEGONA CRIDA (si hi havia eines) ──
     if(toolResults.length > 0) {
       const msgs2 = [
-        {role:'system', content: systemPrompt},
         ...historyMsgs,
-        {role:'assistant', content: assistantMsg.content || '', tool_calls: toolCalls},
-        ...toolResults
+        { role: 'assistant', content: data1.content },
+        { role: 'user', content: toolResults }
       ];
-      console.log('[Julians] Crida 2 →', msgs2.length, 'msgs');
-      const resp2 = await fetch(JULIANS_WORKER_URL, {
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-        },
-        body: JSON.stringify({
-          model:'llama-3.3-70b-versatile',
-          max_tokens: mode.max_tokens,
-          temperature: mode.temperature||0.3,
-          messages: msgs2
-        })
-      });
-      const data2 = await resp2.json();
-      console.log('[Julians] Resp 2:', JSON.stringify(data2).substring(0,300));
-      finalText = data2.choices?.[0]?.message?.content || '';
-      if(!finalText) finalText = toolResults.map(r=>r.content).join('\n');
+      const { data: data2 } = await callAnthropicWorker(
+        systemPrompt, msgs2, anthropicTools, mode.max_tokens, mode.temperature||0.3
+      );
+      finalText = parseAnthropicResponse(data2).text || toolResults.map(r=>r.content).join('\n');
     }
 
     typingEl.remove();
@@ -5009,83 +4983,47 @@ ${mode.suffix}`;
       docTextContent = docTextContent.substring(0, 12000) + '\n[... document retallat per limit de tokens ...]';
     }
     
-    const groqDocMsgs = [
-      {role:'system', content: systemPrompt},
-      {role:'user', content: instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent}
-    ];
-    
-    const resp1 = await fetch(JULIANS_WORKER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: Math.max(mode.max_tokens, 2000),
-        tools,
-        tool_choice: 'auto',
-        messages: groqDocMsgs
-      })
-    });
-    const data1 = await resp1.json();
-    
+    const docUserMsg = instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent;
+    const docMsgs = [{ role: 'user', content: docUserMsg }];
+    const anthropicDocTools = getAIToolsAnthropic();
+
+    const { resp: resp1, data: data1 } = await callAnthropicWorker(
+      systemPrompt, docMsgs, anthropicDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3
+    );
+
     if(!resp1.ok) {
       typingEl.remove();
       document.getElementById('ai-chat-send').disabled = false;
-      const errCode = data1?.error?.code || '';
-      const errMsg = String(data1?.error?.message || '');
+      const errMsg = String(data1?.error?.message || JSON.stringify(data1?.error) || '');
       let err;
-      if(errCode === 'rate_limit_exceeded' || errMsg.includes('rate_limit')) {
-        err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
-      } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token')) {
-        err = '⚠️ El document és massa llarg. Prova amb un PDF més curt.';
-      } else {
-        err = '⚠️ Error IA: ' + (errMsg || JSON.stringify(data1?.error)).substring(0, 200);
-      }
+      if(errMsg.includes('rate_limit')) err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
+      else if(errMsg.includes('context') || errMsg.includes('token')) err = '⚠️ El document és massa llarg. Prova amb un PDF més curt.';
+      else err = '⚠️ Error IA: ' + errMsg.substring(0, 200);
       chat.messages.push({role:'assistant', text: err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
       renderAIMessages(); return;
     }
-    
-    // Process tool calls (OpenAI format)
-    const assistantMsg = data1.choices[0].message;
-    const toolCalls = assistantMsg.tool_calls || [];
+
+    const { text: textFromFirst, toolCalls } = parseAnthropicResponse(data1);
     let toolResults = [];
-    let textFromFirst = assistantMsg.content || '';
-    
+
     for(const tc of toolCalls) {
-      let input = {};
-      try { input = JSON.parse(tc.function.arguments); } catch(e) {}
-      const result = executeAITool(tc.function.name, input);
-      toolResults.push({role:'tool', tool_call_id: tc.id, content: String(result)});
+      const result = executeAITool(tc.name, tc.input || {});
+      toolResults.push({ type: 'tool_result', tool_use_id: tc.id, content: String(result) });
     }
-    
+
     let finalText = textFromFirst;
-    
-    // Second call if tools used
+
     if(toolResults.length > 0) {
       const msgs2 = [
-        {role:'system', content: systemPrompt},
-        {role:'user', content: groqDocMsgs[1].content},
-        {role:'assistant', content: assistantMsg.content||null, tool_calls: toolCalls},
-        ...toolResults
+        { role: 'user', content: docUserMsg },
+        { role: 'assistant', content: data1.content },
+        { role: 'user', content: toolResults }
       ];
-      const resp2 = await fetch(JULIANS_WORKER_URL, {
-        method:'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          max_tokens: Math.max(mode.max_tokens, 2000),
-          tools,
-          tool_choice: 'auto',
-          messages: msgs2
-        })
-      });
-      const data2 = await resp2.json();
-      finalText = data2.choices?.[0]?.message?.content || '';
-      if(!finalText) finalText = toolResults.map(r=>r.content).join('\n');
+      const { data: data2 } = await callAnthropicWorker(
+        systemPrompt, msgs2, anthropicDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3
+      );
+      finalText = parseAnthropicResponse(data2).text || toolResults.map(r=>r.content).join('\n');
     }
     
     typingEl.remove();
