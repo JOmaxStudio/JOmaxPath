@@ -3016,16 +3016,17 @@ function getAIToolsAnthropic() {
   }));
 }
 
-// ── Cridar Anthropic via Worker ──
-async function callAnthropicWorker(systemPrompt, messages, tools, maxTokens, temperature) {
+// ── Cridar Groq via Worker ──
+async function callGroqWorker(systemPrompt, messages, tools, maxTokens, temperature, casual) {
+  const model = casual ? 'llama-3.1-8b-instant' : 'llama-3.3-70b-versatile';
+  const allMsgs = [{ role: 'system', content: systemPrompt }, ...messages];
   const body = {
-    model: 'claude-sonnet-4-5',
-    system: systemPrompt,
-    messages,
+    model,
     max_tokens: maxTokens || 1024,
-    temperature: temperature || 0.3
+    temperature: temperature || 0.3,
+    messages: allMsgs
   };
-  if(tools && tools.length > 0) { body.tools = tools; body.tool_choice = { type: 'auto' }; }
+  if(tools && tools.length > 0) { body.tools = tools; body.tool_choice = 'auto'; }
   const resp = await fetch(JULIANS_WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -3035,13 +3036,13 @@ async function callAnthropicWorker(systemPrompt, messages, tools, maxTokens, tem
   return { resp, data };
 }
 
-// ── Parsejar resposta Anthropic ──
-function parseAnthropicResponse(data) {
-  const textBlock = (data.content || []).find(b => b.type === 'text');
-  const toolBlocks = (data.content || []).filter(b => b.type === 'tool_use');
+// ── Parsejar resposta Groq (format OpenAI) ──
+function parseGroqResponse(data) {
+  const msg = data?.choices?.[0]?.message || {};
   return {
-    text: textBlock?.text || '',
-    toolCalls: toolBlocks
+    text: msg.content || '',
+    toolCalls: msg.tool_calls || [],
+    rawMsg: msg
   };
 }
 
@@ -3112,7 +3113,7 @@ async function sendAIEstudi(userMsg, docContent) {
 
     const estudiMsgs = [...historyMsgs, { role: 'user', content: userContent }];
 
-    const { resp, data } = await callAnthropicWorker(systemPrompt, estudiMsgs, [], 3500, 0.55);
+    const { resp, data } = await callGroqWorker(systemPrompt, estudiMsgs, [], 3500, 0.55, false);
 
     typingEl.remove();
     document.getElementById('ai-chat-send').disabled = false;
@@ -3121,7 +3122,7 @@ async function sendAIEstudi(userMsg, docContent) {
       const errMsg = data?.error?.message || JSON.stringify(data?.error);
       chat.messages.push({ role: 'assistant', text: '⚠️ Error IA (' + resp.status + '): ' + errMsg.substring(0, 200) });
     } else {
-      const answer = parseAnthropicResponse(data).text || '⚠️ Sense resposta.';
+      const answer = parseGroqResponse(data).text || '⚠️ Sense resposta.';
       chat.messages.push({ role: 'assistant', text: answer });
 
       // Afegir botons d'acció contextuals segons el submode
@@ -3349,11 +3350,10 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
       ? `Ets Julians, l'assistent personal intel·ligent creat per Julià Domingo (14 anys) a JOmaxPath. Parles sempre en català. Ets directe, vas al gra i ets útil sense divagar. ${getJuliansStylePrompt()}`
       : systemPrompt;
 
-    // ── PRIMERA CRIDA GROQ ──
-    // ── CRIDA ANTHROPIC (format natiu) ──
-    const anthropicTools = isCasual ? [] : getAIToolsAnthropic();
-    const { resp: resp1, data: data1 } = await callAnthropicWorker(
-      activePrompt, historyMsgs, anthropicTools, mode.max_tokens, mode.temperature||0.3
+    // ── CRIDA GROQ ──
+    const groqTools = isCasual ? [] : getAITools();
+    const { resp: resp1, data: data1 } = await callGroqWorker(
+      activePrompt, historyMsgs, groqTools, mode.max_tokens, mode.temperature||0.3, isCasual
     );
 
     if(!resp1.ok) {
@@ -3365,31 +3365,32 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
       renderAIMessages(); return;
     }
 
-    // ── PROCESSAR TOOL USE (format Anthropic) ──
-    const { text: textFromFirst, toolCalls } = parseAnthropicResponse(data1);
+    // ── PROCESSAR TOOL CALLS (format Groq/OpenAI) ──
+    const { text: textFromFirst, toolCalls, rawMsg } = parseGroqResponse(data1);
     let toolResults = [];
 
     for(const tc of toolCalls) {
-      const input = tc.input || {};
-      console.log('[Julians] Executant:', tc.name, input);
-      const result = executeAITool(tc.name, input);
+      let input = {};
+      try { input = JSON.parse(tc.function.arguments); } catch(e) {}
+      console.log('[Julians] Executant:', tc.function.name, input);
+      const result = executeAITool(tc.function.name, input);
       console.log('[Julians] Resultat:', result);
-      toolResults.push({ type: 'tool_result', tool_use_id: tc.id, content: String(result) });
+      toolResults.push({ role: 'tool', tool_call_id: tc.id, content: String(result) });
     }
 
     let finalText = textFromFirst;
 
-    // ── SEGONA CRIDA (si hi havia eines) ──
+    // ── SEGONA CRIDA si hi havia eines ──
     if(toolResults.length > 0) {
       const msgs2 = [
         ...historyMsgs,
-        { role: 'assistant', content: data1.content },
-        { role: 'user', content: toolResults }
+        { role: 'assistant', content: rawMsg.content || '', tool_calls: toolCalls },
+        ...toolResults
       ];
-      const { data: data2 } = await callAnthropicWorker(
-        systemPrompt, msgs2, anthropicTools, mode.max_tokens, mode.temperature||0.3
+      const { data: data2 } = await callGroqWorker(
+        systemPrompt, msgs2, groqTools, mode.max_tokens, mode.temperature||0.3, false
       );
-      finalText = parseAnthropicResponse(data2).text || toolResults.map(r=>r.content).join('\n');
+      finalText = parseGroqResponse(data2).text || toolResults.map(r=>r.content).join('\n');
     }
 
     typingEl.remove();
@@ -4951,10 +4952,10 @@ ${mode.suffix}`;
 
     const docUserMsg = instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent;
     const docMsgs = [{ role: 'user', content: docUserMsg }];
-    const anthropicDocTools = getAIToolsAnthropic();
+    const groqDocTools = getAITools();
 
-    const { resp: resp1, data: data1 } = await callAnthropicWorker(
-      systemPrompt, docMsgs, anthropicDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3
+    const { resp: resp1, data: data1 } = await callGroqWorker(
+      systemPrompt, docMsgs, groqDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3, false
     );
 
     if(!resp1.ok) {
@@ -4970,12 +4971,14 @@ ${mode.suffix}`;
       renderAIMessages(); return;
     }
 
-    const { text: textFromFirst, toolCalls } = parseAnthropicResponse(data1);
+    const { text: textFromFirst, toolCalls, rawMsg: rawMsg1 } = parseGroqResponse(data1);
     let toolResults = [];
 
     for(const tc of toolCalls) {
-      const result = executeAITool(tc.name, tc.input || {});
-      toolResults.push({ type: 'tool_result', tool_use_id: tc.id, content: String(result) });
+      let input = {};
+      try { input = JSON.parse(tc.function.arguments); } catch(e) {}
+      const result = executeAITool(tc.function.name, input);
+      toolResults.push({ role: 'tool', tool_call_id: tc.id, content: String(result) });
     }
 
     let finalText = textFromFirst;
@@ -4983,13 +4986,13 @@ ${mode.suffix}`;
     if(toolResults.length > 0) {
       const msgs2 = [
         { role: 'user', content: docUserMsg },
-        { role: 'assistant', content: data1.content },
-        { role: 'user', content: toolResults }
+        { role: 'assistant', content: rawMsg1.content || '', tool_calls: toolCalls },
+        ...toolResults
       ];
-      const { data: data2 } = await callAnthropicWorker(
-        systemPrompt, msgs2, anthropicDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3
+      const { data: data2 } = await callGroqWorker(
+        systemPrompt, msgs2, groqDocTools, Math.max(mode.max_tokens, 2000), mode.temperature||0.3, false
       );
-      finalText = parseAnthropicResponse(data2).text || toolResults.map(r=>r.content).join('\n');
+      finalText = parseGroqResponse(data2).text || toolResults.map(r=>r.content).join('\n');
     }
     
     typingEl.remove();
