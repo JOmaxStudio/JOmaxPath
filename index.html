@@ -545,7 +545,40 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
         <div class="habitkit-form" id="habitkit-form" style="display:none;">
           <div class="habitkit-form-row">
             <input type="text" id="hk-name" placeholder="Nom de l'hàbit..." class="habitkit-input">
-            <input type="text" id="hk-icon" placeholder="🎯" value="⭐" class="habitkit-input-icon">
+          </div>
+          <!-- Emoji Picker -->
+          <div class="hk-emoji-section">
+            <div class="hk-emoji-label">Tria una icona</div>
+            <div class="hk-emoji-grid" id="hk-emoji-grid">
+              <button class="hk-emoji-btn selected" data-emoji="🏋️" onclick="selectHabitEmoji(this)" title="Exercici">🏋️</button>
+              <button class="hk-emoji-btn" data-emoji="🧘" onclick="selectHabitEmoji(this)" title="Meditació">🧘</button>
+              <button class="hk-emoji-btn" data-emoji="🏃" onclick="selectHabitEmoji(this)" title="Córrer">🏃</button>
+              <button class="hk-emoji-btn" data-emoji="🚴" onclick="selectHabitEmoji(this)" title="Ciclisme">🚴</button>
+              <button class="hk-emoji-btn" data-emoji="🥗" onclick="selectHabitEmoji(this)" title="Alimentació">🥗</button>
+              <button class="hk-emoji-btn" data-emoji="💧" onclick="selectHabitEmoji(this)" title="Aigua">💧</button>
+              <button class="hk-emoji-btn" data-emoji="😴" onclick="selectHabitEmoji(this)" title="Dormir">😴</button>
+              <button class="hk-emoji-btn" data-emoji="🧠" onclick="selectHabitEmoji(this)" title="Mental">🧠</button>
+              <button class="hk-emoji-btn" data-emoji="📚" onclick="selectHabitEmoji(this)" title="Lectura">📚</button>
+              <button class="hk-emoji-btn" data-emoji="✍️" onclick="selectHabitEmoji(this)" title="Escriure">✍️</button>
+              <button class="hk-emoji-btn" data-emoji="🎯" onclick="selectHabitEmoji(this)" title="Objectiu">🎯</button>
+              <button class="hk-emoji-btn" data-emoji="💻" onclick="selectHabitEmoji(this)" title="Programar">💻</button>
+              <button class="hk-emoji-btn" data-emoji="🎨" onclick="selectHabitEmoji(this)" title="Creativitat">🎨</button>
+              <button class="hk-emoji-btn" data-emoji="🎵" onclick="selectHabitEmoji(this)" title="Música">🎵</button>
+              <button class="hk-emoji-btn" data-emoji="🌿" onclick="selectHabitEmoji(this)" title="Natura">🌿</button>
+              <button class="hk-emoji-btn" data-emoji="🌅" onclick="selectHabitEmoji(this)" title="Matí">🌅</button>
+              <button class="hk-emoji-btn" data-emoji="💬" onclick="selectHabitEmoji(this)" title="Connexió">💬</button>
+              <button class="hk-emoji-btn" data-emoji="🙏" onclick="selectHabitEmoji(this)" title="Gratitud">🙏</button>
+              <button class="hk-emoji-btn" data-emoji="📓" onclick="selectHabitEmoji(this)" title="Diari">📓</button>
+              <button class="hk-emoji-btn" data-emoji="💰" onclick="selectHabitEmoji(this)" title="Finances">💰</button>
+              <button class="hk-emoji-btn" data-emoji="🌍" onclick="selectHabitEmoji(this)" title="Idiomes">🌍</button>
+              <button class="hk-emoji-btn" data-emoji="🔬" onclick="selectHabitEmoji(this)" title="Ciència">🔬</button>
+              <button class="hk-emoji-btn" data-emoji="🧹" onclick="selectHabitEmoji(this)" title="Ordre">🧹</button>
+              <button class="hk-emoji-btn" data-emoji="⭐" onclick="selectHabitEmoji(this)" title="Especial">⭐</button>
+            </div>
+            <div class="hk-emoji-preview-row">
+              <div class="hk-emoji-preview" id="hk-emoji-preview">🏋️</div>
+              <input type="text" id="hk-icon" value="🏋️" class="hk-emoji-custom" placeholder="O escriu qualsevol emoji..." maxlength="4" oninput="onCustomEmojiInput(this)">
+            </div>
           </div>
           <textarea id="hk-desc" placeholder="Descripció opcional (per què és important aquest hàbit?)..." class="habitkit-textarea"></textarea>
           <div class="habitkit-form-row">
