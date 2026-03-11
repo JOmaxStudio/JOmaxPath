@@ -3060,8 +3060,8 @@ async function sendAIEstudi(userMsg, docContent) {
   try {
     const systemPrompt = getEstudiSystemPrompt(estudiSubmode, docContent);
 
-    // Historial filtrat i limitat
-    const historyMsgs = chat.messages.slice(-10)
+    // Historial filtrat i limitat (exclou l'últim missatge, que ja afegim a sota)
+    const historyMsgs = chat.messages.slice(-11, -1)
       .filter(m => m.text && String(m.text).trim().length > 0)
       .map(m => {
         let cnt = String(m.text);
@@ -3110,25 +3110,9 @@ async function sendAIEstudi(userMsg, docContent) {
       return;
     }
 
-    const msgs = [
-      { role: 'system', content: systemPrompt },
-      ...historyMsgs
-    ];
-    // Assegurar que l'últim missatge és de l'usuari
-    if(msgs[msgs.length-1].role !== 'user') {
-      msgs.push({ role: 'user', content: userContent });
-    } else {
-      msgs[msgs.length-1].content = userContent;
-    }
+    const estudiMsgs = [...historyMsgs, { role: 'user', content: userContent }];
 
-    // Treure system dels missatges (Anthropic el vol separat)
-    const estudiSysPrompt = msgs[0].role === 'system' ? msgs[0].content : systemPrompt;
-    const estudiMsgs = msgs.filter(m => m.role !== 'system');
-    if(!estudiMsgs.length || estudiMsgs[estudiMsgs.length-1].role !== 'user') {
-      estudiMsgs.push({ role: 'user', content: userContent });
-    }
-
-    const { resp, data } = await callAnthropicWorker(estudiSysPrompt, estudiMsgs, [], 3500, 0.55);
+    const { resp, data } = await callAnthropicWorker(systemPrompt, estudiMsgs, [], 3500, 0.55);
 
     typingEl.remove();
     document.getElementById('ai-chat-send').disabled = false;
@@ -3346,13 +3330,17 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
 
 
     // ── Missatges d'historial — filtrant buits/nulls i documents llargs ──
-    const historyMsgs = chat.messages.slice(-12)
+    // IMPORTANT: slice(-13) per tenir lloc pel missatge actual
+    const historyMsgs = chat.messages.slice(-13, -1) // exclou l'últim (que és el que acabem d'afegir)
       .filter(m => m.text && String(m.text).trim().length > 0)
       .map(m => {
         let cnt = String(m.text);
         if(cnt.length > 1500) cnt = cnt.substring(0, 1500) + '...[retallat]';
         return { role: m.role === 'user' ? 'user' : 'assistant', content: cnt };
       });
+
+    // Afegir el missatge actual de l'usuari al final
+    historyMsgs.push({ role: 'user', content: text });
 
     // Conversa casual: prompt curt + sense eines (estalvia ~4000 tokens)
     const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa al|afegeix al|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit|hàbit|habit|marca|desmarca)/i.test(text);
@@ -4937,58 +4925,30 @@ L'usuari t'ha adjuntat un document. La teva feina és:
 5. Sempre explica el que has trobat i/o executat.
 ${mode.suffix}`;
     
-    const instruction = userMsg || `Llegeix aquest document i executa qualsevol instrucció que hi trobis. Si no hi ha instruccions específiques, fes un resum detallat del contingut.`;
-    
-    // Build user message with document
-    let userContent;
-    if(doc.isPDF) {
-      // PDFs: use document type
-      userContent = [
-        {
-          type: 'document',
-          source: {
-            type: 'base64',
-            media_type: 'application/pdf',
-            data: doc.base64
-          }
-        },
-        { type: 'text', text: instruction }
-      ];
-    } else {
-      // DOCX: Extract text from ZIP XML structure
-      typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📝 Extraient text del Word...</span>`;
-      let extractedText = '';
-      try { extractedText = await extractDocxText(doc.base64); } catch(e) {}
-      if(!extractedText || extractedText.length < 20) {
-        typingEl.remove();
-        document.getElementById('ai-chat-send').disabled = false;
-        chat.messages.push({role:'assistant', text: '⚠️ No he pogut llegir el Word.\n\n**Solució:** Converteix a **PDF** (Fitxer → Exportar → PDF) i adjunta\'l de nou.'});
-        localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
-        renderAIMessages(); return;
-      }
-      userContent = [
-        { type:'document', source:{ type:'text', media_type:'text/plain', data: extractedText.substring(0,80000) } },
-        { type:'text', text: instruction + '\n\n[Document Word: ' + doc.name + ']' }
-      ];
-    }
-    
-    const tools = getAITools();
-    
-    // Extreiem el text del document
+    const instruction = userMsg || `Llegeix aquest document i respon qualsevol pregunta o executa les instruccions que hi trobis. Si no n'hi ha, fes un resum clar del contingut.`;
+
+    // Extreure el text del document (PDF o DOCX)
+    typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Llegint document...</span>`;
     let docTextContent = '';
     if(doc.isPDF) {
-      typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Extraient text del PDF...</span>`;
-      try {
-        docTextContent = await extractPDFText(doc.base64);
-      } catch(e) { docTextContent = '[No s\'ha pogut llegir el PDF]'; }
+      try { docTextContent = await extractPDFText(doc.base64); } catch(e) { docTextContent = ''; }
     } else {
-      docTextContent = userContent.find(b => b.type === 'document')?.source?.data || '';
+      try { docTextContent = await extractDocxText(doc.base64); } catch(e) { docTextContent = ''; }
     }
+
+    if(!docTextContent || docTextContent.trim().length < 20) {
+      typingEl.remove();
+      document.getElementById('ai-chat-send').disabled = false;
+      chat.messages.push({role:'assistant', text: '⚠️ No he pogut llegir el document. Prova a convertir-lo a **PDF** i adjunta\'l de nou.'});
+      localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
+      renderAIMessages(); return;
+    }
+
     // Limitar tokens
-    if(docTextContent.length > 12000) {
-      docTextContent = docTextContent.substring(0, 12000) + '\n[... document retallat per limit de tokens ...]';
+    if(docTextContent.length > 14000) {
+      docTextContent = docTextContent.substring(0, 14000) + '\n[... document retallat per límit de tokens ...]';
     }
-    
+
     const docUserMsg = instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent;
     const docMsgs = [{ role: 'user', content: docUserMsg }];
     const anthropicDocTools = getAIToolsAnthropic();
