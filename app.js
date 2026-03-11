@@ -1731,9 +1731,10 @@ function saveGoalConfig() {
   saveProgData();
   renderGoal(); renderProgress(); closeConfig();
 }
+// ── Worker URL per la IA (cap API key visible a l'usuari) ──
+const JULIANS_WORKER_URL = 'https://jomaxpath-ai.YOUR_SUBDOMAIN.workers.dev'; // <-- canvia això
+
 function renderAPIKeyTab(body) {
-  const saved = localStorage.getItem('groq_api_key') || '';
-  const masked = saved ? saved.substring(0,8) + '••••••••••••••••••••' + saved.slice(-4) : '';
   const savedStyle = localStorage.getItem('julians_style') || 'amic';
 
   const styles = [
@@ -1762,26 +1763,8 @@ function renderAPIKeyTab(body) {
 
   body.innerHTML = `
     <div style="padding:4px 0;">
-
       <p style="color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">🎭 Com vols que et tracti Julians?</p>
       ${styleBtns}
-
-      <div style="height:1px;background:var(--border);margin:18px 0;"></div>
-
-      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px;">
-        Per usar Julians necessites una <strong style="color:var(--text);">API Key de Groq</strong> (gratuïta).<br><br>
-        1. Ves a <a href="https://console.groq.com" target="_blank" style="color:var(--accent2);">console.groq.com</a><br>
-        2. Crea compte → <em>API Keys</em> → <em>Create API Key</em><br>
-        3. Copia-la i enganxa-la aquí sota
-      </p>
-      ${saved ? `<p style="color:#4caf50;font-size:12px;margin-bottom:10px;">✅ Clau guardada: <code style="font-size:11px;">${masked}</code></p>` : `<p style="color:#ff9800;font-size:12px;margin-bottom:10px;">⚠️ Sense clau configurada — la IA no funcionarà</p>`}
-      <input type="password" id="api-key-input" value="${saved}" placeholder="gsk_..."
-        style="width:100%;box-sizing:border-box;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:'Space Mono',monospace;font-size:12px;margin-bottom:12px;outline:none;" />
-      <div style="display:flex;gap:10px;">
-        <button onclick="saveAPIKey()" style="flex:1;background:var(--accent2);color:#000;border:none;border-radius:8px;padding:10px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">💾 GUARDAR</button>
-        ${saved ? `<button onclick="if(confirm('Eliminar la clau?')){localStorage.removeItem('groq_api_key');renderConfigTab();}" style="background:var(--card2);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;cursor:pointer;">🗑️</button>` : ''}
-      </div>
-      <p style="color:var(--muted);font-size:11px;margin-top:14px;line-height:1.5;">🔒 La clau es guarda localment al teu dispositiu. Mai es comparteix amb ningú excepte Groq.</p>
     </div>
   `;
 }
@@ -1790,6 +1773,8 @@ function saveJuliansStyle(styleId) {
   localStorage.setItem('julians_style', styleId);
   renderConfigTab();
 }
+
+function getAPIKey() { return 'worker'; } // La key real viu al Worker, no aquí
 
 function getJuliansStylePrompt() {
   const style = localStorage.getItem('julians_style') || 'amic';
@@ -1803,19 +1788,7 @@ function getJuliansStylePrompt() {
   return prompts[style] || prompts.amic;
 }
 
-function saveAPIKey() {
-  const val = document.getElementById('api-key-input').value.trim();
-  if(!val) { alert('Enganxa la teva API Key de Groq primer.'); return; }
-  if(!val.startsWith('gsk_')) { 
-    if(!confirm('La clau no té el format habitual (gsk_...). Guardar igualment?')) return; 
-  }
-  localStorage.setItem('groq_api_key', val);
-  renderConfigTab();
-}
-
-function getAPIKey() {
-  return localStorage.getItem('groq_api_key') || '';
-}
+// getAPIKey i saveAPIKey ja no s'usen — la key viu al Worker
 
 function renderResetTab(body) {
   body.innerHTML=`
@@ -2200,6 +2173,60 @@ function getAITools() {
       name: 'get_all_data',
       description: 'Obté tota la informació actual de l\'app: tasques, events d\'avui i propers 7 dies, ratxa, progrés, horari d\'avui i dades del perfil.',
       input_schema: {type:'object',properties:{},required:[]}
+    },
+    // ── HÀBITS ──
+    {
+      name: 'add_habit',
+      description: 'Afegeix un nou hàbit al tracker de hàbits.',
+      input_schema: {
+        type:'object',
+        properties:{
+          name:{type:'string',description:'Nom del hàbit (ex: Fer exercici, Llegir 30 min)'},
+          icon:{type:'string',description:'Emoji del hàbit (ex: 🏃, 📚, 💧). Default: ⭐'}
+        },
+        required:['name']
+      }
+    },
+    {
+      name: 'edit_habit',
+      description: 'Edita el nom o icona d\'un hàbit existent.',
+      input_schema: {
+        type:'object',
+        properties:{
+          search_name:{type:'string',description:'Text per trobar el hàbit (cerca parcial)'},
+          new_name:{type:'string',description:'Nou nom (opcional)'},
+          new_icon:{type:'string',description:'Nova icona emoji (opcional)'}
+        },
+        required:['search_name']
+      }
+    },
+    {
+      name: 'delete_habit',
+      description: 'Elimina un hàbit del tracker.',
+      input_schema: {
+        type:'object',
+        properties:{
+          search_name:{type:'string',description:'Text per trobar el hàbit a eliminar'}
+        },
+        required:['search_name']
+      }
+    },
+    {
+      name: 'mark_habit_today',
+      description: 'Marca o desmarca un hàbit com a completat avui.',
+      input_schema: {
+        type:'object',
+        properties:{
+          search_name:{type:'string',description:'Text per trobar el hàbit'},
+          done:{type:'boolean',description:'true=marcar fet, false=desmarcar. Default true.'}
+        },
+        required:['search_name']
+      }
+    },
+    {
+      name: 'list_habits',
+      description: 'Llista tots els hàbits actuals amb la seva ratxa i % setmanal.',
+      input_schema: {type:'object',properties:{},required:[]}
     }
   ];
   return anthropicTools.map(t => ({
@@ -2527,6 +2554,64 @@ function executeAITool(name, input) {
       ].join('\n');
     }
 
+    if(name === 'add_habit') {
+      const h = {id:'h'+Date.now(), name:input.name, icon:input.icon||'⭐', days:{}};
+      habitsData.push(h);
+      localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+      syncHabitsToKit();
+      renderHabits();
+      return `✅ Hàbit "${h.icon} ${h.name}" afegit!`;
+    }
+
+    if(name === 'edit_habit') {
+      const h = habitsData.find(h=>h.name.toLowerCase().includes(input.search_name.toLowerCase()));
+      if(!h) return `❌ No he trobat cap hàbit amb "${input.search_name}".`;
+      if(input.new_name) h.name = input.new_name;
+      if(input.new_icon) h.icon = input.new_icon;
+      localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+      syncHabitsToKit();
+      renderHabits();
+      return `✅ Hàbit actualitzat: "${h.icon} ${h.name}".`;
+    }
+
+    if(name === 'delete_habit') {
+      const h = habitsData.find(h=>h.name.toLowerCase().includes(input.search_name.toLowerCase()));
+      if(!h) return `❌ No he trobat cap hàbit amb "${input.search_name}".`;
+      const hName = h.name;
+      habitsData = habitsData.filter(x=>x.id!==h.id);
+      localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+      syncHabitsToKit();
+      renderHabits();
+      return `✅ Hàbit "${hName}" eliminat.`;
+    }
+
+    if(name === 'mark_habit_today') {
+      const h = habitsData.find(h=>h.name.toLowerCase().includes(input.search_name.toLowerCase()));
+      if(!h) return `❌ No he trobat cap hàbit amb "${input.search_name}".`;
+      const today = toLocalDateKey(new Date());
+      const done = input.done !== false;
+      if(done) h.days[today] = true;
+      else delete h.days[today];
+      localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+      syncHabitsToKit();
+      renderHabits();
+      return `✅ Hàbit "${h.icon} ${h.name}" ${done?'marcat com a fet':'desmarcat'} per avui.`;
+    }
+
+    if(name === 'list_habits') {
+      if(!habitsData.length) return '📭 Cap hàbit configurat encara.';
+      const today = toLocalDateKey(new Date());
+      const lines = habitsData.map(h => {
+        let streak=0; const dd=new Date(); dd.setHours(12,0,0,0);
+        while(h.days[toLocalDateKey(dd)]){streak++;dd.setDate(dd.getDate()-1);}
+        let weekDone=0;
+        for(let i=0;i<7;i++){const d2=new Date();d2.setDate(d2.getDate()-i);d2.setHours(12,0,0,0);if(h.days[toLocalDateKey(d2)])weekDone++;}
+        const doneToday = !!h.days[today];
+        return `${h.icon} ${h.name} — Ratxa: ${streak}d · Setmana: ${Math.round(weekDone/7*100)}% ${doneToday?'✅':'⬜'}`;
+      });
+      return `📋 Hàbits:\n${lines.join('\n')}`;
+    }
+
     return `❓ Eina desconeguda: ${name}`;
   } catch(e) {
     return `⚠️ Error: ${e.message}`;
@@ -2549,7 +2634,16 @@ function buildCalendarContext() {
   const weekMap = weekDays.map((dk,i) => dayNames[i]+'='+dk).join(', ');
   const nextWeekDays = Array.from({length:7},(_,i)=>{ const d2=new Date(now); const dow2=now.getDay(); d2.setDate(now.getDate()-(dow2===0?6:dow2-1)+7+i); d2.setHours(12,0,0,0); return toLocalDateKey(d2); });
   const nextWeekMap = nextWeekDays.map((dk,i) => dayNames[i]+'='+dk).join(', ');
-  return `CONTEXT JOMAXPATH (avui=${today}, dia=${dayNames[dayIdx]}):\nUsuari: Julià Domingo, 17 anys, Mollerussa\nObjectiu: ${goalData.title} — ${goalData.desc}\nProgrés: ${progData.unit||'Capítol'} ${progData.chapter}/${progData.total} (${progData.title})\nRatxa programació: ${streakCount} dies 🔥\nDATES SETMANA ACTUAL: ${weekMap}\nDATES SETMANA QUE VE: ${nextWeekMap}\nREGLA DATES: Usa SEMPRE les dates exactes del mapa de dalt. Si l'usuari diu "divendres" → busca Divendres=XXXX al mapa i usa exactament aquella data.\nTasques pendents: ${pending.join(', ')||'cap'}\nEvents avui: ${todayEvs.join(', ')||'cap'}\nEvents horaris setmana: ${timedCtx}`;
+  const habitsCtx = habitsData.length
+    ? habitsData.map(h => {
+        const today2 = toLocalDateKey(new Date());
+        const doneToday = !!h.days[today2];
+        let streak2=0; const dd3=new Date(); dd3.setHours(12,0,0,0);
+        while(h.days[toLocalDateKey(dd3)]){streak2++;dd3.setDate(dd3.getDate()-1);}
+        return `${h.icon} ${h.name} (ratxa:${streak2}d, avui:${doneToday?'✅':'⬜'})`;
+      }).join(' | ')
+    : 'cap hàbit configurat';
+  return `CONTEXT JOMAXPATH (avui=${today}, dia=${dayNames[dayIdx]}):\nUsuari: Julià Domingo, 14 anys, Mollerussa\nObjectiu: ${goalData.title} — ${goalData.desc}\nProgrés: ${progData.unit||'Capítol'} ${progData.chapter}/${progData.total} (${progData.title})\nRatxa programació: ${streakCount} dies 🔥\nDATES SETMANA ACTUAL: ${weekMap}\nDATES SETMANA QUE VE: ${nextWeekMap}\nREGLA DATES: Usa SEMPRE les dates exactes del mapa de dalt. Si l'usuari diu "divendres" → busca Divendres=XXXX al mapa i usa exactament aquella data.\nTasques pendents: ${pending.join(', ')||'cap'}\nEvents avui: ${todayEvs.join(', ')||'cap'}\nEvents horaris setmana: ${timedCtx}\nHàbits: ${habitsCtx}`;
 }
 
 // ── Render functions ──────────────────────────────────
@@ -2988,11 +3082,10 @@ async function sendAIEstudi(userMsg, docContent) {
       msgs[msgs.length-1].content = userContent;
     }
 
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const resp = await fetch(JULIANS_WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + getAPIKey()
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -3008,7 +3101,7 @@ async function sendAIEstudi(userMsg, docContent) {
 
     if(!resp.ok) {
       const errMsg = data?.error?.message || JSON.stringify(data?.error);
-      chat.messages.push({ role: 'assistant', text: '⚠️ Error Groq (' + resp.status + '): ' + errMsg.substring(0, 200) });
+      chat.messages.push({ role: 'assistant', text: '⚠️ Error IA (' + resp.status + '): ' + errMsg.substring(0, 200) });
     } else {
       const answer = data.choices?.[0]?.message?.content || '⚠️ Sense resposta.';
       chat.messages.push({ role: 'assistant', text: answer });
@@ -3053,17 +3146,6 @@ function getEstudiActionButtons(submode, answer) {
 async function sendAIBase() {
   const input = document.getElementById('ai-chat-input');
   const text = input.value.trim(); if(!text) return;
-
-  // Check API key
-  if(!getAPIKey()) {
-    const chatLog = document.getElementById('ai-messages');
-    const warn = document.createElement('div');
-    warn.className = 'ai-msg assistant';
-    warn.innerHTML = '<span style="color:#fcd34d;">⚠️ <strong>Sense API Key configurada.</strong><br>Ves a <strong>⚙️ Configuració → 🔑 IA</strong> per afegir la teva clau de Groq.</span>';
-    chatLog?.appendChild(warn);
-    scrollToBottom();
-    return;
-  }
 
   if(!aiChats[aiCurrentChatId]) createNewChat(false);
   const chat = aiChats[aiCurrentChatId];
@@ -3155,6 +3237,12 @@ QUAN L'USUARI DEMANA AFEGIR/CREAR/EDITAR/ELIMINAR ALGUNA COSA:
    - "Recorda'm trucar el metge dimarts" → add_calendar_event(date:'2026-03-11', text:'Trucar metge', type:'📌 Recordatori')
    - "Afegeix al dilluns: preparar presentació" → add_calendar_event(date:'2026-03-10', text:'Preparar presentació', type:'💻 Programació')
 
+🏃 HÀBITS (add_habit / edit_habit / delete_habit / mark_habit_today / list_habits):
+→ Per: crear nous hàbits, editar nom/icona, eliminar, marcar com a fet avui
+→ Exemple: "Afegeix l'hàbit de fer 10 flexions cada dia" → add_habit(name:'10 flexions', icon:'💪')
+→ Exemple: "Marca l'hàbit de llegir com a fet" → mark_habit_today(search_name:'llegir')
+→ Exemple: "Canvia la icona del hàbit exercici per 🏋️" → edit_habit(search_name:'exercici', new_icon:'🏋️')
+
 📊 BLOCS HORARIS SETMANALS (add_schedule_block):
 → Per: rutines FIXES que es repeteixen cada setmana
 → Exemples: classes, gym, piano, deep work sessions
@@ -3233,7 +3321,7 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
       });
 
     // Conversa casual: prompt curt + sense eines (estalvia ~4000 tokens)
-    const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa al|afegeix al|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit)/i.test(text);
+    const isCasual = !/(afegeix|afegir|crea|crear|esborra|elimina|edita|canvia|posa al|afegeix al|fes|executa|processa|anota|apunta|recorda|tasca|event|examen|entrenament|horari|calendari|bloc|partit|hàbit|habit|marca|desmarca)/i.test(text);
     const tools = isCasual ? [] : getAITools();
     const activePrompt = isCasual
       ? `Ets Julians, l'assistent personal intel·ligent creat per Julià Domingo (14 anys) a JOmaxPath. Parles sempre en català. Ets directe, vas al gra i ets útil sense divagar. ${getJuliansStylePrompt()}`
@@ -3253,11 +3341,10 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
     };
     if(tools.length > 0) { reqBody1.tools = tools; reqBody1.tool_choice = 'auto'; }
 
-    const resp1 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const resp1 = await fetch(JULIANS_WORKER_URL, {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'Authorization': 'Bearer ' + getAPIKey()
       },
       body: JSON.stringify(reqBody1)
     });
@@ -3273,7 +3360,7 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
       if(_ec === 'rate_limit_exceeded' || _em.includes('rate_limit')) {
         err = "⏳ Límit d'ús assolit. Torna a provar en uns minuts.";
       } else {
-        err = '⚠️ Error Groq (' + resp1.status + '): ' + (_em || JSON.stringify(data1?.error)).substring(0, 200);
+        err = '⚠️ Error IA (' + resp1.status + '): ' + (_em || JSON.stringify(data1?.error)).substring(0, 200);
       }
       chat.messages.push({role:'assistant', text:err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
@@ -3319,11 +3406,10 @@ RECORDA: Ets un assistent INTEL·LIGENT i DIRECTE. Vas al gra, no divagues. Calc
         ...toolResults
       ];
       console.log('[Julians] Crida 2 →', msgs2.length, 'msgs');
-      const resp2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const resp2 = await fetch(JULIANS_WORKER_URL, {
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
           model:'llama-3.3-70b-versatile',
@@ -3824,6 +3910,24 @@ function deleteHabit(id) {
   renderHabits();
   renderHabitKit();
 }
+
+function promptEditHabit(id) {
+  const h = habitsData.find(h=>h.id===id); if(!h) return;
+  const newIcon = prompt('Nova icona (emoji):', h.icon);
+  if(newIcon === null) return;
+  h.icon = newIcon.trim() || h.icon;
+  localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+  syncHabitsToKit(); renderHabits(); renderHabitKit();
+}
+
+function promptEditHabitName(id) {
+  const h = habitsData.find(h=>h.id===id); if(!h) return;
+  const newName = prompt('Nou nom del hàbit:', h.name);
+  if(newName === null || !newName.trim()) return;
+  h.name = newName.trim();
+  localStorage.setItem('habits_v1', JSON.stringify(habitsData));
+  syncHabitsToKit(); renderHabits(); renderHabitKit();
+}
 function toggleHabitDay(habitId, dateKey) {
   const h=habitsData.find(h=>h.id===habitId); if(!h) return;
   h.days[dateKey]=!h.days[dateKey];
@@ -3860,8 +3964,8 @@ function renderHabits() {
     for(let i=0;i<7;i++){const dd2=new Date();dd2.setDate(dd2.getDate()-i);dd2.setHours(12,0,0,0);if(h.days[toLocalDateKey(dd2)])weekDone++;}
     const pct=Math.round(weekDone/7*100);
     return `<div class="habit-row">
-      <span class="habit-icon-btn">${h.icon}</span>
-      <div class="habit-info">
+      <span class="habit-icon-btn" onclick="promptEditHabit('${h.id}')" title="Editar icona" style="cursor:pointer;">${h.icon}</span>
+      <div class="habit-info" onclick="promptEditHabitName('${h.id}')" style="cursor:pointer;" title="Editar nom">
         <div class="habit-name">${h.name}</div>
         <div class="habit-streak-txt">🔥 ${{ca:'Ratxa',es:'Racha',en:'Streak'}[currentLang]}: ${streak} ${{ca:'dies',es:'días',en:'days'}[currentLang]} · 7 ${{ca:'dies',es:'días',en:'days'}[currentLang]}: ${pct}%</div>
       </div>
@@ -4688,10 +4792,6 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
     }
   }, true);
-
-  if(!localStorage.getItem('groq_api_key')) {
-    console.warn('[Julians] Sense API Key de Groq. Ves a Configuració > IA per afegir la teva clau.');
-  }
 });
 
 /* ══ */
@@ -4776,15 +4876,6 @@ async function sendAI() {
     // Necessitem almenys text o document
     if(!userMsg && !hasDoc) return;
     input.value = '';
-
-    if(!getAPIKey()) {
-      const chatLog = document.getElementById('ai-messages');
-      const warn = document.createElement('div');
-      warn.className = 'ai-msg assistant';
-      warn.innerHTML = '<span style="color:#fca5a5;">⚠️ Configura la clau Groq a ⚙️ Configuració → 🔑 IA</span>';
-      chatLog?.appendChild(warn);
-      return;
-    }
 
     if(!aiChats[aiCurrentChatId]) createNewChat(false);
     const chat = aiChats[aiCurrentChatId];
@@ -4903,7 +4994,7 @@ ${mode.suffix}`;
     
     const tools = getAITools();
     
-    // Extreiem el text del document per enviar-lo a Groq com a text
+    // Extreiem el text del document
     let docTextContent = '';
     if(doc.isPDF) {
       typingEl.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div><span style="font-size:10px;opacity:0.5;display:block;margin-top:4px;">📄 Extraient text del PDF...</span>`;
@@ -4913,7 +5004,7 @@ ${mode.suffix}`;
     } else {
       docTextContent = userContent.find(b => b.type === 'document')?.source?.data || '';
     }
-    // Limitar tokens enviats a Groq
+    // Limitar tokens
     if(docTextContent.length > 12000) {
       docTextContent = docTextContent.substring(0, 12000) + '\n[... document retallat per limit de tokens ...]';
     }
@@ -4923,11 +5014,10 @@ ${mode.suffix}`;
       {role:'user', content: instruction + '\n\n--- CONTINGUT DEL DOCUMENT: ' + doc.name + ' ---\n' + docTextContent}
     ];
     
-    const resp1 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const resp1 = await fetch(JULIANS_WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + getAPIKey()
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -4950,7 +5040,7 @@ ${mode.suffix}`;
       } else if(errCode === 'context_length_exceeded' || errMsg.includes('context') || errMsg.includes('token')) {
         err = '⚠️ El document és massa llarg. Prova amb un PDF més curt.';
       } else {
-        err = '⚠️ Error Groq: ' + (errMsg || JSON.stringify(data1?.error)).substring(0, 200);
+        err = '⚠️ Error IA: ' + (errMsg || JSON.stringify(data1?.error)).substring(0, 200);
       }
       chat.messages.push({role:'assistant', text: err});
       localStorage.setItem('julians_chats_v2', JSON.stringify(aiChats));
@@ -4980,11 +5070,10 @@ ${mode.suffix}`;
         {role:'assistant', content: assistantMsg.content||null, tool_calls: toolCalls},
         ...toolResults
       ];
-      const resp2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const resp2 = await fetch(JULIANS_WORKER_URL, {
         method:'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + getAPIKey()
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
