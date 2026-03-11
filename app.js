@@ -5676,6 +5676,7 @@ const ALL_KEYS = ['exams_v3','month_events_v2','day_events_v2','timed_events_v1'
 function showAuthOverlay() {
   const o = document.getElementById('auth-overlay');
   o.style.display = 'flex';
+  o.style.pointerEvents = '';  // elimina qualsevol override inline
   requestAnimationFrame(()=>requestAnimationFrame(()=>o.classList.add('visible')));
   setTimeout(()=>document.getElementById('auth-email')?.focus(), 350);
 }
