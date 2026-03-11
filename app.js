@@ -7487,7 +7487,7 @@ function renderCalendarInTab() {
   const monthNames = getMonthNames();
   const monthTitle = document.getElementById('calendar-month');
   if (monthTitle) {
-    monthTitle.textContent = monthNames[calMonth] + ' ' + calYear;
+    monthTitle.innerHTML = monthNames[calMonth] + ' <strong>' + calYear + '</strong>';
   }
   
   grid.innerHTML = '';
