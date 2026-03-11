@@ -4869,7 +4869,7 @@ async function sendAI() {
       box.appendChild(extractEl); scrollToBottom();
 
       const docRef = attachedDoc;
-      clearAttachment();
+      removeAttachment();
       if(docRef.isPDF) {
         try { docContent = await extractPDFText(docRef.base64); } catch(e) { docContent = '[No s\'ha pogut llegir el PDF]'; }
       } else {
