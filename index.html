@@ -1995,3 +1995,159 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <script src="app.js" defer></script>
 </body>
 </html>
+<!-- ══════════════════════════════════════════
+     HERO-UNIFIED STYLE — Unifica sidebar+menú amb hero.html
+     Afegit automàticament — no eliminar
+══════════════════════════════════════════ -->
+<style id="hero-unified-style">
+
+/* ── Sidebar: fons més fosc, igual que hero.html ── */
+#left-sidebar {
+  background: rgba(5,5,13,0.98) !important;
+  border-right: 1px solid rgba(124,58,237,0.14) !important;
+}
+
+/* ── Logo: consistent ── */
+.lsb-logo {
+  width: 34px !important; height: 34px !important;
+  border-radius: 9px !important;
+  background: linear-gradient(135deg,#7c3aed,#00b8d9) !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.3) !important;
+  font-size: 17px !important;
+}
+
+/* ── Brand ── */
+.lsb-brand { font-size: 12px !important; }
+.lsb-brand small { font-size: 7px !important; letter-spacing: 2.5px !important; }
+
+/* ── Hero mini card — igual que sb-hero-card de hero.html ── */
+.lsb-hero-mini {
+  margin: 10px 8px 4px !important;
+  padding: 12px 14px !important;
+  background: linear-gradient(135deg,rgba(124,58,237,0.14),rgba(0,180,216,0.07)) !important;
+  border: 1px solid rgba(124,58,237,0.22) !important;
+  border-radius: 12px !important;
+  position: relative; overflow: hidden;
+}
+.lsb-hero-mini::before {
+  content: '';
+  position: absolute; top: -20px; right: -20px;
+  width: 70px; height: 70px;
+  background: radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%);
+  pointer-events: none;
+}
+.lsb-hero-mini:hover { border-color: rgba(167,139,250,0.45) !important; }
+
+/* Afegir avatar emoji gran al hero mini */
+.lsb-hero-lvl { font-size: 7.5px !important; letter-spacing: 2px !important; }
+.lsb-hero-name-mini { font-size: 12px !important; font-weight: 700 !important; }
+.lsb-xpbar { height: 3px !important; margin-top: 8px !important; }
+.lsb-xpbar-fill {
+  background: linear-gradient(90deg, var(--gold,#f59e0b), #fcd34d) !important;
+}
+
+/* ── Nav items ── */
+.lsb-item {
+  border-radius: 9px !important;
+  margin: 2px 7px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+}
+.lsb-item:hover { background: rgba(124,58,237,0.1) !important; color: #c4b5fd !important; }
+.lsb-item.lsb-active {
+  background: linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.08)) !important;
+  color: var(--accent2,#a78bfa) !important;
+  border: 1px solid rgba(124,58,237,0.22) !important;
+}
+.lsb-ico {
+  width: 30px !important; height: 30px !important;
+  border-radius: 8px !important; font-size: 15px !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+.lsb-item.lsb-active .lsb-ico { background: rgba(124,58,237,0.2) !important; }
+.lsb-lbl { font-size: 12px !important; }
+
+/* ── Section labels ── */
+.lsb-sec {
+  font-size: 7px !important;
+  letter-spacing: 2px !important;
+  padding: 10px 16px 4px !important;
+  color: #64748b !important;
+}
+
+/* ── Pills ── */
+.lsb-pill {
+  font-size: 7px !important; padding: 2px 6px !important;
+  border-radius: 5px !important;
+  background: rgba(124,58,237,0.2) !important;
+  border: 1px solid rgba(124,58,237,0.35) !important;
+  color: var(--accent2,#a78bfa) !important;
+}
+.lsb-pill.new {
+  background: rgba(124,58,237,0.18) !important;
+  border-color: rgba(124,58,237,0.3) !important;
+  color: #a78bfa !important;
+}
+
+/* ── Bottom items ── */
+.lsb-bottom { border-top: 1px solid rgba(124,58,237,0.1) !important; padding: 6px 7px 8px !important; }
+.lsb-bot-item { border-radius: 8px !important; font-size: 11px !important; }
+.lsb-bot-item:hover { background: rgba(255,255,255,0.05) !important; color: var(--text,#e2e8f0) !important; }
+
+/* ── Barra inferior: consistent amb hero ── */
+#bnav {
+  background: rgba(5,5,13,0.95) !important;
+  border-top: 1px solid rgba(124,58,237,0.14) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  height: 56px !important;
+}
+.bnav-item.active .bnav-lbl { color: var(--accent2,#a78bfa) !important; }
+.bnav-lbl { font-size: 7.5px !important; letter-spacing: 1.5px !important; }
+.bnav-icon { font-size: 19px !important; }
+
+/* Temes: override navbar color per cada tema */
+body.theme-ocean    #bnav { border-top-color: rgba(14,165,233,0.22) !important; }
+body.theme-forest   #bnav { border-top-color: rgba(22,163,74,0.22) !important; }
+body.theme-sunset   #bnav { border-top-color: rgba(225,29,72,0.22) !important; }
+body.theme-midnight #bnav { border-top-color: rgba(79,70,229,0.22) !important; }
+body.theme-caramel  #bnav { border-top-color: rgba(217,119,6,0.22) !important; }
+body.theme-violet   #bnav { border-top-color: rgba(147,51,234,0.22) !important; }
+body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
+
+/* ── Drawer principal: alineat amb hero ── */
+#nav-drawer {
+  border-left: 1px solid rgba(124,58,237,0.14) !important;
+}
+
+/* ── Hero button al drawer: destacat i consistent ── */
+.ndw-bottom-btn[onclick*="hero.html"] {
+  background: linear-gradient(135deg,rgba(245,158,11,0.14),rgba(239,68,68,0.07)) !important;
+  border: 1px solid rgba(245,158,11,0.28) !important;
+  color: #fcd34d !important;
+  font-weight: 600 !important;
+}
+
+/* ── Heroi a la barra de navegació inferior: afegir pill "HEROI" visual ── */
+/* (quan navega a hero.html, l'iframe mostra el botó al drawer) */
+
+/* ── Animations unified ── */
+@keyframes heroGlow {
+  0%,100% { text-shadow: 0 0 18px rgba(124,58,237,0.55), 0 0 36px rgba(124,58,237,0.25); }
+  50%      { text-shadow: 0 0 22px rgba(124,58,237,0.65), 0 0 44px rgba(124,58,237,0.3); }
+}
+
+/* ── Config panel ── */
+#config-panel { border: 1px solid rgba(124,58,237,0.18) !important; }
+.config-tab.active { color: var(--accent2,#a78bfa) !important; border-bottom-color: var(--accent2,#a78bfa) !important; }
+
+/* ── Auth overlay ── */
+#auth-logo .bolt { color: #a78bfa !important; }
+#auth-logo h2 { background: linear-gradient(135deg,#fff,var(--accent2,#a78bfa)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Scroll sync ── */
+::-webkit-scrollbar { width: 3px !important; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25) !important; border-radius: 4px !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+
+</style>
