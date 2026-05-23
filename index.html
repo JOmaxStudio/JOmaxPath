@@ -437,6 +437,56 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
   .home-two-col { gap: 12px !important; }
 }
 
+/* ═══ HERO-DARK GLOBAL THEME — Idèntic a hero.html ═══ */
+body, html { background: #060610 !important; }
+body::after {
+  background:
+    radial-gradient(ellipse at 10% 40%, rgba(0,180,216,0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 90% 20%, rgba(124,58,237,0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 95%, rgba(59,130,246,0.04) 0%, transparent 40%) !important;
+}
+.day-card,.goal-banner,.daily-quote,.today-panel,.progress-section,.streak-widget,
+.habits-section,.weekly-summary,.stat-card,.tip-card,.screen-tip,.exam-section,
+.matches-section,.monthly-section,.screen-section,.victories-section,.pomodoro-section,
+.kanban-col,.board-card,.next-up-bar,#ai-section-card,#config-panel {
+  background: #0e0e1e !important;
+  border-color: rgba(124,58,237,0.18) !important;
+}
+.stat-card,.screen-tip { background: #14142a !important; }
+body { color: #e2e8f0 !important; }
+.section-title { color: #64748b !important; }
+.day-name { color: #e2e8f0 !important; }
+.block-time,.day-sleep { color: #64748b !important; }
+.goal-banner { background: linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.06)) !important; }
+.today-panel { background: linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.06)) !important; }
+.streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.06)) !important; }
+input,select,textarea { background: #14142a !important; color: #e2e8f0 !important; border-color: rgba(124,58,237,0.2) !important; }
+input::placeholder,textarea::placeholder { color: #64748b !important; }
+select option { background: #0e0e1e !important; color: #e2e8f0 !important; }
+.progress-bar { background: rgba(124,58,237,0.12) !important; }
+.progress-btn { background: rgba(124,58,237,0.12) !important; border-color: rgba(124,58,237,0.3) !important; color: #a78bfa !important; }
+.streak-day-dot { border-color: rgba(124,58,237,0.18) !important; color: #64748b !important; }
+.streak-day-dot.done { background: rgba(245,158,11,0.18) !important; border-color: rgba(245,158,11,0.45) !important; color: #fcd34d !important; }
+.streak-btn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.3) !important; color: #fcd34d !important; }
+.habit-dot { border-color: rgba(124,58,237,0.18) !important; }
+.habit-dot.done { background: rgba(16,185,129,0.2) !important; border-color: #10b981 !important; }
+#ai-section-card { background: #0e0e1e !important; border-color: rgba(124,58,237,0.18) !important; }
+#ai-sidebar { background: #14142a !important; border-right-color: rgba(124,58,237,0.18) !important; }
+.ai-chat-messages { background: #0e0e1e !important; }
+.ai-chat-input-row { background: #14142a !important; border-top-color: rgba(124,58,237,0.18) !important; }
+#ai-chat-input { background: #0e0e1e !important; border-color: rgba(124,58,237,0.2) !important; color: #e2e8f0 !important; }
+.ai-msg.user { background: linear-gradient(135deg,rgba(124,58,237,0.22),rgba(124,58,237,0.14)) !important; border-color: rgba(124,58,237,0.28) !important; }
+.ai-msg.assistant { background: #14142a !important; border-color: rgba(124,58,237,0.18) !important; }
+.ai-suggestion { background: rgba(124,58,237,0.08) !important; border-color: rgba(124,58,237,0.25) !important; color: #a78bfa !important; }
+::-webkit-scrollbar { width: 3px !important; height: 3px !important; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25) !important; border-radius: 4px !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+.pomodoro-section { border-top: 2px solid rgba(239,68,68,0.35) !important; }
+.kanban-col { background: #0e0e1e !important; border-color: rgba(124,58,237,0.18) !important; }
+/* Override temes clars per no trencar el tema fosc */
+body.theme-blanc { --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7; --text:#1a1a2e; }
+body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
+
 </style>
 <!-- LAYOUT-FIX-END -->
 
@@ -447,6 +497,23 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 :root{
   --sb-w:220px;
   --sb-wc:58px;
+  /* ── Hero-unified palette ── */
+  --bg:#060610;
+  --card:#0e0e1e;
+  --card2:#14142a;
+  --accent:#7c3aed;
+  --accent2:#a78bfa;
+  --cyan:#00b8d9;
+  --cyan2:#38d9f5;
+  --green:#10b981;
+  --orange:#f59e0b;
+  --red:#ef4444;
+  --gold:#f59e0b;
+  --gold2:#fcd34d;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --border:rgba(124,58,237,0.18);
+  --blue:#3b82f6;
 }
 #left-sidebar{
   position:fixed;top:0;left:0;bottom:0;
