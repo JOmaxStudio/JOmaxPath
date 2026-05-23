@@ -62,7 +62,7 @@
 .container {
   width: 100% !important;
   max-width: 100% !important;
-  padding: 28px 32px 48px 32px !important;
+  padding: 28px 32px 80px 32px !important;
   box-sizing: border-box !important;
 }
 @media(max-width:600px) { .container { padding: 16px 12px 32px !important; } }
@@ -433,7 +433,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 
 /* ── 17. MOBILE: menys padding general ── */
 @media(max-width:600px) {
-  .container { padding: 12px 10px 72px !important; }
+  .container { padding: 12px 10px 80px !important; }
   .home-two-col { gap: 12px !important; }
 }
 
@@ -483,6 +483,31 @@ select option { background: #0e0e1e !important; color: #e2e8f0 !important; }
 ::-webkit-scrollbar-track { background: transparent !important; }
 .pomodoro-section { border-top: 2px solid rgba(239,68,68,0.35) !important; }
 .kanban-col { background: #0e0e1e !important; border-color: rgba(124,58,237,0.18) !important; }
+/* ══ BNAV final override — màxima prioritat ══ */
+#bnav {
+  height: 58px !important;
+  background: rgba(5,5,13,0.96) !important;
+  border-top: 1px solid rgba(124,58,237,0.18) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  align-items: center !important;
+  padding: 0 !important;
+}
+.bnav-item {
+  flex: 1 !important;
+  padding: 6px 14px !important;
+  min-width: 0 !important;
+  border-radius: 10px !important;
+}
+.bnav-icon { font-size: 20px !important; opacity: 0.45 !important; }
+.bnav-lbl {
+  font-size: 7.5px !important;
+  letter-spacing: 1.5px !important;
+  font-family: 'Space Mono', monospace !important;
+  opacity: 0.6 !important;
+}
+.bnav-item.active .bnav-icon { opacity: 1 !important; filter: drop-shadow(0 0 6px var(--accent2)) !important; }
+.bnav-item.active .bnav-lbl { color: var(--accent2, #a78bfa) !important; opacity: 1 !important; }
 /* Override temes clars per no trencar el tema fosc */
 body.theme-blanc { --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7; --text:#1a1a2e; }
 body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
@@ -518,13 +543,15 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
 #left-sidebar{
   position:fixed;top:0;left:0;bottom:0;
   width:var(--sb-w);
-  background:rgba(6,6,14,0.97);
-  border-right:1px solid rgba(124,58,237,0.15);
+  background:rgba(5,5,13,0.98);
+  border-right:1px solid rgba(124,58,237,0.14);
   backdrop-filter:blur(24px);
   z-index:300;
   display:flex;flex-direction:column;
   transition:width 0.3s cubic-bezier(0.4,0,0.2,1),transform 0.3s cubic-bezier(0.4,0,0.2,1);
   overflow:hidden;
+  /* Deixa espai per la barra inferior */
+  padding-bottom:0;
 }
 #left-sidebar.sb-collapsed{width:var(--sb-wc);}
 #left-sidebar.sb-hidden{transform:translateX(calc(-100% - 4px));}
@@ -576,7 +603,7 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
   font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;
   color:#64748b;padding:10px 16px 4px;white-space:nowrap;overflow:hidden;flex-shrink:0;
 }
-.lsb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:10px;}
+.lsb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:14px;min-height:0;}
 .lsb-nav::-webkit-scrollbar{width:2px;}
 .lsb-nav::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.2);}
 .lsb-item{
@@ -627,7 +654,7 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
   white-space:nowrap;z-index:999;pointer-events:none;
 }
 
-.lsb-bottom{border-top:1px solid rgba(124,58,237,0.08);padding:8px 6px;flex-shrink:0;}
+.lsb-bottom{border-top:1px solid rgba(124,58,237,0.1);padding:8px 6px 10px;flex-shrink:0;}
 .lsb-bot-item{
   display:flex;align-items:center;gap:10px;
   padding:7px 10px;border-radius:8px;cursor:pointer;
@@ -755,6 +782,9 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   const btn=document.getElementById('lsb-toggle-btn');
 
   function apply(){
+    // Força la barra inferior a no cobrir el contingut
+    var bnav = document.getElementById('bnav');
+    if(bnav) bnav.style.height = '58px';
     if(collapsed){
       sidebar.classList.add('sb-collapsed');
       document.body.classList.remove('sb-open-desktop');
