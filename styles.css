@@ -1,11 +1,12 @@
 /* JOmaxPath styles.css */
 :root {
-    --bg: #080810; --card: #0f0f1a; --card2: #161625;
+    --bg: #060610; --card: #0e0e1e; --card2: #14142a;
     --accent: #7c3aed; --accent2: #a78bfa;
     --cyan: #00b8d9; --cyan2: #38d9f5;
     --green: #10b981; --orange: #f59e0b; --red: #ef4444;
     --blue: #3b82f6; --pink: #ec4899; --yellow: #eab308; --teal: #14b8a6;
-    --text: #e2e8f0; --muted: #64748b; --border: rgba(124,58,237,0.2);
+    --text: #e2e8f0; --muted: #64748b; --border: rgba(124,58,237,0.18);
+    --gold: #f59e0b; --gold2: #fcd34d;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans','Sora',sans-serif; min-height:100vh; overflow-x:hidden; }
@@ -16,11 +17,11 @@
   body::before {
     content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
     background:
-      radial-gradient(ellipse at 5% 50%,rgba(0,180,216,0.07) 0%,transparent 35%),
-      radial-gradient(ellipse at 95% 50%,rgba(0,191,165,0.06) 0%,transparent 35%),
-      radial-gradient(ellipse at 20% 15%,rgba(124,58,237,0.09) 0%,transparent 45%),
-      radial-gradient(ellipse at 80% 85%,rgba(59,130,246,0.07) 0%,transparent 45%),
-      radial-gradient(ellipse at 50% 50%,rgba(105,240,174,0.03) 0%,transparent 55%);
+      radial-gradient(ellipse at 10% 40%,rgba(0,180,216,0.05) 0%,transparent 45%),
+      radial-gradient(ellipse at 90% 20%,rgba(124,58,237,0.07) 0%,transparent 45%),
+      radial-gradient(ellipse at 50% 95%,rgba(59,130,246,0.04) 0%,transparent 40%),
+      radial-gradient(ellipse at 20% 15%,rgba(124,58,237,0.06) 0%,transparent 45%),
+      radial-gradient(ellipse at 80% 80%,rgba(124,58,237,0.04) 0%,transparent 40%);
     pointer-events:none; z-index:0;
   }
   body::after {
@@ -28,17 +29,17 @@
     position:fixed;
     top:0; left:0; right:0; bottom:0;
     background:
-      linear-gradient(to right, rgba(0,180,216,0.04) 0%, transparent 8%),
-      linear-gradient(to left,  rgba(0,191,165,0.04) 0%, transparent 8%);
+      linear-gradient(to right, rgba(124,58,237,0.03) 0%, transparent 8%),
+      linear-gradient(to left,  rgba(124,58,237,0.02) 0%, transparent 8%);
     pointer-events:none;
     z-index:0;
   }
   .container { width:100%; max-width:100%; padding:40px 28px 40px 28px; position:relative; z-index:1; box-sizing:border-box; }
   .side-deco { position:fixed; top:0; bottom:0; width:3px; z-index:0; pointer-events:none; }
-  .side-deco-left  { left:0;  background:linear-gradient(to bottom, transparent 0%, rgba(0,180,216,0.45) 30%, rgba(124,58,237,0.3) 60%, rgba(0,191,165,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,180,216,0.18); }
-  .side-deco-right { right:0; background:linear-gradient(to bottom, transparent 0%, rgba(0,191,165,0.4) 30%, rgba(124,58,237,0.25) 60%, rgba(0,180,216,0.2) 85%, transparent 100%); box-shadow:0 0 20px rgba(0,191,165,0.15); }
-  .side-deco-left::before  { content:''; position:absolute; top:12%; left:-4px; width:11px; height:50px; background:rgba(0,180,216,0.55); border-radius:50%; filter:blur(5px); }
-  .side-deco-right::before { content:''; position:absolute; top:12%; right:-4px; width:11px; height:50px; background:rgba(0,191,165,0.45); border-radius:50%; filter:blur(5px); }
+  .side-deco-left  { left:0;  background:linear-gradient(to bottom, transparent 0%, rgba(124,58,237,0.3) 30%, rgba(0,180,216,0.2) 60%, rgba(124,58,237,0.15) 85%, transparent 100%); box-shadow:0 0 16px rgba(124,58,237,0.15); }
+  .side-deco-right { right:0; background:linear-gradient(to bottom, transparent 0%, rgba(124,58,237,0.25) 30%, rgba(0,180,216,0.15) 60%, rgba(124,58,237,0.1) 85%, transparent 100%); box-shadow:0 0 16px rgba(124,58,237,0.1); }
+  .side-deco-left::before  { content:''; position:absolute; top:12%; left:-4px; width:11px; height:50px; background:rgba(124,58,237,0.55); border-radius:50%; filter:blur(5px); }
+  .side-deco-right::before { content:''; position:absolute; top:12%; right:-4px; width:11px; height:50px; background:rgba(124,58,237,0.4); border-radius:50%; filter:blur(5px); }
   .logo-bolt-hint { position:fixed; top:14px; left:16px; z-index:1999; font-size:22px; opacity:0.32; filter:drop-shadow(0 0 6px rgba(0,180,216,0.6)); pointer-events:none; user-select:none; transition:opacity 0.3s; }
 
   /* HEADER */
