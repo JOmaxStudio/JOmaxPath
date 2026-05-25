@@ -3,1387 +3,1222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JOmaxPath — El meu Heroi</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ═══════════════════════════════════════════════════
+     SEO — Títol i descripció
+════════════════════════════════════════════════════ -->
+<title>Preus — JOmaxPath Premium | Planificador personal en català</title>
+<meta name="description" content="Descobreix els plans de JOmaxPath. Comença gratis i actualitza a Premium per desbloquejar la IA Julians, temes exclusius i molt més.">
+<meta name="keywords" content="JOmaxPath premium, preu planificador, organitzador català premium, productivitat, subscripció">
+<meta name="author" content="JOmax">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jomaxpath.com/pricing">
+
+<!-- ═══════════════════════════════════════════════════
+     Open Graph
+════════════════════════════════════════════════════ -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jomaxpath.com/pricing">
+<meta property="og:title" content="Preus — JOmaxPath Premium">
+<meta property="og:description" content="Comença gratis i actualitza a Premium per desbloquejar la IA Julians, temes exclusius i molt més.">
+<meta property="og:image" content="https://jomaxpath.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ca_ES">
+<meta property="og:site_name" content="JOmaxPath">
+
+<!-- ═══════════════════════════════════════════════════
+     Twitter Card
+════════════════════════════════════════════════════ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://jomaxpath.com/pricing">
+<meta name="twitter:title" content="Preus — JOmaxPath Premium">
+<meta name="twitter:description" content="Comença gratis i actualitza a Premium per desbloquejar la IA Julians, temes exclusius i molt més.">
+<meta name="twitter:image" content="https://jomaxpath.com/og-image.png">
+
+<!-- ═══════════════════════════════════════════════════
+     Tema i color del navegador
+════════════════════════════════════════════════════ -->
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-title" content="JOmaxPath">
+
+<script src="https://js.stripe.com/v3/"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#060610;--card:#0e0e1e;--card2:#14142a;
-  --accent:#7c3aed;--accent2:#a78bfa;
-  --cyan:#00b8d9;--cyan2:#38d9f5;
-  --green:#10b981;--orange:#f59e0b;--red:#ef4444;
-  --gold:#f59e0b;--gold2:#fcd34d;
-  --text:#e2e8f0;--muted:#64748b;
-  --border:rgba(124,58,237,0.18);
-  --sb:220px;--sb-c:58px;
+/* ══════════════════════════════════════════════════════
+   JOMAXPATH — PÀGINA DE PREUS
+   Coherent amb l'estil visual de l'app
+══════════════════════════════════════════════════════ */
+:root {
+  --bg:      #080810;
+  --card:    #0f0f1a;
+  --card2:   #161625;
+  --accent:  #7c3aed;
+  --accent2: #a78bfa;
+  --cyan:    #00b8d9;
+  --cyan2:   #38d9f5;
+  --green:   #10b981;
+  --orange:  #f59e0b;
+  --red:     #ef4444;
+  --blue:    #3b82f6;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --border:  rgba(124,58,237,0.2);
+  --border-c: rgba(0,184,217,0.2);
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:4px;}
 
-body::before{content:'';position:fixed;inset:0;
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans','Sora',sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.3); border-radius:10px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(0,184,217,0.5); }
+
+/* ── Background ambient ── */
+body::before {
+  content:'';
+  position:fixed; top:-50%; left:-50%; width:200%; height:200%;
   background:
-    radial-gradient(ellipse at 10% 40%,rgba(0,180,216,0.05) 0%,transparent 45%),
-    radial-gradient(ellipse at 90% 20%,rgba(124,58,237,0.07) 0%,transparent 45%),
-    radial-gradient(ellipse at 50% 95%,rgba(59,130,246,0.04) 0%,transparent 40%);
-  pointer-events:none;z-index:0;}
-
-/* ═══ SIDEBAR ═══ */
-#sb{
-  position:fixed;top:0;left:0;bottom:0;width:var(--sb);
-  background:rgba(5,5,13,0.98);border-right:1px solid rgba(124,58,237,0.14);
-  backdrop-filter:blur(24px);z-index:200;
-  display:flex;flex-direction:column;
-  transition:width .28s cubic-bezier(.4,0,.2,1);overflow:hidden;
-}
-#sb.c{width:var(--sb-c);}
-.sb-top{padding:14px 12px 12px;border-bottom:1px solid rgba(124,58,237,0.1);display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:60px;}
-.sb-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#00b8d9);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 0 14px rgba(124,58,237,0.3);}
-.sb-brand{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;line-height:1.2;}
-.sb-brand small{display:block;font-size:7px;color:var(--muted);letter-spacing:2.5px;margin-top:2px;}
-.sb-tog{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:5px;border-radius:7px;transition:all .2s;flex-shrink:0;}
-.sb-tog:hover{color:var(--accent2);background:rgba(124,58,237,0.1);}
-.sb-sec{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;color:var(--muted);padding:10px 16px 4px;white-space:nowrap;overflow:hidden;flex-shrink:0;}
-.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;}
-.sb-nav::-webkit-scrollbar{width:2px;}
-.sb-it{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-radius:9px;margin:2px 7px;transition:all .15s;color:var(--muted);white-space:nowrap;text-decoration:none;position:relative;}
-.sb-it:hover{background:rgba(124,58,237,0.1);color:#c4b5fd;}
-.sb-it.on{background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.08));color:var(--accent2);border:1px solid rgba(124,58,237,0.22);}
-.sb-ico{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,0.04);}
-.sb-it.on .sb-ico{background:rgba(124,58,237,0.2);}
-.sb-lbl{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;flex:1;}
-.sb-pill{font-family:'Space Mono',monospace;font-size:7px;padding:2px 6px;border-radius:5px;flex-shrink:0;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);}
-.sb-bot{border-top:1px solid rgba(124,58,237,0.1);padding:6px 7px 8px;flex-shrink:0;}
-.sb-botit{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:11px;transition:all .15s;white-space:nowrap;}
-.sb-botit:hover{background:rgba(255,255,255,0.05);color:var(--text);}
-
-/* Sidebar hero mini card - character preview */
-.sb-hero-card{
-  margin:10px 8px 4px;padding:12px 14px;
-  background:linear-gradient(135deg,rgba(124,58,237,0.14),rgba(0,180,216,0.07));
-  border:1px solid rgba(124,58,237,0.22);border-radius:12px;
-  cursor:pointer;transition:border-color .2s;overflow:hidden;position:relative;
-}
-.sb-hero-card:hover{border-color:rgba(167,139,250,0.45);}
-.sb-hero-card::before{content:'';position:absolute;top:-20px;right:-20px;width:70px;height:70px;background:radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%);pointer-events:none;}
-.sb-hlvl{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2px;color:var(--gold2);margin-bottom:3px;white-space:nowrap;}
-.sb-hrow{display:flex;align-items:center;gap:8px;}
-.sb-hico{font-size:20px;flex-shrink:0;}
-.sb-hinfo{flex:1;min-width:0;}
-.sb-hname{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sb-hclass{font-family:'Space Mono',monospace;font-size:7px;color:var(--accent2);letter-spacing:1px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sb-xpbar{height:3px;background:rgba(255,255,255,0.07);border-radius:3px;margin-top:8px;overflow:hidden;}
-.sb-xpfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .8s ease;}
-
-/* Collapsed sidebar */
-#sb.c .sb-brand,#sb.c .sb-sec,#sb.c .sb-lbl,#sb.c .sb-pill,#sb.c .sb-hlvl,#sb.c .sb-hclass,#sb.c .sb-hinfo,#sb.c .sb-xpbar{display:none;}
-#sb.c .sb-hero-card{padding:8px;display:flex;align-items:center;justify-content:center;}
-#sb.c .sb-hrow{justify-content:center;}
-#sb.c .sb-it{justify-content:center;padding:9px;margin:2px 7px;}
-#sb.c .sb-ico{margin:0;}
-#sb.c .sb-botit{justify-content:center;padding:8px;}
-#sb.c .sb-botit span:last-child{display:none;}
-#sb.c .sb-it[data-t]:hover::after{
-  content:attr(data-t);position:absolute;left:calc(var(--sb-c) + 6px);top:50%;transform:translateY(-50%);
-  background:rgba(5,5,13,0.98);border:1px solid rgba(124,58,237,0.3);
-  border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text);white-space:nowrap;z-index:999;pointer-events:none;
-}
-#sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:199;}
-body.mob-sb #sb-ov{display:block;}
-body.mob-sb #sb{width:var(--sb) !important;}
-#sb-mbtoggle{display:none;position:fixed;top:12px;left:12px;z-index:210;width:38px;height:38px;border-radius:9px;background:rgba(5,5,13,0.92);border:1px solid rgba(124,58,237,0.22);align-items:center;justify-content:center;cursor:pointer;font-size:17px;color:var(--text);backdrop-filter:blur(12px);}
-@media(max-width:900px){
-  #sb{transform:translateX(calc(-100% - 4px));width:var(--sb) !important;}
-  body.mob-sb #sb{transform:translateX(0);}
-  #main{margin-left:0 !important;}
-  #sb-mbtoggle{display:flex !important;}
+    radial-gradient(ellipse at 5% 50%, rgba(0,184,217,0.07) 0%,transparent 35%),
+    radial-gradient(ellipse at 95% 50%, rgba(0,191,165,0.06) 0%,transparent 35%),
+    radial-gradient(ellipse at 20% 15%, rgba(124,58,237,0.09) 0%,transparent 45%),
+    radial-gradient(ellipse at 80% 85%, rgba(59,130,246,0.07) 0%,transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(105,240,174,0.03) 0%,transparent 55%);
+  pointer-events:none; z-index:0;
 }
 
-/* ═══ MAIN ═══ */
-#main{margin-left:var(--sb);transition:margin-left .28s cubic-bezier(.4,0,.2,1);min-height:100vh;position:relative;z-index:1;display:flex;flex-direction:column;}
-#sb.c ~ #main{margin-left:var(--sb-c);}
-
-/* ═══ TOP NAV ═══ */
-#topnav{
-  height:50px;flex-shrink:0;display:flex;align-items:center;gap:10px;
-  padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.05);
-  background:rgba(6,6,16,0.7);backdrop-filter:blur(16px);
-  position:sticky;top:0;z-index:100;
+/* ── Side decos ── */
+.side-deco {
+  position:fixed; top:0; bottom:0; width:3px; z-index:0; pointer-events:none;
 }
-.tnav-back{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);transition:all .2s;text-decoration:none;}
-.tnav-back:hover{color:var(--accent2);border-color:rgba(124,58,237,0.3);}
-.tnav-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text);}
-.tnav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.tnav-btn{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.22);border-radius:8px;padding:5px 12px;color:var(--accent2);cursor:pointer;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:1px;transition:all .2s;}
-.tnav-btn:hover{background:rgba(124,58,237,0.2);}
-.tnav-btn.tutorial-btn{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);color:var(--gold2);}
-.tnav-btn.tutorial-btn:hover{background:rgba(245,158,11,0.2);}
-
-/* ═══ CONTENT ═══ */
-#content{flex:1;padding:20px 24px 80px;max-width:1280px;width:100%;}
-@media(max-width:600px){#content{padding:12px 12px 72px;}}
-
-/* ═══ HERO HEADER ═══ */
-.hero-header{
-  display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
-  background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,180,216,0.05),transparent);
-  border:1px solid rgba(124,58,237,0.2);border-radius:20px;
-  padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden;
+.side-deco-left {
+  left:0;
+  background:linear-gradient(to bottom, transparent 0%, rgba(0,184,217,0.45) 30%, rgba(124,58,237,0.3) 60%, rgba(0,191,165,0.2) 85%, transparent 100%);
+  box-shadow:0 0 20px rgba(0,184,217,0.18);
 }
-.hero-header::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(124,58,237,0.12),transparent 70%);pointer-events:none;}
-.hh-avatar-wrap{position:relative;cursor:pointer;}
-.hh-avatar{
-  width:80px;height:80px;border-radius:18px;
-  background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.12));
-  border:2px solid rgba(124,58,237,0.35);
-  display:flex;align-items:center;justify-content:center;font-size:38px;
-  box-shadow:0 0 28px rgba(124,58,237,0.2);transition:all .2s;
+.side-deco-right {
+  right:0;
+  background:linear-gradient(to bottom, transparent 0%, rgba(0,191,165,0.4) 30%, rgba(124,58,237,0.25) 60%, rgba(0,184,217,0.2) 85%, transparent 100%);
+  box-shadow:0 0 20px rgba(0,191,165,0.15);
 }
-.hh-avatar:hover{transform:scale(1.04);box-shadow:0 0 40px rgba(124,58,237,0.35);}
-.hh-lvl-badge{
-  position:absolute;bottom:-8px;right:-8px;
-  width:26px;height:26px;border-radius:50%;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#000;
-  border:2px solid var(--bg);box-shadow:0 0 12px rgba(245,158,11,0.5);
+
+/* ── Container ── */
+.container {
+  max-width:1080px; margin:0 auto;
+  padding:60px 24px 80px;
+  position:relative; z-index:1;
 }
-.hh-info{min-width:0;}
-.hh-class{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;color:var(--gold2);margin-bottom:5px;}
-.hh-name{font-size:22px;font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent2) 70%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hh-xp-lbl{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2px;color:var(--muted);margin-bottom:5px;}
-.hh-xp-row{display:flex;align-items:center;gap:10px;}
-.hh-xp-bar{flex:1;height:7px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden;}
-.hh-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width 1s ease;}
-.hh-xp-val{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold2);white-space:nowrap;}
-.hh-quick-stats{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;}
-.hh-qs{text-align:center;}
-.hh-qs-val{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--accent2);}
-.hh-qs-lbl{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;color:var(--muted);}
 
-/* ═══ MAIN LAYOUT ═══ */
-.hero-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
-@media(max-width:1100px){.hero-layout{grid-template-columns:1fr;}}
-
-/* ═══ CHARACTER STAGE ═══ */
-.char-stage{
-  background:linear-gradient(160deg,rgba(124,58,237,0.08),rgba(0,180,216,0.04),transparent);
-  border:1px solid rgba(124,58,237,0.18);border-radius:20px;
-  padding:20px;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;
+/* ══════════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════════ */
+.page-header {
+  text-align:center;
+  margin-bottom:48px;
+  animation: fadeDown 0.7s ease both;
 }
-.char-stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,58,237,0.1),transparent 70%);pointer-events:none;}
-.char-stage-title{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:3px;color:var(--muted);margin-bottom:14px;text-align:center;}
-.char-equip-ring{position:relative;width:280px;height:380px;}
-#hero-svg{display:block;width:100%;height:100%;position:absolute;top:0;left:0;}
 
-/* Equipment slots around character */
-.equip-slot{
-  position:absolute;z-index:10;
-  width:52px;text-align:center;cursor:pointer;
-  transition:all .2s;
+.page-header .back-link {
+  display:inline-flex; align-items:center; gap:6px;
+  color:var(--muted); font-size:13px; text-decoration:none;
+  font-family:'Space Mono',monospace;
+  margin-bottom:28px;
+  transition:color 0.2s;
 }
-.equip-slot:hover .eq-box{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.12);}
-.eq-box{
-  width:48px;height:48px;border-radius:10px;margin:0 auto 3px;
-  background:rgba(15,15,30,0.9);border:1px dashed rgba(124,58,237,0.25);
-  display:flex;align-items:center;justify-content:center;font-size:20px;
-  transition:all .2s;position:relative;overflow:hidden;
+.page-header .back-link:hover { color:var(--cyan2); }
+.page-header .back-link svg { width:14px; height:14px; }
+
+.tag {
+  display:inline-block;
+  background:linear-gradient(135deg,rgba(0,184,217,0.12),rgba(124,58,237,0.12));
+  border:1px solid rgba(0,184,217,0.35);
+  color:#38d9f5;
+  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px;
+  text-transform:uppercase; padding:6px 16px; border-radius:20px;
+  margin-bottom:20px;
+  text-shadow:0 0 12px rgba(0,184,217,0.4);
 }
-.eq-box.filled{border-style:solid;border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.1);}
-.eq-box.filled::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(124,58,237,0.15),transparent 70%);}
-.eq-lbl{font-family:'Space Mono',monospace;font-size:6.5px;letter-spacing:1px;color:var(--muted);display:block;}
 
-/* Position slots */
-.equip-top   {top:-8px;left:50%;transform:translateX(-50%);}
-.equip-left  {top:50%;left:-8px;transform:translateY(-50%);}
-.equip-right {top:50%;right:-8px;transform:translateY(-50%);}
-.equip-bot   {bottom:-8px;left:50%;transform:translateX(-50%);}
-
-/* ═══ TABS ═══ */
-.hero-tabs{display:flex;gap:4px;margin-bottom:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:4px;}
-.hero-tab{flex:1;padding:8px 4px;border-radius:9px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;transition:all .2s;white-space:nowrap;}
-.hero-tab:hover{color:var(--text);}
-.hero-tab.on{background:rgba(124,58,237,0.18);color:var(--accent2);border:1px solid rgba(124,58,237,0.25);}
-.tab-panel{display:none;}
-.tab-panel.on{display:block;}
-
-/* ═══ SEC LABEL ═══ */
-.sec-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.sec-lbl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
-
-/* ═══ MISSIONS ═══ */
-.cat-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
-.cat-tab{padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:var(--muted);font-family:'Space Mono',monospace;font-size:8.5px;cursor:pointer;transition:all .2s;}
-.cat-tab.on{background:rgba(124,58,237,0.18);border-color:rgba(124,58,237,0.4);color:var(--accent2);}
-.mission-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;margin-bottom:12px;}
-.mission-list::-webkit-scrollbar{width:2px;}
-.mission-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;transition:all .18s;}
-.mission-item:hover{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.25);}
-.mission-item.sel{background:rgba(124,58,237,0.16);border-color:rgba(124,58,237,0.4);box-shadow:0 0 14px rgba(124,58,237,0.12);}
-.mission-item.done{opacity:0.45;}
-.mi-ico{font-size:20px;flex-shrink:0;}
-.mi-info{flex:1;min-width:0;}
-.mi-name{font-size:12px;font-weight:600;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mi-meta{font-size:10px;color:var(--muted);}
-.mi-xp{font-family:'Space Mono',monospace;font-size:9px;color:var(--gold2);font-weight:700;white-space:nowrap;}
-
-/* Timer */
-.timer-block{text-align:center;padding:20px 0 12px;}
-.timer-big{font-family:'Space Mono',monospace;font-size:60px;font-weight:700;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:-2px;}
-.timer-task{font-size:13px;color:var(--muted);margin-top:6px;font-weight:600;}
-.timer-xp-prev{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--gold2);margin-top:3px;}
-.timer-prog{height:5px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin:12px 0;}
-.timer-prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:4px;transition:width .5s linear;}
-.t-row{display:flex;gap:8px;justify-content:center;}
-.t-btn{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:700;transition:all .2s;}
-.t-start{background:linear-gradient(135deg,var(--accent),var(--cyan));color:#fff;box-shadow:0 4px 18px rgba(124,58,237,0.3);}
-.t-start:hover{box-shadow:0 6px 24px rgba(124,58,237,0.45);transform:translateY(-1px);}
-.t-start:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
-.t-stop{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.28);color:#fca5a5;}
-.t-done{background:linear-gradient(135deg,var(--green),#059669);color:#fff;}
-.done-state{text-align:center;padding:16px 0;}
-.done-emoji{font-size:48px;margin-bottom:10px;}
-.done-title{font-size:18px;font-weight:800;color:var(--green);}
-.done-xp{font-family:'Space Mono',monospace;font-size:26px;color:var(--gold2);}
-
-/* ═══ STATS ═══ */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
-.stat-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
-.stat-card:hover:not(.locked){transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4);}
-.stat-card::before{content:'';position:absolute;top:-14px;right:-14px;width:56px;height:56px;border-radius:50%;opacity:0.12;background:radial-gradient(circle,var(--sc,var(--accent)),transparent 70%);}
-.stat-ico{font-size:24px;margin-bottom:6px;}
-.stat-name{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;color:var(--muted);margin-bottom:4px;}
-.stat-val{font-size:22px;font-weight:800;color:var(--sc,var(--accent2));}
-.stat-max{font-family:'Space Mono',monospace;font-size:7.5px;color:var(--muted);}
-.stat-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:6px;overflow:hidden;}
-.stat-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;background:linear-gradient(90deg,var(--sc,var(--accent)),var(--sc2,var(--accent2)));}
-.stat-desc{font-size:9.5px;color:var(--muted);margin-top:5px;line-height:1.5;}
-.stat-card.locked{opacity:0.4;cursor:not-allowed;}
-.stat-locked-ov{position:absolute;inset:0;background:rgba(6,6,16,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:12px;}
-.stat-locked-ov span{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:1.5px;color:var(--muted);}
-
-/* ═══ PATH ═══ */
-.path-track{display:flex;flex-direction:column;gap:0;position:relative;}
-.path-track::before{content:'';position:absolute;left:18px;top:24px;bottom:24px;width:2px;background:linear-gradient(to bottom,rgba(124,58,237,0.4),rgba(255,255,255,0.04));border-radius:2px;}
-.path-row{display:flex;align-items:flex-start;gap:14px;padding:10px 0;}
-.path-node{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;z-index:1;cursor:pointer;transition:all .2s;}
-.path-node.done{background:linear-gradient(135deg,var(--gold),var(--orange));border:2px solid rgba(245,158,11,0.45);box-shadow:0 0 14px rgba(245,158,11,0.3);}
-.path-node.active{background:linear-gradient(135deg,var(--accent),var(--cyan));border:2px solid rgba(124,58,237,0.6);box-shadow:0 0 18px rgba(124,58,237,0.45);animation:pnPulse 2.5s ease-in-out infinite;}
-.path-node.locked{background:rgba(14,14,26,0.9);border:2px solid rgba(255,255,255,0.07);opacity:0.5;}
-@keyframes pnPulse{0%,100%{box-shadow:0 0 18px rgba(124,58,237,0.45);}50%{box-shadow:0 0 28px rgba(124,58,237,0.75);}}
-.path-content{flex:1;padding-top:1px;}
-.path-lvl-label{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;color:var(--muted);}
-.path-name{font-size:13px;font-weight:700;margin-bottom:3px;}
-.path-name.done{color:var(--gold2);}
-.path-name.active{background:linear-gradient(135deg,var(--accent2),var(--cyan2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.path-name.locked{color:rgba(255,255,255,0.2);}
-.path-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1px;padding:2px 7px;border-radius:5px;margin-bottom:4px;}
-.path-badge.done{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--gold2);}
-.path-badge.active{background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:var(--accent2);}
-.path-badge.locked{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);color:var(--muted);}
-.path-desc{font-size:10.5px;color:var(--muted);line-height:1.5;margin-bottom:4px;}
-.path-unlocks{display:flex;flex-wrap:wrap;gap:4px;}
-.path-pill{font-size:9.5px;padding:2px 8px;border-radius:6px;}
-.path-pill.done,.path-pill.active{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:var(--green);}
-.path-pill.locked{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
-
-/* ═══ FRIENDS ═══ */
-.friends-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-.friends-search{flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:9px 14px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
-.friends-search:focus{border-color:rgba(124,58,237,0.4);}
-.friends-search::placeholder{color:var(--muted);}
-.friends-add-btn{padding:9px 14px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:9px;color:var(--accent2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;transition:all .2s;white-space:nowrap;}
-.friends-add-btn:hover{background:rgba(124,58,237,0.25);}
-.friends-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
-.friend-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;transition:all .2s;cursor:pointer;}
-.friend-card:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px);}
-.fc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.fc-avatar{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.1));border:1px solid rgba(124,58,237,0.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.fc-info{flex:1;min-width:0;}
-.fc-name{font-size:13px;font-weight:700;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fc-class{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;color:var(--accent2);}
-.fc-lvl-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--gold2);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);padding:2px 7px;border-radius:5px;flex-shrink:0;}
-.fc-xpbar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:8px;}
-.fc-xpfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;}
-.fc-stats{display:flex;gap:6px;flex-wrap:wrap;}
-.fc-stat{font-family:'Space Mono',monospace;font-size:7.5px;padding:2px 6px;border-radius:5px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.15);color:var(--accent2);}
-.friends-empty{text-align:center;padding:30px;color:var(--muted);}
-.friends-empty .fe-icon{font-size:40px;margin-bottom:10px;opacity:0.4;}
-.friends-empty p{font-size:12px;line-height:1.6;}
-.invite-code-box{background:var(--card);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:12px 14px;margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.invite-code-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);flex-shrink:0;}
-.invite-code-val{flex:1;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);word-break:break-all;font-weight:700;}
-.invite-copy-btn{padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:7px;color:var(--accent2);cursor:pointer;font-family:'Space Mono',monospace;font-size:8px;transition:all .2s;flex-shrink:0;}
-.invite-copy-btn:hover{background:rgba(124,58,237,0.25);}
-
-/* ═══ GLOBAL STATS ═══ */
-.global-stats{display:flex;flex-direction:column;gap:8px;}
-.gs-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.gs-row:last-child{border-bottom:none;}
-.gs-lbl{font-size:11px;color:var(--muted);}
-.gs-val{font-family:'Space Mono',monospace;font-size:12px;color:var(--accent2);font-weight:700;}
-
-/* ═══ TOOLS ═══ */
-.tools-list{display:flex;flex-direction:column;gap:7px;}
-.tool-item{display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;transition:all .18s;text-decoration:none;color:var(--text);}
-.tool-item:hover{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.25);}
-.tool-ico{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.tool-info{flex:1;min-width:0;}
-.tool-name{font-size:12px;font-weight:600;margin-bottom:1px;}
-.tool-sub{font-size:10px;color:var(--muted);}
-.tool-xp{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--gold2);}
-
-/* ═══ CARD ═══ */
-.card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px;}
-.card+.card{margin-top:12px;}
-
-/* ═══ STREAKS ═══ */
-.streak-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
-.streak-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
-.streak-card:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px);}
-.streak-card.done-today{border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.04);}
-.streak-ico{font-size:24px;margin-bottom:5px;display:block;}
-.streak-name{font-size:10px;font-weight:600;margin-bottom:3px;}
-.streak-days{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--orange);}
-.streak-sublbl{font-family:'Space Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:1px;}
-.streak-done-dot{position:absolute;top:7px;right:7px;width:14px;height:14px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:8px;}
-
-/* ═══ TOAST ═══ */
-#toast{position:fixed;bottom:24px;right:24px;background:rgba(5,5,13,0.95);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:11px 18px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text);transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);z-index:9000;box-shadow:0 8px 28px rgba(0,0,0,0.5);display:flex;align-items:center;gap:9px;max-width:320px;}
-#toast.show{transform:translateY(0);opacity:1;}
-
-/* ═══ MODALS ═══ */
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);z-index:5000;display:none;align-items:center;justify-content:center;}
-.modal-ov.open{display:flex;}
-.modal-box{background:var(--card);border:1px solid rgba(124,58,237,0.3);border-radius:18px;padding:24px;width:min(400px,94vw);max-height:85vh;overflow-y:auto;}
-.modal-box h3{font-size:16px;font-weight:700;margin-bottom:5px;}
-.modal-box p{font-size:11px;color:var(--muted);margin-bottom:16px;}
-.modal-inp{width:100%;background:var(--card2);border:1px solid rgba(124,58,237,0.2);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px;}
-.modal-inp:focus{border-color:rgba(124,58,237,0.45);}
-.emoji-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
-.ep{width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
-.ep:hover,.ep.sel{background:rgba(124,58,237,0.2);border-color:rgba(124,58,237,0.45);}
-.modal-btns{display:flex;gap:8px;}
-.btn-save{flex:1;padding:10px;border:none;border-radius:9px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--cyan));color:#fff;font-weight:700;font-size:13px;}
-.btn-cancel{padding:10px 14px;border-radius:9px;cursor:pointer;font-size:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);}
-
-/* ═══ LEVEL UP ═══ */
-#lvlup-ov{position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(18px);z-index:8000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
-#lvlup-ov.open{display:flex;}
-.lvlup-emoji{font-size:72px;animation:lvlScale .6s cubic-bezier(.34,1.56,.64,1);}
-@keyframes lvlScale{from{transform:scale(0);}to{transform:scale(1);}}
-.lvlup-title{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:4px;color:var(--gold2);text-align:center;}
-.lvlup-num{font-size:56px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--gold2),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1;}
-.lvlup-name{font-size:20px;font-weight:700;color:#fff;text-align:center;}
-.lvlup-close{margin-top:6px;padding:10px 28px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;}
-
-/* ═══ TUTORIAL ═══ */
-#tut-ov{position:fixed;inset:0;z-index:7000;pointer-events:none;display:none;}
-#tut-ov.open{pointer-events:all;display:block;}
-.tut-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);}
-.tut-box{
-  position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
-  background:rgba(8,8,20,0.98);border:1px solid rgba(124,58,237,0.35);
-  border-radius:18px;padding:22px 24px;width:min(440px,92vw);
-  box-shadow:0 0 60px rgba(124,58,237,0.2);z-index:7001;
+.page-header h1 {
+  font-size:clamp(32px,5vw,54px);
+  font-weight:800;
+  letter-spacing:-1.5px;
+  background:linear-gradient(135deg, #fff 30%, rgba(0,184,217,0.85) 70%, rgba(124,58,237,0.9) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1.1;
+  margin-bottom:14px;
 }
-.tut-step{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;}
-.tut-title{font-size:17px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.tut-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:18px;}
-.tut-dots{display:flex;gap:5px;margin-bottom:16px;}
-.tut-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.12);transition:all .3s;}
-.tut-dot.on{background:var(--accent2);width:16px;border-radius:3px;}
-.tut-btns{display:flex;gap:8px;}
-.tut-next{flex:1;padding:10px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--cyan));color:#fff;font-weight:700;font-size:13px;cursor:pointer;}
-.tut-skip{padding:10px 14px;border-radius:9px;font-size:12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;}
 
-/* ═══ FRIENDS MODAL ═══ */
-#friends-modal .modal-box{width:min(540px,94vw);}
-.friends-import-area{background:var(--card2);border:1px dashed rgba(124,58,237,0.25);border-radius:10px;padding:14px;margin-bottom:12px;}
-.friends-import-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
-.friends-import-inp{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:8px 12px;color:var(--text);font-size:11px;font-family:'Space Mono',monospace;outline:none;box-sizing:border-box;}
-.friends-import-inp:focus{border-color:rgba(124,58,237,0.4);}
+.page-header .subtitle {
+  color:var(--muted);
+  font-size:16px;
+  font-weight:300;
+  max-width:520px;
+  margin:0 auto;
+  line-height:1.6;
+}
+
+/* ══════════════════════════════════════════════════════
+   TOGGLE MENSUAL / ANUAL
+══════════════════════════════════════════════════════ */
+.billing-toggle {
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin-bottom:48px;
+  animation:fadeDown 0.8s 0.1s ease both;
+}
+
+.billing-label {
+  font-size:14px;
+  color:var(--muted);
+  font-weight:500;
+  transition:color 0.2s;
+}
+.billing-label.active { color:var(--text); }
+
+.toggle-switch {
+  position:relative;
+  width:52px; height:28px;
+  cursor:pointer;
+}
+.toggle-switch input { display:none; }
+
+.toggle-track {
+  position:absolute; inset:0;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  transition:background 0.3s, border-color 0.3s;
+}
+.toggle-switch input:checked ~ .toggle-track {
+  background:linear-gradient(135deg, var(--accent), var(--cyan));
+  border-color:transparent;
+}
+
+.toggle-thumb {
+  position:absolute;
+  top:4px; left:4px;
+  width:18px; height:18px;
+  background:#fff;
+  border-radius:50%;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 1px 4px rgba(0,0,0,0.4);
+}
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+  transform:translateX(24px);
+}
+
+.save-badge {
+  background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+  border:1px solid rgba(16,185,129,0.4);
+  color:#6ee7b7;
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:3px 10px;
+  border-radius:20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CARDS DE PREUS
+══════════════════════════════════════════════════════ */
+.plans-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-bottom:64px;
+  animation:fadeUp 0.7s 0.15s ease both;
+}
+
+@media(max-width:700px) {
+  .plans-grid { grid-template-columns:1fr; }
+}
+
+/* ── Card base ── */
+.plan-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:36px 32px 32px;
+  position:relative;
+  overflow:hidden;
+  transition:transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+.plan-card::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px;
+  border-radius:50%;
+  pointer-events:none;
+  transition:opacity 0.3s;
+}
+
+.plan-card:hover {
+  transform:translateY(-4px);
+}
+
+/* ── Free card ── */
+.plan-free::before {
+  background:radial-gradient(circle, rgba(0,184,217,0.08), transparent 70%);
+}
+.plan-free:hover {
+  border-color:rgba(0,184,217,0.4);
+  box-shadow:0 12px 48px rgba(0,184,217,0.08);
+}
+
+/* ── Premium card ── */
+.plan-premium {
+  border-color:rgba(124,58,237,0.4);
+  background:linear-gradient(160deg, #0f0f1a 0%, #13122a 100%);
+}
+.plan-premium::before {
+  background:radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+}
+.plan-premium::after {
+  content:'';
+  position:absolute; inset:0;
+  border-radius:24px;
+  background:linear-gradient(135deg, rgba(124,58,237,0.06) 0%, transparent 50%);
+  pointer-events:none;
+}
+.plan-premium:hover {
+  border-color:rgba(167,139,250,0.6);
+  box-shadow:0 12px 48px rgba(124,58,237,0.15);
+}
+
+/* ── Popular badge ── */
+.popular-badge {
+  position:absolute; top:20px; right:20px;
+  background:linear-gradient(135deg, var(--accent), #9333ea);
+  color:#fff;
+  font-family:'Space Mono',monospace;
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  padding:4px 12px; border-radius:20px;
+  box-shadow:0 0 16px rgba(124,58,237,0.5);
+}
+
+/* ── Plan header ── */
+.plan-icon {
+  font-size:36px;
+  margin-bottom:12px;
+  display:block;
+  filter:drop-shadow(0 0 10px rgba(124,58,237,0.4));
+}
+.plan-free .plan-icon { filter:drop-shadow(0 0 10px rgba(0,184,217,0.4)); }
+
+.plan-name {
+  font-size:13px;
+  font-family:'Space Mono',monospace;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+.plan-premium .plan-name { color:var(--accent2); }
+.plan-free .plan-name { color:var(--cyan2); }
+
+/* ── Preu ── */
+.plan-price-block { margin-bottom:6px; }
+
+.plan-price {
+  font-size:48px;
+  font-weight:800;
+  letter-spacing:-2px;
+  line-height:1;
+  background:linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.plan-premium .plan-price {
+  background:linear-gradient(135deg, var(--accent2), var(--cyan2));
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+
+.plan-currency { font-size:24px; font-weight:700; vertical-align:top; margin-top:8px; display:inline-block; }
+.plan-period {
+  font-size:13px; color:var(--muted); font-weight:400;
+  font-family:'Space Mono',monospace;
+  margin-left:4px;
+}
+
+.plan-price-alt {
+  font-size:12px; color:var(--muted);
+  font-family:'Space Mono',monospace;
+  margin-bottom:20px;
+  min-height:18px;
+}
+
+/* ── Divider ── */
+.plan-divider {
+  height:1px;
+  background:var(--border);
+  margin:20px 0;
+}
+.plan-premium .plan-divider { background:rgba(167,139,250,0.15); }
+
+/* ── Features ── */
+.plan-features { list-style:none; margin-bottom:28px; }
+
+.plan-features li {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:13.5px;
+  color:var(--text);
+  padding:5px 0;
+  line-height:1.4;
+}
+
+.feat-icon {
+  flex-shrink:0;
+  width:18px; height:18px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px;
+  margin-top:1px;
+}
+.feat-yes {
+  background:rgba(16,185,129,0.12);
+  color:#6ee7b7;
+}
+.feat-no {
+  background:rgba(239,68,68,0.08);
+  color:rgba(239,68,68,0.5);
+}
+.feat-star {
+  background:rgba(245,158,11,0.12);
+  color:#fbbf24;
+}
+
+.plan-features li.feat-section-title {
+  font-family:'Space Mono',monospace;
+  font-size:10px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted);
+  margin-top:12px; margin-bottom:2px;
+  border-top:1px solid var(--border);
+  padding-top:14px;
+}
+.plan-features li.feat-section-title:first-child { border-top:none; margin-top:0; padding-top:0; }
+
+/* ── CTA ── */
+.plan-cta {
+  display:block; width:100%;
+  padding:14px;
+  border-radius:14px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px; font-weight:700;
+  text-align:center;
+  cursor:pointer;
+  text-decoration:none;
+  transition:all 0.25s;
+  border:none;
+  position:relative; z-index:1;
+}
+
+.cta-free {
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border-c);
+  color:var(--text);
+}
+.cta-free:hover {
+  background:rgba(0,184,217,0.08);
+  border-color:rgba(0,184,217,0.5);
+  color:var(--cyan2);
+}
+
+.cta-premium {
+  background:linear-gradient(135deg, var(--accent) 0%, #7c3aed 50%, var(--cyan) 100%);
+  color:#fff;
+  box-shadow:0 4px 24px rgba(124,58,237,0.4);
+}
+.cta-premium:hover {
+  box-shadow:0 6px 32px rgba(124,58,237,0.6);
+  transform:translateY(-1px);
+}
+.cta-premium:active { transform:translateY(0); }
+
+/* ══════════════════════════════════════════════════════
+   SECCIÓ FAQ
+══════════════════════════════════════════════════════ */
+.faq-section {
+  max-width:680px; margin:0 auto;
+  animation:fadeUp 0.7s 0.3s ease both;
+}
+
+.section-title {
+  font-family:'Space Mono',monospace;
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:28px;
+  display:flex; align-items:center; gap:12px;
+  text-align:center; justify-content:center;
+}
+.section-title::before, .section-title::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+.faq-list { display:flex; flex-direction:column; gap:8px; }
+
+.faq-item {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+.faq-item:hover { border-color:rgba(124,58,237,0.35); }
+
+.faq-question {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 22px;
+  cursor:pointer;
+  font-size:14px; font-weight:600;
+  color:var(--text);
+  user-select:none;
+}
+
+.faq-arrow {
+  flex-shrink:0;
+  width:22px; height:22px;
+  border-radius:50%;
+  background:rgba(124,58,237,0.1);
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--accent2);
+  font-size:12px;
+  transition:transform 0.3s, background 0.2s;
+}
+.faq-item.open .faq-arrow {
+  transform:rotate(180deg);
+  background:rgba(124,58,237,0.2);
+}
+
+.faq-answer {
+  max-height:0; overflow:hidden;
+  transition:max-height 0.35s ease, padding 0.2s;
+  font-size:13.5px;
+  color:var(--muted);
+  line-height:1.7;
+}
+.faq-item.open .faq-answer {
+  max-height:300px;
+  padding:0 22px 18px;
+}
+
+/* ══════════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════════ */
+@keyframes fadeDown {
+  from { opacity:0; transform:translateY(-20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+.toast {
+  position:fixed; bottom:32px; right:32px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 20px;
+  font-size:13px; color:var(--text);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  transform:translateY(20px); opacity:0;
+  transition:transform 0.3s, opacity 0.3s;
+  z-index:999;
+  max-width:300px;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast-icon { font-size:18px; margin-right:8px; }
+
+/* ══════════════════════════════════════════════════════
+   SUCCESS PAGE
+══════════════════════════════════════════════════════ */
+.success-page {
+  display:none;
+  text-align:center;
+  padding:80px 24px;
+  animation:fadeDown 0.6s ease both;
+}
+.success-page.visible { display:block; }
+
+.success-emoji {
+  font-size:80px;
+  display:block;
+  margin-bottom:24px;
+  animation:bounceIn 0.6s ease both;
+}
+
+@keyframes bounceIn {
+  from { transform:scale(0.5); opacity:0; }
+  60%  { transform:scale(1.1); }
+  to   { transform:scale(1); opacity:1; }
+}
+
+.success-h1 {
+  font-size:clamp(28px,4vw,42px);
+  font-weight:800;
+  letter-spacing:-1.5px;
+  background:linear-gradient(135deg, #fff, var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:12px;
+}
+
+.success-sub {
+  font-size:16px; color:var(--muted); margin-bottom:40px;
+}
+
+.success-features {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+  gap:12px; max-width:600px; margin:0 auto 40px;
+}
+
+.success-feat {
+  background:var(--card);
+  border:1px solid rgba(124,58,237,0.2);
+  border-radius:14px;
+  padding:18px 16px;
+  font-size:13px;
+  text-align:left;
+}
+.success-feat .sf-icon { font-size:24px; margin-bottom:8px; display:block; }
+.success-feat .sf-title { font-weight:700; margin-bottom:4px; }
+.success-feat .sf-desc { color:var(--muted); font-size:12px; }
+
+.btn-go-app {
+  display:inline-block;
+  padding:15px 40px;
+  background:linear-gradient(135deg, var(--accent), var(--cyan));
+  color:#fff;
+  font-weight:700; font-size:16px;
+  border-radius:16px;
+  text-decoration:none;
+  box-shadow:0 4px 24px rgba(124,58,237,0.4);
+  transition:box-shadow 0.2s, transform 0.2s;
+}
+.btn-go-app:hover {
+  box-shadow:0 6px 36px rgba(124,58,237,0.6);
+  transform:translateY(-2px);
+}
+
+/* Confetti canvas */
+#confetti-canvas {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events:none; z-index:500;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media(max-width:600px) {
+  .container { padding:40px 16px 60px; }
+  .plan-card { padding:28px 22px 24px; }
+  .plan-price { font-size:38px; }
+}
 </style>
 </head>
 <body>
 
-<div id="sb-ov" onclick="sbMobileClose()"></div>
-<div id="sb-mbtoggle" onclick="sbMobileToggle()">☰</div>
+<div class="side-deco side-deco-left"></div>
+<div class="side-deco side-deco-right"></div>
+<canvas id="confetti-canvas"></canvas>
+<div id="toast" class="toast"></div>
 
-<!-- ═══ SIDEBAR ═══ -->
-<nav id="sb">
-  <div class="sb-top">
-    <div class="sb-logo">⚡</div>
-    <div class="sb-brand">JOmaxPath<small>EL TEU ESPAI</small></div>
-    <button class="sb-tog" id="sb-tog-btn" onclick="sbToggle()">◀</button>
+<!-- ══════════ PÀGINA PRINCIPAL ══════════ -->
+<div id="pricing-page">
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Tornar a l'app
+    </a>
+    <div class="tag">⚡ Plans i Preus</div>
+    <h1>Desbloqueja tot el<br>teu potencial</h1>
+    <p class="subtitle">Trieu el pla que millor s'adapti a vosaltres. Actualitzeu, cancel·leu o canvieu quan vulgueu.</p>
   </div>
 
-  <!-- Hero mini card -->
-  <div class="sb-hero-card" onclick="openEditHero()" id="sb-hero-card">
-    <div class="sb-hlvl">⚔️ HEROE · NV. <span id="sb-lvl">1</span></div>
-    <div class="sb-hrow">
-      <span class="sb-hico" id="sb-hico">⚔️</span>
-      <div class="sb-hinfo">
-        <div class="sb-hname" id="sb-hname">El teu heroi</div>
-        <div class="sb-hclass" id="sb-hclass">GUERRER EN CONSTRUCCIÓ</div>
+  <!-- TOGGLE FACTURACIÓ -->
+  <div class="billing-toggle">
+    <span class="billing-label active" id="lbl-monthly">Mensual</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="billing-toggle">
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
       </div>
-    </div>
-    <div class="sb-xpbar"><div class="sb-xpfill" id="sb-xpf" style="width:0%"></div></div>
+    </label>
+    <span class="billing-label" id="lbl-yearly">Anual</span>
+    <span class="save-badge">Estalvia 19€</span>
   </div>
 
-  <div class="sb-nav">
-    <div class="sb-sec">PRINCIPAL</div>
-    <a class="sb-it" href="index.html" data-t="Inici"><div class="sb-ico">🏠</div><span class="sb-lbl">Inici</span></a>
-    <a class="sb-it" href="index.html#horari" data-t="Horari"><div class="sb-ico">📅</div><span class="sb-lbl">Horari</span></a>
-    <a class="sb-it" href="index.html#tasques" data-t="Tasques"><div class="sb-ico">📋</div><span class="sb-lbl">Tasques</span></a>
-    <a class="sb-it" href="index.html#focus" data-t="Focus"><div class="sb-ico">🎯</div><span class="sb-lbl">Focus</span></a>
-    <a class="sb-it" href="index.html#julians" data-t="Julians AI"><div class="sb-ico">🧠</div><span class="sb-lbl">Julians AI</span></a>
-    <div class="sb-sec">⚔️ HEROE</div>
-    <a class="sb-it on" href="hero.html" data-t="El meu heroi"><div class="sb-ico">⚔️</div><span class="sb-lbl">El meu heroi</span></a>
-    <a class="sb-it" href="#" onclick="switchTab('missions');sbMobileClose();return false;" data-t="Missions"><div class="sb-ico">⚡</div><span class="sb-lbl">Missions</span></a>
-    <a class="sb-it" href="#" onclick="switchTab('stats');sbMobileClose();return false;" data-t="Stats"><div class="sb-ico">📊</div><span class="sb-lbl">Stats</span></a>
-    <a class="sb-it" href="#" onclick="switchTab('friends');sbMobileClose();return false;" data-t="Amics"><div class="sb-ico">👥</div><span class="sb-lbl">Amics</span></a>
-    <div class="sb-sec">EINES</div>
-    <a class="sb-it" href="pricing.html" data-t="Premium"><div class="sb-ico" style="background:rgba(124,58,237,0.14)">✨</div><span class="sb-lbl" style="color:var(--accent2)">Premium</span><span class="sb-pill">PRO</span></a>
-  </div>
+  <!-- CARDS -->
+  <div class="plans-grid">
 
-  <div class="sb-bot">
-    <div class="sb-botit" onclick="startTutorial()"><span style="font-size:15px">🎓</span><span>Tutorial</span></div>
-    <div class="sb-botit" onclick="openEditHero()"><span style="font-size:15px">✏️</span><span>Editar heroi</span></div>
-    <div class="sb-botit" onclick="resetHero()"><span style="font-size:15px">↺</span><span>Reset progrés</span></div>
-  </div>
-</nav>
-
-<!-- ═══ MAIN ═══ -->
-<div id="main">
-  <div id="topnav">
-    <a href="index.html" class="tnav-back">← JOMAXPATH</a>
-    <div class="tnav-title">⚔️ EL MEU HEROI</div>
-    <div class="tnav-right">
-      <button class="tnav-btn tutorial-btn" onclick="startTutorial()">🎓 TUTORIAL</button>
-      <button class="tnav-btn" onclick="openEditHero()">✏️ Editar</button>
-    </div>
-  </div>
-
-  <div id="content">
-
-    <!-- HERO HEADER -->
-    <div class="hero-header" id="hero-header">
-      <div class="hh-avatar-wrap" onclick="openEditHero()">
-        <div class="hh-avatar" id="h-avatar">⚔️</div>
-        <div class="hh-lvl-badge" id="h-lvl-badge">1</div>
+    <!-- FREE -->
+    <div class="plan-card plan-free">
+      <span class="plan-icon">🌱</span>
+      <div class="plan-name">Gratuït</div>
+      <div class="plan-price-block">
+        <span class="plan-price">0<span class="plan-currency">€</span></span>
+        <span class="plan-period">/per sempre</span>
       </div>
-      <div class="hh-info">
-        <div class="hh-class" id="h-class">⚔️ GUERRER EN CONSTRUCCIÓ</div>
-        <div class="hh-name" id="h-name">Heroi en Construcció</div>
-        <div class="hh-xp-lbl">EXPERIÈNCIA · <span id="h-xp-to-next">100 XP per pujar de nivell</span></div>
-        <div class="hh-xp-row">
-          <div class="hh-xp-bar"><div class="hh-xp-fill" id="h-xp-fill" style="width:0%"></div></div>
-          <div class="hh-xp-val" id="h-xp-val">0 / 100</div>
-        </div>
-        <div class="hh-quick-stats">
-          <div class="hh-qs"><div class="hh-qs-val" id="qs-level">1</div><div class="hh-qs-lbl">NIVELL</div></div>
-          <div class="hh-qs"><div class="hh-qs-val" id="qs-xp">0</div><div class="hh-qs-lbl">XP TOTAL</div></div>
-          <div class="hh-qs"><div class="hh-qs-val" id="qs-missions">0/0</div><div class="hh-qs-lbl">MISSIONS</div></div>
-        </div>
-      </div>
+      <div class="plan-price-alt">&nbsp;</div>
+      <div class="plan-divider"></div>
+
+      <ul class="plan-features">
+        <li class="feat-section-title">Tasques</li>
+        <li><span class="feat-icon feat-yes">✓</span> Fins a 20 tasques actives</li>
+        <li><span class="feat-icon feat-yes">✓</span> Fins a 3 llistes compartides (6 membres)</li>
+        <li><span class="feat-icon feat-yes">✓</span> Enllaços a tasques</li>
+        <li><span class="feat-icon feat-no">✗</span> Adjunts de fitxers</li>
+
+        <li class="feat-section-title">Julians AI</li>
+        <li><span class="feat-icon feat-yes">✓</span> 15 missatges per dia</li>
+        <li><span class="feat-icon feat-yes">✓</span> Tots els modes (respostes reduïdes)</li>
+        <li><span class="feat-icon feat-yes">✓</span> Fins a 3 documents generats</li>
+        <li><span class="feat-icon feat-no">✗</span> Memòria entre xats</li>
+
+        <li class="feat-section-title">Calendari & Focus</li>
+        <li><span class="feat-icon feat-yes">✓</span> Events il·limitats + recordatoris bàsics</li>
+        <li><span class="feat-icon feat-yes">✓</span> Fins a 3 hàbits diaris</li>
+        <li><span class="feat-icon feat-yes">✓</span> Historial Pomodoro 7 dies</li>
+
+        <li class="feat-section-title">Compte</li>
+        <li><span class="feat-icon feat-yes">✓</span> Sincronització entre dispositius</li>
+        <li><span class="feat-icon feat-yes">✓</span> Còpia de seguretat setmanal</li>
+        <li><span class="feat-icon feat-no">✗</span> Exportar dades</li>
+      </ul>
+
+      <a href="/" class="plan-cta cta-free">Comença gratis</a>
     </div>
 
-    <!-- HERO LAYOUT -->
-    <div class="hero-layout">
+    <!-- PREMIUM -->
+    <div class="plan-card plan-premium">
+      <div class="popular-badge">✦ Popular</div>
+      <span class="plan-icon">⚡</span>
+      <div class="plan-name">Premium</div>
+      <div class="plan-price-block">
+        <span class="plan-price" id="premium-price">3<span style="font-size:28px">,99</span><span class="plan-currency">€</span></span>
+        <span class="plan-period" id="premium-period">/mes</span>
+      </div>
+      <div class="plan-price-alt" id="premium-alt">&nbsp;</div>
+      <div class="plan-divider"></div>
 
-      <!-- CHARACTER STAGE (left on desktop) -->
-      <div>
-        <div class="char-stage" id="char-stage-section">
-          <div class="char-stage-title">PERSONATGE</div>
+      <ul class="plan-features">
+        <li class="feat-section-title">Tasques</li>
+        <li><span class="feat-icon feat-star">★</span> Tasques i llistes il·limitades</li>
+        <li><span class="feat-icon feat-star">★</span> Membres il·limitats per llista</li>
+        <li><span class="feat-icon feat-star">★</span> Adjunts de fitxers inclosos</li>
+        <li><span class="feat-icon feat-star">★</span> Automatitzacions i tasques repetitives</li>
 
-          <div class="char-equip-ring" id="char-equip-ring">
-            <!-- Equipment slots -->
-            <div class="equip-slot equip-top" id="eq-cap" title="Cap">
-              <div class="eq-box" id="eq-cap-box"><span id="eq-cap-ico">🪖</span></div>
-              <span class="eq-lbl">CAP</span>
-            </div>
-            <div class="equip-slot equip-left" id="eq-shield" title="Escut / Mà esquerra">
-              <div class="eq-box" id="eq-shield-box"><span id="eq-shield-ico">🛡️</span></div>
-              <span class="eq-lbl">ESCUT</span>
-            </div>
-            <div class="equip-slot equip-right" id="eq-weapon" title="Arma">
-              <div class="eq-box" id="eq-weapon-box"><span id="eq-weapon-ico">🗡️</span></div>
-              <span class="eq-lbl">ARMA</span>
-            </div>
-            <div class="equip-slot equip-bot" id="eq-extra" title="Accessori extra">
-              <div class="eq-box" id="eq-extra-box"><span id="eq-extra-ico">💍</span></div>
-              <span class="eq-lbl">EXTRA</span>
-            </div>
+        <li class="feat-section-title">Julians AI</li>
+        <li><span class="feat-icon feat-star">★</span> Missatges il·limitats al 100%</li>
+        <li><span class="feat-icon feat-star">★</span> Generació il·limitada de documents PDF</li>
+        <li><span class="feat-icon feat-star">★</span> Memòria persistent entre sessions</li>
+        <li><span class="feat-icon feat-star">★</span> Accés prioritari a noves funcions IA</li>
 
-            <!-- SVG Character -->
-            <svg id="hero-svg" viewBox="0 0 280 380" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="bgGlow" cx="50%" cy="60%" r="55%">
-                  <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/>
-                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="cyanHalo" cx="50%" cy="25%" r="40%">
-                  <stop offset="0%" stop-color="#00b8d9" stop-opacity="0.18"/>
-                  <stop offset="100%" stop-color="#00b8d9" stop-opacity="0"/>
-                </radialGradient>
-                <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="4" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-                <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="7" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-                <linearGradient id="swordGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#e0d4ff"/>
-                  <stop offset="60%" stop-color="#a78bfa"/>
-                  <stop offset="100%" stop-color="#7c3aed"/>
-                </linearGradient>
-                <linearGradient id="armorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#1a1235"/>
-                  <stop offset="100%" stop-color="#0d0a20"/>
-                </linearGradient>
-              </defs>
+        <li class="feat-section-title">Calendari & Focus</li>
+        <li><span class="feat-icon feat-star">★</span> Recordatoris per email i push</li>
+        <li><span class="feat-icon feat-star">★</span> Hàbits il·limitats + estadístiques avançades</li>
+        <li><span class="feat-icon feat-star">★</span> Historial Pomodoro il·limitat + gràfics</li>
 
-              <!-- Background atmosphere -->
-              <ellipse cx="140" cy="340" rx="90" ry="22" fill="url(#bgGlow)"/>
-              <ellipse cx="140" cy="140" rx="90" ry="90" fill="url(#cyanHalo)"/>
-              <!-- Ground shadow -->
-              <ellipse cx="140" cy="365" rx="55" ry="10" fill="rgba(0,0,0,0.35)"/>
+        <li class="feat-section-title">Compte</li>
+        <li><span class="feat-icon feat-star">★</span> Sincronització en temps real</li>
+        <li><span class="feat-icon feat-star">★</span> Còpia de seguretat diària automàtica</li>
+        <li><span class="feat-icon feat-star">★</span> Exportar PDF i CSV</li>
+        <li><span class="feat-icon feat-star">★</span> Sense anuncis mai · Accés beta anticipat</li>
+      </ul>
 
-              <!-- Floating runes (background) -->
-              <g opacity="0.18" font-size="10" fill="#a78bfa" font-family="monospace">
-                <text x="24" y="160">⟨/⟩</text>
-                <text x="228" y="200">⟩⟨</text>
-                <text x="18" y="280">◈</text>
-                <text x="238" y="130">◇</text>
-              </g>
+      <button class="plan-cta cta-premium" onclick="startCheckout()">
+        ⚡ Aconseguir Premium
+      </button>
+    </div>
 
-              <!-- CAPE (behind body) -->
-              <path d="M100,148 Q68,200 62,340 Q100,328 140,332 Q180,328 218,340 Q212,200 180,148 Z" fill="#0a0818" opacity="0.92"/>
-              <!-- Cape edge glows -->
-              <path d="M100,148 Q68,200 62,340" fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
-              <path d="M180,148 Q212,200 218,340" fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
-              <!-- Cape center seam -->
-              <path d="M140,155 L140,330" stroke="rgba(124,58,237,0.12)" stroke-width="1"/>
+  </div><!-- /plans-grid -->
 
-              <!-- BOOTS -->
-              <rect x="112" y="282" width="24" height="72" rx="9" fill="#0e0b1e"/>
-              <rect x="144" y="282" width="24" height="72" rx="9" fill="#0e0b1e"/>
-              <!-- Boot trim (glow line at bottom) -->
-              <rect x="110" y="346" width="28" height="8" rx="4" fill="rgba(124,58,237,0.5)" filter="url(#softGlow)"/>
-              <rect x="142" y="346" width="28" height="8" rx="4" fill="rgba(124,58,237,0.5)" filter="url(#softGlow)"/>
+  <!-- FAQ -->
+  <div class="faq-section">
+    <div class="section-title">Preguntes freqüents</div>
+    <div class="faq-list">
 
-              <!-- LEGS -->
-              <rect x="114" y="240" width="22" height="50" rx="8" fill="#12102a"/>
-              <rect x="144" y="240" width="22" height="50" rx="8" fill="#12102a"/>
-              <!-- Knee armor -->
-              <rect x="111" y="252" width="28" height="12" rx="4" fill="#0d0b1e" stroke="rgba(124,58,237,0.25)" stroke-width="1"/>
-              <rect x="141" y="252" width="28" height="12" rx="4" fill="#0d0b1e" stroke="rgba(124,58,237,0.25)" stroke-width="1"/>
-
-              <!-- BODY / CHEST ARMOR -->
-              <path d="M92,142 Q90,220 96,245 L140,250 L184,245 Q190,220 188,142 Z" fill="url(#armorGrad)"/>
-              <!-- Chest plate -->
-              <path d="M105,158 L140,152 L175,158 L172,205 L140,212 L108,205 Z" fill="#0c0a1e" stroke="rgba(124,58,237,0.32)" stroke-width="1"/>
-              <!-- Chest gem (cyan) -->
-              <polygon points="140,172 150,182 140,192 130,182" fill="rgba(0,184,217,0.85)" filter="url(#softGlow)"/>
-              <polygon points="140,174 148,182 140,190 132,182" fill="rgba(56,217,245,0.5)"/>
-              <!-- Chest energy lines -->
-              <line x1="108" y1="186" x2="130" y2="186" stroke="rgba(124,58,237,0.3)" stroke-width="0.8"/>
-              <line x1="150" y1="186" x2="172" y2="186" stroke="rgba(124,58,237,0.3)" stroke-width="0.8"/>
-              <!-- Belly armor bands -->
-              <rect x="105" y="215" width="70" height="6" rx="3" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.5"/>
-              <rect x="105" y="226" width="70" height="6" rx="3" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.5"/>
-
-              <!-- SHOULDERS -->
-              <circle cx="92" cy="153" r="20" fill="#100e24" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
-              <circle cx="188" cy="153" r="20" fill="#100e24" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
-              <!-- Shoulder gems -->
-              <circle cx="92" cy="153" r="7" fill="rgba(124,58,237,0.28)" stroke="rgba(124,58,237,0.5)" stroke-width="1"/>
-              <circle cx="188" cy="153" r="7" fill="rgba(124,58,237,0.28)" stroke="rgba(124,58,237,0.5)" stroke-width="1"/>
-
-              <!-- ARMS -->
-              <!-- Left arm -->
-              <rect x="70" y="155" width="22" height="68" rx="10" fill="#100e22"/>
-              <circle cx="81" cy="230" r="13" fill="#0c0a1c" stroke="rgba(124,58,237,0.22)" stroke-width="1"/>
-              <!-- Right arm -->
-              <rect x="188" y="155" width="22" height="64" rx="10" fill="#100e22"/>
-              <circle cx="199" cy="228" r="13" fill="#0c0a1c" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
-
-              <!-- SWORD (right side) -->
-              <!-- Sword glow aura -->
-              <rect x="207" y="72" width="14" height="160" rx="7" fill="rgba(124,58,237,0.15)" filter="url(#strongGlow)"/>
-              <!-- Blade -->
-              <rect x="211" y="72" width="6" height="148" rx="3" fill="url(#swordGrad)"/>
-              <!-- Blade edge shimmer -->
-              <rect x="211" y="72" width="2" height="148" rx="1" fill="rgba(255,255,255,0.3)"/>
-              <!-- Sword tip -->
-              <polygon points="214,72 209,90 219,90" fill="#e0d4ff"/>
-              <!-- Crossguard -->
-              <rect x="200" y="210" width="28" height="9" rx="4" fill="#1a1232" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
-              <!-- Sword rune glow -->
-              <circle cx="214" cy="130" r="3" fill="rgba(167,139,250,0.7)" filter="url(#softGlow)">
-                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
-              </circle>
-
-              <!-- SHIELD / energy sigil (left) -->
-              <ellipse cx="66" cy="222" rx="22" ry="28" fill="rgba(0,184,217,0.06)" stroke="rgba(0,184,217,0.28)" stroke-width="1.5"/>
-              <ellipse cx="66" cy="222" rx="14" ry="18" fill="none" stroke="rgba(0,184,217,0.18)" stroke-width="1"/>
-              <!-- Shield center cross -->
-              <line x1="66" y1="210" x2="66" y2="234" stroke="rgba(0,184,217,0.35)" stroke-width="1"/>
-              <line x1="54" y1="222" x2="78" y2="222" stroke="rgba(0,184,217,0.35)" stroke-width="1"/>
-
-              <!-- NECK -->
-              <rect x="128" y="102" width="24" height="30" rx="6" fill="#100e22"/>
-              <!-- Neck collar glow -->
-              <rect x="125" y="128" width="30" height="4" rx="2" fill="rgba(124,58,237,0.35)"/>
-
-              <!-- HEAD -->
-              <circle cx="140" cy="82" r="34" fill="#12102a"/>
-
-              <!-- HELMET -->
-              <path d="M106,76 Q106,44 140,41 Q174,44 174,76 L172,92 Q158,84 140,82 Q122,84 108,92 Z" fill="#0c0a1e"/>
-              <!-- Helmet side plates -->
-              <path d="M106,76 L108,92 Q120,96 125,90" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.8"/>
-              <path d="M174,76 L172,92 Q160,96 155,90" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.8"/>
-              <!-- Helmet top trim -->
-              <path d="M106,76 Q106,44 140,41 Q174,44 174,76" fill="none" stroke="rgba(124,58,237,0.5)" stroke-width="2"/>
-              <!-- Helmet center fin/crest -->
-              <path d="M140,41 L140,76" stroke="rgba(167,139,250,0.45)" stroke-width="2.5"/>
-              <!-- Helm crest glow -->
-              <ellipse cx="140" cy="41" rx="8" ry="4" fill="rgba(124,58,237,0.6)" filter="url(#softGlow)">
-                <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
-              </ellipse>
-              <!-- Visor line -->
-              <path d="M112,85 Q140,88 168,85" fill="none" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
-
-              <!-- GLOWING EYES (cyan) -->
-              <ellipse cx="128" cy="80" rx="7" ry="4.5" fill="rgba(0,184,217,0.95)" filter="url(#softGlow)"/>
-              <ellipse cx="152" cy="80" rx="7" ry="4.5" fill="rgba(0,184,217,0.95)" filter="url(#softGlow)"/>
-              <ellipse cx="128" cy="80" rx="10" ry="6" fill="rgba(0,184,217,0.18)"/>
-              <ellipse cx="152" cy="80" rx="10" ry="6" fill="rgba(0,184,217,0.18)"/>
-              <!-- Eye pupils -->
-              <ellipse cx="128" cy="80" rx="3" ry="2.5" fill="rgba(255,255,255,0.9)"/>
-              <ellipse cx="152" cy="80" rx="3" ry="2.5" fill="rgba(255,255,255,0.9)"/>
-
-              <!-- Floating particles -->
-              <circle cx="55" cy="190" r="2.5" fill="rgba(124,58,237,0.7)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 6,-28; 0,-55" dur="4.2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.7;1;0" dur="4.2s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="228" cy="170" r="2" fill="rgba(0,184,217,0.6)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; -7,-24; 0,-48" dur="5s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.6;0.9;0" dur="5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="75" cy="290" r="1.5" fill="rgba(167,139,250,0.8)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 9,-32; 0,-64" dur="3.7s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.8;1;0" dur="3.7s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="195" cy="310" r="2" fill="rgba(124,58,237,0.6)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; -5,-20; 0,-40" dur="4.8s" repeatCount="indefinite" begin="1s"/>
-                <animate attributeName="opacity" values="0;0.7;0" dur="4.8s" repeatCount="indefinite" begin="1s"/>
-              </circle>
-
-              <!-- Idle float animation wrapper -->
-              <g id="char-float">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 0,-6; 0,0" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
-              </g>
-            </svg>
-          </div>
-
-          <!-- Char name/class below -->
-          <div style="text-align:center;margin-top:12px;">
-            <div style="font-size:14px;font-weight:700;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" id="char-name-disp">Heroi en Construcció</div>
-            <div style="font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2.5px;color:var(--gold2);margin-top:2px;" id="char-class-disp">GUERRER · NV.1</div>
-          </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Puc cancel·lar la subscripció en qualsevol moment?
+          <div class="faq-arrow">▾</div>
         </div>
-
-        <!-- Tools connected -->
-        <div class="card" style="margin-top:12px;">
-          <div class="sec-lbl">🔗 EINES CONNECTADES</div>
-          <div class="tools-list">
-            <div class="tool-item" onclick="goTo('tasques')">
-              <div class="tool-ico" style="background:rgba(59,130,246,0.15);">📋</div>
-              <div class="tool-info"><div class="tool-name">Tasques pendents</div><div class="tool-sub" id="tl-tasques">Carregant...</div></div>
-              <div class="tool-xp">+5 XP/tasca</div>
-            </div>
-            <div class="tool-item" onclick="goTo('horari')">
-              <div class="tool-ico" style="background:rgba(16,185,129,0.15);">📅</div>
-              <div class="tool-info"><div class="tool-name">Horari d'avui</div><div class="tool-sub" id="tl-horari">Carregant...</div></div>
-              <div class="tool-xp">+3 XP/event</div>
-            </div>
-            <div class="tool-item" onclick="goTo('focus')">
-              <div class="tool-ico" style="background:rgba(124,58,237,0.15);">🎯</div>
-              <div class="tool-info"><div class="tool-name">Sessions Focus</div><div class="tool-sub">Pomodoro integrat</div></div>
-              <div class="tool-xp">+20 XP/sessió</div>
-            </div>
-            <div class="tool-item" onclick="goTo('julians')">
-              <div class="tool-ico" style="background:rgba(245,158,11,0.15);">🧠</div>
-              <div class="tool-info"><div class="tool-name">Julians AI</div><div class="tool-sub">Organitzador intel·ligent</div></div>
-              <div class="tool-xp">+8 XP/consulta</div>
-            </div>
-          </div>
+        <div class="faq-answer">
+          Sí, totalment. Pots cancel·lar la teva subscripció Premium des del teu perfil en qualsevol moment. Mantindràs l'accés fins al final del període de facturació actual, sense càrrecs addicionals.
         </div>
       </div>
 
-      <!-- RIGHT: TABS PANEL -->
-      <div>
-        <div class="hero-tabs">
-          <button class="hero-tab on" id="tab-missions" onclick="switchTab('missions')">⚡ MISSIONS</button>
-          <button class="hero-tab" id="tab-stats" onclick="switchTab('stats')">📊 STATS</button>
-          <button class="hero-tab" id="tab-path" onclick="switchTab('path')">🗺️ CAMÍ</button>
-          <button class="hero-tab" id="tab-friends" onclick="switchTab('friends')">👥 AMICS</button>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Quin és l'avantatge del pla anual?
+          <div class="faq-arrow">▾</div>
         </div>
-
-        <!-- ── TAB: MISSIONS ── -->
-        <div class="tab-panel on" id="panel-missions">
-          <!-- Mission mode panel -->
-          <div style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,180,216,0.05));border:1px solid rgba(124,58,237,0.22);border-radius:16px;padding:18px;margin-bottom:14px;">
-            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">⚡ Mode Missió</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Selecciona una missió, activa el temporitzador i completa-la. Si el pares, perds la XP.</div>
-
-            <!-- IDLE -->
-            <div id="fp-idle">
-              <div class="cat-tabs" id="cat-tabs"></div>
-              <div class="mission-list" id="mission-list"></div>
-              <button class="t-btn t-start" id="start-btn" onclick="startTimer()" disabled style="width:100%;">▶ INICIAR MISSIÓ</button>
-            </div>
-
-            <!-- RUNNING -->
-            <div id="fp-run" style="display:none;">
-              <div class="timer-block">
-                <div class="timer-big" id="timer-display">25:00</div>
-                <div class="timer-task" id="timer-task-name">—</div>
-                <div class="timer-xp-prev" id="timer-xp-preview">+0 XP en completar</div>
-              </div>
-              <div class="timer-prog"><div class="timer-prog-fill" id="timer-prog" style="width:0%"></div></div>
-              <div class="t-row">
-                <button class="t-btn t-stop" onclick="stopTimer()">⛔ ATURAR (perd XP)</button>
-                <button class="t-btn t-done" onclick="completeTimer()" id="done-btn" style="display:none;">✅ COMPLETADA</button>
-              </div>
-              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:1px;color:rgba(239,68,68,0.55);text-align:center;margin-top:8px;">⚠️ Aturar = Perdre tota la XP de la missió</div>
-            </div>
-
-            <!-- DONE -->
-            <div id="fp-done" style="display:none;">
-              <div class="done-state">
-                <div class="done-emoji">🎉</div>
-                <div class="done-title">Missió Completada!</div>
-                <div class="done-xp" id="done-xp-val">+0 XP</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="done-sub-txt">Continua així, heroi.</div>
-              </div>
-              <button class="t-btn t-start" onclick="resetToIdle()" style="width:100%;margin-top:10px;">▶ NOVA MISSIÓ</button>
-            </div>
-          </div>
-
-          <!-- Streaks -->
-          <div>
-            <div class="sec-lbl">🔥 HÀBITS DEL HEROI</div>
-            <div class="streak-grid" id="streak-grid"></div>
-            <div style="margin-top:8px;text-align:right;">
-              <button onclick="resetStreaks()" style="background:none;border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:5px 12px;color:var(--muted);font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:1.5px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">↺ NOU DIA</button>
-            </div>
-          </div>
+        <div class="faq-answer">
+          Amb el pla anual pagues 29€ en comptes de 47,88€ (12 × 3,99€), la qual cosa suposa un estalvi de gairebé 19€ a l'any. És la millor opció si saps que faràs servir JomaxPath tot el curs escolar.
         </div>
+      </div>
 
-        <!-- ── TAB: STATS ── -->
-        <div class="tab-panel" id="panel-stats">
-          <div class="sec-lbl">📊 STATS DEL PERSONATGE</div>
-          <div class="stats-grid" id="stats-grid"></div>
-          <div style="margin-top:10px;font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;text-align:center;">
-            CLICA UN STAT per gastar XP · Cost: 10×nivell actual
-          </div>
-
-          <!-- Global progress -->
-          <div style="margin-top:18px;">
-            <div class="sec-lbl">📈 PROGRÉS GLOBAL</div>
-            <div class="global-stats" id="global-stats"></div>
-          </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Les meves dades estan segures?
+          <div class="faq-arrow">▾</div>
         </div>
-
-        <!-- ── TAB: PATH ── -->
-        <div class="tab-panel" id="panel-path">
-          <div style="margin-bottom:14px;">
-            <div style="font-size:16px;font-weight:700;margin-bottom:3px;">De Zero a Maxeado</div>
-            <div style="font-size:11px;color:var(--muted);">Completa missions i maxeja stats per avançar. Cada nivell desbloqueja noves eines i accessoris per al teu personatge.</div>
-          </div>
-          <div class="path-track" id="path-track"></div>
+        <div class="faq-answer">
+          Sí. El pagament és gestionat per Stripe, una de les plataformes de pagament més segures del món. JomaxPath no emmagatzema les teves dades de targeta de crèdit en cap moment. Tota la informació personal de l'app és encriptada.
         </div>
+      </div>
 
-        <!-- ── TAB: FRIENDS ── -->
-        <div class="tab-panel" id="panel-friends">
-          <div class="sec-lbl">👥 AMICS</div>
-
-          <div class="friends-bar">
-            <input class="friends-search" type="text" id="friend-code-inp" placeholder="Enganxa el codi d'un amic..."/>
-            <button class="friends-add-btn" onclick="addFriendByCode()">+ AFEGIR</button>
-          </div>
-
-          <div id="friends-list" class="friends-grid"></div>
-
-          <!-- Invite code -->
-          <div class="invite-code-box" style="margin-top:16px;">
-            <span class="invite-code-lbl">EL TEU CODI</span>
-            <span class="invite-code-val" id="my-invite-code">—</span>
-            <button class="invite-copy-btn" onclick="copyInviteCode()">📋 COPIAR</button>
-          </div>
-          <div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace;letter-spacing:1px;">
-            Comparteix el teu codi per que els amics puguin afegir-te i veure com creix el teu heroi.
-          </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Hi ha una prova gratuïta de Premium?
+          <div class="faq-arrow">▾</div>
         </div>
+        <div class="faq-answer">
+          El pla gratuït ja inclou moltes funcions per provar l'app. Si voleu accedir a Premium, podeu subscriure-us i, si no esteu satisfets en els primers 7 dies, contacteu-nos per a un reemborsament complet.
+        </div>
+      </div>
 
-      </div><!-- /right -->
-    </div><!-- /hero-layout -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Julians AI: quina diferència hi ha entre els dos plans?
+          <div class="faq-arrow">▾</div>
+        </div>
+        <div class="faq-answer">
+          Al pla gratuït, Julians AI respon amb respostes més breus i té un límit de 15 missatges diaris i 3 documents generats. Al Premium, pots enviar missatges il·limitats, les respostes aprofiten tot el context, la IA recorda les converses anteriors i pots generar documents PDF sense límit.
+        </div>
+      </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
-
-<!-- EDIT HERO MODAL -->
-<div class="modal-ov" id="edit-ov" onclick="if(event.target===this)closeEdit()">
-  <div class="modal-box">
-    <h3>✏️ Personalitza el teu heroi</h3>
-    <p>Tria un nom i un avatar per al teu personatge</p>
-    <input class="modal-inp" type="text" id="edit-name" placeholder="Nom del teu heroi..." maxlength="28"/>
-    <div class="emoji-row" id="emoji-row"></div>
-    <div class="modal-btns">
-      <button class="btn-save" onclick="saveEdit()">💾 Desar</button>
-      <button class="btn-cancel" onclick="closeEdit()">Cancel·lar</button>
     </div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /pricing-page -->
+
+
+<!-- ══════════ PÀGINA D'ÈXIT ══════════ -->
+<div id="success-page" class="success-page">
+  <div class="container">
+    <span class="success-emoji">🎉</span>
+    <h1 class="success-h1">Benvingut/da a Premium!</h1>
+    <p class="success-sub">El teu compte ja té accés a totes les funcions desbloqueades. Endavant!</p>
+
+    <div class="success-features">
+      <div class="success-feat">
+        <span class="sf-icon">🤖</span>
+        <div class="sf-title">Julians AI il·limitat</div>
+        <div class="sf-desc">Missatges i documents sense límit</div>
+      </div>
+      <div class="success-feat">
+        <span class="sf-icon">✅</span>
+        <div class="sf-title">Tasques il·limitades</div>
+        <div class="sf-desc">Sense cap restricció de llistes o membres</div>
+      </div>
+      <div class="success-feat">
+        <span class="sf-icon">📊</span>
+        <div class="sf-title">Estadístiques avançades</div>
+        <div class="sf-desc">Gràfics i hàbits il·limitats</div>
+      </div>
+      <div class="success-feat">
+        <span class="sf-icon">☁️</span>
+        <div class="sf-title">Còpia diària + Exportació</div>
+        <div class="sf-desc">Les teves dades sempre segures</div>
+      </div>
+    </div>
+
+    <a href="/" class="btn-go-app">Anar a l'app →</a>
   </div>
 </div>
-
-<!-- LEVEL UP -->
-<div id="lvlup-ov" onclick="closeLvlUp()">
-  <div class="lvlup-emoji">🎉</div>
-  <div class="lvlup-title">LEVEL UP!</div>
-  <div class="lvlup-num" id="lvlup-num">NV. 2</div>
-  <div class="lvlup-name" id="lvlup-name">Primes Repeticions</div>
-  <button class="lvlup-close" onclick="closeLvlUp()">CONTINUA ⚡</button>
-</div>
-
-<!-- TUTORIAL -->
-<div id="tut-ov">
-  <div class="tut-backdrop" onclick="closeTutorial()"></div>
-  <div class="tut-box">
-    <div class="tut-step" id="tut-step">NIVELL 1 / 7</div>
-    <div class="tut-title" id="tut-title"></div>
-    <div class="tut-desc" id="tut-desc"></div>
-    <div class="tut-dots" id="tut-dots"></div>
-    <div class="tut-btns">
-      <button class="tut-next" id="tut-next-btn" onclick="tutNext()">SEGÜENT →</button>
-      <button class="tut-skip" onclick="closeTutorial()">Ometre</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast"></div>
 
 <script>
-/* ═══ DATA ═══ */
-const HERO_KEY='jomaxpath_hero_v2';
-const FRIENDS_KEY='jomaxpath_friends_v1';
+/* ══════════════════════════════════════════════════════
+   TOGGLE FACTURACIÓ
+══════════════════════════════════════════════════════ */
+const toggle = document.getElementById('billing-toggle');
+const lblMonthly = document.getElementById('lbl-monthly');
+const lblYearly  = document.getElementById('lbl-yearly');
+const priceEl    = document.getElementById('premium-price');
+const periodEl   = document.getElementById('premium-period');
+const altEl      = document.getElementById('premium-alt');
 
-const STATS_DEF=[
-  {id:'cos',  name:'COS',        icon:'💪',desc:'Entrenament, son i energia.',   c:'#ef4444',c2:'#fca5a5',unlockLvl:1},
-  {id:'ment', name:'MENTALITAT', icon:'🧠',desc:'Resiliència i autocontrol.',    c:'#8b5cf6',c2:'#c4b5fd',unlockLvl:1},
-  {id:'social',name:'SOCIAL',   icon:'💬',desc:'Carisma i connexions reals.',   c:'#06b6d4',c2:'#67e8f9',unlockLvl:1},
-  {id:'prop', name:'PROPÒSIT',  icon:'🎯',desc:'Visió i objectius de vida.',    c:'#f59e0b',c2:'#fcd34d',unlockLvl:1},
-  {id:'disc', name:'DISCIPLINA',icon:'⚡',desc:'Hàbits i constància.',          c:'#10b981',c2:'#6ee7b7',unlockLvl:2},
-  {id:'fin',  name:'FINANCES',  icon:'💰',desc:'Mentalitat d\'abundància.',     c:'#eab308',c2:'#fde047',unlockLvl:4},
-  {id:'fisic',name:'FÍSIC',     icon:'🔥',desc:'Aparença i estil.',             c:'#ec4899',c2:'#f9a8d4',unlockLvl:3},
-  {id:'lid',  name:'LIDERATGE', icon:'👑',desc:'Influència i impacte.',         c:'#a855f7',c2:'#d8b4fe',unlockLvl:5},
-];
+let isYearly = false;
 
-const CATEGORIES=[
-  {id:'all',  label:'Tot'},
-  {id:'cos',  label:'💪 Cos'},
-  {id:'ment', label:'🧠 Ment'},
-  {id:'social',label:'💬 Social'},
-  {id:'disc', label:'⚡ Disc.'},
-  {id:'extra',label:'⭐ Extra'},
-];
+toggle.addEventListener('change', () => {
+  isYearly = toggle.checked;
+  lblMonthly.classList.toggle('active', !isYearly);
+  lblYearly.classList.toggle('active',  isYearly);
 
-const MISSIONS=[
-  {id:'train',   cat:'cos',   name:'Entrena 30 minuts',          icon:'💪',xp:20,dur:30,stat:'cos'},
-  {id:'cold',    cat:'cos',   name:'Dutxa freda matinal',        icon:'🧊',xp:18,dur:5, stat:'cos'},
-  {id:'water',   cat:'cos',   name:'Beu 2L d\'aigua avui',       icon:'💧',xp:10,dur:10,stat:'cos'},
-  {id:'sleep',   cat:'cos',   name:'Dorm 8 hores (registra\'t)', icon:'😴',xp:15,dur:10,stat:'cos'},
-  {id:'stretch', cat:'cos',   name:'Estiraments 15 minuts',      icon:'🤸',xp:12,dur:15,stat:'cos'},
-  {id:'medita',  cat:'ment',  name:'Medita 10 minuts',           icon:'🧘',xp:15,dur:10,stat:'ment'},
-  {id:'read',    cat:'ment',  name:'Llegeix 20 minuts',          icon:'📚',xp:12,dur:20,stat:'ment'},
-  {id:'journal', cat:'ment',  name:'Escriu al diari personal',   icon:'📓',xp:10,dur:10,stat:'ment'},
-  {id:'nocomp',  cat:'ment',  name:'Zero queixes avui',          icon:'🔇',xp:20,dur:10,stat:'ment'},
-  {id:'conv1',   cat:'social',name:'Inicia 2 converses noves',   icon:'💬',xp:25,dur:15,stat:'social'},
-  {id:'call',    cat:'social',name:'Truca a algú que no has vist',icon:'📞',xp:20,dur:15,stat:'social'},
-  {id:'smile',   cat:'social',name:'Somriu a 5 persones avui',   icon:'😄',xp:15,dur:30,stat:'social'},
-  {id:'nophone', cat:'disc',  name:'No mòbil 1ª hora del dia',   icon:'📵',xp:20,dur:60,stat:'disc'},
-  {id:'pomo',    cat:'disc',  name:'Completa 2 pomodoros (50min)',icon:'🍅',xp:25,dur:50,stat:'disc'},
-  {id:'earlywake',cat:'disc', name:'Llevar-se a l\'hora prevista',icon:'⏰',xp:18,dur:10,stat:'disc'},
-  {id:'plan',    cat:'extra', name:'Planifica el dia sencer',     icon:'📅',xp:15,dur:10,stat:'prop'},
-  {id:'goal',    cat:'extra', name:'Revisa el teu objectiu gran', icon:'🎯',xp:10,dur:10,stat:'prop'},
-  {id:'learn',   cat:'extra', name:'Aprèn algo nou 30 minuts',    icon:'🎓',xp:20,dur:30,stat:'ment'},
-  {id:'network', cat:'extra', name:'Crea contingut o publica',    icon:'📱',xp:22,dur:20,stat:'social'},
-  {id:'finance', cat:'extra', name:'Revisa despeses del mes',     icon:'💰',xp:12,dur:10,stat:'fin'},
-];
+  if (isYearly) {
+    priceEl.innerHTML = `29<span class="plan-currency">€</span>`;
+    periodEl.textContent = '/any';
+    altEl.textContent = '≈ 2,42€/mes · Estalvies 18,88€';
+  } else {
+    priceEl.innerHTML = `3<span style="font-size:28px">,99</span><span class="plan-currency">€</span>`;
+    periodEl.textContent = '/mes';
+    altEl.innerHTML = '&nbsp;';
+  }
+});
 
-const STREAKS_DEF=[
-  {id:'train3', name:'Entrena 3 dies', icon:'💪',target:3,stat:'cos',   xp:50},
-  {id:'medita7',name:'Medita 7 dies',  icon:'🧘',target:7,stat:'ment',  xp:70},
-  {id:'cold7',  name:'Dutxa freda 7d',icon:'🧊',target:7,stat:'cos',   xp:60},
-  {id:'nophone3',name:'No mòbil 3d',  icon:'📵',target:3,stat:'disc',  xp:55},
-  {id:'conv7',  name:'Social 7 dies', icon:'💬',target:7,stat:'social',xp:80},
-  {id:'pomo5',  name:'5 Pomodoros',   icon:'🍅',target:5,stat:'disc',  xp:65},
-];
+/* ══════════════════════════════════════════════════════
+   FAQ ACCORDION
+══════════════════════════════════════════════════════ */
+function toggleFaq(questionEl) {
+  const item = questionEl.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
 
-const PATH_LEVELS=[
-  {num:1,name:'El Despertar',     icon:'🌱',desc:'Decideixes que vols canviar. Deixes el pilotautomàtic.',  unlocks:['Stats bàsics','Missions diàries','El camí del heroi']},
-  {num:2,name:'Primes Repeticions',icon:'🔁',desc:'Comences les primeres accions incòmodes. La bola de neu comença.',unlocks:['Stat: Disciplina','Missions de Disciplina','Accessori: Escut']},
-  {num:3,name:'La Base',          icon:'🏗️',desc:'Tens una rutina mínima. Dorms, entrenes, focuses.',    unlocks:['Stat: Físic','Missions de Físic','Accessori: Armadura']},
-  {num:4,name:'El Glow-Up',       icon:'✨',desc:'La gent nota el canvi. Energia, presència i físic milloren.',unlocks:['Stat: Finances','Accessori: Corona','Dashboard avançat']},
-  {num:5,name:'Social Natural',   icon:'💬',desc:'Ja no forces el carisma. Ets autèntic i la gent s\'apropa.',unlocks:['Stat: Lideratge','Missions de Lideratge','Accessori: Capa']},
-  {num:6,name:'El Producte',      icon:'🏆',desc:'Ets el Rolex, no el Casio. El valor és evident.',unlocks:['Analytics setmanal','Missions premium','Accessori: Espasa Màgica']},
-  {num:7,name:'Propòsit Clar',    icon:'🎯',desc:'Saps exactament cap on vas. Visió clara, passos definits.',unlocks:['Mapa de vida ideal','Metes anuals','Accessori: Bacul']},
-  {num:8,name:'Atracció Natural', icon:'🧲',desc:'El teu estil de vida parla per tu. Ets el premi.',unlocks:['Tracker relacions','Accessori: Ala Daurada']},
-  {num:9,name:'Encarnació',       icon:'🌟',desc:'Ja no persegueixes la vida ideal. La estàs vivint.',unlocks:['Mode Avançat','Accessori: Aurèola']},
-  {num:10,name:'El Renaixement',  icon:'♾️',desc:'T\'has convertit en el millor personatge possible.',unlocks:['Perfil Llegendari','Mode Mentor','Accessori: Aura Llegendària']},
-];
+  // Tancar totes
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
 
-const AVATARS=['⚔️','🛡️','🦁','🐺','🔥','💎','🌟','⚡','🏹','🗡️','👑','🦅','🐉','🧙','🥷','🦊','🐻','🐯','🦄','🌊'];
+  if (!wasOpen) item.classList.add('open');
+}
 
-const CLASSES=['Guerrer en Construcció','Aprenent Disciplinat','Lluitador Constant','Heroi en Forma','Social Natural','Producte Maxeado','Visionari Clar','Imant d\'Oportunitats','Vivint el Propòsit','Llegenda Viva'];
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+function showToast(msg, icon = '⚡') {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span class="toast-icon">${icon}</span>${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
 
-const EQUIP_UNLOCKS={
-  'Accessori: Escut':       {slot:'shield', icon:'🛡️',lvl:2},
-  'Accessori: Armadura':    {slot:'weapon', icon:'🔱',lvl:3},
-  'Accessori: Corona':      {slot:'cap',    icon:'👑',lvl:4},
-  'Accessori: Capa':        {slot:'extra',  icon:'🦸',lvl:5},
-  'Accessori: Espasa Màgica':{slot:'weapon',icon:'⚡',lvl:6},
-  'Accessori: Bacul':       {slot:'weapon', icon:'🔮',lvl:7},
-  'Accessori: Ala Daurada': {slot:'extra',  icon:'🪶',lvl:8},
-  'Accessori: Aurèola':     {slot:'cap',    icon:'✨',lvl:9},
-  'Accessori: Aura Llegendària':{slot:'extra',icon:'🌟',lvl:10},
+/* ══════════════════════════════════════════════════════
+   CHECKOUT AMB STRIPE
+   ─────────────────────────────────────────────────────
+   Per activar el pagament real, necessites:
+   1. Un backend Node.js amb els endpoints descrits
+   2. Les variables d'entorn de Stripe configurades
+   3. Substituir la URL del fetch per la del teu servidor
+══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   PAGAMENT AMB STRIPE PAYMENT LINKS
+   ─────────────────────────────────────────────────────
+   No necessita backend! Genera els links directament a:
+   dashboard.stripe.com → Productes → Payment Links
+   i substitueix les URLs de sota.
+══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   STRIPE EMBEDDED CHECKOUT (Prebuilt form)
+   Substitueix els price IDs pel teus de Stripe Dashboard:
+   dashboard.stripe.com → Productes → [pla] → copia price_xxx
+══════════════════════════════════════════════════════ */
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_AQUI'; // ← el teu pk_live_xxxx
+const PRICE_IDS = {
+  monthly: 'price_1T8ff89DtQnTFrkbKJdZLPl7', // ← price_xxxx del pla mensual
+  yearly:  'price_1T8fhF9DtQnTFrkbXP3GLIN5', // ← price_xxxx del pla anual
 };
 
-const TUT_STEPS=[
-  {title:'⚔️ Benvingut al teu Heroi',          desc:'El teu heroi és el nucli de JOmaxPath. Tot el que fas a l\'app —tasques, hàbits, sessions de focus— fa créixer el teu personatge. Aquí ho pots veure tot en un lloc.'},
-  {title:'🎭 El teu Personatge',                desc:'Al centre hi veus el teu guerrer. Creix de nivell (del NIVELL 1 al 10) completant missions diàries. Cada equipament que desbloquejis apareix als slots que l\'envolten.'},
-  {title:'⚡ Mode Missió',                       desc:'A la pestanya MISSIONS, selecciones una tasca del dia, actives el temporitzador i la completes per guanyar XP. ALERTA: si atures el temporitzador perds tota la XP!'},
-  {title:'📊 Stats del Personatge',             desc:'Tens 8 atributs: Cos, Mentalitat, Social, Propòsit, Disciplina, Finances, Físic i Lideratge. Cada missió millora l\'atribut corresponent. Pots gastar XP per millorar-los directament.'},
-  {title:'🗺️ El Camí del Heroi (NIVELLS 1-10)', desc:'La pestanya CAMÍ mostra els 10 nivells del teu personatge. Cada nivell té un nom, descripció i desbloqueja coses noves. Ara estàs al NIVELL 1 — el despertar.'},
-  {title:'👥 Amics i Rivalitat',                desc:'A AMICS pots afegir companys copiant el seu codi d\'invitació. Podràs veure com creix el seu heroi. La competició sana és la millor motivació per no parar!'},
-  {title:'🔗 Tot Connectat',                    desc:'Les eines connectades al costat (Tasques, Horari, Focus, Julians AI) donen XP al teu heroi. Cada cosa que fas a JOmaxPath suma. Ara ja saps tot el que necessites. A maxejar!'},
-];
+let stripeInstance = null;
+let embeddedCheckout = null;
 
-/* ═══ STATE ═══ */
-function loadHero(){try{return JSON.parse(localStorage.getItem(HERO_KEY))||defaultHero();}catch{return defaultHero();}}
-function saveHero(h){localStorage.setItem(HERO_KEY,JSON.stringify(h));}
-function defaultHero(){return{name:'Heroi en Construcció',avatar:'⚔️',xp:0,level:1,stats:{cos:1,ment:1,social:1,prop:1,disc:0,fin:0,fisic:0,lid:0},streaks:{},missionsDone:{},lastReset:new Date().toDateString()};}
-function loadFriends(){try{return JSON.parse(localStorage.getItem(FRIENDS_KEY))||[];}catch{return[];}}
-function saveFriends(f){localStorage.setItem(FRIENDS_KEY,JSON.stringify(f));}
+async function startCheckout() {
+  const plan = isYearly ? 'yearly' : 'monthly';
 
-let hero=loadHero();
-let timerInterval=null,timerSeconds=0,timerTotal=0,selectedMission=null,activeCat='all';
-const quoteIdx=Math.floor(Math.random()*10);
-
-function xpForLevel(lvl){return lvl*100;}
-function computeLevel(xp){let lvl=1,left=xp;while(left>=xpForLevel(lvl)){left-=xpForLevel(lvl);lvl++;}return{level:lvl,xpInLevel:left,xpNeeded:xpForLevel(lvl)};}
-
-/* ═══ INIT ═══ */
-function init(){
-  checkDailyReset();
-  renderHeader();
-  renderSidebar();
-  renderFocusPanel();
-  renderStats();
-  renderStreaks();
-  renderPath();
-  renderEquip();
-  renderTools();
-  renderGlobalStats();
-  renderFriends();
-  updateInviteCode();
-  // First time tutorial
-  if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
-}
-
-function checkDailyReset(){const today=new Date().toDateString();if(hero.lastReset!==today){hero.missionsDone={};hero.lastReset=today;saveHero(hero);}}
-
-/* ═══ HEADER RENDER ═══ */
-function renderHeader(){
-  const{level,xpInLevel,xpNeeded}=computeLevel(hero.xp);
-  hero.level=level;
-  const pct=Math.round((xpInLevel/xpNeeded)*100);
-  document.getElementById('h-avatar').textContent=hero.avatar;
-  document.getElementById('h-lvl-badge').textContent=level;
-  document.getElementById('h-name').textContent=hero.name;
-  document.getElementById('h-class').textContent='⚔️ '+(CLASSES[Math.min(level-1,9)]).toUpperCase();
-  document.getElementById('h-xp-fill').style.width=pct+'%';
-  document.getElementById('h-xp-val').textContent=xpInLevel+' / '+xpNeeded;
-  document.getElementById('h-xp-to-next').textContent=(xpNeeded-xpInLevel)+' XP per pujar de nivell';
-  document.getElementById('qs-level').textContent=level;
-  document.getElementById('qs-xp').textContent=hero.xp;
-  document.getElementById('qs-missions').textContent=Object.keys(hero.missionsDone).length+'/'+MISSIONS.length;
-}
-
-function renderSidebar(){
-  const{level,xpInLevel,xpNeeded}=computeLevel(hero.xp);
-  document.getElementById('sb-lvl').textContent=level;
-  document.getElementById('sb-hname').textContent=hero.name;
-  document.getElementById('sb-hico').textContent=hero.avatar;
-  document.getElementById('sb-hclass').textContent=CLASSES[Math.min(level-1,9)].toUpperCase();
-  document.getElementById('sb-xpf').style.width=Math.round((xpInLevel/xpNeeded)*100)+'%';
-}
-
-/* ═══ EQUIP RENDER ═══ */
-function renderEquip(){
-  const{level}=computeLevel(hero.xp);
-  const unlocked={cap:'🪖',weapon:'🗡️',shield:'🛡️',extra:'💍'};
-  PATH_LEVELS.forEach(lv=>{
-    if(level>=lv.num){
-      lv.unlocks.forEach(u=>{
-        if(EQUIP_UNLOCKS[u]){const eu=EQUIP_UNLOCKS[u];unlocked[eu.slot]=eu.icon;}
-      });
-    }
-  });
-  ['cap','weapon','shield','extra'].forEach(slot=>{
-    const ico=document.getElementById('eq-'+slot+'-ico');
-    const box=document.getElementById('eq-'+slot+'-box');
-    if(ico)ico.textContent=unlocked[slot];
-    if(box){
-      const isUnlocked=unlocked[slot]!={cap:'🪖',weapon:'🗡️',shield:'🛡️',extra:'💍'}[slot];
-      if(isUnlocked||level>1)box.classList.add('filled');
-    }
-  });
-  document.getElementById('char-name-disp').textContent=hero.name;
-  document.getElementById('char-class-disp').textContent=(CLASSES[Math.min(level-1,9)]||'Guerrer').toUpperCase()+' · NV.'+level;
-}
-
-/* ═══ TABS ═══ */
-function switchTab(name){
-  ['missions','stats','path','friends'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('on',t===name);
-    document.getElementById('panel-'+t).classList.toggle('on',t===name);
-  });
-}
-
-/* ═══ FOCUS PANEL ═══ */
-function renderFocusPanel(){
-  const catEl=document.getElementById('cat-tabs');
-  catEl.innerHTML='';
-  CATEGORIES.forEach(c=>{
-    const b=document.createElement('button');
-    b.className='cat-tab'+(activeCat===c.id?' on':'');
-    b.textContent=c.label;
-    b.onclick=()=>{activeCat=c.id;renderFocusPanel();};
-    catEl.appendChild(b);
-  });
-  const listEl=document.getElementById('mission-list');
-  listEl.innerHTML='';
-  const filtered=activeCat==='all'?MISSIONS:MISSIONS.filter(m=>m.cat===activeCat);
-  filtered.forEach(m=>{
-    const done=!!hero.missionsDone[m.id];
-    const el=document.createElement('div');
-    el.className='mission-item'+(selectedMission?.id===m.id?' sel':'')+(done?' done':'');
-    el.innerHTML=`<div class="mi-ico">${m.icon}</div><div class="mi-info"><div class="mi-name">${done?'✓ ':''} ${m.name}</div><div class="mi-meta">${m.dur} min · ${STATS_DEF.find(s=>s.id===m.stat)?.name||''}</div></div><div class="mi-xp">+${m.xp} XP</div>`;
-    if(!done)el.onclick=()=>{selectedMission=m;renderFocusPanel();};
-    listEl.appendChild(el);
-  });
-  const btn=document.getElementById('start-btn');
-  if(selectedMission){
-    btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
-    btn.textContent='▶ INICIAR: '+selectedMission.name.toUpperCase();
-  } else {
-    btn.disabled=true;btn.style.opacity='0.35';btn.style.cursor='not-allowed';
-    btn.textContent='▶ INICIAR MISSIÓ';
-  }
-}
-
-function startTimer(){
-  if(!selectedMission)return;
-  const m=selectedMission;
-  timerTotal=m.dur*60;timerSeconds=timerTotal;
-  document.getElementById('fp-idle').style.display='none';
-  document.getElementById('fp-run').style.display='block';
-  document.getElementById('fp-done').style.display='none';
-  document.getElementById('timer-task-name').textContent=m.icon+' '+m.name;
-  document.getElementById('timer-xp-preview').textContent='+'+m.xp+' XP en completar';
-  document.getElementById('done-btn').style.display='none';
-  updateTimerDisplay();
-  timerInterval=setInterval(()=>{
-    timerSeconds--;updateTimerDisplay();
-    if(timerSeconds<=0){completeTimer();return;}
-    const elapsed=timerTotal-timerSeconds;const pct=elapsed/timerTotal;
-    document.getElementById('timer-prog').style.width=(pct*100)+'%';
-    if(pct>=0.8)document.getElementById('done-btn').style.display='inline-block';
-  },1000);
-}
-function updateTimerDisplay(){const m=Math.floor(timerSeconds/60),s=timerSeconds%60;document.getElementById('timer-display').textContent=pad(m)+':'+pad(s);}
-function pad(n){return n.toString().padStart(2,'0');}
-
-function stopTimer(){
-  if(!confirm('⛔ Si atures el temporitzador perds tota la XP. Segur?'))return;
-  clearInterval(timerInterval);timerInterval=null;selectedMission=null;
-  document.getElementById('fp-idle').style.display='block';
-  document.getElementById('fp-run').style.display='none';
-  renderFocusPanel();showToast('❌ Missió cancel·lada. XP perduda.');
-}
-
-function completeTimer(){
-  clearInterval(timerInterval);timerInterval=null;
-  const m=selectedMission;if(!m)return;
-  const prevLevel=hero.level;
-  hero.xp+=m.xp;
-  hero.missionsDone[m.id]=new Date().toDateString();
-  const sd=STATS_DEF.find(s=>s.id===m.stat);
-  if(hero.level>=sd.unlockLvl&&(hero.stats[m.stat]||0)<10)
-    hero.stats[m.stat]=Math.min(10,(hero.stats[m.stat]||0)+0.2);
-  const today=new Date().toDateString();
-  const skey=m.id;
-  if(!hero.streaks[skey])hero.streaks[skey]={count:0,lastDate:''};
-  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  if(hero.streaks[skey].lastDate===yesterday.toDateString())hero.streaks[skey].count++;
-  else if(hero.streaks[skey].lastDate!==today)hero.streaks[skey].count=1;
-  hero.streaks[skey].lastDate=today;
-  saveHero(hero);
-  const{level:newLvl}=computeLevel(hero.xp);hero.level=newLvl;
-  const levelUp=newLvl>prevLevel;
-  document.getElementById('fp-idle').style.display='none';
-  document.getElementById('fp-run').style.display='none';
-  document.getElementById('fp-done').style.display='block';
-  document.getElementById('done-xp-val').textContent='+'+m.xp+' XP';
-  document.getElementById('done-sub-txt').textContent=levelUp?'🎉 NIVELL '+newLvl+'! '+PATH_LEVELS[Math.min(newLvl-1,9)].name:'Continua així, heroi. Cada missió compta.';
-  renderHeader();renderSidebar();renderStats();renderStreaks();renderPath();renderEquip();renderGlobalStats();
-  if(levelUp)setTimeout(()=>showLvlUp(newLvl),600);
-  selectedMission=null;
-}
-
-function resetToIdle(){
-  document.getElementById('fp-idle').style.display='block';
-  document.getElementById('fp-run').style.display='none';
-  document.getElementById('fp-done').style.display='none';
-  selectedMission=null;renderFocusPanel();
-}
-
-/* ═══ STATS ═══ */
-function renderStats(){
-  const grid=document.getElementById('stats-grid');grid.innerHTML='';
-  const{level}=computeLevel(hero.xp);
-  STATS_DEF.forEach(s=>{
-    const val=Math.floor(hero.stats[s.id]||0);const valRaw=hero.stats[s.id]||0;
-    const locked=level<s.unlockLvl;const pct=Math.min(Math.round((valRaw/10)*100),100);
-    const card=document.createElement('div');
-    card.className='stat-card'+(locked?' locked':'');
-    card.style.setProperty('--sc',s.c);card.style.setProperty('--sc2',s.c2);
-    card.innerHTML=`<div class="stat-ico">${s.icon}</div><div class="stat-name">${s.name}</div><div><span class="stat-val">${locked?'?':val}</span><span class="stat-max">${locked?'':'/10'}</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${locked?0:pct}%"></div></div><div class="stat-desc">${s.desc}</div>${locked?`<div class="stat-locked-ov"><span>🔒</span><span>NIVELL ${s.unlockLvl}</span></div>`:''}`;
-    if(!locked)card.onclick=()=>upgradeStatXP(s);
-    grid.appendChild(card);
-  });
-}
-
-function upgradeStatXP(s){
-  const current=Math.floor(hero.stats[s.id]||0);
-  if(current>=10){showToast('✨ Stat ja maxejat!');return;}
-  const cost=10*(current+1);
-  if(hero.xp<cost){showToast('❌ No tens prou XP. Necessites '+cost+' XP.');return;}
-  if(!confirm('Gastar '+cost+' XP per millorar '+s.name+' a '+(current+1)+'/10?'))return;
-  hero.stats[s.id]=current+1;hero.xp=Math.max(0,hero.xp-cost);
-  saveHero(hero);renderHeader();renderSidebar();renderStats();renderPath();
-  showToast('💪 '+s.name+' → '+(current+1)+'/10  (−'+cost+' XP)');
-}
-
-/* ═══ STREAKS ═══ */
-function renderStreaks(){
-  const grid=document.getElementById('streak-grid');grid.innerHTML='';
-  const today=new Date().toDateString();
-  STREAKS_DEF.forEach(s=>{
-    const st=hero.streaks[s.id]||{count:0,lastDate:''};
-    const doneToday=st.lastDate===today;
-    const card=document.createElement('div');
-    card.className='streak-card'+(doneToday?' done-today':'');
-    card.innerHTML=`<span class="streak-ico">${s.icon}</span><div class="streak-name">${s.name}</div><div class="streak-days">${st.count}<span style="font-size:12px;color:var(--muted)">/${s.target}</span></div><div class="streak-sublbl">DIES SEGUITS</div>${doneToday?'<div class="streak-done-dot">✓</div>':''}`;
-    if(!doneToday){card.title='Clica per marcar avui (+'+s.xp+' XP si completes la ratxa)';card.onclick=()=>markStreak(s);}
-    grid.appendChild(card);
-  });
-}
-
-function markStreak(s){
-  const today=new Date().toDateString();const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const yd=yesterday.toDateString();
-  if(!hero.streaks[s.id])hero.streaks[s.id]={count:0,lastDate:''};
-  const st=hero.streaks[s.id];
-  if(st.lastDate===today){showToast('Ja marcat avui!');return;}
-  if(st.lastDate===yd)st.count++;else st.count=1;
-  st.lastDate=today;
-  if(st.count>=s.target){hero.xp+=s.xp;showToast('🏆 Ratxa completada! +'+s.xp+' XP');}
-  else{hero.xp+=5;showToast(s.icon+' Marcat! +5 XP · '+st.count+'/'+s.target+' dies');}
-  saveHero(hero);renderHeader();renderSidebar();renderStreaks();
-}
-
-function resetStreaks(){
-  if(!confirm('Reset de missions (simula nou dia)?'))return;
-  hero.missionsDone={};hero.lastReset=new Date().toDateString();
-  saveHero(hero);renderHeader();renderFocusPanel();showToast('↺ Missions del dia reiniciades!');
-}
-
-/* ═══ PATH ═══ */
-function renderPath(){
-  const track=document.getElementById('path-track');track.innerHTML='';
-  const{level}=computeLevel(hero.xp);
-  PATH_LEVELS.forEach(lv=>{
-    let state='locked';
-    if(level>lv.num)state='done';else if(level===lv.num)state='active';
-    const row=document.createElement('div');row.className='path-row';
-    row.innerHTML=`<div class="path-node ${state}">${state==='done'?'✓':state==='active'?lv.icon:'🔒'}</div><div class="path-content"><div class="path-lvl-label">NIVELL ${lv.num}</div><div class="path-name ${state}">${lv.name}</div><div class="path-badge ${state}">${state==='done'?'✓ COMPLETAT':state==='active'?'► EN CURS':'🔒 BLOQUEJAT'}</div><div class="path-desc">${lv.desc}</div><div class="path-unlocks">${lv.unlocks.map(u=>`<span class="path-pill ${state}">${state!=='locked'?'✓ ':''} ${u}</span>`).join('')}</div></div>`;
-    track.appendChild(row);
-  });
-}
-
-/* ═══ GLOBAL STATS ═══ */
-function renderGlobalStats(){
-  const{level}=computeLevel(hero.xp);
-  const gs=document.getElementById('global-stats');
-  const items=[
-    {label:'Nivell actual',val:level},
-    {label:'XP total acumulada',val:hero.xp+' XP'},
-    {label:'Missions avui',val:Object.keys(hero.missionsDone).length},
-    {label:'Stats maxejats',val:Object.values(hero.stats).filter(v=>Math.floor(v)>=10).length+'/'+STATS_DEF.length},
-  ];
-  gs.innerHTML=items.map(it=>`<div class="gs-row"><span class="gs-lbl">${it.label}</span><span class="gs-val">${it.val}</span></div>`).join('');
-}
-
-/* ═══ TOOLS ═══ */
-function renderTools(){
-  try{const t=JSON.parse(localStorage.getItem('jomaxpath_tasks'))||[];const p=t.filter(x=>!x.done).length;document.getElementById('tl-tasques').textContent=p>0?p+' tasques pendents':'Tot al dia ✓';}catch{document.getElementById('tl-tasques').textContent='Obre JOmaxPath per veure';}
-  try{const days=['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];const today=days[new Date().getDay()];const sch=JSON.parse(localStorage.getItem('jomaxpath_schedule'))||{};const ev=(sch[today]||[]);const arr=Array.isArray(ev)?ev:Object.values(ev||{});document.getElementById('tl-horari').textContent=arr.length>0?arr.length+' events avui':'Cap event programat';}catch{document.getElementById('tl-horari').textContent='Obert des de JOmaxPath';}
-}
-
-function goTo(page){window.open('index.html','_self');}
-
-/* ═══ FRIENDS ═══ */
-function generateInviteCode(){
-  const{level}=computeLevel(hero.xp);
-  const data={name:hero.name,avatar:hero.avatar,level:level,xp:hero.xp,class:CLASSES[Math.min(level-1,9)],stats:hero.stats};
-  try{return btoa(unescape(encodeURIComponent(JSON.stringify(data))));}catch{return null;}
-}
-
-function updateInviteCode(){
-  const code=generateInviteCode();
-  if(code)document.getElementById('my-invite-code').textContent=code.slice(0,40)+'...';
-}
-
-function copyInviteCode(){
-  const code=generateInviteCode();
-  if(!code)return;
-  navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat! Comparteix-lo.')).catch(()=>showToast('Codi: '+code.slice(0,20)+'...'));
-}
-
-function addFriendByCode(){
-  const inp=document.getElementById('friend-code-inp');
-  const code=inp.value.trim();
-  if(!code){showToast('⚠️ Enganxa el codi d\'un amic!');return;}
-  try{
-    const data=JSON.parse(decodeURIComponent(escape(atob(code))));
-    if(!data.name||!data.avatar){showToast('❌ Codi invàlid');return;}
-    const friends=loadFriends();
-    if(friends.find(f=>f.name===data.name)){showToast('👥 Ja tens aquest amic!');return;}
-    friends.push({...data,addedAt:Date.now()});
-    saveFriends(friends);
-    inp.value='';
-    renderFriends();
-    showToast('👥 Amic afegit: '+data.name+'!');
-  }catch{showToast('❌ Codi invàlid o corrupte');}
-}
-
-function renderFriends(){
-  const list=document.getElementById('friends-list');
-  const friends=loadFriends();
-  if(friends.length===0){
-    list.innerHTML=`<div class="friends-empty"><div class="fe-icon">👥</div><p>Encara no tens amics afegits.<br>Comparteix el teu codi o afegeix el codi d'un amic per veure com creix el seu heroi!</p></div>`;
+  // Comprovar configuració
+  if(STRIPE_PUBLISHABLE_KEY.includes('AQUI') || PRICE_IDS[plan].includes('AQUI')) {
+    showToast('Cal configurar les claus de Stripe primer.', '⚙️');
     return;
   }
-  list.innerHTML='';
-  friends.forEach((f,i)=>{
-    const card=document.createElement('div');card.className='friend-card';
-    const xpInLevel=f.xp-(f.level*(f.level-1)/2*100);const xpNeeded=f.level*100;
-    const pct=Math.max(0,Math.min(100,Math.round((xpInLevel/xpNeeded)*100)));
-    const topStats=Object.entries(f.stats||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`<span class="fc-stat">${STATS_DEF.find(s=>s.id===k)?.icon||'?'} ${Math.floor(v)}</span>`).join('');
-    card.innerHTML=`<div class="fc-top"><div class="fc-avatar">${f.avatar||'⚔️'}</div><div class="fc-info"><div class="fc-name">${f.name}</div><div class="fc-class">${(f.class||'Guerrer').toUpperCase()}</div></div><div class="fc-lvl-badge">NV.${f.level||1}</div></div><div class="fc-xpbar"><div class="fc-xpfill" style="width:${pct}%"></div></div><div class="fc-stats">${topStats}</div>`;
-    card.title='Eliminar amic';
-    card.ondblclick=()=>{if(confirm('Eliminar '+f.name+'?')){const fr=loadFriends();fr.splice(i,1);saveFriends(fr);renderFriends();}};
-    list.appendChild(card);
-  });
+
+  // Obtenir usuari (Supabase)
+  const user = window.supa ? (await window.supa.auth.getUser())?.data?.user : null;
+
+  // Obrir modal
+  const overlay = document.getElementById('checkout-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('checkout-loading').style.display = 'flex';
+  document.getElementById('checkout-plan-label').textContent =
+    plan === 'yearly' ? 'Premium Anual — 29€/any' : 'Premium Mensual — 3,99€/mes';
+
+  // Netejar checkout anterior si existeix
+  if(embeddedCheckout) { embeddedCheckout.destroy(); embeddedCheckout = null; }
+
+  try {
+    // 1. Crear sessió al backend (Cloudflare Worker)
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId: PRICE_IDS[plan],
+        userId:  user?.id   || 'guest',
+        email:   user?.email || '',
+      }),
+    });
+
+    if(!res.ok) throw new Error('Error creant la sessió de pagament');
+    const { clientSecret } = await res.json();
+
+    // 2. Inicialitzar Stripe i muntar el formulari embegut
+    if(!stripeInstance) stripeInstance = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+    document.getElementById('checkout-loading').style.display = 'none';
+
+    embeddedCheckout = await stripeInstance.initEmbeddedCheckout({ clientSecret });
+    embeddedCheckout.mount('#checkout-container');
+
+  } catch(err) {
+    console.error('[Checkout]', err);
+    document.getElementById('checkout-loading').style.display = 'none';
+    document.getElementById('checkout-container').innerHTML =
+      `<div style="text-align:center;padding:40px;color:#fca5a5;font-size:14px;">
+        ❌ Error carregant el pagament<br>
+        <span style="font-size:12px;color:#64748b;margin-top:8px;display:block;">${err.message}</span>
+        <button onclick="closeCheckout()" style="margin-top:16px;padding:10px 20px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:8px;color:#a78bfa;cursor:pointer;">Tancar</button>
+      </div>`;
+  }
 }
 
-/* ═══ EDIT HERO ═══ */
-function openEditHero(){
-  document.getElementById('edit-name').value=hero.name;
-  const row=document.getElementById('emoji-row');row.innerHTML='';
-  AVATARS.forEach(e=>{
-    const b=document.createElement('button');b.className='ep'+(hero.avatar===e?' sel':'');b.textContent=e;
-    b.onclick=()=>{row.querySelectorAll('.ep').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
-    row.appendChild(b);
-  });
-  document.getElementById('edit-ov').classList.add('open');
-}
-function closeEdit(){document.getElementById('edit-ov').classList.remove('open');}
-function saveEdit(){
-  const n=document.getElementById('edit-name').value.trim();
-  if(!n){showToast('⚠️ Escriu un nom!');return;}
-  const sel=document.querySelector('#emoji-row .ep.sel');
-  hero.name=n;if(sel)hero.avatar=sel.textContent;
-  saveHero(hero);closeEdit();renderHeader();renderSidebar();renderEquip();updateInviteCode();
-  showToast('✅ Heroi actualitzat!');
-}
-function resetHero(){
-  if(!confirm('Segur que vols reiniciar TOT el progrés? És irreversible.'))return;
-  localStorage.removeItem(HERO_KEY);hero=defaultHero();selectedMission=null;
-  resetToIdle();init();showToast('↺ Progrés reiniciat.');
+function closeCheckout() {
+  if(embeddedCheckout) { embeddedCheckout.destroy(); embeddedCheckout = null; }
+  document.getElementById('checkout-overlay').style.display = 'none';
+  document.getElementById('checkout-container').innerHTML =
+    document.getElementById('checkout-loading').outerHTML;
+  document.getElementById('checkout-loading').style.display = 'flex';
 }
 
-/* ═══ LEVEL UP ═══ */
-function showLvlUp(lvl){
-  document.getElementById('lvlup-num').textContent='NV. '+lvl;
-  document.getElementById('lvlup-name').textContent=PATH_LEVELS[Math.min(lvl-1,9)].name;
-  document.getElementById('lvlup-ov').classList.add('open');
-}
-function closeLvlUp(){document.getElementById('lvlup-ov').classList.remove('open');}
-
-/* ═══ TUTORIAL ═══ */
-let tutIdx=0;
-function startTutorial(){tutIdx=0;renderTutStep();document.getElementById('tut-ov').classList.add('open');}
-function closeTutorial(){document.getElementById('tut-ov').classList.remove('open');localStorage.setItem('jomaxpath_tut_done_v1','1');}
-function tutNext(){if(tutIdx<TUT_STEPS.length-1){tutIdx++;renderTutStep();}else{closeTutorial();showToast('🎉 Tutorial completat! Comença les teves primeres missions.');}}
-function renderTutStep(){
-  const s=TUT_STEPS[tutIdx];
-  document.getElementById('tut-step').textContent='NIVELL '+(tutIdx+1)+' / '+TUT_STEPS.length;
-  document.getElementById('tut-title').textContent=s.title;
-  document.getElementById('tut-desc').textContent=s.desc;
-  const dots=document.getElementById('tut-dots');dots.innerHTML='';
-  TUT_STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='tut-dot'+(i===tutIdx?' on':'');dots.appendChild(d);});
-  document.getElementById('tut-next-btn').textContent=tutIdx===TUT_STEPS.length-1?'COMPLETAR TUTORIAL ✅':'SEGÜENT →';
-}
-
-/* ═══ SIDEBAR ═══ */
-let sbCollapsed=localStorage.getItem('jomaxpath_sb_v2')==='c';
-function applyCollapse(){const sb=document.getElementById('sb'),btn=document.getElementById('sb-tog-btn');if(sbCollapsed){sb.classList.add('c');btn.textContent='▶';}else{sb.classList.remove('c');btn.textContent='◀';}document.getElementById('main').style.marginLeft=sbCollapsed?'var(--sb-c)':'var(--sb)';}
-function sbToggle(){sbCollapsed=!sbCollapsed;localStorage.setItem('jomaxpath_sb_v2',sbCollapsed?'c':'');applyCollapse();}
-function sbMobileToggle(){document.body.classList.toggle('mob-sb');}
-function sbMobileClose(){document.body.classList.remove('mob-sb');}
-
-/* ═══ TOAST ═══ */
-let toastTimer;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400);}
-
-/* ═══ BOOT ═══ */
-applyCollapse();
-init();
-document.addEventListener('keydown',e=>{
-  if(e.ctrlKey&&e.shiftKey&&e.key==='X'){hero.xp+=50;const{level}=computeLevel(hero.xp);hero.level=level;saveHero(hero);renderHeader();renderSidebar();renderPath();renderEquip();renderGlobalStats();showToast('⚡ +50 XP (demo · Ctrl+Shift+X)');}
-  if(e.key==='Escape'){document.getElementById('edit-ov').classList.remove('open');closeTutorial();}
+// Tancar amb Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    const ol = document.getElementById('checkout-overlay');
+    if(ol && ol.style.display === 'flex') closeCheckout();
+  }
 });
+
+/* ══════════════════════════════════════════════════════
+   DETECCIÓ PÀGINA D'ÈXIT
+   Activa la vista si el path és /premium-success
+   o si la URL té ?success=true
+══════════════════════════════════════════════════════ */
+function checkSuccessPage() {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+
+  if (path.includes('premium-success') || params.get('success') === 'true') {
+    document.getElementById('pricing-page').style.display = 'none';
+    document.getElementById('success-page').classList.add('visible');
+    launchConfetti();
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   CONFETTI
+══════════════════════════════════════════════════════ */
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#7c3aed','#a78bfa','#00b8d9','#38d9f5','#10b981','#f59e0b','#ec4899'];
+  const particles = [];
+
+  for (let i = 0; i < 140; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 200,
+      w: 6 + Math.random() * 8,
+      h: 3 + Math.random() * 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 3,
+      vy: 2 + Math.random() * 3,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.2,
+      alpha: 1,
+    });
+  }
+
+  let frame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    particles.forEach(p => {
+      if (p.y > canvas.height + 20) return;
+      alive = true;
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.rot += p.vr;
+      if (p.y > canvas.height * 0.6) p.alpha -= 0.01;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+
+    if (alive) frame = requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  frame = requestAnimationFrame(draw);
+  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); }, 5000);
+}
+
+// Inicialitzar
+checkSuccessPage();
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+   BACKEND NODE.JS — Pega això en un fitxer separat: server.js
+   ══════════════════════════════════════════════════════
+   Instruccions:
+   1) npm install express stripe dotenv cors
+   2) Crea un fitxer .env amb les variables que veus a sota
+   3) node server.js
+
+<!- - - - - - - - - - - - - - - - - - - - - - - - - - -
+// server.js
+require('dotenv').config();
+const express = require('express');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const cors = require('cors');
+const app = express();
+
+app.use(cors());
+
+// Webhook: body raw (ha d'anar ABANS de express.json())
+app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      // TODO: activar Premium a l'usuari (actualitzar BD)
+      // const userId = session.metadata.userId;
+      // await db.users.update({ where: { id: userId }, data: { isPremium: true, ... } });
+      break;
+    }
+    case 'customer.subscription.deleted': {
+      // TODO: desactivar Premium
+      break;
+    }
+    case 'invoice.payment_failed': {
+      // TODO: notificar usuari
+      break;
+    }
+  }
+
+  res.json({ received: true });
+});
+
+app.use(express.json());
+
+// Crear sessió de checkout
+app.post('/api/create-checkout-session', async (req, res) => {
+  const { priceId, userId, email } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: email,
+      metadata: { userId },
+      success_url: process.env.SUCCESS_URL + '?success=true&session_id={CHECKOUT_SESSION_ID}',
+      cancel_url:  process.env.CANCEL_URL,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Estat de subscripció
+app.get('/api/subscription-status', async (req, res) => {
+  const { userId } = req.query;
+  // TODO: consultar BD per userId
+  // const user = await db.users.findUnique({ where: { id: userId } });
+  res.json({ isPremium: false, plan: null, expiresAt: null });
+});
+
+// Cancel·lar subscripció
+app.post('/api/cancel-subscription', async (req, res) => {
+  const { subscriptionId } = req.body;
+  try {
+    const sub = await stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
+    res.json({ success: true, cancelAt: sub.cancel_at });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`JomaxPath backend actiu al port ${PORT}`));
+- - - - - - - - - - - - - - - - - - - - - - - - - - - ->
+
+   Variables .env necessàries:
+   STRIPE_SECRET_KEY=sk_live_xxxx
+   STRIPE_PUBLISHABLE_KEY=pk_live_xxxx
+   STRIPE_WEBHOOK_SECRET=whsec_xxxx
+   STRIPE_PRICE_MONTHLY=price_xxxx
+   STRIPE_PRICE_YEARLY=price_xxxx
+   SUCCESS_URL=https://jomaxpath.com/premium-success
+   CANCEL_URL=https://jomaxpath.com/pricing
+- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+
+<!-- ══ STRIPE EMBEDDED CHECKOUT MODAL ══ -->
+<div id="checkout-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:8000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:20px;width:min(520px,100%);max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 0 80px rgba(124,58,237,0.2);">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#a78bfa;margin-bottom:4px;">⚡ JomaxPath</div>
+        <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="checkout-plan-label">Subscripció Premium</div>
+      </div>
+      <button onclick="closeCheckout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:50%;width:32px;height:32px;color:#64748b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#64748b'">✕</button>
+    </div>
+    <!-- Contenidor del formulari de Stripe -->
+    <div id="checkout-container" style="padding:20px 24px 24px;min-height:300px;">
+      <div id="checkout-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:16px;">
+        <div style="width:36px;height:36px;border:3px solid rgba(124,58,237,0.2);border-top-color:#7c3aed;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <div style="font-size:13px;color:#64748b;font-family:'Space Mono',monospace;">Carregant pagament segur...</div>
+      </div>
+    </div>
+    <!-- Seguretat -->
+    <div style="padding:0 24px 20px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span style="font-size:11px;color:#475569;font-family:'Space Mono',monospace;">🔒 Pagament segur via</span>
+      <span style="font-size:11px;color:#a78bfa;font-family:'Space Mono',monospace;font-weight:700;">Stripe</span>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+
 </body>
 </html>

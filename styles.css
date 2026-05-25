@@ -2539,7 +2539,6 @@ body.on-julians #ai-fab { display: none !important; }
 .kanban-col {
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
   border-radius: 16px; padding: 16px; min-height: 200px;
-  overflow: hidden;
 }
 .kanban-col-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -3220,11 +3219,8 @@ select option {
 @media(min-width:1024px) {
   .focus-col-left, .focus-col-right {
     display: flex; flex-direction: column; gap: 0;
-    min-width: 0; overflow: hidden; width: 100%;
   }
-  .focus-col-left > *, .focus-col-right > * {
-    margin-bottom: 24px; min-width: 0; max-width: 100%; box-sizing: border-box;
-  }
+  .focus-col-left > *, .focus-col-right > * { margin-bottom: 24px; }
   .focus-col-left > *:last-child, .focus-col-right > *:last-child { margin-bottom: 0; }
 }
 
@@ -3390,7 +3386,7 @@ body.view-pages .app-page.page-active > .container { flex:1!important; display:f
   .home-col-left > *:last-child, .home-col-right > *:last-child { flex:1!important; }
   .focus-two-col { display:grid!important; grid-template-columns:1fr 1fr; gap:28px; flex:1!important; }
   .focus-col-left, .focus-col-right { display:flex!important; flex-direction:column!important; gap:20px!important; }
-  .cal-two-col { display:grid!important; grid-template-columns:1fr 1fr; gap:28px; flex:1!important; min-width:0!important; overflow:hidden!important; }
+  .cal-two-col { display:grid!important; grid-template-columns:1fr 1fr; gap:28px; flex:1!important; }
 }
 
 #page-julians #ai-section { flex:1!important; display:flex!important; flex-direction:column!important; margin-bottom:0!important; }
