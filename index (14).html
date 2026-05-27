@@ -1,0 +1,2468 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ═══════════════════════════════════════════════════
+     SEO — Títol i descripció
+════════════════════════════════════════════════════ -->
+<title>JOmaxPath — Planificador personal en català</title>
+<meta name="description" content="JOmaxPath és el teu planificador personal intel·ligent: horari setmanal, tasques, hàbits, Pomodoro i IA integrada. Organitza la teva vida en català.">
+<meta name="keywords" content="planificador personal, organitzador català, horari setmanal, hàbits, pomodoro, productivitat, tasques, estudiant, JOmaxPath">
+<meta name="author" content="JOmax">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jomaxpath.com/">
+
+<!-- ═══════════════════════════════════════════════════
+     Open Graph (Facebook, WhatsApp, LinkedIn…)
+════════════════════════════════════════════════════ -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jomaxpath.com/">
+<meta property="og:title" content="JOmaxPath — Planificador personal en català">
+<meta property="og:description" content="Organitza el teu dia a dia amb horari setmanal, tasques, hàbits, Pomodoro i IA integrada. Gratis i en català.">
+<meta property="og:image" content="https://jomaxpath.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ca_ES">
+<meta property="og:site_name" content="JOmaxPath">
+
+<!-- ═══════════════════════════════════════════════════
+     Twitter Card
+════════════════════════════════════════════════════ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://jomaxpath.com/">
+<meta name="twitter:title" content="JOmaxPath — Planificador personal en català">
+<meta name="twitter:description" content="Organitza el teu dia a dia amb horari setmanal, tasques, hàbits, Pomodoro i IA integrada. Gratis i en català.">
+<meta name="twitter:image" content="https://jomaxpath.com/og-image.png">
+
+<!-- ═══════════════════════════════════════════════════
+     Tema i color del navegador (PWA ready)
+════════════════════════════════════════════════════ -->
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JOmaxPath">
+
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- LAYOUT-FIX-START -->
+<style>
+
+/* ══════════════════════════════════════════════════════════════
+   JOMAXPATH — LAYOUT + TOTS ELS TEMES + BARRA INFERIOR v5
+══════════════════════════════════════════════════════════════ */
+
+/* ── Container sempre 100% ── */
+.container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 28px 32px 80px 32px !important;
+  box-sizing: border-box !important;
+}
+@media(max-width:600px) { .container { padding: 16px 12px 32px !important; } }
+
+/* ── Pàgines mínim 100vh ── */
+body.view-pages .app-page.page-active { min-height: calc(100vh - 68px); }
+
+/* ── HOME: 2 columnes ── */
+@media(min-width:900px) {
+  .home-two-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+  }
+}
+.home-col-left, .home-col-right {
+  display: flex !important; flex-direction: column !important; gap: 20px !important;
+}
+.home-col-left > *, .home-col-right > * { margin-bottom: 0 !important; }
+
+/* ── HORARI: 7 columnes ── */
+@media(min-width:1024px) {
+  .week-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 10px !important; }
+  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
+}
+@media(min-width:600px) and (max-width:1023px) {
+  .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
+  .week-grid .day-card:nth-child(n) { grid-column: auto !important; }
+}
+.week-grid .day-card { display: flex !important; flex-direction: column !important; min-height: 200px !important; }
+.day-card .day-body { flex: 1 !important; }
+
+/* ── FOCUS / CALENDARI: 2 columnes ── */
+@media(min-width:900px) {
+  .focus-two-col, .cal-two-col {
+    display: grid !important; grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important; align-items: start !important;
+  }
+}
+.focus-col-left, .focus-col-right {
+  display: flex !important; flex-direction: column !important; gap: 20px !important;
+}
+
+/* ── JULIANS AI: alçada total ── */
+#page-julians.page-active { display: flex !important; flex-direction: column !important; min-height: calc(100vh - 68px) !important; }
+#page-julians.page-active > .container { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+#ai-section { flex: 1 !important; display: flex !important; flex-direction: column !important; margin-bottom: 0 !important; }
+#ai-section-card { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+#ai-layout { flex: 1 !important; min-height: 480px !important; }
+
+/* ── GRIDS ── */
+.stats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+.tips-grid, .screen-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+.boards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; }
+.kanban-board { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 16px !important; width: 100% !important; }
+@media(max-width:600px) { .kanban-board { grid-template-columns: 1fr !important; } }
+
+/* ── Botons de vista ── */
+.ndw-view-btn {
+  flex: 1 !important;
+  padding: 7px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+.ndw-view-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent) !important; color: var(--text) !important; }
+.ndw-view-btn.active { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color: var(--accent2) !important; color: var(--accent2) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   BARRA INFERIOR — color coincideix amb cada tema
+══════════════════════════════════════════════════════════════ */
+#bnav {
+  background: rgba(8,8,16,0.93) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  border-top: 1px solid var(--border) !important;
+}
+body.theme-ocean    #bnav { background: rgba(3,17,31,0.93)  !important; border-top-color: rgba(14,165,233,0.3) !important; }
+body.theme-forest   #bnav { background: rgba(4,14,7,0.93)   !important; border-top-color: rgba(22,163,74,0.3) !important; }
+body.theme-sunset   #bnav { background: rgba(19,4,8,0.93)   !important; border-top-color: rgba(225,29,72,0.3) !important; }
+body.theme-midnight #bnav { background: rgba(5,5,15,0.95)   !important; border-top-color: rgba(79,70,229,0.3) !important; }
+body.theme-caramel  #bnav { background: rgba(14,10,2,0.93)  !important; border-top-color: rgba(217,119,6,0.3) !important; }
+body.theme-violet   #bnav { background: rgba(8,4,19,0.94)   !important; border-top-color: rgba(147,51,234,0.3) !important; }
+body.theme-rose     #bnav { background: rgba(15,5,8,0.94)   !important; border-top-color: rgba(190,24,93,0.3) !important; }
+body.theme-blanc    #bnav { background: rgba(240,242,248,0.97) !important; border-top-color: rgba(109,40,217,0.18) !important; }
+
+.bnav-item.active .bnav-lbl { color: var(--accent2) !important; }
+.bnav-lbl { color: var(--muted) !important; }
+.bnav-item.active .bnav-icon { filter: drop-shadow(0 0 5px var(--accent2)) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   ELEMENTS GLOBALS — tots els temes
+══════════════════════════════════════════════════════════════ */
+body[class*="theme-"] .day-card,
+body[class*="theme-"] .goal-banner,
+body[class*="theme-"] .daily-quote,
+body[class*="theme-"] .today-panel,
+body[class*="theme-"] .progress-section,
+body[class*="theme-"] .streak-widget,
+body[class*="theme-"] .habits-section,
+body[class*="theme-"] .weekly-summary,
+body[class*="theme-"] .stat-card,
+body[class*="theme-"] .tip-card,
+body[class*="theme-"] .screen-tip,
+body[class*="theme-"] .exam-section,
+body[class*="theme-"] .matches-section,
+body[class*="theme-"] .monthly-section,
+body[class*="theme-"] .screen-section,
+body[class*="theme-"] .victories-section,
+body[class*="theme-"] .pomodoro-section,
+body[class*="theme-"] .kanban-col,
+body[class*="theme-"] .board-card,
+body[class*="theme-"] .next-up-bar {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+body[class*="theme-"] .stat-card,
+body[class*="theme-"] .screen-tip { background: var(--card2) !important; }
+body[class*="theme-"] .goal-banner { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,transparent),color-mix(in srgb,var(--accent) 5%,transparent)) !important; }
+body[class*="theme-"] .streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.07)) !important; }
+body[class*="theme-"] .today-panel { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,transparent),color-mix(in srgb,var(--accent) 6%,transparent)) !important; }
+
+body[class*="theme-"] .section-title { color: var(--muted) !important; }
+body[class*="theme-"] .section-title::after { background: var(--border) !important; }
+body[class*="theme-"] .page-title-text h2 { color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; }
+body[class*="theme-"] .page-title-text p { color: var(--muted) !important; }
+body[class*="theme-"] .block-time, body[class*="theme-"] .day-sleep { color: var(--muted) !important; }
+body[class*="theme-"] .day-name { color: var(--text) !important; }
+
+body[class*="theme-"] #nav-hamburger { background: var(--card) !important; border-color: var(--border) !important; }
+body[class*="theme-"] #nav-hamburger span { background: var(--text) !important; }
+body[class*="theme-"] #nav-clock { background: var(--card) !important; color: var(--accent2) !important; border-color: var(--border) !important; }
+body[class*="theme-"] #nav-drawer { background: var(--card) !important; }
+body[class*="theme-"] .ndw-item-text { color: var(--text) !important; }
+body[class*="theme-"] .ndw-item-sub, body[class*="theme-"] .ndw-section { color: var(--muted) !important; }
+
+body[class*="theme-"] #config-panel { background: var(--card) !important; }
+body[class*="theme-"] .config-tab { color: var(--muted) !important; border-bottom-color: transparent !important; }
+body[class*="theme-"] .config-tab.active { color: var(--accent2) !important; border-bottom-color: var(--accent2) !important; }
+
+body[class*="theme-"] input, body[class*="theme-"] select, body[class*="theme-"] textarea {
+  background: var(--card2) !important; color: var(--text) !important; border-color: var(--border) !important;
+}
+body[class*="theme-"] select option { background: var(--card) !important; color: var(--text) !important; }
+body[class*="theme-"] input::placeholder, body[class*="theme-"] textarea::placeholder { color: var(--muted) !important; }
+
+body[class*="theme-"] .progress-bar { background: color-mix(in srgb,var(--accent) 12%,transparent) !important; }
+body[class*="theme-"] .chapter-dot { background: color-mix(in srgb,var(--accent) 15%,transparent) !important; }
+body[class*="theme-"] .progress-btn { background: color-mix(in srgb,var(--accent) 12%,transparent) !important; border-color: color-mix(in srgb,var(--accent) 30%,transparent) !important; color: var(--accent2) !important; }
+
+body[class*="theme-"] .streak-day-dot { border-color: var(--border) !important; color: var(--muted) !important; }
+body[class*="theme-"] .streak-day-dot.done { background: rgba(245,158,11,0.18) !important; border-color: rgba(245,158,11,0.45) !important; color: #fcd34d !important; }
+body[class*="theme-"] .streak-btn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.3) !important; color: #fcd34d !important; }
+body[class*="theme-"] .habit-dot { border-color: var(--border) !important; }
+body[class*="theme-"] .habit-dot.done { background: color-mix(in srgb,var(--green,#10b981) 20%,transparent) !important; border-color: var(--green,#10b981) !important; }
+
+body[class*="theme-"] #ai-section-card { background: var(--card) !important; border-color: var(--border) !important; }
+body[class*="theme-"] #ai-sidebar { background: color-mix(in srgb,var(--card) 80%,var(--bg)) !important; border-right-color: var(--border) !important; }
+body[class*="theme-"] .ai-chat-messages { background: var(--card) !important; }
+body[class*="theme-"] .ai-chat-input-row { background: var(--card2) !important; border-top-color: var(--border) !important; }
+body[class*="theme-"] #ai-chat-input { background: var(--card) !important; border-color: var(--border) !important; color: var(--text) !important; }
+body[class*="theme-"] #ai-chat-input::placeholder { color: var(--muted) !important; }
+body[class*="theme-"] .ai-msg.user { background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 14%,transparent)) !important; color: var(--text) !important; border-color: color-mix(in srgb,var(--accent) 28%,transparent) !important; }
+body[class*="theme-"] .ai-msg.assistant { background: var(--card2) !important; color: var(--text) !important; border-color: var(--border) !important; }
+body[class*="theme-"] .ai-chat-item { color: var(--muted) !important; }
+body[class*="theme-"] .ai-chat-item.active { background: color-mix(in srgb,var(--accent) 14%,transparent) !important; color: var(--accent2) !important; }
+body[class*="theme-"] .ai-mode-btn { background: color-mix(in srgb,var(--text) 5%,transparent) !important; color: var(--muted) !important; border-color: var(--border) !important; }
+body[class*="theme-"] .ai-mode-btn.active { background: color-mix(in srgb,var(--accent) 18%,transparent) !important; color: var(--accent2) !important; border-color: var(--accent2) !important; }
+body[class*="theme-"] .ai-suggestion { background: color-mix(in srgb,var(--accent) 8%,transparent) !important; border-color: color-mix(in srgb,var(--accent) 25%,transparent) !important; color: var(--accent2) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   TEMA BLANC — Overrides específics
+══════════════════════════════════════════════════════════════ */
+body.theme-blanc {
+  --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7;
+  --accent:#6d28d9; --accent2:#7c3aed;
+  --text:#1a1a2e; --muted:#64748b; --border:rgba(109,40,217,0.15);
+}
+body.theme-blanc::after { display: none !important; }
+body.theme-blanc #header-name { color: #1a1a2e !important; text-shadow: 0 0 20px rgba(109,40,217,0.3) !important; }
+body.theme-blanc .jomaxpath-hero-title { color: #2d1b69 !important; -webkit-text-fill-color: #2d1b69 !important; text-shadow: none !important; }
+body.theme-blanc .day-card, body.theme-blanc .stat-card, body.theme-blanc .tip-card,
+body.theme-blanc .habits-section, body.theme-blanc .progress-section,
+body.theme-blanc .kanban-col, body.theme-blanc .board-card {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
+}
+body.theme-blanc .ai-msg.assistant { background: #fff !important; box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important; }
+body.theme-blanc .bnav-icon { opacity: 0.5 !important; }
+body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   UX CALM — Simplificació visual i accessibilitat v1
+   Objectiu: menys soroll, més respiració, jerarquia clara
+══════════════════════════════════════════════════════════════ */
+
+/* ── 1. ELIMINAR botons flotants redundants ──
+   Captura ràpida, cerca i notes ja estan al menú ☰
+   Els mantenim funcionals per drecera de teclat però invisibles */
+#quick-capture-btn,
+#search-fab,
+#add-note-fab {
+  display: none !important;
+}
+
+/* ── 2. HERO: reduir mida a la meitat — ocupa massa ── */
+#header-name {
+  font-size: clamp(2.8rem, 7vw, 5rem) !important;
+  text-shadow: 0 0 20px rgba(124,58,237,0.6), 0 0 40px rgba(124,58,237,0.3) !important;
+  animation: heroGlow 6s ease-in-out infinite !important;
+}
+.jomaxpath-hero-title {
+  font-size: clamp(0.75rem, 2vw, 1.1rem) !important;
+  letter-spacing: 3px !important;
+  margin-top: 4px !important;
+}
+.jomaxpath-tag {
+  font-size: 9px !important;
+  opacity: 0.5 !important;
+  letter-spacing: 3px !important;
+}
+.jomaxpath-user {
+  font-size: 10px !important;
+  opacity: 0.4 !important;
+}
+.header {
+  padding: 16px 0 12px !important;
+  margin-bottom: 12px !important;
+}
+
+/* ── 3. BANNER PREMIUM HOME: subtil, no agressiu ── */
+#premium-home-banner {
+  padding: 8px 14px !important;
+  margin-bottom: 12px !important;
+  background: transparent !important;
+  border: 1px solid rgba(124,58,237,0.15) !important;
+  border-radius: 10px !important;
+  opacity: 0.6 !important;
+  transition: opacity 0.3s, border-color 0.3s !important;
+}
+#premium-home-banner:hover {
+  opacity: 1 !important;
+  border-color: rgba(124,58,237,0.45) !important;
+}
+#premium-home-banner span:first-child { font-size: 14px !important; }
+#premium-home-banner div div:first-child { font-size: 9px !important; }
+#premium-home-banner div div:last-child { font-size: 10px !important; }
+#premium-home-banner span:last-child { font-size: 9px !important; }
+
+/* ── 4. PREMIUM FAB: pastilla discreta — no competeix ── */
+#premium-fab {
+  bottom: 80px !important;
+  right: 16px !important;
+  left: auto !important;
+  width: auto !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+  border-radius: 20px !important;
+  font-size: 9px !important;
+  letter-spacing: 1px !important;
+  background: rgba(124,58,237,0.18) !important;
+  border: 1px solid rgba(124,58,237,0.35) !important;
+  box-shadow: none !important;
+  animation: none !important;
+  opacity: 0.75 !important;
+  transition: opacity 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+#premium-fab:hover { opacity: 1 !important; }
+.premium-fab-bolt { font-size: 12px !important; }
+.premium-fab-label { display: inline !important; font-size: 9px !important; }
+
+/* ── 5. CARDS: més respiració, menys border agressiu ── */
+.goal-banner, .daily-quote, .today-panel,
+.progress-section, .streak-widget, .habits-section,
+.moto, .pomodoro-section, .exam-section,
+.matches-section, .victories-section {
+  border-radius: 16px !important;
+}
+.goal-banner { padding: 18px 20px !important; }
+.habits-section { padding: 18px 20px !important; }
+.streak-widget { padding: 18px 20px !important; }
+
+/* ── 6. PAGE TITLE BAR: més discret ── */
+.page-title-bar {
+  margin-bottom: 16px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+.page-title-text h2 {
+  font-size: 14px !important;
+  letter-spacing: 3px !important;
+  opacity: 0.85 !important;
+}
+.page-title-text p {
+  font-size: 10px !important;
+  opacity: 0.5 !important;
+}
+.page-title-icon {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+/* ── 7. SECTION TITLES: guies lleugeres ── */
+.section-title {
+  font-size: 9px !important;
+  letter-spacing: 2px !important;
+  opacity: 0.45 !important;
+  margin-bottom: 10px !important;
+}
+
+/* ── 8. INFO BUTTONS: quasi invisibles ── */
+.info-btn {
+  opacity: 0.2 !important;
+  transition: opacity 0.2s !important;
+}
+.info-btn:hover { opacity: 0.8 !important; }
+
+/* ── 9. BARRA NAV INFERIOR: icones lleugerament majors, labels menys cridanes ── */
+.bnav-lbl {
+  font-size: 8px !important;
+  letter-spacing: 1.5px !important;
+  opacity: 0.6 !important;
+}
+.bnav-item.active .bnav-lbl { opacity: 1 !important; }
+.bnav-icon { font-size: 19px !important; }
+#bnav { height: 58px !important; }
+
+/* ── 10. HORARI TABS: compactes ── */
+.horari-tab {
+  padding: 8px 14px !important;
+  font-size: 10px !important;
+}
+
+/* ── 11. HOME: gap entre columnes ── */
+.home-two-col { gap: 16px !important; }
+.home-col-left, .home-col-right { gap: 14px !important; }
+
+/* ── 12. ANIMACIÓ HERO: molt més suau ── */
+@keyframes heroGlow {
+  0%, 100% { text-shadow: 0 0 18px rgba(124,58,237,0.55), 0 0 36px rgba(124,58,237,0.25); }
+  50%       { text-shadow: 0 0 22px rgba(124,58,237,0.65), 0 0 44px rgba(124,58,237,0.3); }
+}
+
+/* ── 13. SCROLLBAR: quasi invisible ── */
+::-webkit-scrollbar { width: 3px !important; height: 3px !important; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.15) !important; }
+
+/* ── 14. DECO LATERAL: menys intensa ── */
+.side-deco-left, .side-deco-right { opacity: 0.4 !important; }
+
+/* ── 15. FOCUS PAGE: pomodoro destacat ── */
+.pomodoro-section {
+  border-top: 2px solid rgba(239,68,68,0.35) !important;
+}
+.pomo-digits { font-size: 52px !important; }
+
+/* ── 16. TASQUES: formularis nets ── */
+.exam-section { padding: 18px 20px !important; }
+
+/* ── 17. MOBILE: menys padding general ── */
+@media(max-width:600px) {
+  .container { padding: 12px 10px 80px !important; }
+  .home-two-col { gap: 12px !important; }
+}
+
+/* ═══ HERO-DARK GLOBAL THEME — Idèntic a hero.html ═══ */
+body, html { background: #060610 !important; }
+body::after {
+  background:
+    radial-gradient(ellipse at 10% 40%, rgba(0,180,216,0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 90% 20%, rgba(124,58,237,0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 95%, rgba(59,130,246,0.04) 0%, transparent 40%) !important;
+}
+.day-card,.goal-banner,.daily-quote,.today-panel,.progress-section,.streak-widget,
+.habits-section,.weekly-summary,.stat-card,.tip-card,.screen-tip,.exam-section,
+.matches-section,.monthly-section,.screen-section,.victories-section,.pomodoro-section,
+.kanban-col,.board-card,.next-up-bar,#ai-section-card,#config-panel {
+  background: #0e0e1e !important;
+  border-color: rgba(124,58,237,0.18) !important;
+}
+.stat-card,.screen-tip { background: #14142a !important; }
+body { color: #e2e8f0 !important; }
+.section-title { color: #64748b !important; }
+.day-name { color: #e2e8f0 !important; }
+.block-time,.day-sleep { color: #64748b !important; }
+.goal-banner { background: linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.06)) !important; }
+.today-panel { background: linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.06)) !important; }
+.streak-widget { background: linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.06)) !important; }
+input,select,textarea { background: #14142a !important; color: #e2e8f0 !important; border-color: rgba(124,58,237,0.2) !important; }
+input::placeholder,textarea::placeholder { color: #64748b !important; }
+select option { background: #0e0e1e !important; color: #e2e8f0 !important; }
+.progress-bar { background: rgba(124,58,237,0.12) !important; }
+.progress-btn { background: rgba(124,58,237,0.12) !important; border-color: rgba(124,58,237,0.3) !important; color: #a78bfa !important; }
+.streak-day-dot { border-color: rgba(124,58,237,0.18) !important; color: #64748b !important; }
+.streak-day-dot.done { background: rgba(245,158,11,0.18) !important; border-color: rgba(245,158,11,0.45) !important; color: #fcd34d !important; }
+.streak-btn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.3) !important; color: #fcd34d !important; }
+.habit-dot { border-color: rgba(124,58,237,0.18) !important; }
+.habit-dot.done { background: rgba(16,185,129,0.2) !important; border-color: #10b981 !important; }
+#ai-section-card { background: #0e0e1e !important; border-color: rgba(124,58,237,0.18) !important; }
+#ai-sidebar { background: #14142a !important; border-right-color: rgba(124,58,237,0.18) !important; }
+.ai-chat-messages { background: #0e0e1e !important; }
+.ai-chat-input-row { background: #14142a !important; border-top-color: rgba(124,58,237,0.18) !important; }
+#ai-chat-input { background: #0e0e1e !important; border-color: rgba(124,58,237,0.2) !important; color: #e2e8f0 !important; }
+.ai-msg.user { background: linear-gradient(135deg,rgba(124,58,237,0.22),rgba(124,58,237,0.14)) !important; border-color: rgba(124,58,237,0.28) !important; }
+.ai-msg.assistant { background: #14142a !important; border-color: rgba(124,58,237,0.18) !important; }
+.ai-suggestion { background: rgba(124,58,237,0.08) !important; border-color: rgba(124,58,237,0.25) !important; color: #a78bfa !important; }
+::-webkit-scrollbar { width: 3px !important; height: 3px !important; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25) !important; border-radius: 4px !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+.pomodoro-section { border-top: 2px solid rgba(239,68,68,0.35) !important; }
+.kanban-col { background: #0e0e1e !important; border-color: rgba(124,58,237,0.18) !important; }
+/* ══ BNAV final override — màxima prioritat ══ */
+#bnav {
+  height: 58px !important;
+  background: rgba(5,5,13,0.96) !important;
+  border-top: 1px solid rgba(124,58,237,0.18) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  align-items: center !important;
+  padding: 0 !important;
+}
+.bnav-item {
+  flex: 1 !important;
+  padding: 6px 14px !important;
+  min-width: 0 !important;
+  border-radius: 10px !important;
+}
+.bnav-icon { font-size: 20px !important; opacity: 0.45 !important; }
+.bnav-lbl {
+  font-size: 7.5px !important;
+  letter-spacing: 1.5px !important;
+  font-family: 'Space Mono', monospace !important;
+  opacity: 0.6 !important;
+}
+.bnav-item.active .bnav-icon { opacity: 1 !important; filter: drop-shadow(0 0 6px var(--accent2)) !important; }
+.bnav-item.active .bnav-lbl { color: var(--accent2, #a78bfa) !important; opacity: 1 !important; }
+/* Override temes clars per no trencar el tema fosc */
+body.theme-blanc { --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7; --text:#1a1a2e; }
+body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
+
+</style>
+<!-- LAYOUT-FIX-END -->
+
+<!-- ══════════════════════════════════════════════
+     SIDEBAR LATERAL ESQUERRA — JOmaxPath
+══════════════════════════════════════════════ -->
+<style>
+:root{
+  --sb-w:220px;
+  --sb-wc:58px;
+  /* ── Hero-unified palette ── */
+  --bg:#060610;
+  --card:#0e0e1e;
+  --card2:#14142a;
+  --accent:#7c3aed;
+  --accent2:#a78bfa;
+  --cyan:#00b8d9;
+  --cyan2:#38d9f5;
+  --green:#10b981;
+  --orange:#f59e0b;
+  --red:#ef4444;
+  --gold:#f59e0b;
+  --gold2:#fcd34d;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --border:rgba(124,58,237,0.18);
+  --blue:#3b82f6;
+}
+#left-sidebar{
+  position:fixed;top:0;left:0;bottom:0;
+  width:var(--sb-w);
+  background:rgba(5,5,13,0.98);
+  border-right:1px solid rgba(124,58,237,0.14);
+  backdrop-filter:blur(24px);
+  z-index:300;
+  display:flex;flex-direction:column;
+  transition:width 0.3s cubic-bezier(0.4,0,0.2,1),transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow:hidden;
+  /* Deixa espai per la barra inferior */
+  padding-bottom:0;
+}
+#left-sidebar.sb-collapsed{width:var(--sb-wc);}
+#left-sidebar.sb-hidden{transform:translateX(calc(-100% - 4px));}
+
+.lsb-top{
+  padding:16px 12px 12px;
+  border-bottom:1px solid rgba(124,58,237,0.1);
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;min-height:62px;
+}
+.lsb-logo{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,#7c3aed,#00b8d9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  box-shadow:0 0 14px rgba(124,58,237,0.3);
+}
+.lsb-brand{
+  font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+  color:#e2e8f0;white-space:nowrap;overflow:hidden;flex:1;
+}
+.lsb-brand small{display:block;font-size:8px;color:#64748b;letter-spacing:2px;margin-top:1px;}
+.lsb-toggle-btn{
+  background:none;border:none;color:#64748b;cursor:pointer;
+  font-size:14px;padding:4px;border-radius:6px;
+  transition:color 0.2s,background 0.2s;flex-shrink:0;
+}
+.lsb-toggle-btn:hover{color:#a78bfa;background:rgba(124,58,237,0.1);}
+
+.lsb-hero-mini{
+  margin:10px 8px;padding:10px 12px;
+  background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(0,180,216,0.07));
+  border:1px solid rgba(124,58,237,0.2);border-radius:10px;
+  cursor:pointer;transition:border-color 0.2s;overflow:hidden;
+}
+.lsb-hero-mini:hover{border-color:rgba(167,139,250,0.4);}
+.lsb-hero-lvl{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
+  color:#fcd34d;margin-bottom:3px;white-space:nowrap;
+}
+.lsb-hero-name-mini{
+  font-size:12px;font-weight:700;color:#e2e8f0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lsb-xpbar{height:2px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:6px;overflow:hidden;}
+.lsb-xpbar-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fcd34d);border-radius:2px;transition:width 0.8s ease;}
+
+.lsb-sec{
+  font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;
+  color:#64748b;padding:10px 16px 4px;white-space:nowrap;overflow:hidden;flex-shrink:0;
+}
+.lsb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:14px;min-height:0;}
+.lsb-nav::-webkit-scrollbar{width:2px;}
+.lsb-nav::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.2);}
+.lsb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;cursor:pointer;
+  border-radius:9px;margin:1px 6px;
+  transition:background 0.18s,color 0.18s;
+  color:#64748b;white-space:nowrap;
+  text-decoration:none;
+  position:relative;
+}
+.lsb-item:hover{background:rgba(124,58,237,0.1);color:#e2e8f0;}
+.lsb-item.lsb-active{
+  background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(0,180,216,0.09));
+  color:#a78bfa;
+  border:1px solid rgba(124,58,237,0.22);
+}
+.lsb-ico{
+  width:30px;height:30px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:rgba(255,255,255,0.03);transition:background 0.18s;
+}
+.lsb-item.lsb-active .lsb-ico{background:rgba(124,58,237,0.18);}
+.lsb-lbl{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;}
+.lsb-pill{
+  margin-left:auto;font-family:'Space Mono',monospace;font-size:8px;
+  padding:2px 6px;background:rgba(16,185,129,0.15);
+  border:1px solid rgba(16,185,129,0.25);border-radius:5px;color:#6ee7b7;
+  flex-shrink:0;
+}
+.lsb-pill.new{background:rgba(124,58,237,0.18);border-color:rgba(124,58,237,0.3);color:#a78bfa;}
+
+#left-sidebar.sb-collapsed .lsb-brand,
+#left-sidebar.sb-collapsed .lsb-sec,
+#left-sidebar.sb-collapsed .lsb-lbl,
+#left-sidebar.sb-collapsed .lsb-pill,
+#left-sidebar.sb-collapsed .lsb-hero-lvl,
+#left-sidebar.sb-collapsed .lsb-hero-name-mini,
+#left-sidebar.sb-collapsed .lsb-xpbar{display:none;}
+#left-sidebar.sb-collapsed .lsb-hero-mini{padding:6px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+#left-sidebar.sb-collapsed .lsb-item{justify-content:center;padding:9px;margin:1px 6px;}
+#left-sidebar.sb-collapsed .lsb-ico{margin:0;}
+#left-sidebar.sb-collapsed .lsb-item[data-tip]:hover::after{
+  content:attr(data-tip);
+  position:absolute;left:calc(var(--sb-wc) + 4px);
+  background:rgba(8,8,16,0.98);border:1px solid rgba(124,58,237,0.3);
+  border-radius:7px;padding:5px 10px;font-size:11px;color:#e2e8f0;
+  white-space:nowrap;z-index:999;pointer-events:none;
+}
+
+.lsb-bottom{border-top:1px solid rgba(124,58,237,0.1);padding:8px 6px 10px;flex-shrink:0;}
+.lsb-bot-item{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 10px;border-radius:8px;cursor:pointer;
+  color:#64748b;font-size:11px;transition:background 0.18s,color 0.18s;white-space:nowrap;
+}
+.lsb-bot-item:hover{background:rgba(255,255,255,0.04);color:#e2e8f0;}
+#left-sidebar.sb-collapsed .lsb-bot-item{justify-content:center;}
+#left-sidebar.sb-collapsed .lsb-bot-item span:last-child{display:none;}
+
+/* Shift content when sidebar is visible */
+body.view-pages.sb-open-desktop #bnav,
+body.view-pages.sb-open-desktop .container{
+  margin-left:var(--sb-w);
+  transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+body.view-pages.sb-collapsed-desktop #bnav,
+body.view-pages.sb-collapsed-desktop .container{
+  margin-left:var(--sb-wc);
+  transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Mobile overlay */
+#lsb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:299;backdrop-filter:blur(4px);}
+body.lsb-mobile-open #lsb-overlay{display:block;}
+body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(--sb-w)!important;}
+
+/* Mobile: hide sidebar by default */
+@media(max-width:768px){
+  #left-sidebar{transform:translateX(calc(-100% - 4px))!important;width:var(--sb-w)!important;}
+  body.view-pages.sb-open-desktop .container,
+  body.view-pages.sb-collapsed-desktop .container,
+  body.view-pages.sb-open-desktop #bnav,
+  body.view-pages.sb-collapsed-desktop #bnav{margin-left:0!important;}
+  #lsb-mobile-btn{display:flex!important;}
+}
+
+/* Mobile button */
+#lsb-mobile-btn{
+  display:none;position:fixed;top:12px;left:12px;z-index:310;
+  width:38px;height:38px;border-radius:9px;
+  background:rgba(8,8,16,0.9);border:1px solid rgba(124,58,237,0.2);
+  align-items:center;justify-content:center;cursor:pointer;
+  font-size:17px;color:#e2e8f0;backdrop-filter:blur(10px);
+}
+</style>
+
+</head><body class="view-pages">
+
+<!-- Left sidebar overlay (mobile) -->
+<div id="lsb-overlay" onclick="lsbMobileClose()"></div>
+<!-- Mobile toggle button -->
+<div id="lsb-mobile-btn" onclick="lsbMobileToggle()">☰</div>
+
+<!-- ══════════ LEFT SIDEBAR ══════════ -->
+<nav id="left-sidebar">
+  <div class="lsb-top">
+    <div class="lsb-logo">⚡</div>
+    <div class="lsb-brand">JOmaxPath<small>EL TEU ESPAI</small></div>
+    <button class="lsb-toggle-btn" id="lsb-toggle-btn" onclick="lsbToggleCollapse()" title="Col·lapsar">◀</button>
+  </div>
+
+  <!-- Hero mini card -->
+  <div class="lsb-hero-mini" onclick="window.open('hero.html','_self')" id="lsb-hero-mini">
+    <div class="lsb-hero-lvl" id="lsb-hero-lvl">⚔️ HEROE · NV. <span id="lsb-lvl-num">1</span></div>
+    <div class="lsb-hero-name-mini" id="lsb-hero-name">El teu heroi</div>
+    <div class="lsb-xpbar"><div class="lsb-xpbar-fill" id="lsb-xp-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="lsb-nav">
+    <div class="lsb-sec">PRINCIPAL</div>
+    <div class="lsb-item lsb-active" data-tip="Inici" onclick="navTo('home');lsbMobileClose()">
+      <div class="lsb-ico">🏠</div><span class="lsb-lbl">Inici</span>
+    </div>
+    <div class="lsb-item" data-tip="Horari" onclick="navTo('horari');lsbMobileClose()">
+      <div class="lsb-ico">📅</div><span class="lsb-lbl">Horari</span>
+    </div>
+    <div class="lsb-item" data-tip="Tasques" onclick="navTo('tasques');lsbMobileClose()">
+      <div class="lsb-ico">📋</div><span class="lsb-lbl">Tasques</span>
+    </div>
+    <div class="lsb-item" data-tip="Focus" onclick="navTo('focus');lsbMobileClose()">
+      <div class="lsb-ico">🎯</div><span class="lsb-lbl">Focus</span>
+    </div>
+    <div class="lsb-item" data-tip="Julians AI" onclick="navTo('julians');lsbMobileClose()">
+      <div class="lsb-ico">🧠</div><span class="lsb-lbl">Julians AI</span>
+    </div>
+
+    <div class="lsb-sec">⚔️ HEROE</div>
+    <div class="lsb-item" data-tip="El meu heroi" onclick="window.open('hero.html','_self')">
+      <div class="lsb-ico">⚔️</div><span class="lsb-lbl">El meu heroi</span>
+      <span class="lsb-pill new">NOU</span>
+    </div>
+
+    <div class="lsb-sec">EINES</div>
+    <div class="lsb-item" data-tip="Captura ràpida" onclick="openQuickCapture();lsbMobileClose()">
+      <div class="lsb-ico">⚡</div><span class="lsb-lbl">Captura ràpida</span>
+    </div>
+    <div class="lsb-item" data-tip="Notes adhesives" onclick="toggleNotePicker();lsbMobileClose()">
+      <div class="lsb-ico">📝</div><span class="lsb-lbl">Notes adhesives</span>
+    </div>
+    <div class="lsb-item" data-tip="Cerca" onclick="openSearch();lsbMobileClose()">
+      <div class="lsb-ico">🔍</div><span class="lsb-lbl">Cerca global</span>
+    </div>
+    <div class="lsb-item" data-tip="Premium" onclick="window.open('pricing.html','_self')">
+      <div class="lsb-ico" style="background:rgba(124,58,237,0.15);">✨</div><span class="lsb-lbl" style="color:#a78bfa;">Premium</span>
+      <span class="lsb-pill">PRO</span>
+    </div>
+  </div>
+
+  <div class="lsb-bottom">
+    <div class="lsb-bot-item" onclick="openConfig()">
+      <span style="font-size:15px">⚙️</span><span>Configuració</span>
+    </div>
+    <div class="lsb-bot-item" onclick="toggleDrawer()">
+      <span style="font-size:15px">☰</span><span>Menú complet</span>
+    </div>
+  </div>
+</nav>
+
+<script>
+/* ─── Left Sidebar Logic ─── */
+(function(){
+  const SB_KEY='jomaxpath_lsb_v1';
+  let collapsed=localStorage.getItem(SB_KEY)==='collapsed';
+  const sidebar=document.getElementById('left-sidebar');
+  const btn=document.getElementById('lsb-toggle-btn');
+
+  function apply(){
+    // Força la barra inferior a no cobrir el contingut
+    var bnav = document.getElementById('bnav');
+    if(bnav) bnav.style.height = '58px';
+    if(collapsed){
+      sidebar.classList.add('sb-collapsed');
+      document.body.classList.remove('sb-open-desktop');
+      document.body.classList.add('sb-collapsed-desktop');
+      btn.textContent='▶';
+    } else {
+      sidebar.classList.remove('sb-collapsed');
+      document.body.classList.add('sb-open-desktop');
+      document.body.classList.remove('sb-collapsed-desktop');
+      btn.textContent='◀';
+    }
+  }
+
+  window.lsbToggleCollapse=function(){
+    collapsed=!collapsed;
+    localStorage.setItem(SB_KEY,collapsed?'collapsed':'open');
+    apply();
+  };
+  window.lsbMobileToggle=function(){document.body.classList.toggle('lsb-mobile-open');};
+  window.lsbMobileClose=function(){document.body.classList.remove('lsb-mobile-open');};
+
+  apply();
+
+  /* Sync hero data from localStorage */
+  function syncHeroSidebar(){
+    try{
+      const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v1'));
+      if(!h)return;
+      document.getElementById('lsb-hero-name').textContent=h.name||'El teu heroi';
+      const xp=h.xp||0;
+      let lvl=1,xpLeft=xp;
+      while(xpLeft>=lvl*100){xpLeft-=lvl*100;lvl++;}
+      const needed=lvl*100;
+      const pct=Math.round((xpLeft/needed)*100);
+      document.getElementById('lsb-lvl-num').textContent=lvl;
+      document.getElementById('lsb-xp-fill').style.width=pct+'%';
+    }catch(e){}
+  }
+  syncHeroSidebar();
+  /* Update active item on nav */
+  window.lsbSetActive=function(page){
+    document.querySelectorAll('.lsb-item').forEach(el=>el.classList.remove('lsb-active'));
+    const map={home:0,horari:1,tasques:2,focus:3,julians:4};
+    const idx=map[page];
+    if(idx!==undefined){
+      const items=document.querySelectorAll('#left-sidebar .lsb-item');
+      if(items[idx])items[idx].classList.add('lsb-active');
+    }
+  };
+})();
+</script>
+
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div id="auth-overlay">
+  <div id="auth-box">
+    <div id="auth-logo">
+      <div class="bolt">⚡</div>
+      <h2>JOMAXPATH</h2>
+      <p>ORGANITZA · PLANIFICA · ACONSEGUEIX</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">ENTRAR</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTRAR</div>
+    </div>
+    <div id="auth-login-form">
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email"/></div>
+      <div class="auth-field"><label>CONTRASENYA</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"/></div>
+      <button class="auth-btn" id="auth-submit-btn" onclick="authLogin()">ENTRAR</button>
+    </div>
+    <div id="auth-register-form" style="display:none">
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email"/></div>
+      <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password"/></div>
+      <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()">CREAR COMPTE</button>
+    </div>
+    <div id="auth-msg"></div>
+    <div class="auth-divider"><span>o</span></div>
+    <div class="auth-skip" onclick="authSkip()">Continuar sense compte (dades locals)</div>
+  </div>
+</div>
+
+<!-- User indicator -->
+
+
+<!-- Sync toast -->
+<div id="sync-toast">⚡ Sincronitzat</div>
+
+<!-- Clock -->
+<div id="nav-clock" onclick="openClockFullscreen()" ondblclick="toggleClockSeconds();event.stopPropagation();" title="Clic: pantalla completa · Doble clic: amagar/mostrar segons">--:--</div>
+
+<!-- Hamburger -->
+<div class="side-deco side-deco-left"></div>
+<div class="side-deco side-deco-right"></div>
+<button id="nav-hamburger" onclick="toggleDrawer()" aria-label="Menú">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Nav overlay + drawer -->
+<div id="nav-overlay" onclick="toggleDrawer()"></div>
+<div id="nav-drawer">
+  <div class="ndw-header" style="flex-direction:row;align-items:center;">
+    <div class="ndw-logo">📅</div>
+    <div style="flex:1"><div class="ndw-title">JOmaxPath</div><div class="ndw-sub" id="drawer-sub">El teu espai</div></div>
+  </div>
+  <!-- Auth: sessió activa -->
+  <div id="auth-indicator" onclick="authShowMenu()">
+    <div class="auth-dot" id="auth-dot"></div>
+    <span id="auth-user-email"></span>
+    <span id="auth-signout-hint" style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:6px;color:#fca5a5;font-size:9px;font-family:'Space Mono',monospace;white-space:nowrap;">🚪 Sortir</span>
+  </div>
+  <!-- Auth: sense sessió -->
+  <div id="drawer-login-btn" onclick="showAuthOverlay();toggleDrawer()" style="display:none;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,180,216,0.7);letter-spacing:1px;">
+    <div style="width:7px;height:7px;border-radius:50%;background:rgba(0,180,216,0.3);flex-shrink:0;"></div>
+    <span>INICIAR SESSIÓ</span>
+  </div>
+  <!-- Avís: mode local sense compte -->
+  <div id="local-data-warning" style="display:none;align-items:center;gap:8px;padding:8px 16px;background:rgba(245,158,11,0.08);border-top:1px solid rgba(245,158,11,0.15);cursor:pointer;" onclick="showAuthOverlay();toggleDrawer()" title="Les dades només es guarden en aquest navegador">
+    <span style="font-size:13px;">⚠️</span>
+    <div style="flex:1;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#fcd34d;letter-spacing:1px;">DADES LOCALS</div>
+      <div style="font-size:9px;color:#94a3b8;margin-top:1px;">Crea un compte per no perdre-les</div>
+    </div>
+    <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,180,216,0.7);">→</span>
+  </div>
+
+  <div class="ndw-section">Vista</div>
+  <div class="ndw-view-row" style="display:flex;gap:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;margin:6px 20px 14px;">
+    <button class="ndw-view-btn" id="ndw-layout-ample" onclick="setLayoutMode('ample')" title="Una columna per fila">⬜ Ample</button>
+    <button class="ndw-view-btn active" id="ndw-layout-compacta" onclick="setLayoutMode('compacta')" title="Disseny compacte">⊞ Compacta</button>
+  </div>
+  <div class="ndw-section" data-i18n="drawer_themes">Temes</div>
+  <div class="ndw-themes" id="ndw-themes-grid"></div>
+  <div class="ndw-bottom">
+    <div class="ndw-bottom-btn" onclick="openConfig();toggleDrawer()" data-i18n="drawer_config">⚙️ Configuració</div>
+    <div class="ndw-bottom-btn" onclick="navTo('julians');toggleDrawer()" data-i18n="drawer_julians">🧠 Julians AI</div>
+    <div class="ndw-bottom-btn" onclick="window.open('hero.html','_self');toggleDrawer()" style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.08));border:1px solid rgba(245,158,11,0.3);color:#fcd34d;font-weight:600;">⚔️ El meu Heroi</div>
+    <div class="ndw-bottom-btn" onclick="openQuickCapture();toggleDrawer()" style="color:var(--green);border:1px solid rgba(16,185,129,0.2);">⚡ Captura ràpida</div>
+    <div class="ndw-bottom-btn" onclick="toggleNotePicker();toggleDrawer()" style="color:#fcd34d;border:1px solid rgba(245,158,11,0.2);">📝 Notes adhesives</div>
+    <div class="ndw-bottom-btn" onclick="openSearch();toggleDrawer()" style="color:var(--cyan);border:1px solid rgba(0,184,217,0.2);">🔍 Cerca global</div>
+    <div class="ndw-bottom-btn" onclick="window.open('pricing.html','_self');toggleDrawer()" style="background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(0,184,217,0.12));border:1px solid rgba(124,58,237,0.35);color:#a78bfa;font-weight:600;letter-spacing:1px;">⚡ Actualitza a PRO</div>
+  </div>
+</div>
+
+<!-- Bottom nav (pages mode) -->
+<nav id="bnav">
+  <div class="bnav-item" onclick="navTo('home')"><div class="bnav-icon">🏠</div><div class="bnav-lbl">INICI</div></div>
+  <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
+  <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
+  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
+  <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
+</nav>
+
+<div class="container">
+
+  <!-- ═══ PAGE: HOME ═══ -->
+  <div class="app-page page-active" id="page-home">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🏠</div>
+      <div class="page-title-text">
+        <h2 id="pt-home-h2">INICI</h2>
+        <p id="pt-home-sub">Objectiu · Progrés · Ratxa · Hàbits</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('home')" title="Com funciona?">i</button>
+    </div>
+
+    <div class="header">
+      <div class="jomaxpath-tag">✦ El teu espai de productivitat ✦</div>
+      <div class="jomaxpath-hero">
+        <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(4.5rem,13vw,9rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">JOmaxPath</div>
+        <div class="jomaxpath-hero-title" style="font-size:clamp(1.3rem,3.5vw,2.2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">PLANIFICADOR PERSONAL</div>
+      </div>
+      <div class="jomaxpath-user" id="header-sub">Developed by JOmax <span class="jomaxpath-version">v2.0</span></div>
+    </div>
+
+    <!-- ⚡ Banner Premium -->
+    <div id="premium-home-banner" onclick="window.open('pricing.html','_self')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(124,58,237,0.13),rgba(0,184,217,0.08));border:1px solid rgba(124,58,237,0.3);border-radius:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.6)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
+      <span style="font-size:20px;">⚡</span>
+      <div style="flex:1;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:#a78bfa;font-weight:700;">DESBLOQUEJA PREMIUM</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">IA Julians il·limitada · Temes exclusius · Sense límits</div>
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:#a78bfa;letter-spacing:1px;">VEURE PLANS →</span>
+    </div>
+
+    <div class="home-two-col">
+      <!-- Columna esquerra -->
+      <div class="home-col-left">
+        <div class="goal-banner" id="goal-banner">
+          <div class="icon" id="goal-icon">🚀</div>
+          <div>
+            <h3 id="goal-title">Objectiu principal</h3>
+            <p id="goal-desc">Crear la meva empresa abans de complir els 18 anys. Cada línia de codi és un pas cap a la independència.</p>
+          </div>
+        </div>
+        <div class="daily-quote" id="daily-quote">
+          <div class="dq-text" id="dq-text">Carregant...</div>
+          <div class="dq-author" id="dq-author"></div>
+          <button class="dq-refresh" onclick="refreshQuote()" title="Nova frase">↻</button>
+        </div>
+        <div class="today-panel">
+          <div class="section-title" style="margin:0 0 4px;" data-i18n="sec_ara_mateix">📍 ara mateix</div>
+          <div class="today-grid" id="today-grid"></div>
+          <div class="today-now" id="today-now" style="display:none;">
+            <div class="today-now-dot"></div>
+            <span id="today-now-txt"></span>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-header">
+            <h3 id="prog-title">📚 Curs de Programació</h3>
+            <span id="prog-fraction">Capítol 4 de 9</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+          <div class="progress-chapters" id="prog-chapters"></div>
+          <div class="progress-btn-row">
+            <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
+            <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
+            <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
+          </div>
+          <div class="progress-congrats" id="prog-congrats"></div>
+        </div>
+      </div>
+      <!-- Columna dreta -->
+      <div class="home-col-right">
+        <div class="streak-widget" id="streak-widget">
+          <div class="streak-fire">🔥</div>
+          <div class="streak-info" style="position:relative;">
+            <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
+            <div class="streak-number" id="streak-num">0</div>
+            <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius</div>
+            <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
+            <div class="streak-days" id="streak-days"></div>
+          </div>
+          <div class="streak-actions">
+            <button class="streak-btn" id="streak-btn" onclick="markStreakToday()">✓ SESSIÓ FETA</button>
+            <button class="streak-btn minus" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;font-size:9px;" onclick="undoStreakToday()" title="Desfer d'avui">↺ Desfer</button>
+          </div>
+        </div>
+        <div class="habits-section">
+          <div class="habits-header">
+            <div class="section-title" style="margin:0;" data-i18n="sec_habits">🌱 hàbits diaris <button class="info-btn" onclick="showInfo('habits')" title="Com funciona?">i</button></div>
+            <button class="add-habit-btn" onclick="toggleHabitForm()" data-i18n="btn_add">+ AFEGIR</button>
+          </div>
+          <div id="habits-list"></div>
+          <div class="habit-add-form" id="habit-add-form">
+            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." />
+            <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
+            <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
+          </div>
+        </div>
+        <div class="moto" id="moto-section">
+          <div class="moto-text" id="moto-text">No t'esperis a tenir ganes.<br>Fes-ho i les ganes vindran.</div>
+          <div class="moto-sub" id="moto-sub">CAPÍTOL 4 → 5 · EMPRESA PRÒPIA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: HORARI ═══ -->
+  <div class="app-page" id="page-horari">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📅</div>
+      <div class="page-title-text">
+        <h2 id="pt-horari-h2">HORARI <button class="info-btn" onclick="showInfo('horari')" title="Com funciona?" style="vertical-align:middle;margin-left:6px;">i</button></h2>
+      </div>
+    </div>
+
+    <!-- Horari Tabs -->
+    <div class="horari-tabs">
+      <button class="horari-tab active" id="htab-setmanal" onclick="switchHorariTab('setmanal')">
+        <span class="htab-icon">📅</span>
+        <span class="htab-label">Setmanal</span>
+      </button>
+      <button class="horari-tab" id="htab-mensual" onclick="switchHorariTab('mensual')">
+        <span class="htab-icon">🗓️</span>
+        <span class="htab-label">Mensual</span>
+      </button>
+      <button class="horari-tab" id="htab-habits" onclick="switchHorariTab('habits')">
+        <span class="htab-icon">🌱</span>
+        <span class="htab-label">Hàbits</span>
+      </button>
+    </div>
+
+    <!-- TAB: Setmanal -->
+    <div class="horari-tab-content active" id="htab-content-setmanal">
+    <!-- Next up -->
+    <div id="next-up-bar" style="display:none;" class="next-up-bar">
+      <div class="next-up-icon">📌</div>
+      <div class="next-up-info">
+        <div class="next-up-label" data-i18n="next_task">PRÒXIMA TASCA</div>
+        <div class="next-up-text" id="next-up-text"></div>
+        <div class="next-up-when" id="next-up-when"></div>
+      </div>
+      <div class="next-up-countdown" id="next-up-cd"></div>
+    </div>
+
+    <!-- Week nav -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <div class="section-title" style="margin:0;flex:1;" data-i18n="sec_this_week">aquesta setmana</div>
+      <button class="avui-btn" onclick="weekOffset=0;renderWeekDates();renderWeekGrid()" data-i18n="btn_today">↩ AVUI</button>
+      <div style="display:flex;gap:6px;">
+        <button class="progress-btn" onclick="weekOffset--;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">←</button>
+        <div id="week-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:10px;white-space:nowrap;display:flex;align-items:center;"></div>
+        <button class="progress-btn" onclick="weekOffset++;renderWeekDates();renderWeekGrid()" style="padding:5px 12px;">→</button>
+      </div>
+    </div>
+
+    <div class="week-grid" id="week-grid"></div>
+
+    <!-- Weekly summary -->
+    <div class="weekly-summary">
+      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_weekly_summary">resum setmanal</div>
+      <div class="stats-grid" id="stats-grid"></div>
+    </div>
+    </div><!-- End htab-content-setmanal -->
+
+    <!-- TAB: Mensual -->
+    <div class="horari-tab-content" id="htab-content-mensual" style="display:none;">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button class="cal-nav-btn" onclick="calendarPrevMonth()">‹</button>
+          <div class="calendar-month" id="calendar-month">Gener 2026</div>
+          <button class="cal-nav-btn" onclick="calendarNextMonth()">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+      
+      <!-- Partits de la temporada -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="section-title" style="margin:0;">⚽ Partits de la temporada</div>
+        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(239,68,68,0.2);">+ AFEGIR PARTIT</button>
+      </div>
+
+      <!-- Add/Edit form -->
+      <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;animation:slideDown 0.3s ease-out;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
+            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
+            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
+            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
+            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
+            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
+            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
+          <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
+          <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
+        </div>
+        <input type="hidden" id="mf-edit-id" value="" />
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveMatch()" style="flex:1;background:var(--red);color:white;font-weight:700;font-size:12px;padding:9px;border-radius:8px;border:none;cursor:pointer;" data-i18n="btn_save">💾 GUARDAR</button>
+          <button onclick="toggleMatchForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+
+      <div id="matches-list"></div>
+    </div><!-- End htab-content-mensual -->
+
+    <!-- TAB: Hàbits -->
+    <div class="horari-tab-content" id="htab-content-habits" style="display:none;">
+      <div class="habitkit-container">
+        <div class="habitkit-header">
+          <div>
+            <h3>🌱 Seguiment d'hàbits</h3>
+            <p style="font-size:12px;color:rgba(255,255,255,0.5);margin:4px 0 0 0;font-family:'Share Tech Mono',monospace;">Segueix els teus hàbits durant 13 setmanes (91 dies)</p>
+          </div>
+          <button class="habitkit-add-btn" onclick="toggleHabitKitForm()" title="Afegir nou hàbit">
+            <span style="font-size:22px;position:relative;z-index:1;">+</span>
+          </button>
+        </div>
+        
+        <!-- Form per afegir hàbit -->
+        <div class="habitkit-form" id="habitkit-form" style="display:none;">
+          <div class="habitkit-form-row">
+            <input type="text" id="hk-name" placeholder="Nom de l'hàbit..." class="habitkit-input">
+          </div>
+          <!-- Emoji Picker -->
+          <div class="hk-emoji-section">
+            <div class="hk-emoji-label">Tria una icona</div>
+            <div class="hk-emoji-grid" id="hk-emoji-grid">
+              <button class="hk-emoji-btn selected" data-emoji="🏋️" onclick="selectHabitEmoji(this)" title="Exercici">🏋️</button>
+              <button class="hk-emoji-btn" data-emoji="🧘" onclick="selectHabitEmoji(this)" title="Meditació">🧘</button>
+              <button class="hk-emoji-btn" data-emoji="🏃" onclick="selectHabitEmoji(this)" title="Córrer">🏃</button>
+              <button class="hk-emoji-btn" data-emoji="🚴" onclick="selectHabitEmoji(this)" title="Ciclisme">🚴</button>
+              <button class="hk-emoji-btn" data-emoji="🥗" onclick="selectHabitEmoji(this)" title="Alimentació">🥗</button>
+              <button class="hk-emoji-btn" data-emoji="💧" onclick="selectHabitEmoji(this)" title="Aigua">💧</button>
+              <button class="hk-emoji-btn" data-emoji="😴" onclick="selectHabitEmoji(this)" title="Dormir">😴</button>
+              <button class="hk-emoji-btn" data-emoji="🧠" onclick="selectHabitEmoji(this)" title="Mental">🧠</button>
+              <button class="hk-emoji-btn" data-emoji="📚" onclick="selectHabitEmoji(this)" title="Lectura">📚</button>
+              <button class="hk-emoji-btn" data-emoji="✍️" onclick="selectHabitEmoji(this)" title="Escriure">✍️</button>
+              <button class="hk-emoji-btn" data-emoji="🎯" onclick="selectHabitEmoji(this)" title="Objectiu">🎯</button>
+              <button class="hk-emoji-btn" data-emoji="💻" onclick="selectHabitEmoji(this)" title="Programar">💻</button>
+              <button class="hk-emoji-btn" data-emoji="🎨" onclick="selectHabitEmoji(this)" title="Creativitat">🎨</button>
+              <button class="hk-emoji-btn" data-emoji="🎵" onclick="selectHabitEmoji(this)" title="Música">🎵</button>
+              <button class="hk-emoji-btn" data-emoji="🌿" onclick="selectHabitEmoji(this)" title="Natura">🌿</button>
+              <button class="hk-emoji-btn" data-emoji="🌅" onclick="selectHabitEmoji(this)" title="Matí">🌅</button>
+              <button class="hk-emoji-btn" data-emoji="💬" onclick="selectHabitEmoji(this)" title="Connexió">💬</button>
+              <button class="hk-emoji-btn" data-emoji="🙏" onclick="selectHabitEmoji(this)" title="Gratitud">🙏</button>
+              <button class="hk-emoji-btn" data-emoji="📓" onclick="selectHabitEmoji(this)" title="Diari">📓</button>
+              <button class="hk-emoji-btn" data-emoji="💰" onclick="selectHabitEmoji(this)" title="Finances">💰</button>
+              <button class="hk-emoji-btn" data-emoji="🌍" onclick="selectHabitEmoji(this)" title="Idiomes">🌍</button>
+              <button class="hk-emoji-btn" data-emoji="🔬" onclick="selectHabitEmoji(this)" title="Ciència">🔬</button>
+              <button class="hk-emoji-btn" data-emoji="🧹" onclick="selectHabitEmoji(this)" title="Ordre">🧹</button>
+              <button class="hk-emoji-btn" data-emoji="⭐" onclick="selectHabitEmoji(this)" title="Especial">⭐</button>
+            </div>
+            <div class="hk-emoji-preview-row">
+              <div class="hk-emoji-preview" id="hk-emoji-preview">🏋️</div>
+              <input type="text" id="hk-icon" value="🏋️" class="hk-emoji-custom" placeholder="O escriu qualsevol emoji..." maxlength="4" oninput="onCustomEmojiInput(this)">
+            </div>
+          </div>
+          <textarea id="hk-desc" placeholder="Descripció opcional (per què és important aquest hàbit?)..." class="habitkit-textarea"></textarea>
+          <div class="habitkit-form-row">
+            <select id="hk-color" class="habitkit-select">
+              <option value="#10b981">🟢 Verd - Salut</option>
+              <option value="#8b5cf6">🟣 Porpra - Creativitat</option>
+              <option value="#ef4444">🔴 Vermell - Energia</option>
+              <option value="#f59e0b">🟠 Taronja - Productivitat</option>
+              <option value="#3b82f6">🔵 Blau - Aprenentatge</option>
+              <option value="#ec4899">🌸 Rosa - Benestar</option>
+              <option value="#14b8a6">💚 Turquesa - Mindfulness</option>
+              <option value="#06b6d4">🩵 Cyan - Exercici</option>
+            </select>
+            <button class="habitkit-save-btn" onclick="addHabitKit()">AFEGIR HÀBIT</button>
+          </div>
+        </div>
+        
+        <!-- Llista d'hàbits -->
+        <div id="habitkit-list"></div>
+        
+        <!-- Missatge si no hi ha hàbits -->
+        <div id="habitkit-empty" class="habitkit-empty">
+          <div style="font-size:64px;margin-bottom:16px;opacity:0.6;">🌱</div>
+          <div style="font-size:16px;color:rgba(255,255,255,0.7);font-weight:600;margin-bottom:8px;">Encara no tens cap hàbit</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;">Comença a construir els teus hàbits diaris</div>
+          <button onclick="toggleHabitKitForm()" style="padding:12px 24px;background:linear-gradient(135deg, var(--accent), var(--accent2));border:none;border-radius:12px;color:white;font-family:'Space Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:1px;">+ CREAR PRIMER HÀBIT</button>
+        </div>
+      </div>
+    </div><!-- End htab-content-habits -->
+
+  </div><!-- End page-horari -->
+
+  <!-- ═══ PAGE: TASQUES ═══ -->
+  <div class="app-page" id="page-tasques">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">📋</div>
+      <div class="page-title-text">
+        <h2 id="pt-tasques-h2">TASQUES</h2>
+        <p id="pt-tasques-sub">Deures · Treballs · Prioritats</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
+    </div>
+
+    <!-- Mode switcher: Personal / Compartides -->
+    <div class="tasks-mode-bar">
+      <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
+      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
+    </div>
+
+    <!-- VISTA PERSONAL -->
+    <div id="tasks-personal-view">
+      <!-- Sub-switcher: Llista / Kanban personal -->
+      <div class="tasks-view-toggle">
+        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
+        <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
+      </div>
+
+      <!-- Vista llista personal (original) -->
+      <div id="personal-list-view">
+        <div class="exam-section">
+          <div class="exam-header-bar">
+            <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
+            <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+          </div>
+          <div class="exam-form" id="exam-form">
+            <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
+            <input type="date" id="exam-date" />
+            <select id="exam-type">
+              <option value="deures">📚 Deures/Entrega</option>
+              <option value="treball">📄 Treball/Projecte</option>
+              <option value="tasca">🗂️ Tasca general</option>
+              <option value="personal">🙋 Feina personal</option>
+            </select>
+            <select id="exam-prio">
+              <option value="1">🔴 P1 Urgent</option>
+              <option value="2">🟡 P2 Important</option>
+              <option value="3" selected>🔵 P3 Normal</option>
+              <option value="4">⚪ P4 Baix</option>
+            </select>
+            <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
+          </div>
+          <div class="exam-list" id="exam-list"></div>
+        </div>
+      </div>
+
+      <!-- Vista Kanban personal -->
+      <div id="personal-kanban-view" style="display:none;">
+        <div class="personal-kanban-header">
+          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
+        </div>
+        <div id="personal-kanban-board"></div>
+      </div>
+    </div>
+
+    <!-- VISTA COMPARTIDA -->
+    <div id="tasks-shared-view" style="display:none;">
+      <!-- Sub-switcher: Llista taulers / Detall kanban -->
+      <div id="shared-boards-list-view">
+        <div class="tasks-view-toggle" style="margin-bottom:18px;">
+          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
+          <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
+        </div>
+        <!-- Vista llista de taulers -->
+        <div id="shared-list-inner">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-boards-grid"></div>
+        </div>
+        <!-- Vista kanban directe (mostra el primer tauler o selector) -->
+        <div id="shared-kanban-inner" style="display:none;">
+          <div class="shared-boards-title-row">
+            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
+            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <div id="shared-board-selector"></div>
+          <div id="shared-kanban-board-container"></div>
+        </div>
+      </div>
+      <div id="shared-board-detail" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear/Editar tauler -->
+  <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
+    <div class="board-modal">
+      <h3 id="board-modal-title">Nova llista compartida</h3>
+      <label>Nom de la llista</label>
+      <input type="text" id="board-name-inp" placeholder="Ex: Projecte de Mates..." maxlength="60" />
+      <label>Descripció (opcional)</label>
+      <input type="text" id="board-desc-inp" placeholder="Descripció breu..." maxlength="120" />
+      <label>Membres actuals</label>
+      <div id="board-members-current"></div>
+      <label>Afegir membre (email)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="email" id="board-member-add-inp" placeholder="nou@email.com" style="flex:1;" />
+        <button onclick="addBoardMember()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">+ Afegir</button>
+      </div>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" id="bm-save-btn" onclick="saveBoardModal()">Crear llista</button>
+        <button class="bm-cancel-btn" onclick="closeBoardModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detall de tasca -->
+  <div id="task-detail-overlay" class="tdm-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;">
+    <div class="tdm-modal">
+
+      <!-- Barra d'urgència superior + close -->
+      <div class="tdm-top-bar">
+        <div class="tdm-urg-strip" id="tdm-urgency-bar"></div>
+        <button class="tdm-close-btn" onclick="closeTaskDetail()">✕</button>
+      </div>
+
+      <!-- Títol editable gran -->
+      <div class="tdm-title-zone">
+        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." oninput="tdmMarkDirty()" />
+      </div>
+
+      <!-- Cos en dues columnes -->
+      <div class="tdm-cols">
+
+        <!-- Columna esquerra: camps -->
+        <div class="tdm-col-left">
+
+          <!-- Descripció -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">📝 Descripció</div>
+            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" oninput="tdmMarkDirty()"></textarea>
+          </div>
+
+          <!-- Responsables -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">👤 Responsables</div>
+            <div class="tdm-chips-row" id="tdm-assignees-chips"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-assignee-inp" placeholder="Afegir responsable..." onkeydown="if(event.key==='Enter')tdmAddAssignee()" />
+              <button onclick="tdmAddAssignee()">+</button>
+            </div>
+          </div>
+
+          <!-- Enllaços -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">🔗 Enllaços</div>
+            <div id="tdm-links-list"></div>
+            <div class="tdm-link-add-row">
+              <input type="url" id="tdm-link-url-inp" placeholder="https://..." onkeydown="if(event.key==='Enter')tdmAddLink()" />
+              <input type="text" id="tdm-link-label-inp" placeholder="Nom" />
+              <button onclick="tdmAddLink()">+</button>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="tdm-field-block">
+            <div class="tdm-field-lbl">💬 Notes</div>
+            <div id="tdm-notes-list"></div>
+            <div class="tdm-inline-add">
+              <input type="text" id="tdm-note-inp" placeholder="Afegir nota..." onkeydown="if(event.key==='Enter')addNoteToTask()" />
+              <button onclick="addNoteToTask()">+</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna dreta: metadades -->
+        <div class="tdm-col-right">
+
+          <!-- Estat -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📌 Estat</div>
+            <div class="tdm-status-pills" id="tdm-status-pills">
+              <button class="tdm-status-pill" data-s="todo"  onclick="tdmSetStatus('todo',this)">Per començar</button>
+              <button class="tdm-status-pill" data-s="doing" onclick="tdmSetStatus('doing',this)">En curs</button>
+              <button class="tdm-status-pill" data-s="done"  onclick="tdmSetStatus('done',this)">Finalitzada</button>
+            </div>
+          </div>
+
+          <!-- Urgència -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">🚦 Urgència</div>
+            <div class="tdm-urg-pills">
+              <button class="tdm-urg-pill" data-u="green"  onclick="tdmSetUrgency('green',this)"><span class="tdm-urg-dot urg-green"></span>Baixa</button>
+              <button class="tdm-urg-pill" data-u="yellow" onclick="tdmSetUrgency('yellow',this)"><span class="tdm-urg-dot urg-yellow"></span>Mitjana</button>
+              <button class="tdm-urg-pill" data-u="red"    onclick="tdmSetUrgency('red',this)"><span class="tdm-urg-dot urg-red"></span>Alta</button>
+            </div>
+          </div>
+
+          <!-- Data límit -->
+          <div class="tdm-meta-block">
+            <div class="tdm-field-lbl">📅 Data límit</div>
+            <input type="date" class="tdm-date-inp" id="tdm-due" oninput="tdmMarkDirty()" />
+          </div>
+
+          <!-- Guardar -->
+          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
+
+          <!-- Select hidden per compat -->
+          <select id="tdm-status" style="display:none;" onchange="updateTaskStatusFromDetail(this.value)">
+            <option value="todo">Per començar</option>
+            <option value="doing">En curs</option>
+            <option value="done">Finalitzada</option>
+          </select>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nova tasca al tauler -->
+  <div id="board-task-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardTaskModal()" style="display:none;">
+    <div class="board-modal">
+      <h3>Nova tasca</h3>
+      <label>Títol <span style="color:var(--red)">*</span></label>
+      <input type="text" id="bt-title-inp" placeholder="Títol de la tasca..." maxlength="80" />
+      <label>Descripció</label>
+      <textarea id="bt-desc-inp" placeholder="Descripció opcional..." rows="2"></textarea>
+      <label>Responsable</label>
+      <input type="text" id="bt-assignee-inp" placeholder="Nom o email..." id="bt-assignee-inp" />
+      <label>Enllaç (opcional)</label>
+      <div style="display:flex;gap:6px;">
+        <input type="url" id="bt-link-url-inp" placeholder="https://canva.com/..." style="flex:2;" />
+        <input type="text" id="bt-link-label-inp" placeholder="Nom" style="flex:1;" />
+      </div>
+      <label>Data límit</label>
+      <input type="date" id="bt-due-inp" />
+      <label>Urgència</label>
+      <div class="bt-urgency-row">
+        <button class="bt-urg-btn active" data-u="green" onclick="selectBtUrgency(this)">🟢 Baixa</button>
+        <button class="bt-urg-btn" data-u="yellow" onclick="selectBtUrgency(this)">🟡 Mitjana</button>
+        <button class="bt-urg-btn" data-u="red" onclick="selectBtUrgency(this)">🔴 Alta</button>
+      </div>
+      <div class="board-modal-btns">
+        <button class="bm-save-btn" onclick="saveBoardTask()">Afegir tasca</button>
+        <button class="bm-cancel-btn" onclick="closeBoardTaskModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: JULIANS ═══ -->
+  <div class="app-page" id="page-julians">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" alt="J"/></div>
+      <div class="page-title-text">
+        <h2 id="pt-julians-h2">JULIANS AI</h2>
+        <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('julians')" title="Com funciona?">i</button>
+    </div>
+
+    <div id="ai-section">
+      <div id="ai-section-card">
+        <div id="ai-layout">
+          <div id="ai-sidebar">
+            <div id="ai-sidebar-header">
+              <span class="ai-sidebar-title" id="ai-sidebar-title-txt">Xats</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button class="ai-new-chat-btn" onclick="aiStartSelectMode()" title="Seleccionar per eliminar" id="ai-sel-mode-btn">🗑️</button>
+                <button class="ai-new-chat-btn" onclick="createNewChat()" title="Nou xat" id="ai-new-btn">✏️</button>
+                <button class="ai-new-chat-btn" onclick="toggleAISidebar()" title="Amagar xats" id="ai-sidebar-toggle">◀</button>
+              </div>
+            </div>
+            <div id="ai-sidebar-resize" title="Arrossega per canviar mida"></div>
+            <div class="ai-select-toolbar" id="ai-select-toolbar">
+              <span class="ai-sel-count" id="ai-sel-count">0 seleccionats</span>
+              <div class="ai-sel-actions">
+                <button class="ai-sel-btn ai-sel-del" onclick="deleteSelectedChats()">Eliminar</button>
+                <button class="ai-sel-btn ai-sel-cancel" onclick="aiCancelSelectMode()">Cancel·lar</button>
+              </div>
+            </div>
+            <div id="ai-chat-list"></div>
+          </div>
+          <div id="ai-main">
+            <div id="ai-main-header">
+              <div class="ai-main-left">
+                <div class="ai-chat-title-display" id="ai-chat-title-disp">Julians AI</div>
+              </div>
+              <button class="ai-clear-btn" onclick="clearCurrentChat()" title="Netejar xat">🗑️</button>
+            </div>
+            <div class="ai-mode-row">
+              <button class="ai-mode-btn active" id="mode-rapid"  onclick="setAIMode('rapid')">⚡ Ràpid</button>
+              <button class="ai-mode-btn"         id="mode-extens" onclick="setAIMode('extens')">📝 Extens</button>
+              <button class="ai-mode-btn"         id="mode-profund"onclick="setAIMode('profund')">🔬 Profund</button>
+              <button class="ai-mode-btn estudi-btn" id="mode-estudi" onclick="setAIMode('estudi')">📚 Estudi</button>
+            </div>
+            <div class="ai-mode-label" id="ai-mode-label-txt">⚡ Respostes concises i immediates</div>
+
+            <!-- Panel submodes Estudi -->
+            <div id="estudi-panel" style="display:none;">
+              <div class="estudi-submode-row">
+                <button class="estudi-sub-btn active" id="estudi-sub-pla" onclick="setEstudiSubmode('pla')">
+                  <span class="esub-icon">📅</span><span class="esub-label">Pla d'estudi</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-resum" onclick="setEstudiSubmode('resum')">
+                  <span class="esub-icon">🗒️</span><span class="esub-label">Resum</span>
+                </button>
+                <button class="estudi-sub-btn" id="estudi-sub-practica" onclick="setEstudiSubmode('practica')">
+                  <span class="esub-icon">🧪</span><span class="esub-label">Pràctica</span>
+                </button>
+              </div>
+              <div id="estudi-hint" class="estudi-hint"></div>
+            </div>
+            <div class="ai-chat-messages" id="ai-messages"></div>
+            <div class="ai-chip-row" id="ai-chips"></div>
+            <div id="ai-doc-preview" style="display:none;padding:8px 16px;background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);display:none;align-items:center;gap:10px;flex-shrink:0;">
+              <span id="ai-doc-icon" style="font-size:18px;">📄</span>
+              <span id="ai-doc-name" style="flex:1;font-size:12px;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+              <button onclick="removeAttachment()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
+            </div>
+            <div class="ai-chat-input-row">
+              <label class="ai-attach-btn" title="Adjuntar PDF o Word" for="ai-file-input">📎</label>
+              <input type="file" id="ai-file-input" accept=".pdf,.doc,.docx" title="PDF recomanat. Word: converteix a PDF per millors resultats." style="display:none;" onchange="handleFileAttach(this)" />
+              <input type="text" id="ai-chat-input" placeholder="Pregunta a Julians... o adjunta un PDF 📎" onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendAI();event.preventDefault()}" />
+              <button id="ai-chat-send" onclick="sendAI()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: FOCUS ═══ -->
+  <div class="app-page" id="page-focus">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🎯</div>
+      <div class="page-title-text">
+        <h2 id="pt-focus-h2">FOCUS</h2>
+        <p id="pt-focus-sub">Pomodoro · Pantalles · Motivació</p>
+      </div>
+      <button class="info-btn" onclick="showInfo('tips')" title="Com funciona?">i</button>
+    </div>
+
+
+    <div class="focus-two-col">
+    <div class="focus-col-left">
+    <!-- Pomodoro Gamification -->
+    <div style="background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(124,58,237,0.08));border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(239,68,68,0.12),transparent 70%);pointer-events:none;"></div>
+      
+      <!-- Level & XP -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+        <div id="pomo-level-badge" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(239,68,68,0.4);">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:white;line-height:1;" id="pomo-level-num">1</span>
+          <span style="font-size:8px;color:rgba(255,255,255,0.7);letter-spacing:1px;">LVL</span>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span id="pomo-level-name" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;">APRENENT</span>
+            <span id="pomo-xp-txt" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">0 / 10 XP</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
+            <div id="pomo-xp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--accent));border-radius:6px;transition:width 0.5s ease;"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="pomo-xp-sub">Completa pomodoros per pujar de nivell</div>
+        </div>
+      </div>
+
+      <!-- Daily Goal -->
+      <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-goal-title">🎯 OBJECTIU D'AVUI</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button onclick="changeDailyGoal(-1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
+            <span id="pomo-goal-num" style="font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:center;">4</span>
+            <span style="font-size:10px;color:var(--muted);">🍅</span>
+            <button onclick="changeDailyGoal(1)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="pomo-goal-dots"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="pomo-goal-status">Comença el primer pomodoro!</div>
+      </div>
+
+      <!-- Rewards row -->
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;" id="pomo-rewards-title">🏆 RECOMPENSES</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
+    </div>
+
+    <!-- Pomodoro Focus Timer -->
+    <div class="pomodoro-section">
+      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_pomodoro">⏱️ focus timer — pomodoro <button class="info-btn" onclick="showInfo('pomodoro')" title="Com funciona?">i</button></div>
+      
+      <!-- Custom timer input -->
+      <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-treball-lbl">TREBALL</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
+            <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
+            <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
+          </div>
+        </div>
+        <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;" id="pomo-descans-lbl">DESCANS</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
+            <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+          </div>
+          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;" id="pomo-auto-lbl">(auto)</span>
+        </div>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;" id="pomo-aplicar-btn">APLICAR</button>
+      </div>
+      <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+
+      <div class="pomo-display">
+        <div class="pomo-sessions" id="pomo-sessions"></div>
+        <div class="pomo-ring-wrap">
+          <svg class="pomo-svg" viewBox="0 0 180 180">
+            <circle class="pomo-bg" cx="90" cy="90" r="80"/>
+            <circle class="pomo-arc" id="pomo-arc" cx="90" cy="90" r="80"/>
+          </svg>
+          <div class="pomo-time">
+            <div class="pomo-digits" id="pomo-digits">25:00</div>
+            <div class="pomo-label" id="pomo-lbl">FOCUS</div>
+          </div>
+        </div>
+        <div class="pomo-presets">
+          <button class="pomo-preset-btn active" id="preset-25" onclick="setPomoPreset(25,5,4)">25/5</button>
+          <button class="pomo-preset-btn" id="preset-50" onclick="setPomoPreset(50,10,4)">50/10</button>
+          <button class="pomo-preset-btn" id="preset-90" onclick="setPomoPreset(90,20,3)">90/20</button>
+          <button class="pomo-preset-btn" id="preset-cust" style="display:none;">✏️ CUSTOM</button>
+        </div>
+        <div class="pomo-controls">
+          <button class="pomo-btn start" id="pomo-start" onclick="pomoAction()">▶ INICIAR</button>
+          <button class="pomo-btn reset" onclick="pomoReset()">↺ RESET</button>
+          <button class="pomo-btn" onclick="openPomoFullscreen()" title="Pantalla completa" style="padding:0 14px;font-size:16px;">⛶</button>
+        </div>
+        <div class="pomo-stats-row">
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-today">0</div><div class="pomo-stat-lbl">avui</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-week">0</div><div class="pomo-stat-lbl">setmana</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-total">0</div><div class="pomo-stat-lbl">total</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spotify Focus Playlist -->
+    <div style="background:var(--card);border:1px solid rgba(30,215,96,0.25);border-radius:20px;padding:22px 24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <span style="font-size:20px;">🎵</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
+          <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
+            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
+            onkeydown="if(event.key==='Enter') loadSpotify()" />
+          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
+        </div>
+      </div>
+      <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
+        <iframe id="spotify-iframe" style="border-radius:12px;width:100%;" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+      <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
+        Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
+        <span style="font-size:10px;font-family:'Share Tech Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
+      </div>
+    </div>
+
+    </div><!-- /focus-col-left -->
+    <div class="focus-col-right">
+    <!-- Victories -->
+    <div class="victories-section">
+      <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_victories">🏆 les meves victòries de la setmana <button class="info-btn" onclick="showInfo('victories')" title="Com funciona?">i</button></div>
+      <div class="victories-week-nav">
+        <button class="vic-nav-btn" onclick="changeVictoriesWeek(-1)">←</button>
+        <div class="victories-week-label" id="victories-week-label">Setmana actual</div>
+        <button class="vic-nav-btn" onclick="changeVictoriesWeek(1)">→</button>
+      </div>
+      <div class="victories-list">
+        <div class="victory-input-row"><span class="victory-num">1</span><input class="victory-input" id="v1" placeholder="Primera victòria d'aquesta setmana..." /></div>
+        <div class="victory-input-row"><span class="victory-num">2</span><input class="victory-input" id="v2" placeholder="Segona victòria..." /></div>
+        <div class="victory-input-row"><span class="victory-num">3</span><input class="victory-input" id="v3" placeholder="Tercera victòria..." /></div>
+      </div>
+      <button class="victories-save-btn" onclick="saveVictories()">💾 GUARDAR VICTÒRIES</button>
+      <div class="victories-saved-msg" id="victories-saved">✓ Guardat!</div>
+    </div>
+
+    <!-- Screen time tips -->
+    <div class="screen-section">
+      <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_screen_tips">📵 trucs per no mirar tant les pantalles <button class="info-btn" onclick="showInfo('pantalles')" title="Com funciona?">i</button></div>
+      <div class="screen-grid">
+        <div class="screen-tip"><div class="tip-icon">⚫</div><div class="tip-title">Mode escala de grisos</div><div class="tip-text">Activa el mode escala de grisos al mòbil. El cervell deixa de trobar les apps atractives quan perd els colors.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🎯</div><div class="tip-title">Intenció prèvia</div><div class="tip-text">Abans d'obrir el mòbil, di't: "Obro el mòbil per...". Si no pots completar la frase, no l'obris.</div></div>
+        <div class="screen-tip"><div class="tip-icon">⏱️</div><div class="tip-title">Tècnica Pomodoro</div><div class="tip-text">25 minuts de focus total, 5 de descans. Durant el focus, el mòbil boca avall i en silenci.</div></div>
+        <div class="screen-tip"><div class="tip-icon">📵</div><div class="tip-title">Zones sense mòbil</div><div class="tip-text">Taula d'estudi, llit i àpats = zones sense telèfon. Crea límits físics, no mentals.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🌙</div><div class="tip-title">Ritual nocturn</div><div class="tip-text">Cap pantalla 45 min abans de dormir. Llegeix, escriu o planifica l'endemà en paper.</div></div>
+        <div class="screen-tip"><div class="tip-icon">🔔</div><div class="tip-title">Silencia les notificacions</div><div class="tip-text">Desactiva totes les notificacions excepte trucades. Tu decideixes quan mirar, no les apps.</div></div>
+      </div>
+    </div>
+
+    <!-- Motivation tips -->
+    <div class="section-title" data-i18n="sec_motivation_rules">regles d'or per no perdre la motivació <button class="info-btn" onclick="showInfo('motivacio')" title="Com funciona?">i</button></div>
+    <div class="tips-grid">
+      <div class="tip-card"><div class="tip-icon">🧠</div><div class="tip-title">Actua primer</div><div class="tip-text">La motivació ve DESPRÉS d'actuar, no abans. Comença 5 minuts i el cervell s'enganxarà sol.</div></div>
+      <div class="tip-card"><div class="tip-icon">🔗</div><div class="tip-title">No trenquis la cadena</div><div class="tip-text">Un dia falles? D'acord. Dos dies seguits? Perill. La cadena és el sistema, no l'excepció.</div></div>
+      <div class="tip-card"><div class="tip-icon">🎯</div><div class="tip-title">Mini-objectius diaris</div><div class="tip-text">Cada dia, un objectiu concret i assolible. No "programar", sinó "completar l'exercici 3 del capítol 5".</div></div>
+      <div class="tip-card"><div class="tip-icon">📊</div><div class="tip-title">Mesura el progrés</div><div class="tip-text">El que es mesura millora. Apunta cada sessió. Veure el registre et motiva a continuar.</div></div>
+      <div class="tip-card"><div class="tip-icon">💡</div><div class="tip-title">Recorda el per què</div><div class="tip-text">Empresa pròpia als 18. Cada cop que no tens ganes, recorda per a qui ho fas i per a quin futur.</div></div>
+      <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">El son és productivitat</div><div class="tip-text">8h de son = el doble de rendiment. No et privis de dormir per estudiar més. El cervell consolida mentre dorm.</div></div>
+    </div>
+  </div><!-- /focus-col-right -->
+  </div><!-- /focus-two-col -->
+  </div>
+
+</div><!-- /container -->
+
+<!-- Timed Event Modal -->
+<div id="timed-modal-overlay" onclick="if(event.target===this)closeTimedModal()">
+  <div id="timed-modal">
+    <h4 id="timed-modal-title">⏱ Nou event horari</h4>
+    <div class="modal-field"><label>TÍTOL</label><input type="text" id="tm-title" placeholder="Nom de l'event..." onkeydown="if(event.key==='Enter')saveTimedEvent()" /></div>
+    <div class="timed-modal-row">
+      <div class="modal-field"><label>INICI</label><input type="time" id="tm-start" value="09:00" /></div>
+      <div class="modal-field"><label>FI</label><input type="time" id="tm-end" value="10:00" /></div>
+    </div>
+    <div class="modal-field">
+      <label>COLOR</label>
+      <div class="timed-color-row">
+        <div class="tcbtn sel" data-c="tec-purple" style="background:#7C5CBF" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-blue"   style="background:#3B6EA5" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-green"  style="background:#2E7D52" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-orange" style="background:#B5622A" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-red"    style="background:#A03030" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-pink"   style="background:#9B3070" onclick="pickTimedColor(this)"></div>
+        <div class="tcbtn" data-c="tec-teal"   style="background:#1E7068" onclick="pickTimedColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:20px;">
+      <button class="modal-cancel" onclick="closeTimedModal()">Cancel·lar</button>
+      <button class="mbtn-timed-del" id="timed-del-btn" style="display:none;padding:10px 14px;background:rgba(160,48,48,0.15);border:1px solid rgba(160,48,48,0.3);color:#fca5a5;border-radius:8px;cursor:pointer;font-size:13px;" onclick="deleteTimedEvent()">🗑</button>
+      <button class="modal-save" onclick="saveTimedEvent()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="day-modal-overlay" onclick="if(event.target===this)closeDayModal()">
+  <div id="day-modal">
+    <h4 id="day-modal-title">Afegir al dia</h4>
+    <div class="modal-field"><label>DESCRIPCIÓ</label><input type="text" id="dm-text" placeholder="Descripció..." onkeydown="if(event.key==='Enter')saveDayEvent()" /></div>
+    <div class="modal-field"><label>HORA (opcional)</label><input type="time" id="dm-time" /></div>
+    <div class="modal-field"><label>TIPUS</label>
+      <select id="dm-type">
+        <option value="📌 Recordatori">📌 Recordatori</option>
+        <option value="📚 Escolar">📚 Escolar</option>
+        <option value="🏒 Esport">🏒 Esport</option>
+        <option value="💻 Programació">💻 Programació</option>
+        <option value="🤖 Robotech">🤖 Robotech</option>
+        <option value="📝 Examen">📝 Examen</option>
+        <option value="📦 Entrega">📦 Entrega</option>
+        <option value="🎯 Altres">🎯 Altres</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-save" onclick="saveDayEvent()">Afegir</button>
+      <button class="modal-cancel" onclick="closeDayModal()">Cancel·lar</button>
+    </div>
+  </div>
+</div>
+
+<div id="month-modal-overlay" onclick="if(event.target===this)closeMonthModal()">
+  <div id="month-modal">
+    <h4 id="mm-title">Dia</h4>
+    <div class="modal-date-sub" id="mm-sub"></div>
+    <div class="month-event-list" id="mm-list"></div>
+    <div class="month-add-form">
+      <div class="month-add-row">
+        <input type="text" id="mm-text" placeholder="Afegir event..." onkeydown="if(event.key==='Enter')saveMonthEvent()" />
+        <input type="time" id="mm-time" />
+      </div>
+      <div class="month-add-row">
+        <select id="mm-type">
+          <option value="exam">📝 Examen/Entrega</option>
+          <option value="deures">📚 Deures</option>
+          <option value="partit">🏒 Partit</option>
+          <option value="other">📌 Altres</option>
+        </select>
+      </div>
+      <button class="month-save-btn" onclick="saveMonthEvent()">+ Afegir</button>
+    </div>
+    <button class="month-close-btn" onclick="closeMonthModal()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Quick Capture -->
+<button id="quick-capture-btn" onclick="openQuickCapture()" title="Captura ràpida (Q)">⚡</button>
+<div id="quick-capture-overlay" onclick="if(event.target===this)closeQuickCapture()">
+  <div id="quick-capture-box">
+    <h4 id="qc-title">⚡ Captura ràpida</h4>
+    <input type="text" id="qc-input" placeholder="Escriu qualsevol cosa... tasca, event, nota..." />
+    <div class="qc-types">
+      <button class="qc-type-btn active" id="qct-tasca" onclick="setQCType('tasca')" data-i18n-qc="qct_task">📋 Tasca</button>
+      <button class="qc-type-btn" id="qct-event" onclick="setQCType('event')" data-i18n-qc="qct_event">📅 Event</button>
+      <button class="qc-type-btn" id="qct-nota"  onclick="setQCType('nota')" data-i18n-qc="qct_note">📝 Nota</button>
+    </div>
+    <div class="qc-row" id="qc-extra-row" style="margin-bottom:12px;">
+      <input type="date" id="qc-date" />
+      <select id="qc-subtype">
+        <option value="tasca">🗂️ Tasca</option>
+        <option value="deures">📚 Deures</option>
+        <option value="treball">📄 Treball</option>
+        <option value="personal">🙋 Personal</option>
+      </select>
+    </div>
+    <div class="qc-row">
+      <button class="qc-add-btn" id="qc-add-btn" onclick="saveQuickCapture()">Afegir ↵</button>
+    </div>
+    <button class="qc-close-btn" id="qc-close-btn" onclick="closeQuickCapture()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Global Search -->
+<div id="global-search-bar">
+  <div class="search-input-wrap">
+    <span>🔍</span>
+    <input type="text" id="search-input" placeholder="Cerca tasques, events, partits..." oninput="runSearch(this.value)" />
+    <button id="search-close" onclick="closeSearch()">✕</button>
+  </div>
+  <div id="search-results"></div>
+</div>
+<button id="search-fab" onclick="openSearch()" title="Cerca (/)">🔍</button>
+
+<!-- Keyboard Shortcuts Panel -->
+<div id="shortcuts-overlay" onclick="if(event.target===this)closeShortcuts()">
+  <div id="shortcuts-panel">
+    <h3>⌨️ DRECERES DE TECLAT</h3>
+    <div class="shortcut-row"><span class="shortcut-desc">Cerca global</span><span class="shortcut-key">/</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Captura ràpida</span><span class="shortcut-key">Q</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Pomodoro play/pause</span><span class="shortcut-key">P</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Inici</span><span class="shortcut-key">1</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Tasques</span><span class="shortcut-key">2</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Julians</span><span class="shortcut-key">3</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Anar a Calendari</span><span class="shortcut-key">4</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Mostrar dreceres</span><span class="shortcut-key">?</span></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Tancar panell / modal</span><span class="shortcut-key">Esc</span></div>
+    <button class="shortcuts-close" onclick="closeShortcuts()">Tancar</button>
+  </div>
+</div>
+
+
+<!-- Info Tooltip Overlay -->
+<div id="info-tooltip-overlay" class="info-tooltip-overlay" onclick="if(event.target===this)closeInfo()">
+  <div class="info-tooltip-box">
+    <button class="info-tooltip-close" onclick="closeInfo()">✕</button>
+    <span class="info-tooltip-icon" id="info-icon"></span>
+    <div class="info-tooltip-title" id="info-title"></div>
+    <div class="info-tooltip-body" id="info-body"></div>
+  </div>
+</div>
+
+
+<!-- Chat Delete Confirm Modal -->
+<div id="chat-delete-modal">
+  <div id="chat-delete-box">
+    <div class="cd-icon">🗑️</div>
+    <div class="cd-title" id="cd-title">ELIMINAR XAT</div>
+    <div class="cd-msg" id="cd-msg">Segur que vols eliminar aquest xat? No es pot desfer.</div>
+    <div class="cd-btn-row">
+      <button class="cd-btn-confirm" onclick="executeChatDelete()">Eliminar</button>
+      <button class="cd-btn-cancel" onclick="closeChatDeleteModal()">Cancel·lar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky notes -->
+<div id="notes-overlay"></div>
+<div id="note-picker">
+  <h4>ESCULL COLOR</h4>
+  <div class="color-picker-row">
+    <div class="color-pick-btn" style="background:#fef08a" onclick="createNote('yellow')"></div>
+    <div class="color-pick-btn" style="background:#bbf7d0" onclick="createNote('green')"></div>
+    <div class="color-pick-btn" style="background:#fbcfe8" onclick="createNote('pink')"></div>
+    <div class="color-pick-btn" style="background:#bae6fd" onclick="createNote('blue')"></div>
+    <div class="color-pick-btn" style="background:#ddd6fe" onclick="createNote('purple')"></div>
+    <div class="color-pick-btn" style="background:#fed7aa" onclick="createNote('orange')"></div>
+  </div>
+</div>
+<button id="add-note-fab" onclick="toggleNotePicker()" title="Afegir nota">📝</button>
+
+
+<!-- ⚡ Premium FAB -->
+<button id="premium-fab" onclick="window.open('pricing.html','_self')" title="Actualitza a Premium">
+  <span class="premium-fab-bolt">⚡</span>
+  <span class="premium-fab-label">ACTUALITZA A</span>
+</button>
+<div id="premium-soon-toast">⚡ &nbsp;Properament disponible</div>
+
+<!-- Dev Mode Modal -->
+<div id="devmode-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;">
+  <div id="devmode-panel" style="background:#0d0d1a;border:1px solid rgba(124,58,237,0.4);border-radius:20px;padding:36px 32px;width:min(420px,92vw);position:relative;box-shadow:0 0 60px rgba(124,58,237,0.2);">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:18px;">⚡ Versió Desenvolupador</div>
+    <h2 style="font-size:22px;font-weight:800;margin:0 0 6px;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Accés restringit</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 24px;line-height:1.6;">Introdueix les credencials per activar totes les funcions Premium.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
+      <div>
+        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Correu</label>
+        <input id="dev-email" type="email" placeholder="dev@jomaxpath.com" style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('dev-pass').focus()"/>
+      </div>
+      <div>
+        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Clau secreta</label>
+        <input id="dev-pass" type="password" placeholder="••••••••••••" style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;" onkeydown="if(event.key==='Enter')submitDevMode()"/>
+      </div>
+    </div>
+    <div id="dev-error" style="font-size:12px;color:#fca5a5;font-family:'Space Mono',monospace;margin-bottom:12px;min-height:16px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button id="dev-submit-btn" onclick="submitDevMode()" style="flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#00b8d9);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Accedir</button>
+      <button onclick="closeDevMode()" style="padding:12px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#64748b;font-size:14px;cursor:pointer;">Cancel·lar</button>
+    </div>
+    <div id="dev-active-badge" style="display:none;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#6ee7b7;text-align:center;">✅ Mode Desenvolupador actiu</div>
+  </div>
+</div>
+<!-- Julians FAB -->
+<button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
+  <img id="julians-fab-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J"/>
+</button>
+
+<!-- Config button -->
+<button id="config-btn" onclick="openConfig()" title="Configuració">⚙️</button>
+
+<!-- Config panel -->
+<div id="config-overlay" onclick="if(event.target===this)closeConfig()">
+  <div id="config-panel">
+    <div class="config-header">
+      <h2>⚙️ Configuració</h2>
+      <button class="config-close" onclick="closeConfig()">×</button>
+    </div>
+    <!-- ⚡ Accés ràpid a Premium des de Configuració -->
+    <div onclick="window.open('pricing.html','_self')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 16px;margin:0 16px 12px;background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,184,217,0.08));border:1px solid rgba(124,58,237,0.3);border-radius:10px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.6)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
+      <span style="font-size:16px;">⚡</span>
+      <div style="flex:1;">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;font-weight:700;">ACTUALITZA A PREMIUM</div>
+        <div style="font-size:10px;color:#64748b;margin-top:1px;">IA il·limitada · Temes exclusius</div>
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:9px;color:#a78bfa;">PLANS →</span>
+    </div>
+    <div class="config-tabs">
+      <button class="config-tab active" onclick="switchTab('horari')">📅 Horari</button>
+      <button class="config-tab" onclick="switchTab('perfil')">👤 Perfil</button>
+      <button class="config-tab" onclick="switchTab('objectiu')">🎯 Objectiu</button>
+      <button class="config-tab" onclick="switchTab('ia')">🔑 IA</button>
+      <button class="config-tab" onclick="switchTab('reset')">🔄 Reset</button>
+    </div>
+    <div class="config-body" id="config-body"></div>
+  </div>
+</div>
+
+
+<!-- ═══ FULLSCREEN CLOCK OVERLAY ═══ -->
+<div id="clock-fullscreen">
+  <!-- Left: upcoming tasks -->
+  <div class="fs-side" onclick="closeClockFullscreen()">
+    <div>
+      <div class="fs-side-label">Pròximes tasques</div>
+      <div class="fs-side-card" id="fs-tasks-panel"><div class="fs-empty">sense tasques</div></div>
+    </div>
+    <div>
+      <div class="fs-side-label">Avui al calendari</div>
+      <div class="fs-side-card" id="fs-today-panel"><div class="fs-empty">res avui</div></div>
+    </div>
+  </div>
+
+  <div class="fs-divider"></div>
+
+  <!-- Centre: clock -->
+  <div id="fs-center" onclick="closeClockFullscreen()">
+    <div>
+      <span id="fs-clock-time">--:--</span><span id="fs-clock-seconds">:--</span>
+    </div>
+    <div id="fs-clock-date"></div>
+  </div>
+
+  <div class="fs-divider"></div>
+
+  <!-- Right: streak + goal -->
+  <div class="fs-side" onclick="closeClockFullscreen()">
+    <div>
+      <div class="fs-side-label">Ratxa actual</div>
+      <div class="fs-side-card">
+        <div class="fs-streak-num" id="fs-streak-num">0</div>
+        <div class="fs-streak-label">dies consecutius 🔥</div>
+        <div class="fs-streak-dots" id="fs-streak-dots"></div>
+      </div>
+    </div>
+    <div>
+      <div class="fs-side-label">Objectiu</div>
+      <div class="fs-side-card" id="fs-goal-panel" style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;"></div>
+    </div>
+  </div>
+
+  <div id="fs-clock-controls" onclick="event.stopPropagation()">
+    <button id="fs-toggle-seconds" onclick="toggleClockSeconds()">⏱ Amagar segons</button>
+    <span id="fs-close-hint">ESC · clic per tancar</span>
+  </div>
+</div>
+
+
+<!-- ═══ POMODORO FULLSCREEN ═══ -->
+<div id="pomo-fullscreen" onclick="handlePomoFsClick(event)">
+  <!-- SVG ring + digits -->
+  <div id="pomo-fs-svg-wrap">
+    <svg id="pomo-fs-svg" viewBox="0 0 200 200">
+      <circle class="pomo-fs-bg-circle" cx="100" cy="100" r="88"/>
+      <circle class="pomo-fs-arc" id="pomo-fs-arc" cx="100" cy="100" r="88"
+        stroke-dasharray="553" stroke-dashoffset="0"/>
+    </svg>
+    <div id="pomo-fs-center">
+      <div id="pomo-fs-digits">25:00</div>
+      <div id="pomo-fs-phase">FOCUS</div>
+    </div>
+  </div>
+
+  <!-- Session dots -->
+  <div id="pomo-fs-dots"></div>
+
+  <!-- Controls (no propagate click) -->
+  <div id="pomo-fs-controls" onclick="event.stopPropagation()">
+    <button class="pomo-fs-btn primary" id="pomo-fs-start" onclick="pomoFsAction()">▶ INICIAR</button>
+    <button class="pomo-fs-btn" onclick="pomoFsReset()">↺ RESET</button>
+  </div>
+
+  <!-- Música -->
+  <div id="pomo-fs-music">
+    <div id="pomo-fs-music-label">ara sonant</div>
+    <div class="pomo-fs-music-bar paused" id="pomo-fs-bar">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div id="pomo-fs-music-track">—</div>
+    <div id="pomo-fs-music-artist"></div>
+  </div>
+
+  <div id="pomo-fs-close-hint">ESC · TOCA PER TANCAR</div>
+</div>
+
+<script src="app.js" defer></script>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   JOMAXPATH — FALLBACK INLINE FUNCTIONS
+   Fixes: rellotge, hamburger menu, disposició
+   S'executa si app.js no carrega o no inclou aquestes funcions
+═══════════════════════════════════════════════════ */
+
+(function() {
+  'use strict';
+
+  /* ── 1. RELLOTGE ── */
+  var _showSeconds = false;
+  var _clockEl = null;
+  var _fsTimeEl = null;
+  var _fsSecsEl = null;
+  var _fsDateEl = null;
+  var _clockInterval = null;
+
+  function _pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function _tickClock() {
+    var now = new Date();
+    var h = _pad(now.getHours());
+    var m = _pad(now.getMinutes());
+    var s = _pad(now.getSeconds());
+    var timeStr = h + ':' + m;
+    var secsStr = ':' + s;
+
+    if (!_clockEl) _clockEl = document.getElementById('nav-clock');
+    if (_clockEl) {
+      _clockEl.textContent = _showSeconds ? timeStr + secsStr : timeStr;
+    }
+    if (_fsTimeEl) _fsTimeEl.textContent = timeStr;
+    if (_fsSecsEl) _fsSecsEl.textContent = _showSeconds ? secsStr : '';
+    if (_fsDateEl) {
+      var dies = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+      var mesos = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+      _fsDateEl.textContent = dies[now.getDay()] + ', ' + now.getDate() + ' de ' + mesos[now.getMonth()] + ' de ' + now.getFullYear();
+    }
+  }
+
+  function _startClock() {
+    _tickClock();
+    _clockInterval = setInterval(_tickClock, 1000);
+  }
+
+  /* Safe define — don't override if app.js already defined it */
+  if (typeof window.toggleClockSeconds === 'undefined') {
+    window.toggleClockSeconds = function() {
+      _showSeconds = !_showSeconds;
+      var btn = document.getElementById('fs-toggle-seconds');
+      if (btn) btn.textContent = _showSeconds ? '⏱ Amagar segons' : '⏱ Mostrar segons';
+      _tickClock();
+    };
+  }
+
+  if (typeof window.openClockFullscreen === 'undefined') {
+    window.openClockFullscreen = function() {
+      var el = document.getElementById('clock-fullscreen');
+      if (!el) return;
+      _fsTimeEl = document.getElementById('fs-clock-time');
+      _fsSecsEl = document.getElementById('fs-clock-seconds');
+      _fsDateEl = document.getElementById('fs-clock-date');
+      el.style.display = 'flex';
+      _tickClock();
+    };
+  }
+
+  if (typeof window.closeClockFullscreen === 'undefined') {
+    window.closeClockFullscreen = function() {
+      var el = document.getElementById('clock-fullscreen');
+      if (el) el.style.display = 'none';
+      _fsTimeEl = null; _fsSecsEl = null; _fsDateEl = null;
+    };
+  }
+
+  /* ── 2. HAMBURGER / DRAWER ── */
+  if (typeof window.toggleDrawer === 'undefined') {
+    window.toggleDrawer = function() {
+      var drawer = document.getElementById('nav-drawer');
+      var overlay = document.getElementById('nav-overlay');
+      var btn = document.getElementById('nav-hamburger');
+      if (!drawer) return;
+      var isOpen = drawer.classList.contains('open');
+      if (isOpen) {
+        drawer.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        if (btn) btn.classList.remove('open');
+        document.body.style.overflow = '';
+      } else {
+        drawer.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        if (btn) btn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+  }
+
+  /* ── 3. STUBS per evitar errors de consola ── */
+  var _stubs = ['navTo','openConfig','closeConfig','openQuickCapture','closeQuickCapture',
+    'openSearch','closeSearch','showAuthOverlay','authLogin','authRegister','authSkip',
+    'authShowMenu','switchAuthTab','openClockFullscreen','showInfo','closeInfo',
+    'toggleNotePicker','switchHorariTab','lsbSetActive','openDevMode','closeDevMode',
+    'closeShortcuts','openShortcuts'];
+
+  _stubs.forEach(function(fn) {
+    if (typeof window[fn] === 'undefined') {
+      window[fn] = function() {
+        console.warn('JOmaxPath: ' + fn + '() requereix app.js');
+      };
+    }
+  });
+
+  /* ── 4. INICIAR rellotge quan el DOM estigui llest ── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _startClock);
+  } else {
+    _startClock();
+  }
+
+  /* ── 5. Tecla ESC per tancar el drawer ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var drawer = document.getElementById('nav-drawer');
+      if (drawer && drawer.classList.contains('open')) window.toggleDrawer();
+      if (typeof window.closeClockFullscreen === 'function') {
+        var cfs = document.getElementById('clock-fullscreen');
+        if (cfs && cfs.style.display !== 'none') window.closeClockFullscreen();
+      }
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
+<!-- ══════════════════════════════════════════
+     HERO-UNIFIED STYLE — Unifica sidebar+menú amb hero.html
+     Afegit automàticament — no eliminar
+══════════════════════════════════════════ -->
+<style id="hero-unified-style">
+
+/* ── Sidebar: fons més fosc, igual que hero.html ── */
+#left-sidebar {
+  background: rgba(5,5,13,0.98) !important;
+  border-right: 1px solid rgba(124,58,237,0.14) !important;
+}
+
+/* ── Logo: consistent ── */
+.lsb-logo {
+  width: 34px !important; height: 34px !important;
+  border-radius: 9px !important;
+  background: linear-gradient(135deg,#7c3aed,#00b8d9) !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.3) !important;
+  font-size: 17px !important;
+}
+
+/* ── Brand ── */
+.lsb-brand { font-size: 12px !important; }
+.lsb-brand small { font-size: 7px !important; letter-spacing: 2.5px !important; }
+
+/* ── Hero mini card — igual que sb-hero-card de hero.html ── */
+.lsb-hero-mini {
+  margin: 10px 8px 4px !important;
+  padding: 12px 14px !important;
+  background: linear-gradient(135deg,rgba(124,58,237,0.14),rgba(0,180,216,0.07)) !important;
+  border: 1px solid rgba(124,58,237,0.22) !important;
+  border-radius: 12px !important;
+  position: relative; overflow: hidden;
+}
+.lsb-hero-mini::before {
+  content: '';
+  position: absolute; top: -20px; right: -20px;
+  width: 70px; height: 70px;
+  background: radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%);
+  pointer-events: none;
+}
+.lsb-hero-mini:hover { border-color: rgba(167,139,250,0.45) !important; }
+
+/* Afegir avatar emoji gran al hero mini */
+.lsb-hero-lvl { font-size: 7.5px !important; letter-spacing: 2px !important; }
+.lsb-hero-name-mini { font-size: 12px !important; font-weight: 700 !important; }
+.lsb-xpbar { height: 3px !important; margin-top: 8px !important; }
+.lsb-xpbar-fill {
+  background: linear-gradient(90deg, var(--gold,#f59e0b), #fcd34d) !important;
+}
+
+/* ── Nav items ── */
+.lsb-item {
+  border-radius: 9px !important;
+  margin: 2px 7px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+}
+.lsb-item:hover { background: rgba(124,58,237,0.1) !important; color: #c4b5fd !important; }
+.lsb-item.lsb-active {
+  background: linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.08)) !important;
+  color: var(--accent2,#a78bfa) !important;
+  border: 1px solid rgba(124,58,237,0.22) !important;
+}
+.lsb-ico {
+  width: 30px !important; height: 30px !important;
+  border-radius: 8px !important; font-size: 15px !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+.lsb-item.lsb-active .lsb-ico { background: rgba(124,58,237,0.2) !important; }
+.lsb-lbl { font-size: 12px !important; }
+
+/* ── Section labels ── */
+.lsb-sec {
+  font-size: 7px !important;
+  letter-spacing: 2px !important;
+  padding: 10px 16px 4px !important;
+  color: #64748b !important;
+}
+
+/* ── Pills ── */
+.lsb-pill {
+  font-size: 7px !important; padding: 2px 6px !important;
+  border-radius: 5px !important;
+  background: rgba(124,58,237,0.2) !important;
+  border: 1px solid rgba(124,58,237,0.35) !important;
+  color: var(--accent2,#a78bfa) !important;
+}
+.lsb-pill.new {
+  background: rgba(124,58,237,0.18) !important;
+  border-color: rgba(124,58,237,0.3) !important;
+  color: #a78bfa !important;
+}
+
+/* ── Bottom items ── */
+.lsb-bottom { border-top: 1px solid rgba(124,58,237,0.1) !important; padding: 6px 7px 8px !important; }
+.lsb-bot-item { border-radius: 8px !important; font-size: 11px !important; }
+.lsb-bot-item:hover { background: rgba(255,255,255,0.05) !important; color: var(--text,#e2e8f0) !important; }
+
+/* ── Barra inferior: consistent amb hero ── */
+#bnav {
+  background: rgba(5,5,13,0.95) !important;
+  border-top: 1px solid rgba(124,58,237,0.14) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  height: 56px !important;
+}
+.bnav-item.active .bnav-lbl { color: var(--accent2,#a78bfa) !important; }
+.bnav-lbl { font-size: 7.5px !important; letter-spacing: 1.5px !important; }
+.bnav-icon { font-size: 19px !important; }
+
+/* Temes: override navbar color per cada tema */
+body.theme-ocean    #bnav { border-top-color: rgba(14,165,233,0.22) !important; }
+body.theme-forest   #bnav { border-top-color: rgba(22,163,74,0.22) !important; }
+body.theme-sunset   #bnav { border-top-color: rgba(225,29,72,0.22) !important; }
+body.theme-midnight #bnav { border-top-color: rgba(79,70,229,0.22) !important; }
+body.theme-caramel  #bnav { border-top-color: rgba(217,119,6,0.22) !important; }
+body.theme-violet   #bnav { border-top-color: rgba(147,51,234,0.22) !important; }
+body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
+
+/* ── Drawer principal: alineat amb hero ── */
+#nav-drawer {
+  border-left: 1px solid rgba(124,58,237,0.14) !important;
+}
+
+/* ── Hero button al drawer: destacat i consistent ── */
+.ndw-bottom-btn[onclick*="hero.html"] {
+  background: linear-gradient(135deg,rgba(245,158,11,0.14),rgba(239,68,68,0.07)) !important;
+  border: 1px solid rgba(245,158,11,0.28) !important;
+  color: #fcd34d !important;
+  font-weight: 600 !important;
+}
+
+/* ── Heroi a la barra de navegació inferior: afegir pill "HEROI" visual ── */
+/* (quan navega a hero.html, l'iframe mostra el botó al drawer) */
+
+/* ── Animations unified ── */
+@keyframes heroGlow {
+  0%,100% { text-shadow: 0 0 18px rgba(124,58,237,0.55), 0 0 36px rgba(124,58,237,0.25); }
+  50%      { text-shadow: 0 0 22px rgba(124,58,237,0.65), 0 0 44px rgba(124,58,237,0.3); }
+}
+
+/* ── Config panel ── */
+#config-panel { border: 1px solid rgba(124,58,237,0.18) !important; }
+.config-tab.active { color: var(--accent2,#a78bfa) !important; border-bottom-color: var(--accent2,#a78bfa) !important; }
+
+/* ── Auth overlay ── */
+#auth-logo .bolt { color: #a78bfa !important; }
+#auth-logo h2 { background: linear-gradient(135deg,#fff,var(--accent2,#a78bfa)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Scroll sync ── */
+::-webkit-scrollbar { width: 3px !important; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25) !important; border-radius: 4px !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+
+/* ══════════════════════════════════════════════════
+   MILLORES DE DISPOSICIÓ — Layout fixes
+   - Evita que el contingut quedi sota el hamburger/rellotge
+   - Millora l'alineació general
+══════════════════════════════════════════════════ */
+
+/* Padding dret per evitar solapament amb hamburger+rellotge (42px + 42px + 18px*3 gaps = ~140px) */
+.container {
+  padding-right: 150px !important;
+}
+@media(max-width: 768px) {
+  .container { padding-right: 110px !important; }
+}
+@media(max-width: 480px) {
+  .container { padding-right: 100px !important; }
+}
+
+/* El header principal (títol de pàgina) no ha de quedar tapat */
+.page-title-bar {
+  padding-right: 10px !important;
+}
+
+/* Millora visual del rellotge: more prominent */
+#nav-clock {
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+  min-width: 68px !important;
+  justify-content: center !important;
+}
+
+/* Grup de controls: rellotge + hamburger alineats amb espaiat consistent */
+#nav-hamburger {
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease !important;
+}
+#nav-hamburger:active {
+  transform: scale(0.92) !important;
+}
+
+/* Drawer: millora capçalera */
+.ndw-header {
+  padding: 20px 16px 16px !important;
+  border-bottom: 1px solid rgba(124,58,237,0.15) !important;
+}
+.ndw-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+}
+.ndw-sub {
+  font-size: 10px !important;
+  opacity: 0.6 !important;
+  margin-top: 2px !important;
+}
+
+/* Secció de la pàgina d'inici: evita que "Objectiu principal" quedi massa alt */
+#page-home .container,
+#page-home > .container {
+  padding-top: 20px !important;
+}
+
+/* Millora de la targeta objectiu principal */
+.next-up-bar {
+  margin-bottom: 16px !important;
+}
+
+/* Transicions suaus per les pàgines */
+.app-page {
+  transition: opacity 0.2s ease !important;
+}
+
+/* Clock fullscreen — millora */
+#clock-fullscreen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(6,6,16,0.97);
+  backdrop-filter: blur(20px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+</style>
