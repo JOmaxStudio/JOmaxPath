@@ -80,11 +80,24 @@ function toggleClockSeconds() {
 }
 function openClockFullscreen() {
   const el = document.getElementById('clock-fullscreen');
-  if (el) { el.style.display = 'flex'; _tickClock(); }
+  if (!el) return;
+  el.classList.add('zen-open');
+  _tickClock();
+  // populate side panels
+  try { _fsUpdatePanels(); } catch(e) {}
 }
 function closeClockFullscreen() {
   const el = document.getElementById('clock-fullscreen');
-  if (el) el.style.display = 'none';
+  if (!el) return;
+  el.classList.remove('zen-open');
+}
+function _fsUpdatePanels() {
+  const streakNum = document.getElementById('streak-num');
+  const fsStreakNum = document.getElementById('fs-streak-num');
+  if (streakNum && fsStreakNum) fsStreakNum.textContent = streakNum.textContent;
+  const goalDesc = document.getElementById('goal-desc');
+  const fsGoal = document.getElementById('fs-goal-panel');
+  if (goalDesc && fsGoal) fsGoal.textContent = goalDesc.textContent;
 }
 setInterval(_tickClock, 1000);
 _tickClock();
@@ -1061,7 +1074,9 @@ function updatePomoLevel(data) {
 }
 function openPomoFullscreen() {
   const ov=document.getElementById('pomo-fullscreen');
-  if(ov){ ov.style.display='flex'; updatePomoDisplay(); }
+  if(!ov) return;
+  ov.classList.add('zen-open');
+  updatePomoDisplay();
   // Sync digits
   const mainDigits=document.getElementById('pomo-digits');
   const fsDigits=document.getElementById('pomo-fs-digits');
@@ -1069,8 +1084,16 @@ function openPomoFullscreen() {
   const mainLbl=document.getElementById('pomo-lbl');
   const fsPhase=document.getElementById('pomo-fs-phase');
   if(mainLbl&&fsPhase) fsPhase.textContent=mainLbl.textContent;
+  // Sync start button state
+  const pomoStart=document.getElementById('pomo-start');
+  const fsStart=document.getElementById('pomo-fs-start');
+  if(pomoStart&&fsStart) fsStart.textContent=pomoStart.textContent;
 }
-function closePomoFullscreen() { const ov=document.getElementById('pomo-fullscreen'); if(ov) ov.style.display='none'; }
+function closePomoFullscreen() {
+  const ov=document.getElementById('pomo-fullscreen');
+  if(!ov) return;
+  ov.classList.remove('zen-open');
+}
 function pomoFsAction() { pomoAction(); }
 function pomoFsReset() { pomoReset(); }
 function handlePomoFsClick(e) {
@@ -1466,9 +1489,21 @@ function setTheme(id) {
 function applyStoredTheme() {
   const cfg=get(CONFIG_KEY,{}); const id=cfg.theme||'default';
   if(id!=='default') document.body.classList.add('theme-'+id);
+  // Also restore layout
+  const layout=cfg.layout||'compacta';
+  _applyLayoutMode(layout);
+  document.querySelectorAll('.ndw-view-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ndw-layout-'+layout)?.classList.add('active');
 }
 function setLayoutMode(mode) {
   const cfg=get(CONFIG_KEY,{}); cfg.layout=mode; set(CONFIG_KEY,cfg);
+  _applyLayoutMode(mode);
+  document.querySelectorAll('.ndw-view-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ndw-layout-'+mode)?.classList.add('active');
+  showToast('Vista: '+mode);
+}
+function _applyLayoutMode(mode) {
+  // Apply to home two-col
   const homeLeft=document.querySelector('.home-col-left');
   const homeRight=document.querySelector('.home-col-right');
   const twoCol=document.querySelector('.home-two-col');
@@ -1476,14 +1511,32 @@ function setLayoutMode(mode) {
     if(twoCol) twoCol.style.cssText='display:flex!important;flex-direction:column!important;';
     if(homeLeft) homeLeft.style.width='100%';
     if(homeRight) homeRight.style.width='100%';
+    // Apply to focus page
+    const focusTwoCol=document.querySelector('.focus-two-col');
+    if(focusTwoCol) focusTwoCol.style.cssText='display:flex!important;flex-direction:column!important;';
+    const focusLeft=document.querySelector('.focus-col-left');
+    const focusRight=document.querySelector('.focus-col-right');
+    if(focusLeft) focusLeft.style.width='100%';
+    if(focusRight) focusRight.style.width='100%';
+    // Apply to other multi-col containers
+    document.querySelectorAll('.cal-two-col').forEach(el=>el.style.cssText='display:flex!important;flex-direction:column!important;');
+    // body class for CSS targeting
+    document.body.classList.add('layout-ample');
+    document.body.classList.remove('layout-compacta');
   } else {
     if(twoCol) twoCol.style.cssText='';
     if(homeLeft) homeLeft.style.width='';
     if(homeRight) homeRight.style.width='';
+    const focusTwoCol=document.querySelector('.focus-two-col');
+    if(focusTwoCol) focusTwoCol.style.cssText='';
+    const focusLeft=document.querySelector('.focus-col-left');
+    const focusRight=document.querySelector('.focus-col-right');
+    if(focusLeft) focusLeft.style.width='';
+    if(focusRight) focusRight.style.width='';
+    document.querySelectorAll('.cal-two-col').forEach(el=>el.style.cssText='');
+    document.body.classList.remove('layout-ample');
+    document.body.classList.add('layout-compacta');
   }
-  document.querySelectorAll('.ndw-view-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('ndw-layout-'+mode)?.classList.add('active');
-  showToast('Vista: '+mode);
 }
 
 /* ─────────────────────────────────────────

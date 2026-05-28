@@ -512,6 +512,13 @@ select option { background: #0e0e1e !important; color: #e2e8f0 !important; }
 body.theme-blanc { --bg:#f0f2f8; --card:#ffffff; --card2:#eef0f7; --text:#1a1a2e; }
 body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
 
+
+/* zen-open: override display:none from styles.css */
+#pomo-fullscreen.zen-open,
+#clock-fullscreen.zen-open {
+  display: flex !important;
+  opacity: 1 !important;
+}
 </style>
 <!-- LAYOUT-FIX-END -->
 
@@ -848,6 +855,269 @@ body.view-pages.sb-collapsed-desktop .container {
   height: 20px !important;
   object-fit: contain !important;
   border-radius: 3px !important;
+}
+</style>
+
+<style id="zen-fullscreen-fixes">
+/* ═══════════════════════════════════════════
+   ZEN MODE — Clock & Pomodoro Fullscreen
+═══════════════════════════════════════════ */
+
+/* Clock: cursor hint */
+#nav-clock {
+  cursor: pointer !important;
+}
+#nav-clock:hover {
+  border-color: rgba(124,58,237,0.5) !important;
+}
+
+/* Clock fullscreen zen */
+#clock-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  background: rgba(4,4,12,0.98) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  transition: opacity 0.35s ease !important;
+}
+
+/* Clock fullscreen: big clock in center */
+#fs-center {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 60px 40px !important;
+  cursor: pointer !important;
+  min-width: 300px !important;
+}
+#fs-clock-time {
+  font-family: 'Space Mono', monospace !important;
+  font-size: clamp(5rem, 18vw, 14rem) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: -4px !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 60px rgba(124,58,237,0.5), 0 0 120px rgba(124,58,237,0.2) !important;
+  animation: zenGlow 4s ease-in-out infinite !important;
+}
+@keyframes zenGlow {
+  0%,100% { text-shadow: 0 0 40px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.2); }
+  50% { text-shadow: 0 0 60px rgba(124,58,237,0.7), 0 0 120px rgba(124,58,237,0.35); }
+}
+#fs-clock-seconds {
+  font-family: 'Space Mono', monospace !important;
+  font-size: clamp(2rem, 6vw, 5rem) !important;
+  color: rgba(167,139,250,0.6) !important;
+  font-weight: 400 !important;
+}
+#fs-clock-date {
+  font-family: 'Space Mono', monospace !important;
+  font-size: clamp(0.7rem, 2vw, 1.1rem) !important;
+  color: rgba(255,255,255,0.35) !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  margin-top: 16px !important;
+}
+#fs-clock-controls {
+  position: absolute !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  z-index: 10 !important;
+}
+#fs-toggle-seconds {
+  background: rgba(124,58,237,0.15) !important;
+  border: 1px solid rgba(124,58,237,0.3) !important;
+  color: #a78bfa !important;
+  padding: 7px 16px !important;
+  border-radius: 20px !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  letter-spacing: 1px !important;
+}
+#fs-close-hint {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 9px !important;
+  color: rgba(255,255,255,0.2) !important;
+  letter-spacing: 2px !important;
+}
+.fs-side {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  padding: 60px 40px !important;
+  gap: 28px !important;
+  cursor: pointer !important;
+  max-width: 320px !important;
+}
+.fs-side-label {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 9px !important;
+  letter-spacing: 3px !important;
+  color: rgba(255,255,255,0.3) !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+}
+.fs-side-card {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 14px !important;
+  padding: 16px 20px !important;
+}
+.fs-streak-num {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 3rem !important;
+  font-weight: 700 !important;
+  color: #fcd34d !important;
+  line-height: 1 !important;
+}
+.fs-streak-label {
+  font-size: 11px !important;
+  color: rgba(255,255,255,0.4) !important;
+  margin-top: 4px !important;
+}
+.fs-streak-dots {
+  display: flex !important;
+  gap: 4px !important;
+  margin-top: 10px !important;
+  flex-wrap: wrap !important;
+}
+.fs-divider {
+  width: 1px !important;
+  background: rgba(255,255,255,0.06) !important;
+  margin: 40px 0 !important;
+  align-self: stretch !important;
+}
+.fs-empty {
+  color: rgba(255,255,255,0.2) !important;
+  font-size: 11px !important;
+  font-family: 'Space Mono', monospace !important;
+}
+
+/* Pomo fullscreen: ensure it works */
+#pomo-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99998 !important;
+  background: rgba(4,4,12,0.98) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 0.35s ease !important;
+  cursor: pointer !important;
+  gap: 20px !important;
+  overflow: hidden !important;
+}
+#pomo-fs-svg-wrap {
+  position: relative !important;
+  width: min(60vw, 60vh, 520px) !important;
+  height: min(60vw, 60vh, 520px) !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#pomo-fs-center {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#pomo-fs-digits {
+  font-family: 'Space Mono', monospace !important;
+  font-size: clamp(3rem, 12vw, 7rem) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: -2px !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 40px rgba(239,68,68,0.6) !important;
+}
+#pomo-fs-phase {
+  font-family: 'Space Mono', monospace !important;
+  font-size: clamp(0.6rem, 2vw, 0.9rem) !important;
+  letter-spacing: 4px !important;
+  color: rgba(255,255,255,0.4) !important;
+  margin-top: 6px !important;
+}
+#pomo-fs-dots {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+#pomo-fs-controls {
+  display: flex !important;
+  gap: 14px !important;
+  cursor: default !important;
+  z-index: 10 !important;
+}
+.pomo-fs-btn {
+  padding: 12px 32px !important;
+  border-radius: 30px !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  cursor: pointer !important;
+  border: 1px solid rgba(239,68,68,0.4) !important;
+  background: rgba(239,68,68,0.15) !important;
+  color: #fca5a5 !important;
+  transition: all 0.2s !important;
+}
+.pomo-fs-btn.primary {
+  background: rgba(239,68,68,0.25) !important;
+  border-color: rgba(239,68,68,0.6) !important;
+  color: #fff !important;
+}
+.pomo-fs-btn:hover { background: rgba(239,68,68,0.4) !important; transform: scale(1.05) !important; }
+#pomo-fs-close-hint {
+  position: absolute !important;
+  bottom: 20px !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 9px !important;
+  color: rgba(255,255,255,0.18) !important;
+  letter-spacing: 3px !important;
+  pointer-events: none !important;
+}
+#pomo-fs-music {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  cursor: default !important;
+}
+#pomo-fs-music-label {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 8px !important;
+  letter-spacing: 2px !important;
+  color: rgba(255,255,255,0.2) !important;
+}
+#pomo-fs-music-track {
+  font-size: 11px !important;
+  color: rgba(255,255,255,0.5) !important;
+}
+
+/* Mobile zen: stack vertically */
+@media(max-width: 768px) {
+  #clock-fullscreen { flex-direction: column !important; }
+  .fs-side { max-width: 100% !important; padding: 20px 24px !important; flex-direction: row !important; gap: 12px !important; }
+  .fs-divider { width: 100% !important; height: 1px !important; margin: 0 20px !important; }
+  #fs-center { padding: 30px 20px !important; }
+  #fs-clock-time { font-size: clamp(4rem, 22vw, 7rem) !important; }
 }
 </style>
 </head><body class="view-pages">
@@ -1658,11 +1928,11 @@ body.view-pages.sb-collapsed-desktop .container {
 
   <!-- ═══ PAGE: JULIANS ═══ -->
   <div class="app-page" id="page-julians">
-    <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" src="julians-ai.png" alt="J"/></div>
+    <div class="page-title-bar" style="margin-bottom:20px;">
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;width:52px;height:52px;border-radius:14px;flex-shrink:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" src="julians-ai.png" alt="J"/></div>
       <div class="page-title-text">
-        <h2 id="pt-julians-h2">JULIANS AI</h2>
-        <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
+        <h2 id="pt-julians-h2" style="font-size:20px;letter-spacing:4px;">JULIANS AI</h2>
+        <p id="pt-julians-sub" style="font-size:11px;">Assistent intel·ligent · Documents</p>
       </div>
       <button class="info-btn" onclick="showInfo('julians')" title="Com funciona?">i</button>
     </div>
