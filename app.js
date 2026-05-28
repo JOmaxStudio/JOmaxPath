@@ -75,7 +75,7 @@ function _tickClock() {
 function toggleClockSeconds() {
   _clockShowSeconds = !_clockShowSeconds;
   const btn = document.getElementById('fs-toggle-seconds');
-  if (btn) btn.textContent = _clockShowSeconds ? '⏱ Amagar segons' : '⏱ Mostrar segons';
+  if (btn) btn.textContent = _clockShowSeconds ? "⏱ Amagar segons" : "⏱ Mostrar segons";
   _tickClock();
 }
 function openClockFullscreen() {
@@ -99,6 +99,7 @@ function _fsUpdatePanels() {
   const fsGoal = document.getElementById('fs-goal-panel');
   if (goalDesc && fsGoal) fsGoal.textContent = goalDesc.textContent;
 }
+window._appClockRunning = true;
 setInterval(_tickClock, 1000);
 _tickClock();
 

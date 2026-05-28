@@ -595,6 +595,7 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
   cursor:pointer;transition:border-color 0.2s;overflow:hidden;
 }
 .lsb-hero-mini:hover{border-color:rgba(167,139,250,0.4);}
+.lsb-hero-ico{font-size:20px;margin-bottom:4px;display:block;}
 .lsb-hero-lvl{
   font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
   color:#fcd34d;margin-bottom:3px;white-space:nowrap;
@@ -1137,7 +1138,8 @@ body.view-pages.sb-collapsed-desktop .container {
 
   <!-- Hero mini card -->
   <div class="lsb-hero-mini" onclick="window.open('hero.html','_self')" id="lsb-hero-mini">
-    <div class="lsb-hero-lvl" id="lsb-hero-lvl">⚔️ HEROE · NV. <span id="lsb-lvl-num">1</span></div>
+    <div class="lsb-hero-ico" id="lsb-hero-ico">⚔️</div>
+    <div class="lsb-hero-lvl" id="lsb-hero-lvl">HEROE · NV. <span id="lsb-lvl-num">1</span></div>
     <div class="lsb-hero-name-mini" id="lsb-hero-name">El teu heroi</div>
     <div class="lsb-xpbar"><div class="lsb-xpbar-fill" id="lsb-xp-fill" style="width:0%"></div></div>
   </div>
@@ -1158,12 +1160,6 @@ body.view-pages.sb-collapsed-desktop .container {
     </div>
     <div class="lsb-item" data-tip="Julians AI" onclick="navTo('julians');lsbMobileClose()">
       <div class="lsb-ico">🧠</div><span class="lsb-lbl">Julians AI</span>
-    </div>
-
-    <div class="lsb-sec">⚔️ HEROE</div>
-    <div class="lsb-item" data-tip="El meu heroi" onclick="window.open('hero.html','_self')">
-      <div class="lsb-ico">⚔️</div><span class="lsb-lbl">El meu heroi</span>
-      <span class="lsb-pill new">NOU</span>
     </div>
 
     <div class="lsb-sec">EINES</div>
@@ -1929,10 +1925,10 @@ body.view-pages.sb-collapsed-desktop .container {
   <!-- ═══ PAGE: JULIANS ═══ -->
   <div class="app-page" id="page-julians">
     <div class="page-title-bar" style="margin-bottom:20px;">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;width:52px;height:52px;border-radius:14px;flex-shrink:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" src="julians-ai.png" alt="J"/></div>
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;width:68px;height:68px;border-radius:18px;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,0.4);"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" src="julians-ai.png" alt="J"/></div>
       <div class="page-title-text">
-        <h2 id="pt-julians-h2" style="font-size:20px;letter-spacing:4px;">JULIANS AI</h2>
-        <p id="pt-julians-sub" style="font-size:11px;">Assistent intel·ligent · Documents</p>
+        <h2 id="pt-julians-h2" style="font-size:26px;letter-spacing:5px;font-weight:800;">JULIANS AI</h2>
+        <p id="pt-julians-sub" style="font-size:12px;">Assistent intel·ligent · Documents</p>
       </div>
       <button class="info-btn" onclick="showInfo('julians')" title="Com funciona?">i</button>
     </div>
@@ -2480,7 +2476,7 @@ body.view-pages.sb-collapsed-desktop .container {
   </div>
 
   <div id="fs-clock-controls" onclick="event.stopPropagation()">
-    <button id="fs-toggle-seconds" onclick="toggleClockSeconds()">⏱ Amagar segons</button>
+    <button id="fs-toggle-seconds" onclick="toggleClockSeconds()">⏱ Mostrar segons</button>
     <span id="fs-close-hint">ESC · clic per tancar</span>
   </div>
 </div>
@@ -2639,10 +2635,20 @@ body.view-pages.sb-collapsed-desktop .container {
   });
 
   /* ── 4. INICIAR rellotge quan el DOM estigui llest ── */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _startClock);
-  } else {
+  /* Expose _showSeconds so app.js toggleClockSeconds can sync it */
+  window._inlineClockShowSeconds = function(val) { _showSeconds = val; };
+
+  /* Only start inline clock if app.js setInterval not already running */
+  function _startClockIfNeeded() {
+    /* app.js sets a global interval via setInterval(_tickClock,1000) at line ~102 */
+    /* If typeof _tickClock (global) is defined app.js has loaded — skip inline clock */
+    if (typeof window._appClockRunning !== 'undefined') return;
     _startClock();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _startClockIfNeeded);
+  } else {
+    _startClockIfNeeded();
   }
 
   /* ── 5. Tecla ESC per tancar el drawer ── */
@@ -3135,5 +3141,277 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   align-items: center;
   justify-content: center;
 }
+
+/* ═══ RESUM SETMANAL — disseny millorat ═══ */
+.weekly-summary {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(6,6,16,0.6) 100%) !important;
+  border: 1px solid rgba(124,58,237,0.25) !important;
+  border-radius: 20px !important;
+  padding: 20px 22px !important;
+  margin-top: 24px !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 4px 32px rgba(124,58,237,0.08), 0 1px 0 rgba(255,255,255,0.04) inset !important;
+  position: relative;
+  overflow: hidden;
+}
+.weekly-summary::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+  pointer-events: none;
+}
+.weekly-summary .section-title {
+  font-size: 9px !important;
+  letter-spacing: 3px !important;
+  color: rgba(167,139,250,0.7) !important;
+  font-family: 'Space Mono', monospace !important;
+  text-transform: uppercase !important;
+  margin-bottom: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.weekly-summary .section-title::before {
+  content: '';
+  display: inline-block;
+  width: 18px; height: 2px;
+  background: linear-gradient(90deg, #7c3aed, transparent);
+  border-radius: 2px;
+}
+.stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  margin-top: 0 !important;
+}
+.stat-card-mini {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 14px !important;
+  padding: 14px 12px !important;
+  text-align: center !important;
+  transition: all 0.25s ease !important;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card-mini:hover {
+  background: rgba(124,58,237,0.1) !important;
+  border-color: rgba(124,58,237,0.3) !important;
+  transform: translateY(-2px) !important;
+}
+.stat-card-mini::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20%; right: 20%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,0.3), transparent);
+}
+.scm-icon {
+  font-size: 22px !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+}
+.scm-val {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  font-family: 'Space Mono', monospace !important;
+  color: #e2e8f0 !important;
+  line-height: 1 !important;
+  margin-bottom: 5px !important;
+  background: linear-gradient(135deg, #e2e8f0, #a78bfa) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+.scm-lbl {
+  font-size: 9px !important;
+  color: rgba(148,163,184,0.7) !important;
+  font-family: 'Space Mono', monospace !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+/* ═══ TASK LIST — botó eliminar millorat ═══ */
+.ei-del {
+  background: transparent !important;
+  border: 1px solid rgba(239,68,68,0.2) !important;
+  color: rgba(239,68,68,0.5) !important;
+  border-radius: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+  opacity: 0 !important;
+}
+.exam-item:hover .ei-del {
+  opacity: 1 !important;
+}
+.ei-del:hover {
+  background: rgba(239,68,68,0.15) !important;
+  border-color: rgba(239,68,68,0.5) !important;
+  color: #fca5a5 !important;
+  transform: scale(1.1) !important;
+}
+.exam-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  margin-bottom: 4px !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+.exam-item:hover {
+  background: rgba(124,58,237,0.07) !important;
+  border-color: rgba(124,58,237,0.15) !important;
+}
+.ei-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+.ei-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+.ei-check {
+  background: transparent !important;
+  border: 1.5px solid rgba(124,58,237,0.3) !important;
+  color: transparent !important;
+  border-radius: 7px !important;
+  width: 22px !important;
+  height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+.ei-check:hover {
+  background: rgba(124,58,237,0.15) !important;
+  border-color: rgba(124,58,237,0.6) !important;
+}
+.ei-check.done {
+  background: rgba(124,58,237,0.2) !important;
+  border-color: #7c3aed !important;
+  color: #a78bfa !important;
+}
+.ei-prio-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+.ei-icon { font-size: 16px !important; flex-shrink: 0 !important; }
+.ei-info { min-width: 0 !important; }
+.ei-name {
+  font-size: 13px !important;
+  color: var(--text) !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.ei-name.done {
+  text-decoration: line-through !important;
+  color: var(--muted) !important;
+}
+.ei-date {
+  font-size: 10px !important;
+  color: var(--muted) !important;
+  margin-top: 2px !important;
+}
+
+/* ═══ POMODORO FULLSCREEN — centrat correcte ═══ */
+#pomo-fullscreen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: radial-gradient(ellipse at center, #1a0520 0%, #060610 70%) !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 24px !important;
+}
+#pomo-fullscreen.zen-open {
+  display: flex !important;
+}
+#pomo-fs-svg-wrap {
+  position: relative !important;
+  width: 220px !important;
+  height: 220px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#pomo-fs-svg {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+#pomo-fs-center {
+  position: relative !important;
+  z-index: 2 !important;
+  text-align: center !important;
+}
+#pomo-fs-digits {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 48px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  line-height: 1 !important;
+  letter-spacing: 2px !important;
+}
+#pomo-fs-phase {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 12px !important;
+  letter-spacing: 4px !important;
+  color: rgba(255,255,255,0.45) !important;
+  margin-top: 6px !important;
+}
+#pomo-fs-controls {
+  display: flex !important;
+  gap: 14px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#pomo-fs-close-hint {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 2px !important;
+  color: rgba(255,255,255,0.2) !important;
+  text-align: center !important;
+  position: absolute !important;
+  bottom: 28px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+/* ═══ LSB hero-ico ═══ */
+.lsb-hero-ico {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+#left-sidebar.sb-collapsed .lsb-hero-ico { margin-bottom: 0; font-size: 22px; }
+#left-sidebar.sb-collapsed .lsb-hero-mini { flex-direction: column; }
 
 </style>
