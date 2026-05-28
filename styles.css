@@ -1865,6 +1865,12 @@
 .auth-divider { display:flex; align-items:center; gap:12px; margin:16px 0; }
 .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.07); }
 .auth-divider span { font-size:10px; color:rgba(255,255,255,0.2); }
+.auth-remember-row { margin-bottom:14px; }
+.auth-remember-label { display:flex; align-items:center; gap:8px; cursor:pointer; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1.5px; color:rgba(255,255,255,0.35); }
+.auth-remember-label input[type=checkbox] { accent-color:#7c3aed; width:14px; height:14px; cursor:pointer; }
+.auth-remember-label:hover { color:rgba(255,255,255,0.6); }
+#auth-overlay { background:rgba(0,0,0,0.85); backdrop-filter:blur(20px); }
+#auth-box { max-height:92vh; overflow-y:auto; }
 
 /* ── USER INDICATOR (top-left) ── */
 /* auth-indicator ara viu dins el nav drawer */

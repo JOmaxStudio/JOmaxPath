@@ -121,26 +121,26 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .tnav-btn.tutorial-btn:hover{background:rgba(245,158,11,0.2);}
 
 /* ═══ CONTENT ═══ */
-#content{flex:1;padding:20px 24px 80px;max-width:1280px;width:100%;}
+#content{flex:1;padding:20px 24px 80px;max-width:1400px;width:100%;}
 @media(max-width:600px){#content{padding:12px 12px 72px;}}
 
 /* ═══ HERO HEADER ═══ */
 .hero-header{
-  display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
-  background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,180,216,0.05),transparent);
-  border:1px solid rgba(124,58,237,0.2);border-radius:20px;
-  padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden;
+  display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+  background:linear-gradient(135deg,rgba(124,58,237,0.14),rgba(0,180,216,0.07),rgba(124,58,237,0.05));
+  border:1px solid rgba(124,58,237,0.28);border-radius:22px;
+  padding:24px 28px;margin-bottom:22px;position:relative;overflow:hidden;
 }
 .hero-header::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(124,58,237,0.12),transparent 70%);pointer-events:none;}
 .hh-avatar-wrap{position:relative;cursor:pointer;}
 .hh-avatar{
-  width:80px;height:80px;border-radius:18px;
-  background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.12));
-  border:2px solid rgba(124,58,237,0.35);
-  display:flex;align-items:center;justify-content:center;font-size:38px;
-  box-shadow:0 0 28px rgba(124,58,237,0.2);transition:all .2s;
+  width:96px;height:96px;border-radius:22px;
+  background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(0,180,216,0.15));
+  border:2px solid rgba(124,58,237,0.45);
+  display:flex;align-items:center;justify-content:center;font-size:46px;
+  box-shadow:0 0 36px rgba(124,58,237,0.3),0 0 60px rgba(124,58,237,0.12);transition:all .2s;
 }
-.hh-avatar:hover{transform:scale(1.04);box-shadow:0 0 40px rgba(124,58,237,0.35);}
+.hh-avatar:hover{transform:scale(1.04);box-shadow:0 0 50px rgba(124,58,237,0.45);}
 .hh-lvl-badge{
   position:absolute;bottom:-8px;right:-8px;
   width:26px;height:26px;border-radius:50%;
@@ -151,7 +151,7 @@ body.mob-sb #sb{width:var(--sb) !important;}
 }
 .hh-info{min-width:0;}
 .hh-class{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2.5px;color:var(--gold2);margin-bottom:5px;}
-.hh-name{font-size:22px;font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent2) 70%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hh-name{font-size:28px;font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent2) 70%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .hh-xp-lbl{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2px;color:var(--muted);margin-bottom:5px;}
 .hh-xp-row{display:flex;align-items:center;gap:10px;}
 .hh-xp-bar{flex:1;height:7px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden;}
@@ -163,19 +163,20 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .hh-qs-lbl{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;color:var(--muted);}
 
 /* ═══ MAIN LAYOUT ═══ */
-.hero-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
-@media(max-width:1100px){.hero-layout{grid-template-columns:1fr;}}
+.hero-layout{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;}
+@media(max-width:1200px){.hero-layout{grid-template-columns:300px 1fr;}}
+@media(max-width:1000px){.hero-layout{grid-template-columns:1fr;}}
 
 /* ═══ CHARACTER STAGE ═══ */
 .char-stage{
-  background:linear-gradient(160deg,rgba(124,58,237,0.08),rgba(0,180,216,0.04),transparent);
-  border:1px solid rgba(124,58,237,0.18);border-radius:20px;
+  background:linear-gradient(160deg,rgba(124,58,237,0.1),rgba(0,180,216,0.05),transparent);
+  border:1px solid rgba(124,58,237,0.22);border-radius:20px;
   padding:20px;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;align-items:center;min-height:520px;
 }
-.char-stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,58,237,0.1),transparent 70%);pointer-events:none;}
+.char-stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(124,58,237,0.14),transparent 70%);pointer-events:none;}
 .char-stage-title{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:3px;color:var(--muted);margin-bottom:14px;text-align:center;}
-.char-equip-ring{position:relative;width:280px;height:380px;}
+.char-equip-ring{position:relative;width:320px;height:440px;}
 #hero-svg{display:block;width:100%;height:100%;position:absolute;top:0;left:0;}
 
 /* Equipment slots around character */
@@ -994,6 +995,15 @@ function computeLevel(xp){let lvl=1,left=xp;while(left>=xpForLevel(lvl)){left-=x
 
 /* ═══ INIT ═══ */
 function init(){
+  // Sync hero name from auth profile if default
+  try {
+    const p = JSON.parse(localStorage.getItem('jomaxpath_profile_v1'));
+    if (p?.username && (hero.name === 'Heroi en Construcció' || !hero.name)) {
+      hero.name = p.username;
+      if (p.avatar) hero.avatar = p.avatar;
+      saveHero(hero);
+    }
+  } catch{}
   checkDailyReset();
   renderHeader();
   renderSidebar();
@@ -1265,13 +1275,20 @@ function goTo(page){window.open('index.html','_self');}
 /* ═══ FRIENDS ═══ */
 function generateInviteCode(){
   const{level}=computeLevel(hero.xp);
-  const data={name:hero.name,avatar:hero.avatar,level:level,xp:hero.xp,class:CLASSES[Math.min(level-1,9)],stats:hero.stats};
+  // Try to get username from auth profile (stored by index.html auth system)
+  let username = hero.name;
+  try { const p = JSON.parse(localStorage.getItem('jomaxpath_profile_v1')); if(p?.username) username = p.username; } catch{}
+  const data={name:username,avatar:hero.avatar,level:level,xp:hero.xp,class:CLASSES[Math.min(level-1,9)],stats:hero.stats};
   try{return btoa(unescape(encodeURIComponent(JSON.stringify(data))));}catch{return null;}
 }
 
 function updateInviteCode(){
   const code=generateInviteCode();
-  if(code)document.getElementById('my-invite-code').textContent=code.slice(0,40)+'...';
+  // Show truncated code
+  if(code){
+    const el=document.getElementById('my-invite-code');
+    if(el) el.textContent=code.slice(0,36)+'...';
+  }
 }
 
 function copyInviteCode(){

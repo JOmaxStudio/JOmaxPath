@@ -150,66 +150,274 @@ function navTo(page) {
 /* ─────────────────────────────────────────
    AUTH
 ───────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   AUTH — Sistema complet amb Supabase
+   - Pseudònim, sessió persistent, cloud sync
+   - Compartir tasques/kanban i herois
+───────────────────────────────────────── */
 let _supabase = null;
+let _currentUser = null;
+let _userProfile = null; // {id, email, username, avatar}
+
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
       'https://ngyijuqcnelrzujazqom.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neWlqdXFjbmVscnp1amF6cW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3OTk0MDgsImV4cCI6MjA1OTM3NTQwOH0.pQa8K5wXE9M7E8pu_D9s58hf1m4Wz5aNKbKNFMbQiSk'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neWlqdXFjbmVscnp1amF6cW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3OTk0MDgsImV4cCI6MjA1OTM3NTQwOH0.pQa8K5wXE9M7E8pu_D9s58hf1m4Wz5aNKbKNFMbQiSk',
+      { auth: { persistSession: true, autoRefreshToken: true } }
     );
   }
 } catch {}
 
+function _getLocalProfile() { try { return JSON.parse(localStorage.getItem('jomaxpath_profile_v1'))||null; } catch { return null; } }
+function _saveLocalProfile(p) { try { if(p) localStorage.setItem('jomaxpath_profile_v1',JSON.stringify(p)); else localStorage.removeItem('jomaxpath_profile_v1'); } catch {} }
+
+function _updateAuthUI() {
+  const u = _currentUser, p = _userProfile;
+  const dot = document.getElementById('auth-dot');
+  const emailEl = document.getElementById('auth-user-email');
+  const indicator = document.getElementById('auth-indicator');
+  const loginBtn = document.getElementById('drawer-login-btn');
+  const localWarn = document.getElementById('local-data-warning');
+  if (u) {
+    const display = p?.username || u.email?.split('@')[0] || 'Usuari';
+    if (dot) { dot.style.background='#10b981'; dot.style.boxShadow='0 0 8px rgba(16,185,129,0.5)'; }
+    if (emailEl) emailEl.textContent = '👤 ' + display;
+    if (indicator) indicator.style.display = 'flex';
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (localWarn) localWarn.style.display = 'none';
+    // Sync username to hero
+    if (p?.username) {
+      const heroData = get('jomaxpath_hero_v2', null);
+      if (heroData && heroData.name === 'Heroi en Construcció') {
+        heroData.name = p.username; set('jomaxpath_hero_v2', heroData);
+      }
+      const nameEl = document.getElementById('lsb-hero-name');
+      if (nameEl && nameEl.textContent === 'El teu heroi') nameEl.textContent = p.username;
+    }
+  } else {
+    if (dot) { dot.style.background='rgba(100,116,139,0.5)'; dot.style.boxShadow='none'; }
+    if (emailEl) emailEl.textContent = 'Sense compte';
+    if (indicator) indicator.style.display = 'none';
+    if (loginBtn) loginBtn.style.display = 'flex';
+    if (localWarn) localWarn.style.display = 'flex';
+  }
+}
+
 function showAuthOverlay() {
   const ov = document.getElementById('auth-overlay');
-  if (ov) ov.style.display = 'flex';
+  if (ov) { ov.style.display='flex'; }
+  // Reset msg
+  const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
 }
 function switchAuthTab(tab) {
   document.getElementById('auth-login-form').style.display   = tab==='login'?'block':'none';
   document.getElementById('auth-register-form').style.display= tab==='register'?'block':'none';
   document.getElementById('tab-login').classList.toggle('active', tab==='login');
   document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
 }
 function authSkip() {
   const ov = document.getElementById('auth-overlay');
   if (ov) ov.style.display = 'none';
+  if (!_currentUser) { _updateAuthUI(); }
   renderHome();
 }
+
 async function authLogin() {
   const email = (document.getElementById('auth-email')?.value||'').trim();
   const pass  = document.getElementById('auth-password')?.value||'';
-  const msg   = document.getElementById('auth-msg');
+  const remember = document.getElementById('auth-remember')?.checked !== false;
+  const msg = document.getElementById('auth-msg');
   if (!email||!pass) { if(msg) msg.textContent='⚠️ Omple tots els camps'; return; }
-  if (_supabase) {
-    if(msg) msg.textContent='Entrant...';
-    const {error} = await _supabase.auth.signInWithPassword({email,password:pass});
-    if (error) { if(msg) msg.textContent='❌ '+error.message; return; }
-  }
+  const btn = document.getElementById('auth-submit-btn');
+  if(btn) { btn.textContent='Entrant...'; btn.disabled=true; }
+  try {
+    if (_supabase) {
+      const {data,error} = await _supabase.auth.signInWithPassword({email,password:pass});
+      if (error) { if(msg) msg.textContent='❌ '+error.message; if(btn){btn.textContent='ENTRAR';btn.disabled=false;} return; }
+      _currentUser = data.user;
+      await _loadUserProfile(data.user.id);
+      await _syncUserData(data.user.id);
+      if (!remember) {
+        // Sign out from supabase but keep local state for this session only
+        setTimeout(()=>{ if(_supabase) _supabase.auth.signOut().catch(()=>{}); }, 100);
+      }
+    }
+  } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
+  if(btn) { btn.textContent='ENTRAR'; btn.disabled=false; }
   document.getElementById('auth-overlay').style.display='none';
-  showToast('✅ Sessió iniciada!'); renderHome();
+  _updateAuthUI();
+  showToast('✅ Benvingut/da, '+(_userProfile?.username||email.split('@')[0])+'!');
+  renderHome();
 }
+
 async function authRegister() {
-  const email = (document.getElementById('auth-reg-email')?.value||'').trim();
-  const pass  = document.getElementById('auth-reg-password')?.value||'';
-  const msg   = document.getElementById('auth-msg');
+  const username = (document.getElementById('auth-reg-username')?.value||'').trim();
+  const email    = (document.getElementById('auth-reg-email')?.value||'').trim();
+  const pass     = document.getElementById('auth-reg-password')?.value||'';
+  const msg = document.getElementById('auth-msg');
+  if (!username) { if(msg) msg.textContent='⚠️ Escriu un pseudònim'; return; }
+  if (username.length<3) { if(msg) msg.textContent='⚠️ Pseudònim mínim 3 caràcters'; return; }
   if (!email||!pass) { if(msg) msg.textContent='⚠️ Omple tots els camps'; return; }
   if (pass.length<6) { if(msg) msg.textContent='⚠️ Contrasenya mínima 6 caràcters'; return; }
-  if (_supabase) {
-    if(msg) msg.textContent='Registrant...';
-    const {error} = await _supabase.auth.signUp({email,password:pass});
-    if (error) { if(msg) msg.textContent='❌ '+error.message; return; }
-  }
+  const btn = document.getElementById('auth-reg-btn');
+  if(btn) { btn.textContent='Creant compte...'; btn.disabled=true; }
+  try {
+    if (_supabase) {
+      const {data,error} = await _supabase.auth.signUp({email,password:pass,options:{data:{username}}});
+      if (error) { if(msg) msg.textContent='❌ '+error.message; if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;} return; }
+      _currentUser = data.user;
+      const profile = {id:data.user.id,email,username,avatar:'⚔️',created:Date.now()};
+      _userProfile = profile; _saveLocalProfile(profile);
+      // Save profile to Supabase
+      try { await _supabase.from('profiles').upsert({id:data.user.id,username,email,avatar:'⚔️',hero_xp:0,hero_level:1}); } catch{}
+      await _saveUserDataToCloud(data.user.id);
+    } else {
+      // Local-only mode
+      _currentUser = {id:'local_'+Date.now(),email};
+      const profile = {id:_currentUser.id,email,username,avatar:'⚔️',created:Date.now()};
+      _userProfile = profile; _saveLocalProfile(profile);
+    }
+  } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
+  if(btn) { btn.textContent='CREAR COMPTE'; btn.disabled=false; }
   document.getElementById('auth-overlay').style.display='none';
-  showToast('✅ Compte creat!'); renderHome();
+  _updateAuthUI();
+  showToast('🎉 Compte creat! Benvingut/da, '+username+'!');
+  renderHome();
 }
-function authShowMenu() { showAuthOverlay(); }
+
+async function authLogout() {
+  if (!confirm('Tancar sessió?')) return;
+  if (_supabase) { try { await _supabase.auth.signOut(); } catch{} }
+  _currentUser = null; _userProfile = null; _saveLocalProfile(null);
+  closeConfig();
+  _updateAuthUI();
+  showToast('👋 Sessió tancada');
+  setTimeout(showAuthOverlay, 500);
+}
+
+function authShowMenu() {
+  if (_currentUser) { openConfig(); setTimeout(()=>{ document.querySelectorAll('.cfg-tab')[3]?.click(); },100); }
+  else { showAuthOverlay(); }
+}
+
+async function _loadUserProfile(userId) {
+  try {
+    if (_supabase) {
+      const {data} = await _supabase.from('profiles').select('*').eq('id',userId).single();
+      if (data) { _userProfile = {id:data.id,email:data.email||'',username:data.username,avatar:data.avatar||'⚔️'}; _saveLocalProfile(_userProfile); return; }
+    }
+  } catch{}
+  const local = _getLocalProfile();
+  if (local && local.id===userId) { _userProfile = local; return; }
+  _userProfile = {id:userId,email:_currentUser?.email||'',username:_currentUser?.user_metadata?.username||_currentUser?.email?.split('@')[0]||'Usuari',avatar:'⚔️'};
+  _saveLocalProfile(_userProfile);
+}
+
+async function _syncUserData(userId) {
+  try {
+    if (!_supabase) return;
+    const {data} = await _supabase.from('user_data').select('data').eq('user_id',userId).single();
+    if (data?.data) {
+      const d = data.data;
+      ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
+       'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
+       'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
+        if(d[k]) try { localStorage.setItem(k,JSON.stringify(d[k])); } catch{}
+      });
+      showToast('☁️ Dades sincronitzades!');
+    }
+  } catch{}
+}
+
+async function _saveUserDataToCloud(userId) {
+  try {
+    if (!_supabase||!userId) return;
+    const data = {};
+    ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
+     'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
+     'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
+      try { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch{}
+    });
+    await _supabase.from('user_data').upsert({user_id:userId,data,updated:new Date().toISOString()});
+    // Update hero stats in profile
+    const hero = get('jomaxpath_hero_v2',null);
+    if (hero) {
+      try { await _supabase.from('profiles').update({hero_xp:hero.xp||0,hero_level:hero.level||1,avatar:hero.avatar||'⚔️'}).eq('id',userId); } catch{}
+    }
+  } catch{}
+}
+
+// Auto-save every 90s when logged in
+setInterval(()=>{ if(_currentUser?.id&&_supabase) _saveUserDataToCloud(_currentUser.id); },90000);
+
+/* ── Share boards ── */
+async function shareBoard(boardId) {
+  if (!_currentUser) { showToast('⚠️ Necessites un compte per compartir'); return; }
+  const boards = get(BOARDS_KEY||'jomaxpath_boards_v1',[]);
+  const board = boards.find(b=>b.id===boardId); if (!board) { showToast('⚠️ Llista no trobada'); return; }
+  try {
+    if (_supabase) {
+      const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
+      await _supabase.from('shared_boards').upsert({
+        code:shareCode, owner_id:_currentUser.id,
+        owner_name:_userProfile?.username||'Usuari',
+        board_data:board, updated:new Date().toISOString()
+      });
+      navigator.clipboard.writeText(shareCode).catch(()=>{});
+      showToast('📋 Codi copiat: '+shareCode);
+      return shareCode;
+    }
+  } catch { showToast('❌ Error compartint'); }
+}
+
+async function joinSharedBoard(code) {
+  if (!code||!code.startsWith('BRD_')) { showToast('⚠️ Codi invàlid (ha de començar amb BRD_)'); return; }
+  try {
+    if (_supabase) {
+      const {data} = await _supabase.from('shared_boards').select('*').eq('code',code.trim()).single();
+      if (!data) { showToast('❌ Llista no trobada'); return; }
+      const boards = get(BOARDS_KEY||'jomaxpath_boards_v1',[]);
+      const joined = {...data.board_data, sharedWith:true, ownerName:data.owner_name, shareCode:code};
+      boards.push(joined); set(BOARDS_KEY||'jomaxpath_boards_v1',boards);
+      showToast('✅ Llista de '+data.owner_name+' afegida!');
+      renderBoards?.();
+    } else { showToast('⚠️ Necessites connexió per unir-te'); }
+  } catch { showToast('❌ Error carregant llista'); }
+}
+
+async function getHeroLeaderboard() {
+  try {
+    if (!_supabase) return [];
+    const {data} = await _supabase.from('profiles').select('username,avatar,hero_xp,hero_level').order('hero_xp',{ascending:false}).limit(10);
+    return data||[];
+  } catch { return []; }
+}
 
 (async function initAuth() {
-  if (!_supabase) { authSkip(); return; }
+  if (!_supabase) { _updateAuthUI(); authSkip(); return; }
   try {
-    const { data: { session } } = await _supabase.auth.getSession();
-    if (session) authSkip(); else showAuthOverlay();
-  } catch { authSkip(); }
+    const {data:{session}} = await _supabase.auth.getSession();
+    if (session?.user) {
+      _currentUser = session.user;
+      await _loadUserProfile(session.user.id);
+      await _syncUserData(session.user.id);
+      _updateAuthUI();
+      authSkip();
+    } else {
+      // Check local profile (session-less login)
+      const local = _getLocalProfile();
+      if (local) { _userProfile = local; _updateAuthUI(); authSkip(); return; }
+      _updateAuthUI();
+      showAuthOverlay();
+    }
+    _supabase.auth.onAuthStateChange((event,session)=>{
+      _currentUser = session?.user||null;
+      if (!_currentUser) { _saveLocalProfile(null); }
+      _updateAuthUI();
+    });
+  } catch { _updateAuthUI(); authSkip(); }
 })();
 
 /* ─────────────────────────────────────────
@@ -1292,11 +1500,15 @@ function renderConfigBody() {
   const body=document.getElementById('config-body'); if(!body) return;
   const cfg=get(CONFIG_KEY,{progressTitle:'Curs de Programació',progressTotal:9,mainGoal:"Crear la meva empresa abans de complir els 18 anys."});
   const apiKey=localStorage.getItem('jomaxpath_anthropic_key')||'';
+  const isLoggedIn = !!_currentUser;
+  const username = _userProfile?.username || (_currentUser?.email?.split('@')[0]) || '—';
+  const email = _currentUser?.email || '—';
   body.innerHTML=`
     <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-general').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:rgba(124,58,237,0.2);border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">⚙️ General</button>
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-ia').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🔑 IA</button>
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-temes').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🎨 Temes</button>
+      <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-compte').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">👤 Compte</button>
     </div>
     <div id="cfgp-general" class="cfg-panel">
       <div class="cfg-section"><h4>🚀 Objectiu principal</h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${cfg.mainGoal||''}</textarea></div>
@@ -1322,6 +1534,41 @@ function renderConfigBody() {
     <div id="cfgp-temes" class="cfg-panel" style="display:none;">
       <h4 style="margin-bottom:12px;">🎨 Tria el teu tema</h4>
       <div id="cfg-themes-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+    </div>
+    <div id="cfgp-compte" class="cfg-panel" style="display:none;">
+      ${isLoggedIn ? `
+      <div class="cfg-section">
+        <h4 style="margin-bottom:12px;">👤 El teu compte</h4>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;margin-bottom:14px;">
+          <div style="width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,180,216,0.2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${_userProfile?.avatar||'⚔️'}</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);">${username}</div>
+            <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:2px;">${email}</div>
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">COMPARTIR LLISTA DE TASQUES</div>
+          <div style="display:flex;gap:8px;">
+            <input id="cfg-join-code" placeholder="Codi BRD_..." style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;"/>
+            <button onclick="joinSharedBoard(document.getElementById('cfg-join-code').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;">+ UNIR-SE</button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">SINCRONITZAR DADES AL NÚvOL</div>
+          <button onclick="_saveUserDataToCloud(_currentUser?.id).then(()=>showToast('☁️ Dades guardades!'))" style="width:100%;padding:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:9px;color:#6ee7b7;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">☁️ GUARDAR AL NÚvOL ARA</button>
+        </div>
+      </div>
+      <div class="cfg-section" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
+        <button onclick="authLogout()" style="width:100%;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#fca5a5;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🚪 TANCAR SESSIÓ</button>
+      </div>
+      ` : `
+      <div class="cfg-section" style="text-align:center;padding:30px 0;">
+        <div style="font-size:40px;margin-bottom:14px;">👤</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sense compte</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Crea un compte per guardar les teves dades al núvol i compartir llistes amb amics.</div>
+        <button onclick="closeConfig();showAuthOverlay()" style="padding:11px 24px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;">CREAR COMPTE / ENTRAR</button>
+      </div>
+      `}
     </div>`;
   // Render themes in config panel
   setTimeout(()=>{

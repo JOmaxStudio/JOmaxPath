@@ -1011,49 +1011,53 @@ body.view-pages.sb-collapsed-desktop .container {
   position: fixed !important;
   inset: 0 !important;
   z-index: 99998 !important;
-  background: rgba(4,4,12,0.98) !important;
-  backdrop-filter: blur(30px) !important;
-  -webkit-backdrop-filter: blur(30px) !important;
+  background: radial-gradient(ellipse at center, #1a0520 0%, #060610 70%) !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   transition: opacity 0.35s ease !important;
   cursor: pointer !important;
-  gap: 20px !important;
+  gap: 24px !important;
   overflow: hidden !important;
 }
 #pomo-fs-svg-wrap {
   position: relative !important;
-  width: min(60vw, 60vh, 520px) !important;
-  height: min(60vw, 60vh, 520px) !important;
+  width: min(72vw, 72vh, 560px) !important;
+  height: min(72vw, 72vh, 560px) !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
-#pomo-fs-center {
+#pomo-fs-svg {
   position: absolute !important;
-  inset: 0 !important;
+  top: 0 !important; left: 0 !important;
+  width: 100% !important; height: 100% !important;
+}
+#pomo-fs-center {
+  position: relative !important;
+  z-index: 2 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
+  pointer-events: none !important;
 }
 #pomo-fs-digits {
   font-family: 'Space Mono', monospace !important;
-  font-size: clamp(3rem, 12vw, 7rem) !important;
+  font-size: clamp(3.5rem, 14vw, 8rem) !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: -2px !important;
   line-height: 1 !important;
-  text-shadow: 0 0 40px rgba(239,68,68,0.6) !important;
+  text-shadow: 0 0 50px rgba(239,68,68,0.7), 0 0 100px rgba(239,68,68,0.3) !important;
 }
 #pomo-fs-phase {
   font-family: 'Space Mono', monospace !important;
-  font-size: clamp(0.6rem, 2vw, 0.9rem) !important;
-  letter-spacing: 4px !important;
-  color: rgba(255,255,255,0.4) !important;
-  margin-top: 6px !important;
+  font-size: clamp(0.7rem, 2.5vw, 1rem) !important;
+  letter-spacing: 5px !important;
+  color: rgba(255,255,255,0.45) !important;
+  margin-top: 8px !important;
 }
 #pomo-fs-dots {
   display: flex !important;
@@ -1264,16 +1268,28 @@ body.view-pages.sb-collapsed-desktop .container {
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">ENTRAR</div>
-      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTRAR</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTRAR-SE</div>
     </div>
+    <!-- LOGIN -->
     <div id="auth-login-form">
-      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email"/></div>
-      <div class="auth-field"><label>CONTRASENYA</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"/></div>
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authLogin()"/></div>
+      <div class="auth-field"><label>CONTRASENYA</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()"/></div>
+      <div class="auth-remember-row">
+        <label class="auth-remember-label">
+          <input type="checkbox" id="auth-remember" checked/>
+          <span>Mantenir sessió oberta</span>
+        </label>
+      </div>
       <button class="auth-btn" id="auth-submit-btn" onclick="authLogin()">ENTRAR</button>
     </div>
+    <!-- REGISTER -->
     <div id="auth-register-form" style="display:none">
-      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email"/></div>
-      <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password"/></div>
+      <div class="auth-field">
+        <label>PSEUDÒNIM <span style="color:rgba(167,139,250,0.7);font-size:8px;">— visible als amics</span></label>
+        <input type="text" id="auth-reg-username" placeholder="ElTeuNom" autocomplete="username" maxlength="24" onkeydown="if(event.key==='Enter')authRegister()"/>
+      </div>
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authRegister()"/></div>
+      <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()"/></div>
       <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()">CREAR COMPTE</button>
     </div>
     <div id="auth-msg"></div>
@@ -2449,12 +2465,12 @@ body.view-pages.sb-collapsed-desktop .container {
 
   <div class="fs-divider"></div>
 
-  <!-- Centre: clock -->
-  <div id="fs-center" onclick="closeClockFullscreen()">
-    <div>
+  <!-- Centre: clock — clic al temps: toggle seconds · clic fora: tancar -->
+  <div id="fs-center">
+    <div onclick="toggleClockSeconds();event.stopPropagation();" style="cursor:pointer;" title="Clic: mostrar/amagar segons">
       <span id="fs-clock-time">--:--</span><span id="fs-clock-seconds">:--</span>
     </div>
-    <div id="fs-clock-date"></div>
+    <div id="fs-clock-date" onclick="closeClockFullscreen()"></div>
   </div>
 
   <div class="fs-divider"></div>
