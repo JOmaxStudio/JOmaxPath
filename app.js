@@ -101,6 +101,7 @@ function toggleDrawer() {
   if (overlay) overlay.classList.toggle('open', open);
   if (btn)     btn.classList.toggle('open', open);
   document.body.style.overflow = open ? 'hidden' : '';
+  if (open) renderThemesGrid();
 }
 
 /* ─────────────────────────────────────────
@@ -115,7 +116,7 @@ function navTo(page) {
   _currentPage = page;
 
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  const bnavMap = {home:0, horari:1, tasques:2, julians:3, focus:4};
+  const bnavMap = {home:0, horari:1, tasques:2, julians:3, focus:4, notes:-1};
   const bnavItems = document.querySelectorAll('.bnav-item');
   if (bnavMap[page] !== undefined && bnavItems[bnavMap[page]])
     bnavItems[bnavMap[page]].classList.add('active');
@@ -127,6 +128,7 @@ function navTo(page) {
   if (page === 'tasques') renderTasques();
   if (page === 'focus')   renderFocus();
   if (page === 'julians') initJulians();
+  if (page === 'notes')   renderNotes();
 
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
@@ -662,8 +664,32 @@ function toggleTaskDone(id) {
   set(TASKS_KEY,tasks); renderExamList(); renderPersonalKanban();
 }
 function deleteTask(id) {
-  set(TASKS_KEY,get(TASKS_KEY,[]).filter(t=>t.id!==id));
-  renderExamList(); renderPersonalKanban(); showToast('🗑️ Tasca eliminada');
+  showDeleteConfirm(()=>{
+    set(TASKS_KEY,get(TASKS_KEY,[]).filter(t=>t.id!==id));
+    renderExamList(); renderPersonalKanban(); showToast('🗑️ Tasca eliminada');
+  });
+}
+function showDeleteConfirm(onConfirm) {
+  let ov=document.getElementById('del-confirm-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='del-confirm-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);';
+    ov.innerHTML=`<div style="background:var(--card);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:28px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+      <div style="font-size:36px;margin-bottom:10px;">🗑️</div>
+      <h3 style="font-family:'Space Mono',monospace;font-size:14px;color:var(--text);margin-bottom:8px;letter-spacing:1px;">ELIMINAR TASCA</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:22px;">Estàs segur? Aquesta acció no es pot desfer.</p>
+      <div style="display:flex;gap:10px;">
+        <button id="del-confirm-yes" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✓ ELIMINAR</button>
+        <button id="del-confirm-no" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">✕ CANCEL·LAR</button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+  }
+  ov.style.display='flex';
+  document.getElementById('del-confirm-yes').onclick=()=>{ov.style.display='none';onConfirm();};
+  document.getElementById('del-confirm-no').onclick=()=>{ov.style.display='none';};
+  ov.onclick=(e)=>{if(e.target===ov)ov.style.display='none';};
 }
 
 /* ── Kanban personal ── */
@@ -911,17 +937,29 @@ function updatePomoDisplay() {
 function pomoAction() {
   if (_pomoState==='idle') _pomoStart();
   else if (_pomoState==='focus') _pomoPause();
+  else if (_pomoState==='paused') _pomoResume();
   else if (_pomoState==='break') _pomoSkipBreak();
 }
 function _pomoStart() {
-  _pomoState='focus'; _pomoSeconds=_pomoFocusMin*60;
+  // Only reset seconds if idle from scratch (not resuming)
+  if (_pomoState==='idle' && _pomoSeconds===0) _pomoSeconds=_pomoFocusMin*60;
+  _pomoState='focus';
   clearInterval(_pomoInterval); _pomoInterval=setInterval(_pomoTick,1000);
   const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='⏸ PAUSA';
+  const fsbtn=document.getElementById('pomo-fs-start'); if(fsbtn) fsbtn.textContent='⏸ PAUSA';
+  updatePomoDisplay();
+}
+function _pomoResume() {
+  _pomoState='focus';
+  clearInterval(_pomoInterval); _pomoInterval=setInterval(_pomoTick,1000);
+  const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='⏸ PAUSA';
+  const fsbtn=document.getElementById('pomo-fs-start'); if(fsbtn) fsbtn.textContent='⏸ PAUSA';
   updatePomoDisplay();
 }
 function _pomoPause() {
-  clearInterval(_pomoInterval); _pomoInterval=null; _pomoState='idle';
-  const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='▶ INICIAR';
+  clearInterval(_pomoInterval); _pomoInterval=null; _pomoState='paused';
+  const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='▶ REPRENDRE';
+  const fsbtn=document.getElementById('pomo-fs-start'); if(fsbtn) fsbtn.textContent='▶ REPRENDRE';
   updatePomoDisplay();
 }
 function _pomoTick() {
@@ -971,7 +1009,9 @@ function _pomoSkipBreak() {
 }
 function pomoReset() {
   clearInterval(_pomoInterval); _pomoInterval=null; _pomoState='idle'; _pomoSeconds=0; _pomoCurrent=0;
-  const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='▶ INICIAR'; updatePomoDisplay();
+  const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='▶ INICIAR';
+  const fsbtn=document.getElementById('pomo-fs-start'); if(fsbtn) fsbtn.textContent='▶ INICIAR';
+  updatePomoDisplay();
 }
 function setPomoPreset(focus,brk,sessions) {
   _pomoFocusMin=focus; _pomoBreakMin=brk; _pomoSessions=sessions; pomoReset();
@@ -1069,8 +1109,8 @@ function initJulians() {
   _chats=get(CHATS_KEY,[]);
   if (_chats.length===0) createNewChat();
   else { _currentChatId=_chats[0].id; renderChatList(); renderMessages(); }
-  const icon=document.getElementById('julians-page-icon'); if(icon) icon.src='favicon.png';
-  const bnavIcon=document.getElementById('julians-bnav-logo'); if(bnavIcon){bnavIcon.src='favicon.png';bnavIcon.style.opacity='1';}
+  const icon=document.getElementById('julians-page-icon'); if(icon) icon.src='julians-ai.png';
+  const bnavIcon=document.getElementById('julians-bnav-logo'); if(bnavIcon){bnavIcon.src='julians-ai.png';bnavIcon.style.opacity='1';}
 }
 function createNewChat() {
   _chats=get(CHATS_KEY,[]);
@@ -1127,9 +1167,11 @@ async function sendAI() {
   if(container){container.appendChild(typing);container.scrollTop=container.scrollHeight;}
   try {
     const response=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
+      method:'POST',
+      headers:(()=>{const k=localStorage.getItem('jomaxpath_anthropic_key');const h={'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'};if(k)h['x-api-key']=k;return h;})(),
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
     });
+    if(!response.ok){const err=await response.json().catch(()=>({error:{message:response.statusText}}));throw new Error(err.error?.message||response.statusText);}
     const data=await response.json();
     const reply=data.content?.[0]?.text||'Error en la resposta.';
     if(container&&typing.parentNode) container.removeChild(typing);
@@ -1138,7 +1180,7 @@ async function sendAI() {
   } catch {
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
-    if(chat){chat.messages.push({role:'assistant',content:"⚠️ No s'ha pogut connectar. Comprova la connexió.",ts:Date.now()});set(CHATS_KEY,_chats);}
+    if(chat){chat.messages.push({role:'assistant',content:`⚠️ No s'ha pogut connectar. Comprova que has afegit la clau API d'Anthropic a la Configuració → IA.`,ts:Date.now()});set(CHATS_KEY,_chats);}
   }
   _attachment=null;
   const docPrev=document.getElementById('ai-doc-preview'); if(docPrev) docPrev.style.display='none';
@@ -1225,14 +1267,55 @@ function closeConfig() { document.getElementById('config-overlay').style.display
 function renderConfigBody() {
   const body=document.getElementById('config-body'); if(!body) return;
   const cfg=get(CONFIG_KEY,{progressTitle:'Curs de Programació',progressTotal:9,mainGoal:"Crear la meva empresa abans de complir els 18 anys."});
+  const apiKey=localStorage.getItem('jomaxpath_anthropic_key')||'';
   body.innerHTML=`
-    <div class="cfg-section"><h4>🚀 Objectiu principal</h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${cfg.mainGoal||''}</textarea></div>
-    <div class="cfg-section"><h4>📚 Nom del progrés</h4><input id="cfg-prog-title" type="text" value="${cfg.progressTitle||''}" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
-    <div class="cfg-section"><h4>🔢 Total capítols</h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${cfg.progressTotal||9}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
-    <div style="margin-top:20px;display:flex;gap:10px;">
-      <button onclick="saveConfig()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;">✅ Guardar</button>
-      <button onclick="closeConfig()" style="padding:12px 20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;">Cancel·lar</button>
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+      <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-general').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:rgba(124,58,237,0.2);border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">⚙️ General</button>
+      <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-ia').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🔑 IA</button>
+      <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-temes').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🎨 Temes</button>
+    </div>
+    <div id="cfgp-general" class="cfg-panel">
+      <div class="cfg-section"><h4>🚀 Objectiu principal</h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${cfg.mainGoal||''}</textarea></div>
+      <div class="cfg-section"><h4>📚 Nom del progrés</h4><input id="cfg-prog-title" type="text" value="${cfg.progressTitle||''}" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
+      <div class="cfg-section"><h4>🔢 Total capítols</h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${cfg.progressTotal||9}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button onclick="saveConfig()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;">✅ Guardar</button>
+        <button onclick="closeConfig()" style="padding:12px 20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;">Cancel·lar</button>
+      </div>
+    </div>
+    <div id="cfgp-ia" class="cfg-panel" style="display:none;">
+      <div class="cfg-section">
+        <h4 style="margin-bottom:6px;">🔑 Clau API d'Anthropic</h4>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Necessites una clau API d'Anthropic per usar Julians AI. <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent2);">Obtén-la aquí →</a></p>
+        <input id="cfg-api-key" type="password" placeholder="sk-ant-api03-..." value="${apiKey}" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;font-family:'Space Mono',monospace;"/>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button onclick="saveApiKey()" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;">💾 Guardar clau</button>
+          <button onclick="document.getElementById('cfg-api-key').type=document.getElementById('cfg-api-key').type==='password'?'text':'password'" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px;">👁</button>
+        </div>
+        <div id="cfg-api-status" style="margin-top:8px;font-size:11px;color:${apiKey?'#6ee7b7':'var(--muted)'};">${apiKey?'✅ Clau guardada':'⚠️ Cap clau configurada'}</div>
+      </div>
+    </div>
+    <div id="cfgp-temes" class="cfg-panel" style="display:none;">
+      <h4 style="margin-bottom:12px;">🎨 Tria el teu tema</h4>
+      <div id="cfg-themes-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
     </div>`;
+  // Render themes in config panel
+  setTimeout(()=>{
+    const tg=document.getElementById('cfg-themes-grid'); if(!tg) return;
+    const curTheme=(get(CONFIG_KEY,{}).theme)||'default';
+    tg.innerHTML=THEMES_DATA.map(t=>`
+      <div onclick="setTheme('${t.id}');document.querySelectorAll('#cfg-themes-grid .tsel').forEach(x=>x.style.borderColor='transparent');this.style.borderColor='rgba(167,139,250,0.7)'" class="tsel" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:12px;border:2px solid ${t.id===curTheme?'rgba(167,139,250,0.7)':'transparent'};background:var(--card2);transition:all 0.2s;" onmouseover="this.style.background='rgba(124,58,237,0.1)'" onmouseout="this.style.background='var(--card2)'">
+        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,${t.dot1||t.bg},${t.dot2||t.accent});border:2px solid ${t.id===curTheme?t.dot2:t.accent+'44'};box-shadow:${t.id===curTheme?'0 0 12px '+t.dot2:'none'};"></div>
+        <span style="font-size:9px;font-family:'Space Mono',monospace;color:${t.id===curTheme?'#a78bfa':'var(--muted)'};letter-spacing:1px;">${t.name}</span>
+      </div>`).join('');
+  },50);
+}
+function saveApiKey() {
+  const key=(document.getElementById('cfg-api-key')?.value||'').trim();
+  if(key) { localStorage.setItem('jomaxpath_anthropic_key',key); showToast('✅ Clau API guardada!'); }
+  else { localStorage.removeItem('jomaxpath_anthropic_key'); showToast('🗑️ Clau eliminada'); }
+  const s=document.getElementById('cfg-api-status');
+  if(s) { s.textContent=key?'✅ Clau guardada':'⚠️ Cap clau configurada'; s.style.color=key?'#6ee7b7':'var(--muted)'; }
 }
 function saveConfig() {
   const cfg=get(CONFIG_KEY,{});
@@ -1291,8 +1374,30 @@ function saveQuickCapture() {
   else if(_qcType==='habit'){const habits=get(HABITS_KEY,[]);habits.push({name:text,icon:'⭐',days:[],created:Date.now()});set(HABITS_KEY,habits);showToast('🌱 Hàbit afegit!');}
   document.getElementById('qc-input').value=''; closeQuickCapture(); renderHome(); renderTasques();
 }
-function toggleNotePicker() { const notes=get(NOTES_KEY,[]); showToast(notes.length===0?'Sense notes':`${notes.length} nota(es)`); }
+function toggleNotePicker() { navTo('notes'); lsbMobileClose(); }
 function createNote() { openQuickCapture(); setQCType('nota'); }
+function renderNotes() {
+  const list=document.getElementById('notes-page-list'); if(!list) return;
+  const notes=get(NOTES_KEY,[]);
+  if(notes.length===0){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:48px 0;"><div style="font-size:40px;margin-bottom:12px;">📝</div><div style="font-size:14px;">Sense notes. Afegeix-ne una!</div></div>';return;}
+  list.innerHTML=notes.map((n,i)=>`
+    <div class="note-card" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;position:relative;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;">${new Date(n.created||Date.now()).toLocaleDateString('ca',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="note-text-edit" contenteditable="true" style="font-size:14px;color:var(--text);line-height:1.6;outline:none;min-height:24px;" onblur="saveNoteEdit(${i},this.textContent)">${n.text||''}</div>
+      <button onclick="deleteNote(${i})" style="position:absolute;top:10px;right:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;padding:3px 9px;font-size:11px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">✕</button>
+    </div>`).join('');
+}
+function saveNoteEdit(idx,text) {
+  const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
+  notes[idx].text=text.trim()||notes[idx].text; set(NOTES_KEY,notes);
+}
+function deleteNote(idx) {
+  const notes=get(NOTES_KEY,[]); notes.splice(idx,1); set(NOTES_KEY,notes); renderNotes(); showToast('🗑️ Nota eliminada');
+}
+function addNewNote() {
+  const notes=get(NOTES_KEY,[]); notes.unshift({id:Date.now().toString(),text:'Nova nota...',created:Date.now()}); set(NOTES_KEY,notes); renderNotes();
+  setTimeout(()=>{ const cards=document.querySelectorAll('.note-text-edit'); if(cards[0]){cards[0].focus();const r=document.createRange();r.selectNodeContents(cards[0]);r.collapse(false);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);} },100);
+}
 
 /* ─────────────────────────────────────────
    SHORTCUTS / DEV
@@ -1331,7 +1436,55 @@ document.addEventListener('keydown',e=>{
 ───────────────────────────────────────── */
 window.goToHero    = ()=>window.open('hero.html','_self');
 window.goToPricing = ()=>window.open('pricing.html','_self');
-function setLayoutMode(mode) { showToast('Mode: '+mode); }
+const THEMES_DATA=[
+  {id:'default', name:'Fosc', bg:'#060610', accent:'#7c3aed', dot1:'#060610', dot2:'#7c3aed'},
+  {id:'blanc',   name:'Blanc', bg:'#f0f2f8', accent:'#7c3aed', dot1:'#f0f2f8', dot2:'#7c3aed'},
+  {id:'ocean',   name:'Oceà', bg:'#030f1f', accent:'#0ea5e9', dot1:'#030f1f', dot2:'#0ea5e9'},
+  {id:'forest',  name:'Bosc', bg:'#040e07', accent:'#16a34a', dot1:'#040e07', dot2:'#16a34a'},
+  {id:'sunset',  name:'Posta', bg:'#130408', accent:'#e11d48', dot1:'#130408', dot2:'#e11d48'},
+  {id:'midnight',name:'Mitjanit', bg:'#05050f', accent:'#4f46e5', dot1:'#05050f', dot2:'#4f46e5'},
+  {id:'caramel', name:'Caramel', bg:'#0e0a02', accent:'#d97706', dot1:'#0e0a02', dot2:'#d97706'},
+  {id:'violet',  name:'Violeta', bg:'#080413', accent:'#9333ea', dot1:'#080413', dot2:'#9333ea'},
+  {id:'rose',    name:'Rosa', bg:'#0f0508', accent:'#be185d', dot1:'#0f0508', dot2:'#be185d'},
+];
+function renderThemesGrid() {
+  const grid=document.getElementById('ndw-themes-grid'); if(!grid) return;
+  const cfg=get(CONFIG_KEY,{}); const cur=cfg.theme||'default';
+  grid.innerHTML=THEMES_DATA.map(t=>`
+    <div onclick="setTheme('${t.id}')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:10px;border:2px solid ${t.id===cur?'rgba(167,139,250,0.7)':'transparent'};transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+      <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,${t.dot1},${t.dot2});border:2px solid ${t.id===cur?t.dot2:'rgba(255,255,255,0.1)'};box-shadow:${t.id===cur?'0 0 10px '+t.dot2:'none'};transition:all 0.2s;"></div>
+      <span style="font-size:9px;color:${t.id===cur?'#a78bfa':'#64748b'};font-family:'Space Mono',monospace;letter-spacing:1px;text-align:center;">${t.name}</span>
+    </div>`).join('');
+}
+function setTheme(id) {
+  const body=document.body;
+  THEMES_DATA.forEach(t=>body.classList.remove('theme-'+t.id));
+  if(id!=='default') body.classList.add('theme-'+id);
+  const cfg=get(CONFIG_KEY,{}); cfg.theme=id; set(CONFIG_KEY,cfg);
+  renderThemesGrid(); showToast('🎨 Tema '+THEMES_DATA.find(t=>t.id===id)?.name+' activat!');
+}
+function applyStoredTheme() {
+  const cfg=get(CONFIG_KEY,{}); const id=cfg.theme||'default';
+  if(id!=='default') document.body.classList.add('theme-'+id);
+}
+function setLayoutMode(mode) {
+  const cfg=get(CONFIG_KEY,{}); cfg.layout=mode; set(CONFIG_KEY,cfg);
+  const homeLeft=document.querySelector('.home-col-left');
+  const homeRight=document.querySelector('.home-col-right');
+  const twoCol=document.querySelector('.home-two-col');
+  if(mode==='ample') {
+    if(twoCol) twoCol.style.cssText='display:flex!important;flex-direction:column!important;';
+    if(homeLeft) homeLeft.style.width='100%';
+    if(homeRight) homeRight.style.width='100%';
+  } else {
+    if(twoCol) twoCol.style.cssText='';
+    if(homeLeft) homeLeft.style.width='';
+    if(homeRight) homeRight.style.width='';
+  }
+  document.querySelectorAll('.ndw-view-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ndw-layout-'+mode)?.classList.add('active');
+  showToast('Vista: '+mode);
+}
 
 /* ─────────────────────────────────────────
    INIT
@@ -1340,6 +1493,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const arc=document.getElementById('pomo-arc');
   if(arc) arc.style.strokeDasharray=2*Math.PI*80;
   applyConfig();
+  applyStoredTheme();
+  renderThemesGrid();
   navTo('home');
   try {
     const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v2'));

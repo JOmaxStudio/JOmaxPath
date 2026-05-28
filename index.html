@@ -900,8 +900,8 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="lsb-item" data-tip="Captura ràpida" onclick="openQuickCapture();lsbMobileClose()">
       <div class="lsb-ico">⚡</div><span class="lsb-lbl">Captura ràpida</span>
     </div>
-    <div class="lsb-item" data-tip="Notes adhesives" onclick="toggleNotePicker();lsbMobileClose()">
-      <div class="lsb-ico">📝</div><span class="lsb-lbl">Notes adhesives</span>
+    <div class="lsb-item" data-tip="Notes" onclick="navTo('notes');lsbMobileClose();">
+      <div class="lsb-ico">📝</div><span class="lsb-lbl">Notes</span>
     </div>
     <div class="lsb-item" data-tip="Cerca" onclick="openSearch();lsbMobileClose()">
       <div class="lsb-ico">🔍</div><span class="lsb-lbl">Cerca global</span>
@@ -1023,7 +1023,7 @@ body.view-pages.sb-collapsed-desktop .container {
 <div id="sync-toast">⚡ Sincronitzat</div>
 
 <!-- Clock -->
-<div id="nav-clock" onclick="openClockFullscreen()" ondblclick="toggleClockSeconds();event.stopPropagation();" title="Clic: pantalla completa · Doble clic: amagar/mostrar segons">--:--</div>
+<div id="nav-clock" onclick="toggleClockSeconds()" ondblclick="openClockFullscreen();event.stopPropagation();" title="1 clic: mostrar/amagar segons · Doble clic: pantalla completa">--:--</div>
 
 <!-- Hamburger -->
 <div class="side-deco side-deco-left"></div>
@@ -1072,7 +1072,7 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="ndw-bottom-btn" onclick="navTo('julians');toggleDrawer()" data-i18n="drawer_julians">🧠 Julians AI</div>
 
     <div class="ndw-bottom-btn" onclick="openQuickCapture();toggleDrawer()" style="color:var(--green);border:1px solid rgba(16,185,129,0.2);">⚡ Captura ràpida</div>
-    <div class="ndw-bottom-btn" onclick="toggleNotePicker();toggleDrawer()" style="color:#fcd34d;border:1px solid rgba(245,158,11,0.2);">📝 Notes adhesives</div>
+    <div class="ndw-bottom-btn" onclick="navTo('notes');toggleDrawer()" style="color:#fcd34d;border:1px solid rgba(245,158,11,0.2);">📝 Notes</div>
     <div class="ndw-bottom-btn" onclick="openSearch();toggleDrawer()" style="color:var(--cyan);border:1px solid rgba(0,184,217,0.2);">🔍 Cerca global</div>
 
   </div>
@@ -1083,7 +1083,7 @@ body.view-pages.sb-collapsed-desktop .container {
   <div class="bnav-item" onclick="navTo('home')"><div class="bnav-icon">🏠</div><div class="bnav-lbl">INICI</div></div>
   <div class="bnav-item" onclick="navTo('horari')"><div class="bnav-icon">📅</div><div class="bnav-lbl">HORARI</div></div>
   <div class="bnav-item" onclick="navTo('tasques')"><div class="bnav-icon">📋</div><div class="bnav-lbl">TASQUES</div></div>
-  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
+  <div class="bnav-item" onclick="navTo('julians')"><div class="bnav-icon"><img id="julians-bnav-logo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.5;transition:opacity 0.2s;" src="julians-ai.png" alt="J"/></div><div class="bnav-lbl">JULIANS</div></div>
   <div class="bnav-item" onclick="navTo('focus')"><div class="bnav-icon">🎯</div><div class="bnav-lbl">FOCUS</div></div>
 </nav>
 
@@ -1486,6 +1486,20 @@ body.view-pages.sb-collapsed-desktop .container {
     </div>
   </div>
 
+
+  <!-- ═══ PAGE: NOTES ═══ -->
+  <div class="app-page" id="page-notes">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(245,158,11,0.15);">📝</div>
+      <div class="page-title-text">
+        <h2>NOTES</h2>
+        <p>Les teves apunts i recordatoris</p>
+      </div>
+      <button onclick="addNewNote()" style="padding:8px 16px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.4);color:#fcd34d;border-radius:12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(245,158,11,0.7)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.4)'">+ NOVA NOTA</button>
+    </div>
+    <div id="notes-page-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-top:8px;"></div>
+  </div>
+
   <!-- Modal: Crear/Editar tauler -->
   <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
     <div class="board-modal">
@@ -1645,7 +1659,7 @@ body.view-pages.sb-collapsed-desktop .container {
   <!-- ═══ PAGE: JULIANS ═══ -->
   <div class="app-page" id="page-julians">
     <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" alt="J"/></div>
+      <div class="page-title-icon" style="background:rgba(0,0,0,0.3);overflow:hidden;padding:0;"><img id="julians-page-icon" style="width:100%;height:100%;object-fit:cover;" src="julians-ai.png" alt="J"/></div>
       <div class="page-title-text">
         <h2 id="pt-julians-h2">JULIANS AI</h2>
         <p id="pt-julians-sub">Assistent intel·ligent · Documents</p>
@@ -2471,6 +2485,147 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<style id="theme-blanc-comprehensive">
+/* ════════════ TEMA BLANC — Override Complet ════════════ */
+body.theme-blanc {
+  --bg: #f0f2f8 !important;
+  --card: #ffffff !important;
+  --card2: #eef0f7 !important;
+  --accent: #6d28d9 !important;
+  --accent2: #7c3aed !important;
+  --text: #1a1a2e !important;
+  --muted: #64748b !important;
+  --border: rgba(109,40,217,0.15) !important;
+  --green: #059669 !important;
+  --red: #dc2626 !important;
+}
+body.theme-blanc { background: #f0f2f8 !important; color: #1a1a2e !important; }
+body.theme-blanc::before,
+body.theme-blanc::after { opacity: 0.3 !important; }
+body.theme-blanc .container,
+body.theme-blanc .app-page { background: transparent !important; }
+
+/* Cards */
+body.theme-blanc .goal-banner,
+body.theme-blanc .daily-quote,
+body.theme-blanc .today-panel,
+body.theme-blanc .progress-section,
+body.theme-blanc .streak-widget,
+body.theme-blanc .habits-section,
+body.theme-blanc .moto,
+body.theme-blanc .stat-card,
+body.theme-blanc .tip-card,
+body.theme-blanc .screen-tip,
+body.theme-blanc .exam-section,
+body.theme-blanc .matches-section,
+body.theme-blanc .victories-section,
+body.theme-blanc .pomodoro-section,
+body.theme-blanc .weekly-summary,
+body.theme-blanc .kanban-col,
+body.theme-blanc .board-card,
+body.theme-blanc .next-up-bar,
+body.theme-blanc .week-col,
+body.theme-blanc .day-card,
+body.theme-blanc .screen-section {
+  background: #ffffff !important;
+  border-color: rgba(109,40,217,0.12) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
+}
+
+/* Sidebar */
+body.theme-blanc #left-sidebar {
+  background: rgba(248,248,255,0.99) !important;
+  border-right-color: rgba(109,40,217,0.1) !important;
+}
+body.theme-blanc .lsb-item { color: #64748b !important; }
+body.theme-blanc .lsb-item:hover { background: rgba(109,40,217,0.08) !important; color: #6d28d9 !important; }
+body.theme-blanc .lsb-item.lsb-active { background: rgba(109,40,217,0.1) !important; color: #6d28d9 !important; border-color: rgba(109,40,217,0.2) !important; }
+body.theme-blanc .lsb-sec { color: #94a3b8 !important; }
+body.theme-blanc .lsb-brand { color: #1a1a2e !important; }
+body.theme-blanc .lsb-brand small { color: #94a3b8 !important; }
+body.theme-blanc .lsb-toggle-btn { color: #94a3b8 !important; background: rgba(109,40,217,0.07) !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc .lsb-hero-mini { background: rgba(109,40,217,0.07) !important; border-color: rgba(109,40,217,0.15) !important; }
+
+/* Nav */
+body.theme-blanc #nav-clock { background: #ffffff !important; color: #6d28d9 !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc #nav-hamburger { background: #ffffff !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc #nav-hamburger span { background: #1a1a2e !important; }
+body.theme-blanc #nav-drawer { background: #f8f8ff !important; }
+body.theme-blanc .ndw-title { color: #1a1a2e !important; }
+body.theme-blanc .ndw-section { color: #94a3b8 !important; }
+body.theme-blanc .ndw-item-text { color: #1a1a2e !important; }
+body.theme-blanc .ndw-bottom-btn { color: #1a1a2e !important; background: rgba(0,0,0,0.04) !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* Bottom nav */
+body.theme-blanc #bnav { background: rgba(240,242,248,0.97) !important; border-top-color: rgba(109,40,217,0.12) !important; }
+body.theme-blanc .bnav-lbl { color: #64748b !important; }
+body.theme-blanc .bnav-item.active .bnav-lbl { color: #6d28d9 !important; }
+
+/* Text */
+body.theme-blanc h2, body.theme-blanc h3, body.theme-blanc h4 { color: #1a1a2e !important; }
+body.theme-blanc p { color: #475569 !important; }
+body.theme-blanc .section-title { color: #94a3b8 !important; }
+body.theme-blanc .day-name { color: #1a1a2e !important; }
+body.theme-blanc .block-time, body.theme-blanc .day-sleep { color: #94a3b8 !important; }
+body.theme-blanc .ei-name { color: #1a1a2e !important; }
+body.theme-blanc .ei-date { color: #64748b !important; }
+
+/* Inputs */
+body.theme-blanc input, body.theme-blanc select, body.theme-blanc textarea {
+  background: #f8f8ff !important; color: #1a1a2e !important; border-color: rgba(109,40,217,0.15) !important;
+}
+body.theme-blanc select option { background: #fff !important; color: #1a1a2e !important; }
+body.theme-blanc input::placeholder, body.theme-blanc textarea::placeholder { color: #94a3b8 !important; }
+
+/* Buttons */
+body.theme-blanc .progress-btn { background: rgba(109,40,217,0.08) !important; border-color: rgba(109,40,217,0.2) !important; color: #6d28d9 !important; }
+body.theme-blanc .streak-btn { background: rgba(245,158,11,0.1) !important; border-color: rgba(245,158,11,0.3) !important; }
+body.theme-blanc .add-habit-btn { background: rgba(109,40,217,0.1) !important; color: #6d28d9 !important; }
+
+/* AI section */
+body.theme-blanc #ai-section-card { background: #ffffff !important; border-color: rgba(109,40,217,0.12) !important; }
+body.theme-blanc #ai-sidebar { background: #f0f2f8 !important; border-right-color: rgba(109,40,217,0.1) !important; }
+body.theme-blanc .ai-chat-messages { background: #ffffff !important; }
+body.theme-blanc .ai-msg.user { background: rgba(109,40,217,0.1) !important; color: #1a1a2e !important; border-color: rgba(109,40,217,0.2) !important; }
+body.theme-blanc .ai-msg.assistant { background: #f8f8ff !important; color: #1a1a2e !important; border-color: rgba(0,0,0,0.08) !important; }
+body.theme-blanc .ai-chat-input-row { background: #f0f2f8 !important; border-top-color: rgba(109,40,217,0.1) !important; }
+body.theme-blanc #ai-chat-input { background: #ffffff !important; color: #1a1a2e !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc .ai-chat-item { color: #64748b !important; }
+body.theme-blanc .ai-chat-item.active { background: rgba(109,40,217,0.1) !important; color: #6d28d9 !important; }
+body.theme-blanc .ai-mode-btn { background: rgba(0,0,0,0.04) !important; color: #64748b !important; border-color: rgba(0,0,0,0.1) !important; }
+body.theme-blanc .ai-mode-btn.active { background: rgba(109,40,217,0.12) !important; color: #6d28d9 !important; }
+body.theme-blanc .ai-suggestion { background: rgba(109,40,217,0.07) !important; color: #6d28d9 !important; border-color: rgba(109,40,217,0.15) !important; }
+
+/* Config */
+body.theme-blanc #config-panel { background: #ffffff !important; border-color: rgba(109,40,217,0.15) !important; }
+body.theme-blanc .config-tab { color: #64748b !important; }
+body.theme-blanc .config-tab.active { color: #6d28d9 !important; border-bottom-color: #6d28d9 !important; }
+
+/* Page title */
+body.theme-blanc .page-title-bar { border-bottom-color: rgba(0,0,0,0.07) !important; }
+body.theme-blanc .page-title-text h2 { color: #1a1a2e !important; -webkit-text-fill-color: #1a1a2e !important; }
+body.theme-blanc .page-title-text p { color: #94a3b8 !important; }
+
+/* Header */
+body.theme-blanc #header-name { color: #2d1b69 !important; -webkit-text-fill-color: #2d1b69 !important; text-shadow: 0 0 20px rgba(109,40,217,0.3) !important; }
+body.theme-blanc .jomaxpath-hero-title { color: #4c1d95 !important; -webkit-text-fill-color: #4c1d95 !important; text-shadow: none !important; }
+body.theme-blanc .jomaxpath-tag { color: #6d28d9 !important; border-color: rgba(109,40,217,0.3) !important; }
+
+/* Pomodoro */
+body.theme-blanc .pomo-svg .pomo-bg { stroke: rgba(109,40,217,0.1) !important; }
+body.theme-blanc .pomo-digits { color: #1a1a2e !important; }
+body.theme-blanc .pomo-label { color: #64748b !important; }
+
+/* Tasks */
+body.theme-blanc .exam-item { background: #fafaff !important; border-color: rgba(109,40,217,0.1) !important; }
+body.theme-blanc .exam-item:hover { border-color: rgba(109,40,217,0.3) !important; }
+body.theme-blanc .tasks-mode-btn { color: #64748b !important; background: rgba(0,0,0,0.04) !important; }
+body.theme-blanc .tasks-mode-btn.active { background: rgba(109,40,217,0.12) !important; color: #6d28d9 !important; }
+
+/* Scrollbar */
+body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2) !important; }
+</style>
 </body>
 </html>
 <!-- ══════════════════════════════════════════
