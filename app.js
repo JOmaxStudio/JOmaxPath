@@ -891,11 +891,20 @@ function updatePomoDisplay() {
   const digits=document.getElementById('pomo-digits');
   const lbl=document.getElementById('pomo-lbl');
   const arc=document.getElementById('pomo-arc');
-  if (digits) digits.textContent=`${pad2(m)}:${pad2(s)}`;
-  if (lbl)    lbl.textContent=_pomoState==='break'?'DESCANS':'FOCUS';
+  const timeStr=`${pad2(m)}:${pad2(s)}`;
+  const phaseStr=_pomoState==='break'?'DESCANS':'FOCUS';
+  if (digits) digits.textContent=timeStr;
+  if (lbl)    lbl.textContent=phaseStr;
+  const fsDigits=document.getElementById('pomo-fs-digits');
+  const fsPhase=document.getElementById('pomo-fs-phase');
+  if (fsDigits) fsDigits.textContent=timeStr;
+  if (fsPhase)  fsPhase.textContent=phaseStr;
   const total=(_pomoState==='break'?_pomoBreakMin:_pomoFocusMin)*60;
   const circ=2*Math.PI*80;
   if (arc) { arc.style.strokeDasharray=circ; arc.style.strokeDashoffset=circ*(1-(total-secs)/Math.max(total,1)); }
+  const fsArc=document.getElementById('pomo-fs-arc');
+  const fsCirc=2*Math.PI*88;
+  if (fsArc) { fsArc.style.strokeDasharray=fsCirc+''; fsArc.style.strokeDashoffset=(fsCirc*(1-(total-secs)/Math.max(total,1)))+''; }
   const sessions=document.getElementById('pomo-sessions');
   if (sessions) sessions.innerHTML=Array.from({length:_pomoSessions},(_,i)=>`<div class="pomo-session-dot ${i<_pomoCurrent?'done':i===_pomoCurrent&&_pomoState!=='idle'?'active':''}"></div>`).join('');
 }
@@ -919,6 +928,25 @@ function _pomoTick() {
   _pomoSeconds--; updatePomoDisplay();
   if (_pomoSeconds<=0) { if(_pomoState==='focus') _pomoCompleteFocus(); else _pomoCompleteBreak(); }
 }
+function _playPomoAlarm() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    function tone(freq, start, dur, vol) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur + 0.05);
+    }
+    [0, 0.35, 0.7, 1.05].forEach(t => { tone(1200,t,0.06,0.5); tone(800,t+0.18,0.06,0.4); });
+    tone(1047,1.5,0.4,0.7); tone(784,1.9,0.4,0.6); tone(1047,2.3,0.7,0.8);
+  } catch(e) {}
+}
 function _pomoCompleteFocus() {
   clearInterval(_pomoInterval); _pomoCurrent++;
   const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
@@ -933,7 +961,8 @@ function _pomoCompleteFocus() {
 function _pomoCompleteBreak() {
   clearInterval(_pomoInterval); _pomoState='idle'; _pomoSeconds=0;
   const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='▶ INICIAR';
-  updatePomoDisplay(); showToast('✅ Descans acabat!');
+  _playPomoAlarm();
+  updatePomoDisplay(); showToast('✅ Descans acabat! Llest per al següent focus 🚀');
 }
 function _pomoSkipBreak() {
   clearInterval(_pomoInterval); _pomoState='idle'; _pomoSeconds=0;
@@ -990,10 +1019,26 @@ function updatePomoLevel(data) {
   if(barEl) barEl.style.width=Math.min(100,Math.round((xpIn/xpNeed)*100))+'%';
   if(txtEl) txtEl.textContent=`${xp} / ${next?next.xpNeeded:'MAX'} XP`;
 }
-function openPomoFullscreen() { const ov=document.getElementById('pomo-fullscreen'); if(ov) ov.style.display='flex'; }
+function openPomoFullscreen() {
+  const ov=document.getElementById('pomo-fullscreen');
+  if(ov){ ov.style.display='flex'; updatePomoDisplay(); }
+  // Sync digits
+  const mainDigits=document.getElementById('pomo-digits');
+  const fsDigits=document.getElementById('pomo-fs-digits');
+  if(mainDigits&&fsDigits) fsDigits.textContent=mainDigits.textContent;
+  const mainLbl=document.getElementById('pomo-lbl');
+  const fsPhase=document.getElementById('pomo-fs-phase');
+  if(mainLbl&&fsPhase) fsPhase.textContent=mainLbl.textContent;
+}
+function closePomoFullscreen() { const ov=document.getElementById('pomo-fullscreen'); if(ov) ov.style.display='none'; }
 function pomoFsAction() { pomoAction(); }
 function pomoFsReset() { pomoReset(); }
-function handlePomoFsClick() { const ov=document.getElementById('pomo-fullscreen'); if(ov) ov.style.display='none'; }
+function handlePomoFsClick(e) {
+  // Tancar només si s'ha clicat el fons (no els controls)
+  if(e.target===document.getElementById('pomo-fullscreen') || e.target.id==='pomo-fs-close-hint') {
+    closePomoFullscreen();
+  }
+}
 function loadSpotify() {
   const url=(document.getElementById('spotify-url-input')?.value||'').trim();
   const match=url.match(/playlist\/([a-zA-Z0-9]+)/);

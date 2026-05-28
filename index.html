@@ -317,7 +317,7 @@ body.theme-blanc .bnav-item.active .bnav-icon { opacity: 1 !important; }
 #premium-home-banner span:last-child { font-size: 9px !important; }
 
 /* ── 4. PREMIUM FAB: pastilla discreta — no competeix ── */
-#premium-fab {
+#premium-fab { display:none !important; /* ELIMINAT */ 
   bottom: 80px !important;
   right: 16px !important;
   left: auto !important;
@@ -716,6 +716,140 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 }
 </style>
 
+
+<style id="enhanced-fixes-v1">
+/* ════════════════════════════════════════════════
+   MILLORES SIDEBAR + HERO BOTÓ + CERCA
+════════════════════════════════════════════════ */
+
+/* ── Sidebar: millora visual i resize ── */
+#left-sidebar {
+  box-shadow: 4px 0 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.12) !important;
+  transition: width 0.28s cubic-bezier(0.4,0,0.2,1), transform 0.28s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s !important;
+}
+#left-sidebar:hover {
+  box-shadow: 4px 0 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.2) !important;
+}
+
+/* Toggle button — més gran i visible */
+.lsb-toggle-btn {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 8px !important;
+  background: rgba(124,58,237,0.12) !important;
+  border: 1px solid rgba(124,58,237,0.22) !important;
+  color: #a78bfa !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 11px !important;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s !important;
+}
+.lsb-toggle-btn:hover {
+  background: rgba(124,58,237,0.25) !important;
+  border-color: rgba(167,139,250,0.5) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Logo amb favicon */
+.lsb-logo {
+  background: linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,184,217,0.2)) !important;
+  border: 1px solid rgba(124,58,237,0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+/* ── HERO MINI CARD: millora visual ── */
+.lsb-hero-mini {
+  position: relative !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+}
+.lsb-hero-mini::after {
+  content: '⚔️ VEURE HEROI →' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: linear-gradient(to top, rgba(124,58,237,0.7), transparent) !important;
+  color: rgba(255,255,255,0.8) !important;
+  font-size: 7px !important;
+  font-family: 'Space Mono', monospace !important;
+  letter-spacing: 1.5px !important;
+  padding: 6px 8px 4px !important;
+  text-align: center !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s !important;
+}
+.lsb-hero-mini:hover::after {
+  opacity: 1 !important;
+}
+.lsb-hero-mini:hover {
+  border-color: rgba(167,139,250,0.55) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── BARRA CERCA: millores de visibilitat ── */
+#global-search-bar {
+  z-index: 9999 !important;
+}
+
+/* ── POMODORO FULLSCREEN BOTÓ — text i icon millorat ── */
+.pomo-btn[onclick*="openPomoFullscreen"] {
+  background: rgba(124,58,237,0.15) !important;
+  border: 1px solid rgba(124,58,237,0.3) !important;
+  color: #a78bfa !important;
+  font-size: 18px !important;
+  transition: all 0.2s !important;
+}
+.pomo-btn[onclick*="openPomoFullscreen"]:hover {
+  background: rgba(124,58,237,0.3) !important;
+  transform: scale(1.1) !important;
+}
+
+/* ── Pomodoro fullscreen: millorat ── */
+#pomo-fullscreen {
+  z-index: 99998 !important;
+  cursor: pointer !important;
+}
+#pomo-fs-controls {
+  cursor: default !important;
+}
+
+/* ── Items de navegació: mida icona Julians ── */
+.lsb-item[onclick*="julians"] .lsb-ico {
+  background: rgba(0,180,216,0.1) !important;
+  border: 1px solid rgba(0,180,216,0.2) !important;
+  overflow: hidden !important;
+}
+
+/* ── Scroll suau al contingut quan sidebar s'obre ── */
+body.view-pages.sb-open-desktop .container,
+body.view-pages.sb-collapsed-desktop .container {
+  transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* ── ELIMINAR premium-fab completament ── */
+#premium-fab { display: none !important; }
+
+/* ── Millora el botó de col·lapsar quan collapsed ── */
+#left-sidebar.sb-collapsed .lsb-toggle-btn { display: flex !important; }
+#left-sidebar.sb-collapsed .lsb-top { gap: 0 !important; flex-direction: column !important; align-items: center !important; }
+#left-sidebar.sb-collapsed #lsb-toggle-btn {
+  margin-top: 6px !important;
+  font-size: 12px !important;
+}
+
+/* Fix: lsb-logo image */
+.lsb-logo img {
+  width: 20px !important;
+  height: 20px !important;
+  object-fit: contain !important;
+  border-radius: 3px !important;
+}
+</style>
 </head><body class="view-pages">
 
 <!-- Left sidebar overlay (mobile) -->
@@ -726,9 +860,9 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <!-- ══════════ LEFT SIDEBAR ══════════ -->
 <nav id="left-sidebar">
   <div class="lsb-top">
-    <div class="lsb-logo">⚡</div>
+    <div class="lsb-logo"><img src="favicon.png" style="width:22px;height:22px;object-fit:contain;border-radius:4px;" alt="JOmax"/></div>
     <div class="lsb-brand">JOmaxPath<small>EL TEU ESPAI</small></div>
-    <button class="lsb-toggle-btn" id="lsb-toggle-btn" onclick="lsbToggleCollapse()" title="Col·lapsar">◀</button>
+    <button class="lsb-toggle-btn" id="lsb-toggle-btn" onclick="lsbToggleCollapse()" title="Col·lapsar/Expandir"><span id="lsb-toggle-icon">◀</span></button>
   </div>
 
   <!-- Hero mini card -->
@@ -858,7 +992,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <div id="auth-overlay">
   <div id="auth-box">
     <div id="auth-logo">
-      <div class="bolt">⚡</div>
+      <div class="bolt"><img src="favicon.png" style="width:32px;height:32px;object-fit:contain;" alt="JOmax"/></div>
       <h2>JOMAXPATH</h2>
       <p>ORGANITZA · PLANIFICA · ACONSEGUEIX</p>
     </div>
@@ -936,7 +1070,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   <div class="ndw-bottom">
     <div class="ndw-bottom-btn" onclick="openConfig();toggleDrawer()" data-i18n="drawer_config">⚙️ Configuració</div>
     <div class="ndw-bottom-btn" onclick="navTo('julians');toggleDrawer()" data-i18n="drawer_julians">🧠 Julians AI</div>
-    <div class="ndw-bottom-btn" onclick="window.open('hero.html','_self');toggleDrawer()" style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.08));border:1px solid rgba(245,158,11,0.3);color:#fcd34d;font-weight:600;">⚔️ El meu Heroi</div>
+
     <div class="ndw-bottom-btn" onclick="openQuickCapture();toggleDrawer()" style="color:var(--green);border:1px solid rgba(16,185,129,0.2);">⚡ Captura ràpida</div>
     <div class="ndw-bottom-btn" onclick="toggleNotePicker();toggleDrawer()" style="color:#fcd34d;border:1px solid rgba(245,158,11,0.2);">📝 Notes adhesives</div>
     <div class="ndw-bottom-btn" onclick="openSearch();toggleDrawer()" style="color:var(--cyan);border:1px solid rgba(0,184,217,0.2);">🔍 Cerca global</div>
@@ -1953,7 +2087,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
 
 <!-- ⚡ Premium FAB -->
-<button id="premium-fab" onclick="window.open('pricing.html','_self')" title="Actualitza a Premium">
+<button id="premium-fab" style="display:none!important;" onclick="window.open('pricing.html','_self')" title="Actualitza a Premium">
   <span class="premium-fab-bolt">⚡</span>
   <span class="premium-fab-label">ACTUALITZA A</span>
 </button>
@@ -2240,6 +2374,102 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   });
 
 })();
+</script>
+
+<script>
+// Tancar cerca en clicar fora
+document.addEventListener('click', function(e) {
+  const bar = document.getElementById('global-search-bar');
+  if (!bar || bar.style.display === 'none' || !bar.classList.contains('open')) return;
+  if (!bar.contains(e.target)) closeSearch();
+}, true);
+</script>
+
+<script>
+// ── SO RELLOTGE AL FI DEL POMODORO ──
+function _playPomoAlarm() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    function tone(freq, start, dur, vol) {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur + 0.05);
+    }
+    // Seqüència rellotge: 4 tic-tac + campana
+    [0, 0.35, 0.7, 1.05].forEach(t => {
+      tone(1200, t, 0.06, 0.5);
+      tone(800, t+0.18, 0.06, 0.4);
+    });
+    tone(1047, 1.5, 0.4, 0.7);
+    tone(784,  1.9, 0.4, 0.6);
+    tone(1047, 2.3, 0.7, 0.8);
+  } catch(e) { console.warn('Audio error:', e); }
+}
+
+// Patch _pomoCompleteFocus after app.js loads
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (typeof _pomoCompleteFocus === 'undefined') return;
+    const _orig = _pomoCompleteFocus;
+    window._pomoCompleteFocus = function() {
+      _orig();
+      _playPomoAlarm();
+    };
+  }, 500);
+});
+</script>
+
+<script>
+// ── IMATGES JULIANS AI ──
+document.addEventListener('DOMContentLoaded', () => {
+  const jiSrc = 'julians-ai.png';
+  ['julians-fab-img','julians-bnav-logo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = jiSrc; el.onerror = () => { el.style.display='none'; }; }
+  });
+  // Also set the AI section avatar if any
+  document.querySelectorAll('.ai-avatar, .ai-bot-icon, [id*="julians"][id*="img"]').forEach(el => {
+    if (el.tagName === 'IMG') el.src = jiSrc;
+  });
+  // In AI chat messages, replace brain emoji with img
+  // Update lsb-hero-mini for collapsed mode AI icon
+  const lsbMini = document.querySelector('.lsb-hero-mini');
+  // Keep as is since it shows hero info
+  
+  // Julians sidebar nav icon
+  document.querySelectorAll('.lsb-item[onclick*="julians"] .lsb-ico').forEach(el => {
+    el.innerHTML = '<img src="julians-ai.png" style="width:18px;height:18px;border-radius:50%;object-fit:cover;" alt="Julians AI"/>';
+  });
+  
+  // Fix lsb-hero-mini to not navigate to hero (the mini card shows XP/name)
+  // The HERO navigation should ONLY be via the hero card in sidebar
+});
+</script>
+
+<script>
+// ── SIDEBAR TOGGLE ICON FIX ──
+document.addEventListener('DOMContentLoaded', () => {
+  const origToggle = window.lsbToggleCollapse;
+  if (typeof origToggle === 'function') {
+    window.lsbToggleCollapse = function() {
+      origToggle();
+      const icon = document.getElementById('lsb-toggle-icon');
+      const sb = document.getElementById('left-sidebar');
+      if (icon && sb) {
+        icon.textContent = sb.classList.contains('sb-collapsed') ? '▶' : '◀';
+      }
+    };
+  }
+});
 </script>
 </body>
 </html>
