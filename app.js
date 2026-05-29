@@ -159,6 +159,14 @@ let _supabase = null;
 let _currentUser = null;
 let _userProfile = null; // {id, email, username, avatar}
 
+let _supabaseOffline = false;
+
+function _updateServerStatusIndicator() {
+  const el = document.getElementById('auth-server-status');
+  if (!el) return;
+  el.style.display = _supabaseOffline ? 'block' : 'none';
+}
+
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
@@ -166,6 +174,12 @@ try {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neWlqdXFjbmVscnp1amF6cW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3OTk0MDgsImV4cCI6MjA1OTM3NTQwOH0.pQa8K5wXE9M7E8pu_D9s58hf1m4Wz5aNKbKNFMbQiSk',
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
+    // Test connectivity in background
+    Promise.race([
+      fetch('https://ngyijuqcnelrzujazqom.supabase.co/auth/v1/health'),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
+    ]).then(r => { if (!r.ok) { _supabaseOffline = true; _updateServerStatusIndicator(); } })
+      .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
   }
 } catch {}
 
@@ -210,6 +224,7 @@ function showAuthOverlay() {
   ov.style.display = 'flex';
   requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('visible')));
   const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
+  setTimeout(_updateServerStatusIndicator, 200);
 }
 function _hideAuthOverlay() {
   const ov = document.getElementById('auth-overlay');
@@ -240,6 +255,23 @@ async function authLogin() {
   if(btn) { btn.textContent='Entrant...'; btn.disabled=true; }
 
   let loggedIn = false;
+
+  // If server known offline, try local account first
+  if (_supabaseOffline) {
+    const local = _getLocalProfile();
+    if (local && local.email === email) {
+      _currentUser = {id: local.id, email: local.email};
+      _userProfile = local;
+      if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+      _hideAuthOverlay(); _updateAuthUI();
+      showToast('✅ Sessió local: ' + (local.username || email.split('@')[0]));
+      renderHome(); return;
+    } else {
+      if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+      if(msg) msg.textContent='⚠️ Servidor no disponible. Usa "Continuar sense compte" per mode local.';
+      return;
+    }
+  }
 
   // Try Supabase first
   if (_supabase) {
@@ -310,6 +342,17 @@ async function authRegister() {
 
   let registered = false;
 
+  // If server known offline, create local account directly
+  if (_supabaseOffline) {
+    _currentUser = {id: 'local_' + Date.now(), email};
+    const profile = {id: _currentUser.id, email, username, avatar: '⚔️', created: Date.now(), isLocal: true};
+    _userProfile = profile; _saveLocalProfile(profile);
+    if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;}
+    _hideAuthOverlay(); _updateAuthUI();
+    showToast('🎉 Compte local creat: ' + username + ' (es sincronitzarà quan el servidor estigui disponible)');
+    renderHome(); return;
+  }
+
   if (_supabase) {
     try {
       const {data,error} = await Promise.race([
@@ -357,13 +400,18 @@ async function authRegister() {
 function _translateAuthError(msg) {
   const map = {
     'Invalid login credentials': 'Correu o contrasenya incorrectes',
-    'Email not confirmed': 'Confirma el teu correu primer',
+    'Email not confirmed': '📧 Has de confirmar el correu. Revisa la safata d\'entrada i fes clic a l\'enllaç',
     'User already registered': 'Ja existeix un compte amb aquest correu',
     'Password should be at least 6 characters': 'Contrasenya mínima 6 caràcters',
     'Unable to validate email address': 'Correu electrònic invàlid',
     'timeout': 'Temps esgotat. Comprova la connexió.',
-    'Failed to fetch': 'Sense connexió al servidor. Intenta de nou.',
-    'Load failed': 'Sense connexió al servidor.',
+    'Failed to fetch': 'No s\'ha pogut connectar. Comprova internet.',
+    'Load failed': 'No s\'ha pogut connectar. Comprova internet.',
+    'fetch': 'Error de xarxa. Comprova la connexió.',
+    'NetworkError': 'Error de xarxa. Comprova la connexió.',
+    'over_email_send_rate_limit': 'Massa intents. Espera uns minuts.',
+    'For security purposes': 'Per seguretat, espera uns minuts i torna a intentar-ho.',
+    'signup_disabled': 'El registre està temporalment desactivat.',
   };
   for (const [k,v] of Object.entries(map)) { if (msg.includes(k)) return v; }
   return msg;
