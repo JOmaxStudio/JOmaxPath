@@ -206,9 +206,16 @@ function _updateAuthUI() {
 
 function showAuthOverlay() {
   const ov = document.getElementById('auth-overlay');
-  if (ov) { ov.style.display='flex'; }
-  // Reset msg
+  if (!ov) return;
+  ov.style.display = 'flex';
+  requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('visible')));
   const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
+}
+function _hideAuthOverlay() {
+  const ov = document.getElementById('auth-overlay');
+  if (!ov) return;
+  ov.classList.remove('visible');
+  setTimeout(() => { if (!ov.classList.contains('visible')) ov.style.display='none'; }, 350);
 }
 function switchAuthTab(tab) {
   document.getElementById('auth-login-form').style.display   = tab==='login'?'block':'none';
@@ -218,8 +225,7 @@ function switchAuthTab(tab) {
   const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
 }
 function authSkip() {
-  const ov = document.getElementById('auth-overlay');
-  if (ov) ov.style.display = 'none';
+  _hideAuthOverlay();
   if (!_currentUser) { _updateAuthUI(); }
   renderHome();
 }
@@ -246,7 +252,7 @@ async function authLogin() {
     }
   } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
   if(btn) { btn.textContent='ENTRAR'; btn.disabled=false; }
-  document.getElementById('auth-overlay').style.display='none';
+  _hideAuthOverlay();
   _updateAuthUI();
   showToast('✅ Benvingut/da, '+(_userProfile?.username||email.split('@')[0])+'!');
   renderHome();
@@ -281,7 +287,7 @@ async function authRegister() {
     }
   } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
   if(btn) { btn.textContent='CREAR COMPTE'; btn.disabled=false; }
-  document.getElementById('auth-overlay').style.display='none';
+  _hideAuthOverlay();
   _updateAuthUI();
   showToast('🎉 Compte creat! Benvingut/da, '+username+'!');
   renderHome();
@@ -396,29 +402,88 @@ async function getHeroLeaderboard() {
 }
 
 (async function initAuth() {
-  if (!_supabase) { _updateAuthUI(); authSkip(); return; }
+  // Always update UI first
+  _updateAuthUI();
+
+  // If no Supabase, skip to local mode
+  if (!_supabase) {
+    const local = _getLocalProfile();
+    if (local) { _userProfile = local; _updateAuthUI(); }
+    authSkip();
+    return;
+  }
+
   try {
-    const {data:{session}} = await _supabase.auth.getSession();
-    if (session?.user) {
-      _currentUser = session.user;
-      await _loadUserProfile(session.user.id);
-      await _syncUserData(session.user.id);
+    const {data, error} = await _supabase.auth.getSession();
+    if (error) throw error;
+
+    if (data?.session?.user) {
+      _currentUser = data.session.user;
+      await _loadUserProfile(data.session.user.id);
+      await _syncUserData(data.session.user.id);
       _updateAuthUI();
-      authSkip();
+      authSkip(); // logged in — close overlay, load app
     } else {
-      // Check local profile (session-less login)
+      // No active Supabase session — check local profile (session-less or local mode)
       const local = _getLocalProfile();
-      if (local) { _userProfile = local; _updateAuthUI(); authSkip(); return; }
+      if (local && local.username) {
+        _userProfile = local;
+        _updateAuthUI();
+        authSkip();
+        // Show a gentle reminder after 3s
+        setTimeout(() => _showSessionReminder(), 3000);
+        return;
+      }
+      // No session at all — show auth overlay
       _updateAuthUI();
       showAuthOverlay();
     }
-    _supabase.auth.onAuthStateChange((event,session)=>{
-      _currentUser = session?.user||null;
-      if (!_currentUser) { _saveLocalProfile(null); }
-      _updateAuthUI();
+
+    // Listen for future auth changes
+    _supabase.auth.onAuthStateChange((event, session) => {
+      const prevUser = _currentUser;
+      _currentUser = session?.user || null;
+      if (!_currentUser && prevUser) {
+        _saveLocalProfile(null);
+        _userProfile = null;
+        _updateAuthUI();
+      } else if (_currentUser && !prevUser) {
+        _loadUserProfile(_currentUser.id).then(() => _updateAuthUI());
+      }
     });
-  } catch { _updateAuthUI(); authSkip(); }
+  } catch(e) {
+    console.warn('JOmaxPath auth error:', e);
+    // Fallback — check local profile then skip to app
+    const local = _getLocalProfile();
+    if (local && local.username) { _userProfile = local; _updateAuthUI(); authSkip(); }
+    else { _updateAuthUI(); showAuthOverlay(); }
+  }
 })();
+
+/* ── Session reminder (non-intrusive banner) ── */
+function _showSessionReminder() {
+  if (_currentUser) return; // already logged in
+  const existing = document.getElementById('session-reminder');
+  if (existing) return;
+  const banner = document.createElement('div');
+  banner.id = 'session-reminder';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+      <span style="font-size:16px;">⚠️</span>
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#fcd34d;">MODE LOCAL</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:1px;">Les dades no es sincronitzen. Inicia sessió per no perdre res.</div>
+      </div>
+    </div>
+    <button onclick="showAuthOverlay();document.getElementById('session-reminder')?.remove()" style="padding:6px 14px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:8px;color:#a78bfa;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;white-space:nowrap;">INICIAR SESSIÓ</button>
+    <button onclick="this.parentElement.remove()" style="padding:6px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:rgba(255,255,255,0.3);cursor:pointer;font-size:13px;">✕</button>
+  `;
+  banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:rgba(6,6,16,0.96);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:12px 16px;z-index:8000;box-shadow:0 8px 32px rgba(0,0,0,0.5);width:min(480px,92vw);backdrop-filter:blur(16px);';
+  document.body.appendChild(banner);
+  // Auto-dismiss after 8s
+  setTimeout(() => banner.remove(), 8000);
+}
+
 
 /* ─────────────────────────────────────────
    HOME

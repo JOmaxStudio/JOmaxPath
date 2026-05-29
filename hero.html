@@ -163,7 +163,7 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .hh-qs-lbl{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;color:var(--muted);}
 
 /* ═══ MAIN LAYOUT ═══ */
-.hero-layout{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;}
+.hero-layout{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:stretch;}
 @media(max-width:1200px){.hero-layout{grid-template-columns:300px 1fr;}}
 @media(max-width:1000px){.hero-layout{grid-template-columns:1fr;}}
 
@@ -218,7 +218,7 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .cat-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
 .cat-tab{padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:var(--muted);font-family:'Space Mono',monospace;font-size:8.5px;cursor:pointer;transition:all .2s;}
 .cat-tab.on{background:rgba(124,58,237,0.18);border-color:rgba(124,58,237,0.4);color:var(--accent2);}
-.mission-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;margin-bottom:12px;}
+.mission-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;margin-bottom:12px;}
 .mission-list::-webkit-scrollbar{width:2px;}
 .mission-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;transition:all .18s;}
 .mission-item:hover{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.25);}
@@ -295,6 +295,17 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .friends-search{flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:9px 14px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
 .friends-search:focus{border-color:rgba(124,58,237,0.4);}
 .friends-search::placeholder{color:var(--muted);}
+/* Friend request cards */
+.friend-req-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.22);border-radius:10px;}
+.friend-req-avatar{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,180,216,0.1));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.friend-req-info{flex:1;min-width:0;}
+.friend-req-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.friend-req-sub{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;}
+.friend-req-btns{display:flex;gap:5px;flex-shrink:0;}
+.btn-accept{padding:6px 12px;border-radius:7px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;cursor:pointer;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;transition:all .2s;}
+.btn-accept:hover{background:rgba(16,185,129,0.35);}
+.btn-reject{padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;font-size:12px;transition:all .2s;}
+.btn-reject:hover{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;}
 .friends-add-btn{padding:9px 14px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:9px;color:var(--accent2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;transition:all .2s;white-space:nowrap;}
 .friends-add-btn:hover{background:rgba(124,58,237,0.25);}
 .friends-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
@@ -731,7 +742,7 @@ body.mob-sb #sb{width:var(--sb) !important;}
       </div>
 
       <!-- RIGHT: TABS PANEL -->
-      <div>
+      <div style="display:flex;flex-direction:column;min-height:600px;">
         <div class="hero-tabs">
           <button class="hero-tab on" id="tab-missions" onclick="switchTab('missions')">⚡ MISSIONS</button>
           <button class="hero-tab" id="tab-stats" onclick="switchTab('stats')">📊 STATS</button>
@@ -818,11 +829,29 @@ body.mob-sb #sb{width:var(--sb) !important;}
         <div class="tab-panel" id="panel-friends">
           <div class="sec-lbl">👥 AMICS</div>
 
-          <div class="friends-bar">
-            <input class="friends-search" type="text" id="friend-code-inp" placeholder="Enganxa el codi d'un amic..."/>
-            <button class="friends-add-btn" onclick="addFriendByCode()">+ AFEGIR</button>
+          <!-- Add by username -->
+          <div style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,180,216,0.04));border:1px solid rgba(124,58,237,0.22);border-radius:14px;padding:16px;margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px;">➕ Afegir Amic</div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px;">
+              <input class="friends-search" type="text" id="friend-username-inp" placeholder="Pseudònim del teu amic..." maxlength="24" onkeydown="if(event.key==='Enter')sendFriendRequest()"/>
+              <button class="friends-add-btn" onclick="sendFriendRequest()">📨 ENVIAR SOL·LICITUD</button>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;margin-top:4px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">O AFEGIR PEL CODI HÈROE</div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+                <input class="friends-search" type="text" id="friend-code-inp" placeholder="Codi base64..."/>
+                <button class="friends-add-btn" onclick="addFriendByCode()" style="background:rgba(0,180,216,0.12);border-color:rgba(0,180,216,0.3);color:var(--cyan2);">📋 CODI</button>
+              </div>
+            </div>
           </div>
 
+          <!-- Pending requests -->
+          <div id="friend-requests-section" style="display:none;margin-bottom:14px;">
+            <div class="sec-lbl">📬 SOL·LICITUDS PENDENTS</div>
+            <div id="friend-requests-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+
+          <!-- Friends list -->
           <div id="friends-list" class="friends-grid"></div>
 
           <!-- Invite code -->
@@ -832,7 +861,16 @@ body.mob-sb #sb{width:var(--sb) !important;}
             <button class="invite-copy-btn" onclick="copyInviteCode()">📋 COPIAR</button>
           </div>
           <div style="font-size:10px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace;letter-spacing:1px;">
-            Comparteix el teu codi per que els amics puguin afegir-te i veure com creix el teu heroi.
+            Comparteix el teu pseudònim o codi perquè els amics puguin afegir-te.
+          </div>
+
+          <!-- Leaderboard -->
+          <div style="margin-top:18px;">
+            <div class="sec-lbl">🏆 RÀNQUING GLOBAL</div>
+            <div id="leaderboard-list" style="display:flex;flex-direction:column;gap:5px;">
+              <div style="text-align:center;padding:20px;color:var(--muted);font-size:11px;">Carregant rànquing...</div>
+            </div>
+            <button onclick="loadLeaderboard()" style="margin-top:10px;width:100%;padding:9px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.22);border-radius:9px;color:var(--accent2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;">↺ ACTUALITZAR</button>
           </div>
         </div>
 
@@ -1273,34 +1311,204 @@ function renderTools(){
 function goTo(page){window.open('index.html','_self');}
 
 /* ═══ FRIENDS ═══ */
+const FRIEND_REQUESTS_KEY = 'jomaxpath_friend_requests_v1';
+
+function _getSupabase() {
+  // Reuse Supabase from index.html if loaded in same context, else recreate
+  try {
+    if (typeof _supabase !== 'undefined' && _supabase) return _supabase;
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+      return supabase.createClient(
+        'https://ngyijuqcnelrzujazqom.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neWlqdXFjbmVscnp1amF6cW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3OTk0MDgsImV4cCI6MjA1OTM3NTQwOH0.pQa8K5wXE9M7E8pu_D9s58hf1m4Wz5aNKbKNFMbQiSk'
+      );
+    }
+  } catch {}
+  return null;
+}
+
+function _getMyUsername() {
+  try { const p = JSON.parse(localStorage.getItem('jomaxpath_profile_v1')); return p?.username||null; } catch { return null; }
+}
+function _getMyProfile() {
+  try { return JSON.parse(localStorage.getItem('jomaxpath_profile_v1'))||null; } catch { return null; }
+}
+
 function generateInviteCode(){
   const{level}=computeLevel(hero.xp);
-  // Try to get username from auth profile (stored by index.html auth system)
-  let username = hero.name;
-  try { const p = JSON.parse(localStorage.getItem('jomaxpath_profile_v1')); if(p?.username) username = p.username; } catch{}
+  const username = _getMyUsername() || hero.name;
   const data={name:username,avatar:hero.avatar,level:level,xp:hero.xp,class:CLASSES[Math.min(level-1,9)],stats:hero.stats};
   try{return btoa(unescape(encodeURIComponent(JSON.stringify(data))));}catch{return null;}
 }
 
 function updateInviteCode(){
-  const code=generateInviteCode();
-  // Show truncated code
-  if(code){
-    const el=document.getElementById('my-invite-code');
-    if(el) el.textContent=code.slice(0,36)+'...';
+  const myUser = _getMyUsername();
+  const el = document.getElementById('my-invite-code');
+  if (!el) return;
+  if (myUser) {
+    el.textContent = '👤 ' + myUser;
+    el.style.color = 'var(--accent2)';
+  } else {
+    const code = generateInviteCode();
+    if (code) el.textContent = code.slice(0,32)+'...';
   }
 }
 
 function copyInviteCode(){
-  const code=generateInviteCode();
-  if(!code)return;
-  navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat! Comparteix-lo.')).catch(()=>showToast('Codi: '+code.slice(0,20)+'...'));
+  const myUser = _getMyUsername();
+  if (myUser) {
+    navigator.clipboard.writeText(myUser).catch(()=>{});
+    showToast('📋 Pseudònim copiat: '+myUser);
+    return;
+  }
+  const code = generateInviteCode();
+  if (!code) return;
+  navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat!')).catch(()=>showToast('Codi: '+code.slice(0,20)+'...'));
+}
+
+/* ── Send friend request by username ── */
+async function sendFriendRequest() {
+  const inp = document.getElementById('friend-username-inp');
+  const targetUsername = (inp?.value||'').trim();
+  if (!targetUsername) { showToast('⚠️ Escriu el pseudònim de l\'amic'); return; }
+  const myUsername = _getMyUsername();
+  if (!myUsername) {
+    showToast('⚠️ Necessites un compte per enviar sol·licituds'); return;
+  }
+  if (targetUsername.toLowerCase() === myUsername.toLowerCase()) {
+    showToast('⚠️ No et pots afegir a tu mateix!'); return;
+  }
+  const sb = _getSupabase();
+  if (sb) {
+    try {
+      // Check target exists
+      const {data: target} = await sb.from('profiles').select('id,username,avatar').ilike('username', targetUsername).single();
+      if (!target) { showToast('❌ Usuari "'+targetUsername+'" no trobat'); return; }
+      // Check not already friends
+      const friends = loadFriends();
+      if (friends.find(f => f.name?.toLowerCase() === targetUsername.toLowerCase())) {
+        showToast('👥 Ja sou amics!'); return;
+      }
+      // Insert friend request
+      const myProfile = _getMyProfile();
+      const {error} = await sb.from('friend_requests').upsert({
+        from_username: myUsername,
+        to_username: target.username,
+        from_avatar: hero.avatar,
+        from_level: computeLevel(hero.xp).level,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }, {onConflict: 'from_username,to_username'});
+      if (error) { showToast('❌ Error: '+error.message); return; }
+      inp.value = '';
+      showToast('📨 Sol·licitud enviada a '+target.username+'!');
+    } catch(e) { showToast('❌ Error de connexió'); }
+  } else {
+    // Offline mode — store locally as pending
+    const requests = _getLocalRequests();
+    if (requests.sent?.find(r => r.to?.toLowerCase() === targetUsername.toLowerCase())) {
+      showToast('⏳ Sol·licitud ja enviada');  return;
+    }
+    if (!requests.sent) requests.sent = [];
+    requests.sent.push({to: targetUsername, at: Date.now()});
+    _saveLocalRequests(requests);
+    inp.value = '';
+    showToast('📨 Sol·licitud enviada (mode local)');
+  }
+}
+
+function _getLocalRequests() { try { return JSON.parse(localStorage.getItem(FRIEND_REQUESTS_KEY))||{}; } catch { return {}; } }
+function _saveLocalRequests(r) { try { localStorage.setItem(FRIEND_REQUESTS_KEY, JSON.stringify(r)); } catch {} }
+
+/* ── Load and render pending requests TO me ── */
+async function loadFriendRequests() {
+  const myUsername = _getMyUsername();
+  const section = document.getElementById('friend-requests-section');
+  const list = document.getElementById('friend-requests-list');
+  if (!section||!list||!myUsername) return;
+
+  const sb = _getSupabase();
+  let requests = [];
+  if (sb) {
+    try {
+      const {data} = await sb.from('friend_requests')
+        .select('*').eq('to_username', myUsername).eq('status','pending');
+      requests = data||[];
+    } catch {}
+  }
+  // Also check local
+  const local = _getLocalRequests();
+  if (local.received?.length) {
+    requests = [...requests, ...local.received.map(r=>({from_username:r.from,from_avatar:r.avatar||'⚔️',from_level:r.level||1,id:'local_'+r.from}))];
+  }
+
+  if (requests.length === 0) { section.style.display='none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = '';
+  requests.forEach(req => {
+    const card = document.createElement('div');
+    card.className = 'friend-req-card';
+    card.innerHTML = `
+      <div class="friend-req-avatar">${req.from_avatar||'⚔️'}</div>
+      <div class="friend-req-info">
+        <div class="friend-req-name">${req.from_username}</div>
+        <div class="friend-req-sub">NV.${req.from_level||1} · Vol ser el teu amic</div>
+      </div>
+      <div class="friend-req-btns">
+        <button class="btn-accept" onclick="acceptFriendRequest('${req.id}','${req.from_username}','${req.from_avatar||'⚔️'}',${req.from_level||1})">✓ ACCEPTAR</button>
+        <button class="btn-reject" onclick="rejectFriendRequest('${req.id}','${req.from_username}')">✕</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+async function acceptFriendRequest(reqId, fromUsername, fromAvatar, fromLevel) {
+  const sb = _getSupabase();
+  if (sb && !reqId.startsWith('local_')) {
+    try {
+      await sb.from('friend_requests').update({status:'accepted'}).eq('id', reqId);
+      // Fetch full profile of accepted friend
+      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).single();
+      if (profile) {
+        const friends = loadFriends();
+        if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
+          friends.push({name:profile.username,avatar:profile.avatar||'⚔️',level:profile.hero_level||1,xp:profile.hero_xp||0,class:'Guerrer',stats:{},addedAt:Date.now()});
+          saveFriends(friends);
+        }
+      }
+    } catch {}
+  } else {
+    const friends = loadFriends();
+    if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
+      friends.push({name:fromUsername,avatar:fromAvatar,level:fromLevel,xp:0,class:'Guerrer',stats:{},addedAt:Date.now()});
+      saveFriends(friends);
+    }
+    const req = _getLocalRequests();
+    req.received = (req.received||[]).filter(r=>r.from!==fromUsername);
+    _saveLocalRequests(req);
+  }
+  showToast('🎉 '+fromUsername+' ara és el teu amic!');
+  renderFriends();
+  loadFriendRequests();
+}
+
+async function rejectFriendRequest(reqId, fromUsername) {
+  const sb = _getSupabase();
+  if (sb && !reqId.startsWith('local_')) {
+    try { await sb.from('friend_requests').update({status:'rejected'}).eq('id', reqId); } catch {}
+  } else {
+    const req = _getLocalRequests();
+    req.received = (req.received||[]).filter(r=>r.from!==fromUsername);
+    _saveLocalRequests(req);
+  }
+  showToast('👋 Sol·licitud rebutjada');
+  loadFriendRequests();
 }
 
 function addFriendByCode(){
   const inp=document.getElementById('friend-code-inp');
-  const code=inp.value.trim();
-  if(!code){showToast('⚠️ Enganxa el codi d\'un amic!');return;}
+  const code=(inp?.value||'').trim();
+  if(!code){showToast('⚠️ Enganxa el codi!');return;}
   try{
     const data=JSON.parse(decodeURIComponent(escape(atob(code))));
     if(!data.name||!data.avatar){showToast('❌ Codi invàlid');return;}
@@ -1308,7 +1516,7 @@ function addFriendByCode(){
     if(friends.find(f=>f.name===data.name)){showToast('👥 Ja tens aquest amic!');return;}
     friends.push({...data,addedAt:Date.now()});
     saveFriends(friends);
-    inp.value='';
+    if(inp) inp.value='';
     renderFriends();
     showToast('👥 Amic afegit: '+data.name+'!');
   }catch{showToast('❌ Codi invàlid o corrupte');}
@@ -1316,23 +1524,80 @@ function addFriendByCode(){
 
 function renderFriends(){
   const list=document.getElementById('friends-list');
+  if (!list) return;
   const friends=loadFriends();
   if(friends.length===0){
-    list.innerHTML=`<div class="friends-empty"><div class="fe-icon">👥</div><p>Encara no tens amics afegits.<br>Comparteix el teu codi o afegeix el codi d'un amic per veure com creix el seu heroi!</p></div>`;
+    list.innerHTML=`<div class="friends-empty"><div class="fe-icon">👥</div><p>Encara no tens amics.<br>Envia una sol·licitud pel pseudònim o comparteix el teu codi.</p></div>`;
     return;
   }
   list.innerHTML='';
   friends.forEach((f,i)=>{
     const card=document.createElement('div');card.className='friend-card';
-    const xpInLevel=f.xp-(f.level*(f.level-1)/2*100);const xpNeeded=f.level*100;
+    const lvl = f.level||1;
+    const xpInLevel = Math.max(0, f.xp - (lvl*(lvl-1)/2*100));
+    const xpNeeded = lvl*100;
     const pct=Math.max(0,Math.min(100,Math.round((xpInLevel/xpNeeded)*100)));
     const topStats=Object.entries(f.stats||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`<span class="fc-stat">${STATS_DEF.find(s=>s.id===k)?.icon||'?'} ${Math.floor(v)}</span>`).join('');
-    card.innerHTML=`<div class="fc-top"><div class="fc-avatar">${f.avatar||'⚔️'}</div><div class="fc-info"><div class="fc-name">${f.name}</div><div class="fc-class">${(f.class||'Guerrer').toUpperCase()}</div></div><div class="fc-lvl-badge">NV.${f.level||1}</div></div><div class="fc-xpbar"><div class="fc-xpfill" style="width:${pct}%"></div></div><div class="fc-stats">${topStats}</div>`;
-    card.title='Eliminar amic';
+    card.innerHTML=`<div class="fc-top"><div class="fc-avatar">${f.avatar||'⚔️'}</div><div class="fc-info"><div class="fc-name">${f.name}</div><div class="fc-class">${(f.class||'Guerrer').toUpperCase()}</div></div><div class="fc-lvl-badge">NV.${lvl}</div></div><div class="fc-xpbar"><div class="fc-xpfill" style="width:${pct}%"></div></div><div class="fc-stats">${topStats||'<span class="fc-stat">🌱 Nou</span>'}</div>`;
+    card.title='Doble clic per eliminar';
     card.ondblclick=()=>{if(confirm('Eliminar '+f.name+'?')){const fr=loadFriends();fr.splice(i,1);saveFriends(fr);renderFriends();}};
     list.appendChild(card);
   });
 }
+
+async function loadLeaderboard() {
+  const el = document.getElementById('leaderboard-list');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:11px;">Carregant...</div>';
+  
+  const sb = _getSupabase();
+  let entries = [];
+  
+  if (sb) {
+    try {
+      const {data} = await sb.from('profiles')
+        .select('username,avatar,hero_xp,hero_level')
+        .order('hero_xp', {ascending: false})
+        .limit(10);
+      entries = data || [];
+    } catch {}
+  }
+  
+  // Always include local hero + friends as fallback
+  if (entries.length === 0) {
+    const {level} = computeLevel(hero.xp);
+    const myName = _getMyUsername() || hero.name;
+    entries = [{username: myName, avatar: hero.avatar, hero_xp: hero.xp, hero_level: level}];
+    loadFriends().forEach(f => {
+      if (f.name) entries.push({username: f.name, avatar: f.avatar||'⚔️', hero_xp: f.xp||0, hero_level: f.level||1});
+    });
+    entries.sort((a,b) => (b.hero_xp||0)-(a.hero_xp||0));
+  }
+
+  const myUsername = _getMyUsername() || hero.name;
+  if (entries.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:11px;">Sense dades de rànquing</div>';
+    return;
+  }
+  
+  const medals = ['🥇','🥈','🥉'];
+  el.innerHTML = '';
+  entries.forEach((e, i) => {
+    const isMe = e.username?.toLowerCase() === myUsername?.toLowerCase();
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px solid ${isMe?'rgba(124,58,237,0.35)':'rgba(255,255,255,0.05)'};background:${isMe?'rgba(124,58,237,0.12)':'rgba(255,255,255,0.02)'};margin-bottom:4px;`;
+    row.innerHTML = `
+      <div style="font-family:'Space Mono',monospace;font-size:12px;width:24px;text-align:center;">${medals[i]||('#'+(i+1))}</div>
+      <div style="font-size:20px;">${e.avatar||'⚔️'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:${isMe?'#a78bfa':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.username||'—'}${isMe?' (tu)':''}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);">NV.${e.hero_level||1}</div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:#fcd34d;font-weight:700;">${(e.hero_xp||0).toLocaleString()} XP</div>`;
+    el.appendChild(row);
+  });
+}
+
 
 /* ═══ EDIT HERO ═══ */
 function openEditHero(){
