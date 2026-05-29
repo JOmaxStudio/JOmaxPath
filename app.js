@@ -238,24 +238,62 @@ async function authLogin() {
   if (!email||!pass) { if(msg) msg.textContent='⚠️ Omple tots els camps'; return; }
   const btn = document.getElementById('auth-submit-btn');
   if(btn) { btn.textContent='Entrant...'; btn.disabled=true; }
-  try {
-    if (_supabase) {
-      const {data,error} = await _supabase.auth.signInWithPassword({email,password:pass});
-      if (error) { if(msg) msg.textContent='❌ '+error.message; if(btn){btn.textContent='ENTRAR';btn.disabled=false;} return; }
+
+  let loggedIn = false;
+
+  // Try Supabase first
+  if (_supabase) {
+    try {
+      const {data,error} = await Promise.race([
+        _supabase.auth.signInWithPassword({email,password:pass}),
+        new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+      ]);
+      if (error) {
+        if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+        if(msg) msg.textContent='❌ '+_translateAuthError(error.message);
+        return;
+      }
       _currentUser = data.user;
       await _loadUserProfile(data.user.id);
       await _syncUserData(data.user.id);
-      if (!remember) {
-        // Sign out from supabase but keep local state for this session only
-        setTimeout(()=>{ if(_supabase) _supabase.auth.signOut().catch(()=>{}); }, 100);
+      if (!remember) { setTimeout(()=>{ _supabase?.auth.signOut().catch(()=>{}); }, 200); }
+      loggedIn = true;
+    } catch(e) {
+      // Network error or timeout — try local account fallback
+      const local = _getLocalProfile();
+      if (local && local.email === email) {
+        // Match local account by email (no password check in local mode)
+        _currentUser = {id: local.id, email: local.email};
+        _userProfile = local;
+        loggedIn = true;
+        if(msg) msg.textContent='';
+      } else {
+        if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+        if(msg) msg.textContent='❌ Sense connexió. Comprova internet o usa "Continuar sense compte".';
+        return;
       }
     }
-  } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
-  if(btn) { btn.textContent='ENTRAR'; btn.disabled=false; }
-  _hideAuthOverlay();
-  _updateAuthUI();
-  showToast('✅ Benvingut/da, '+(_userProfile?.username||email.split('@')[0])+'!');
-  renderHome();
+  } else {
+    // No Supabase — local login by email match
+    const local = _getLocalProfile();
+    if (local && local.email === email) {
+      _currentUser = {id: local.id, email};
+      _userProfile = local;
+      loggedIn = true;
+    } else {
+      if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+      if(msg) msg.textContent='❌ No s\'ha trobat cap compte amb aquest correu en mode local.';
+      return;
+    }
+  }
+
+  if(btn){btn.textContent='ENTRAR';btn.disabled=false;}
+  if (loggedIn) {
+    _hideAuthOverlay();
+    _updateAuthUI();
+    showToast('✅ Benvingut/da, '+(_userProfile?.username||email.split('@')[0])+'!');
+    renderHome();
+  }
 }
 
 async function authRegister() {
@@ -269,28 +307,66 @@ async function authRegister() {
   if (pass.length<6) { if(msg) msg.textContent='⚠️ Contrasenya mínima 6 caràcters'; return; }
   const btn = document.getElementById('auth-reg-btn');
   if(btn) { btn.textContent='Creant compte...'; btn.disabled=true; }
-  try {
-    if (_supabase) {
-      const {data,error} = await _supabase.auth.signUp({email,password:pass,options:{data:{username}}});
-      if (error) { if(msg) msg.textContent='❌ '+error.message; if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;} return; }
-      _currentUser = data.user;
-      const profile = {id:data.user.id,email,username,avatar:'⚔️',created:Date.now()};
-      _userProfile = profile; _saveLocalProfile(profile);
-      // Save profile to Supabase
-      try { await _supabase.from('profiles').upsert({id:data.user.id,username,email,avatar:'⚔️',hero_xp:0,hero_level:1}); } catch{}
-      await _saveUserDataToCloud(data.user.id);
-    } else {
-      // Local-only mode
-      _currentUser = {id:'local_'+Date.now(),email};
+
+  let registered = false;
+
+  if (_supabase) {
+    try {
+      const {data,error} = await Promise.race([
+        _supabase.auth.signUp({email,password:pass,options:{data:{username}}}),
+        new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+      ]);
+      if (error) {
+        if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;}
+        if(msg) msg.textContent='❌ '+_translateAuthError(error.message);
+        return;
+      }
+      _currentUser = data.user || {id:'sb_'+Date.now(),email};
       const profile = {id:_currentUser.id,email,username,avatar:'⚔️',created:Date.now()};
       _userProfile = profile; _saveLocalProfile(profile);
+      // Best-effort cloud saves (don't block or fail if tables don't exist)
+      _supabase.from('profiles').upsert({id:_currentUser.id,username,email,avatar:'⚔️',hero_xp:0,hero_level:1}).catch(()=>{});
+      _saveUserDataToCloud(_currentUser.id).catch(()=>{});
+      registered = true;
+    } catch(e) {
+      // Network/timeout — create local account as fallback
+      if(msg) msg.textContent='⚠️ Sense connexió. Creant compte local...';
+      await new Promise(r=>setTimeout(r,800));
+      _currentUser = {id:'local_'+Date.now(),email};
+      const profile = {id:_currentUser.id,email,username,avatar:'⚔️',created:Date.now(),isLocal:true};
+      _userProfile = profile; _saveLocalProfile(profile);
+      registered = true;
     }
-  } catch(e) { if(msg) msg.textContent='❌ Error de connexió'; }
-  if(btn) { btn.textContent='CREAR COMPTE'; btn.disabled=false; }
-  _hideAuthOverlay();
-  _updateAuthUI();
-  showToast('🎉 Compte creat! Benvingut/da, '+username+'!');
-  renderHome();
+  } else {
+    // No Supabase — local account
+    _currentUser = {id:'local_'+Date.now(),email};
+    const profile = {id:_currentUser.id,email,username,avatar:'⚔️',created:Date.now(),isLocal:true};
+    _userProfile = profile; _saveLocalProfile(profile);
+    registered = true;
+  }
+
+  if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;}
+  if (registered) {
+    _hideAuthOverlay();
+    _updateAuthUI();
+    showToast('🎉 Benvingut/da, '+username+'! Compte creat correctament.');
+    renderHome();
+  }
+}
+
+function _translateAuthError(msg) {
+  const map = {
+    'Invalid login credentials': 'Correu o contrasenya incorrectes',
+    'Email not confirmed': 'Confirma el teu correu primer',
+    'User already registered': 'Ja existeix un compte amb aquest correu',
+    'Password should be at least 6 characters': 'Contrasenya mínima 6 caràcters',
+    'Unable to validate email address': 'Correu electrònic invàlid',
+    'timeout': 'Temps esgotat. Comprova la connexió.',
+    'Failed to fetch': 'Sense connexió al servidor. Intenta de nou.',
+    'Load failed': 'Sense connexió al servidor.',
+  };
+  for (const [k,v] of Object.entries(map)) { if (msg.includes(k)) return v; }
+  return msg;
 }
 
 async function authLogout() {
@@ -309,22 +385,34 @@ function authShowMenu() {
 }
 
 async function _loadUserProfile(userId) {
-  try {
-    if (_supabase) {
-      const {data} = await _supabase.from('profiles').select('*').eq('id',userId).single();
-      if (data) { _userProfile = {id:data.id,email:data.email||'',username:data.username,avatar:data.avatar||'⚔️'}; _saveLocalProfile(_userProfile); return; }
-    }
-  } catch{}
+  // Try Supabase with timeout
+  if (_supabase && !userId.startsWith('local_')) {
+    try {
+      const {data} = await Promise.race([
+        _supabase.from('profiles').select('*').eq('id',userId).single(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),5000))
+      ]);
+      if (data?.username) {
+        _userProfile = {id:data.id,email:data.email||'',username:data.username,avatar:data.avatar||'⚔️'};
+        _saveLocalProfile(_userProfile); return;
+      }
+    } catch{}
+  }
+  // Fallback: local profile or derive from user object
   const local = _getLocalProfile();
-  if (local && local.id===userId) { _userProfile = local; return; }
-  _userProfile = {id:userId,email:_currentUser?.email||'',username:_currentUser?.user_metadata?.username||_currentUser?.email?.split('@')[0]||'Usuari',avatar:'⚔️'};
+  if (local && (local.id===userId || local.email===_currentUser?.email)) { _userProfile = local; return; }
+  _userProfile = {id:userId,email:_currentUser?.email||'',
+    username:_currentUser?.user_metadata?.username||_currentUser?.email?.split('@')[0]||'Usuari',avatar:'⚔️'};
   _saveLocalProfile(_userProfile);
 }
 
 async function _syncUserData(userId) {
+  if (!_supabase || !userId || userId.startsWith('local_')) return;
   try {
-    if (!_supabase) return;
-    const {data} = await _supabase.from('user_data').select('data').eq('user_id',userId).single();
+    const {data} = await Promise.race([
+      _supabase.from('user_data').select('data').eq('user_id',userId).single(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),5000))
+    ]);
     if (data?.data) {
       const d = data.data;
       ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
@@ -334,25 +422,25 @@ async function _syncUserData(userId) {
       });
       showToast('☁️ Dades sincronitzades!');
     }
-  } catch{}
+  } catch{} // Silently ignore — tables may not exist yet
 }
 
 async function _saveUserDataToCloud(userId) {
+  if (!_supabase||!userId||userId.startsWith('local_')) return;
   try {
-    if (!_supabase||!userId) return;
     const data = {};
     ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
      'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
      'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
       try { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch{}
     });
-    await _supabase.from('user_data').upsert({user_id:userId,data,updated:new Date().toISOString()});
-    // Update hero stats in profile
+    await Promise.race([
+      _supabase.from('user_data').upsert({user_id:userId,data,updated:new Date().toISOString()}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),6000))
+    ]);
     const hero = get('jomaxpath_hero_v2',null);
-    if (hero) {
-      try { await _supabase.from('profiles').update({hero_xp:hero.xp||0,hero_level:hero.level||1,avatar:hero.avatar||'⚔️'}).eq('id',userId); } catch{}
-    }
-  } catch{}
+    if (hero) _supabase.from('profiles').update({hero_xp:hero.xp||0,hero_level:hero.level||1,avatar:hero.avatar||'⚔️'}).eq('id',userId).catch(()=>{});
+  } catch{} // Silently ignore
 }
 
 // Auto-save every 90s when logged in
@@ -402,61 +490,61 @@ async function getHeroLeaderboard() {
 }
 
 (async function initAuth() {
-  // Always update UI first
   _updateAuthUI();
 
-  // If no Supabase, skip to local mode
+  // No Supabase available — go local immediately
   if (!_supabase) {
     const local = _getLocalProfile();
-    if (local) { _userProfile = local; _updateAuthUI(); }
-    authSkip();
-    return;
+    if (local?.username) { _currentUser={id:local.id,email:local.email}; _userProfile=local; _updateAuthUI(); }
+    authSkip(); return;
   }
 
   try {
-    const {data, error} = await _supabase.auth.getSession();
-    if (error) throw error;
+    // Timeout on session check — don't block app if network is slow/down
+    const {data, error} = await Promise.race([
+      _supabase.auth.getSession(),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('session-timeout')), 4000))
+    ]);
 
-    if (data?.session?.user) {
+    if (!error && data?.session?.user) {
       _currentUser = data.session.user;
-      await _loadUserProfile(data.session.user.id);
-      await _syncUserData(data.session.user.id);
+      _loadUserProfile(data.session.user.id).then(()=>_updateAuthUI()).catch(()=>{});
+      _syncUserData(data.session.user.id).catch(()=>{});
       _updateAuthUI();
-      authSkip(); // logged in — close overlay, load app
+      authSkip();
     } else {
-      // No active Supabase session — check local profile (session-less or local mode)
       const local = _getLocalProfile();
-      if (local && local.username) {
+      if (local?.username) {
+        _currentUser = {id:local.id, email:local.email};
         _userProfile = local;
         _updateAuthUI();
         authSkip();
-        // Show a gentle reminder after 3s
-        setTimeout(() => _showSessionReminder(), 3000);
+        setTimeout(()=>_showSessionReminder(), 3000);
         return;
       }
-      // No session at all — show auth overlay
       _updateAuthUI();
       showAuthOverlay();
     }
 
-    // Listen for future auth changes
     _supabase.auth.onAuthStateChange((event, session) => {
-      const prevUser = _currentUser;
       _currentUser = session?.user || null;
-      if (!_currentUser && prevUser) {
-        _saveLocalProfile(null);
-        _userProfile = null;
-        _updateAuthUI();
-      } else if (_currentUser && !prevUser) {
-        _loadUserProfile(_currentUser.id).then(() => _updateAuthUI());
-      }
+      if (!_currentUser) { _userProfile = null; }
+      else { _loadUserProfile(_currentUser.id).then(()=>_updateAuthUI()).catch(()=>{}); }
+      _updateAuthUI();
     });
   } catch(e) {
-    console.warn('JOmaxPath auth error:', e);
-    // Fallback — check local profile then skip to app
+    // Network error or timeout
     const local = _getLocalProfile();
-    if (local && local.username) { _userProfile = local; _updateAuthUI(); authSkip(); }
-    else { _updateAuthUI(); showAuthOverlay(); }
+    if (local?.username) {
+      _currentUser = {id:local.id, email:local.email};
+      _userProfile = local;
+      _updateAuthUI();
+      authSkip();
+      setTimeout(()=>_showSessionReminder(), 2000);
+    } else {
+      _updateAuthUI();
+      showAuthOverlay();
+    }
   }
 })();
 
