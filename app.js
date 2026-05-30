@@ -170,13 +170,13 @@ function _updateServerStatusIndicator() {
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
-      'https://ngyijuqcnelrzujazqom.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neWlqdXFjbmVscnp1amF6cW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3OTk0MDgsImV4cCI6MjA1OTM3NTQwOH0.pQa8K5wXE9M7E8pu_D9s58hf1m4Wz5aNKbKNFMbQiSk',
+      'https://toefrxqijvextqqngapx.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
     // Test connectivity in background
     Promise.race([
-      fetch('https://ngyijuqcnelrzujazqom.supabase.co/auth/v1/health'),
+      fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health'),
       new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
     ]).then(r => { if (!r.ok) { _supabaseOffline = true; _updateServerStatusIndicator(); } })
       .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
