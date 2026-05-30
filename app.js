@@ -552,8 +552,9 @@ async function sendBoardInviteByUsername() {
   if (!_supabase) { if(msg) msg.textContent = '⚠️ Necessites connexió'; return; }
   try {
     // Check target exists
-    const {data:targetProfile, error:te} = await _supabase.from('profiles').select('id,username').ilike('username', target).single();
-    if (te || !targetProfile) { if(msg) msg.textContent = '❌ Usuari "'+target+'" no trobat'; return; }
+    const {data:targetProfile, error:te} = await _supabase.from('profiles').select('id,username').ilike('username', target).maybeSingle();
+    if (te) { if(msg) msg.textContent = '❌ Error cercant usuari: '+te.message; return; }
+    if (!targetProfile) { if(msg) msg.textContent = '❌ Usuari "'+target+'" no trobat'; return; }
 
     // Save board to shared_boards
     const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
@@ -634,19 +635,22 @@ async function rejectBoardInvite(inviteId) {
 }
 
 async function joinSharedBoard(code) {
-  if (!code||!code.startsWith('BRD_')) { showToast('⚠️ Codi invàlid (ha de començar amb BRD_)'); return; }
+  const cleanCode = (code||'').trim().toUpperCase();
+  if (!cleanCode.startsWith('BRD_')) { showToast('⚠️ Codi invàlid (ha de començar amb BRD_)'); return; }
+  if (!_supabase) { showToast('⚠️ Necessites connexió per unir-te'); return; }
   try {
-    if (_supabase) {
-      const {data} = await _supabase.from('shared_boards').select('*').eq('code',code.trim()).single();
-      if (!data) { showToast('❌ Llista no trobada'); return; }
-      const boards = get(BOARDS_KEY,[]);
-      if (boards.find(b=>b.shareCode===code)) { showToast('⚠️ Ja tens aquesta llista'); return; }
-      const joined = {...data.board_data, sharedWith:true, ownerName:data.owner_name, shareCode:code};
-      boards.push(joined); set(BOARDS_KEY,boards);
-      showToast('✅ Llista de '+data.owner_name+' afegida!');
-      renderSharedBoards?.();
-    } else { showToast('⚠️ Necessites connexió per unir-te'); }
-  } catch { showToast('❌ Error carregant llista'); }
+    const {data, error} = await _supabase.from('shared_boards').select('*').eq('code', cleanCode).maybeSingle();
+    if (error) { showToast('❌ Error: '+error.message); return; }
+    if (!data) { showToast('❌ Codi «'+cleanCode+'» no trobat. Comprova que el codi sigui correcte.'); return; }
+    const boards = get(BOARDS_KEY,[]);
+    if (boards.find(b=>b.shareCode===cleanCode)) { showToast('⚠️ Ja tens aquesta llista'); return; }
+    const joined = {...(data.board_data||{}), sharedWith:true, ownerName:data.owner_name, shareCode:cleanCode};
+    boards.push(joined); set(BOARDS_KEY,boards);
+    const inp = document.getElementById('join-board-code-inp');
+    if (inp) inp.value = '';
+    showToast('✅ Llista de '+data.owner_name+' afegida!');
+    renderSharedBoards?.();
+  } catch(e) { showToast('❌ Error carregant llista: '+(e.message||e)); }
 }
 
 async function getHeroLeaderboard() {

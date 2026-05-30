@@ -1400,7 +1400,8 @@ async function sendFriendRequest() {
   if (sb) {
     try {
       // Check target exists
-      const {data: target} = await sb.from('profiles').select('id,username,avatar').ilike('username', targetUsername).single();
+      const {data: target, error: targetErr} = await sb.from('profiles').select('id,username,avatar').ilike('username', targetUsername).maybeSingle();
+      if (targetErr) { showToast('❌ Error cercant usuari: '+targetErr.message); return; }
       if (!target) { showToast('❌ Usuari "'+targetUsername+'" no trobat'); return; }
       // Check not already friends
       const friends = loadFriends();
@@ -1486,7 +1487,7 @@ async function acceptFriendRequest(reqId, fromUsername, fromAvatar, fromLevel) {
     try {
       await sb.from('friend_requests').update({status:'accepted'}).eq('id', reqId);
       // Fetch full profile of accepted friend
-      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).single();
+      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).maybeSingle();
       if (profile) {
         const friends = loadFriends();
         if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
@@ -1536,7 +1537,8 @@ async function sendCompetitionRequest(friendUsername) {
   const sb = _getSupabase();
   if (!sb) { showToast('⚠️ Necessites connexió'); return; }
   try {
-    const {data:target} = await sb.from('profiles').select('id,username,avatar,hero_level').ilike('username', friendUsername).single();
+    const {data:target, error:tErr} = await sb.from('profiles').select('id,username,avatar,hero_level').ilike('username', friendUsername).maybeSingle();
+    if (tErr) { showToast('❌ Error cercant usuari: '+tErr.message); return; }
     if (!target) { showToast('❌ Usuari no trobat'); return; }
     const {error} = await sb.from('competition_requests').insert({
       from_username: myUsername,
