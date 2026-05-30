@@ -174,11 +174,11 @@ try {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
-    // Test connectivity in background
+    // Test connectivity — any HTTP response means server is reachable
     Promise.race([
       fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health'),
       new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
-    ]).then(r => { if (!r.ok) { _supabaseOffline = true; _updateServerStatusIndicator(); } })
+    ]).then(() => { /* got HTTP response = server is up */ })
       .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
   }
 } catch {}
@@ -497,21 +497,128 @@ setInterval(()=>{ if(_currentUser?.id&&_supabase) _saveUserDataToCloud(_currentU
 /* ── Share boards ── */
 async function shareBoard(boardId) {
   if (!_currentUser) { showToast('⚠️ Necessites un compte per compartir'); return; }
-  const boards = get(BOARDS_KEY||'jomaxpath_boards_v1',[]);
+  const boards = get(BOARDS_KEY,[]);
   const board = boards.find(b=>b.id===boardId); if (!board) { showToast('⚠️ Llista no trobada'); return; }
+  // Show share modal
+  _pendingShareBoardId = boardId;
+  const modal = document.getElementById('share-board-modal-overlay');
+  if (modal) {
+    document.getElementById('sbi-board-name').textContent = board.name;
+    document.getElementById('sbi-username-inp').value = '';
+    document.getElementById('sbi-msg').textContent = '';
+    modal.style.display = 'flex';
+  }
+}
+
+let _pendingShareBoardId = null;
+
+async function shareBoardByCode() {
+  const boardId = _pendingShareBoardId; if (!boardId) return;
+  const boards = get(BOARDS_KEY,[]);
+  const board = boards.find(b=>b.id===boardId); if (!board) return;
+  if (!_supabase) { showToast('⚠️ Necessites connexió'); return; }
   try {
-    if (_supabase) {
-      const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
-      await _supabase.from('shared_boards').upsert({
-        code:shareCode, owner_id:_currentUser.id,
-        owner_name:_userProfile?.username||'Usuari',
-        board_data:board, updated:new Date().toISOString()
-      });
-      navigator.clipboard.writeText(shareCode).catch(()=>{});
-      showToast('📋 Codi copiat: '+shareCode);
-      return shareCode;
+    const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
+    await _supabase.from('shared_boards').upsert({
+      code: shareCode, owner_id: _currentUser.id,
+      owner_name: _userProfile?.username||'Usuari',
+      board_data: board, updated: new Date().toISOString()
+    });
+    // Save code to local board
+    const idx = boards.findIndex(b=>b.id===boardId);
+    if (idx>=0) { boards[idx].shareCode = shareCode; set(BOARDS_KEY,boards); }
+    navigator.clipboard.writeText(shareCode).catch(()=>{});
+    showToast('📋 Codi copiat: '+shareCode);
+    closeShareBoardModal(); renderSharedBoards();
+  } catch { showToast('❌ Error generant codi'); }
+}
+
+function closeShareBoardModal() {
+  const modal = document.getElementById('share-board-modal-overlay');
+  if (modal) modal.style.display = 'none';
+  _pendingShareBoardId = null;
+}
+
+async function sendBoardInviteByUsername() {
+  const inp = document.getElementById('sbi-username-inp');
+  const msg = document.getElementById('sbi-msg');
+  const target = (inp?.value||'').trim();
+  if (!target) { if(msg) msg.textContent = '⚠️ Escriu el pseudònim'; return; }
+  const boardId = _pendingShareBoardId; if (!boardId) return;
+  const boards = get(BOARDS_KEY,[]);
+  const board = boards.find(b=>b.id===boardId); if (!board) return;
+  const myUsername = _userProfile?.username || 'Usuari';
+
+  if (!_supabase) { if(msg) msg.textContent = '⚠️ Necessites connexió'; return; }
+  try {
+    // Check target exists
+    const {data:targetProfile, error:te} = await _supabase.from('profiles').select('id,username').ilike('username', target).single();
+    if (te || !targetProfile) { if(msg) msg.textContent = '❌ Usuari "'+target+'" no trobat'; return; }
+
+    // Save board to shared_boards
+    const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
+    await _supabase.from('shared_boards').upsert({
+      code: shareCode, owner_id: _currentUser.id,
+      owner_name: myUsername, board_data: board, updated: new Date().toISOString()
+    });
+
+    // Send invite notification
+    const {error} = await _supabase.from('board_invites').insert({
+      board_code: shareCode, board_name: board.name,
+      from_username: myUsername, to_username: targetProfile.username,
+      invite_type: 'username', status: 'pending',
+      created_at: new Date().toISOString()
+    });
+    if (error) { if(msg) msg.textContent = '❌ '+error.message; return; }
+    if(msg) msg.textContent = '✅ Invitació enviada a '+targetProfile.username+'!';
+    if(inp) inp.value = '';
+    showToast('📨 Invitació enviada a '+targetProfile.username+'!');
+  } catch(e) { if(msg) msg.textContent = '❌ Error de connexió'; }
+}
+
+async function loadBoardInvites() {
+  const section = document.getElementById('board-invites-section');
+  const list = document.getElementById('board-invites-list');
+  if (!section||!list) return;
+  if (!_supabase||!_userProfile?.username) { section.style.display='none'; return; }
+  try {
+    const {data} = await _supabase.from('board_invites')
+      .select('*').eq('to_username', _userProfile.username).eq('status','pending');
+    if (!data||data.length===0) { section.style.display='none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = data.map(inv=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-bottom:6px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:700;">${inv.board_name}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">De: ${inv.from_username}</div>
+        </div>
+        <button onclick="acceptBoardInvite('${inv.id}','${inv.board_code}')" style="padding:7px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;">✓ UNIR-SE</button>
+        <button onclick="rejectBoardInvite('${inv.id}')" style="padding:7px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:10px;cursor:pointer;">✕</button>
+      </div>`).join('');
+  } catch { section.style.display='none'; }
+}
+
+async function acceptBoardInvite(inviteId, boardCode) {
+  if (!_supabase) return;
+  try {
+    const {data} = await _supabase.from('shared_boards').select('*').eq('code',boardCode).single();
+    if (!data) { showToast('❌ Llista no trobada'); return; }
+    const boards = get(BOARDS_KEY,[]);
+    if (!boards.find(b=>b.shareCode===boardCode)) {
+      boards.push({...data.board_data, sharedWith:true, ownerName:data.owner_name, shareCode:boardCode});
+      set(BOARDS_KEY, boards);
     }
-  } catch { showToast('❌ Error compartint'); }
+    await _supabase.from('board_invites').update({status:'accepted'}).eq('id',inviteId);
+    showToast('✅ Llista de '+data.owner_name+' afegida!');
+    loadBoardInvites(); renderSharedBoards?.();
+  } catch { showToast('❌ Error acceptant'); }
+}
+
+async function rejectBoardInvite(inviteId) {
+  if (!_supabase) return;
+  try { await _supabase.from('board_invites').update({status:'rejected'}).eq('id',inviteId); } catch {}
+  showToast('👋 Invitació rebutjada');
+  loadBoardInvites();
 }
 
 async function joinSharedBoard(code) {
@@ -520,11 +627,12 @@ async function joinSharedBoard(code) {
     if (_supabase) {
       const {data} = await _supabase.from('shared_boards').select('*').eq('code',code.trim()).single();
       if (!data) { showToast('❌ Llista no trobada'); return; }
-      const boards = get(BOARDS_KEY||'jomaxpath_boards_v1',[]);
+      const boards = get(BOARDS_KEY,[]);
+      if (boards.find(b=>b.shareCode===code)) { showToast('⚠️ Ja tens aquesta llista'); return; }
       const joined = {...data.board_data, sharedWith:true, ownerName:data.owner_name, shareCode:code};
-      boards.push(joined); set(BOARDS_KEY||'jomaxpath_boards_v1',boards);
+      boards.push(joined); set(BOARDS_KEY,boards);
       showToast('✅ Llista de '+data.owner_name+' afegida!');
-      renderBoards?.();
+      renderSharedBoards?.();
     } else { showToast('⚠️ Necessites connexió per unir-te'); }
   } catch { showToast('❌ Error carregant llista'); }
 }
@@ -1287,8 +1395,18 @@ function updateTaskStatusFromDetail(status) { tdmSetStatus(status,null); }
 function renderSharedBoards() {
   const grid=document.getElementById('shared-boards-grid'); if (!grid) return;
   const boards=get(BOARDS_KEY,[]);
+  loadBoardInvites();
   if (boards.length===0) { grid.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px;">Crea la teva primera llista! →</div>'; return; }
-  grid.innerHTML=boards.map(b=>`<div class="board-card" onclick="showToast('Tauler: ${b.name}')"><div class="bc-name">${b.name}</div><div class="bc-desc">${b.desc||''}</div><div class="bc-meta">${(b.tasks||[]).length} tasques · ${(b.members||[]).length} membres</div></div>`).join('');
+  grid.innerHTML=boards.map(b=>`
+    <div class="board-card">
+      <div class="bc-name">${b.name}</div>
+      <div class="bc-desc">${b.desc||''}</div>
+      <div class="bc-meta">${(b.tasks||[]).length} tasques · ${(b.members||[]).length} membres ${b.sharedWith?'· <span style="color:var(--accent2);">compartida</span>':''}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${!b.sharedWith?`<button onclick="shareBoard('${b.id}')" style="padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:var(--accent2);border-radius:7px;font-family:'Space Mono',monospace;font-size:8px;cursor:pointer;">📤 COMPARTIR</button>`:''}
+        ${b.shareCode?`<button onclick="navigator.clipboard.writeText('${b.shareCode}').then(()=>showToast('📋 Codi copiat!'))" style="padding:5px 10px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.25);color:#38d9f5;border-radius:7px;font-family:'Space Mono',monospace;font-size:8px;cursor:pointer;">🔗 CODI</button>`:''}
+      </div>
+    </div>`).join('');
 }
 function openCreateBoardModal() {
   _editingBoardId=null; _boardMembers=[];

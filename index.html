@@ -1628,6 +1628,11 @@ body.view-pages.sb-collapsed-desktop .container {
             <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
             <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
           </div>
+          <!-- Invitacions rebudes -->
+          <div id="board-invites-section" style="display:none;margin-bottom:16px;">
+            <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">📬 SOL·LICITUDS DE LLISTA</div>
+            <div id="board-invites-list"></div>
+          </div>
           <div id="shared-boards-grid"></div>
         </div>
         <!-- Vista kanban directe (mostra el primer tauler o selector) -->
@@ -1656,6 +1661,30 @@ body.view-pages.sb-collapsed-desktop .container {
       <button onclick="addNewNote()" style="padding:8px 16px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.4);color:#fcd34d;border-radius:12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(245,158,11,0.7)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.4)'">+ NOVA NOTA</button>
     </div>
     <div id="notes-page-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-top:8px;"></div>
+  </div>
+
+  <!-- Modal: Compartir llista -->
+  <div id="share-board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeShareBoardModal()" style="display:none;">
+    <div class="board-modal">
+      <h3>📤 Compartir llista</h3>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);margin-bottom:14px;" id="sbi-board-name"></div>
+
+      <label>Compartir per pseudònim</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input type="text" id="sbi-username-inp" placeholder="Pseudònim de l'usuari..." style="flex:1;" maxlength="24" onkeydown="if(event.key==='Enter')sendBoardInviteByUsername()"/>
+        <button onclick="sendBoardInviteByUsername()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">📨 Enviar</button>
+      </div>
+      <div id="sbi-msg" style="font-size:11px;color:var(--accent2);min-height:18px;margin-bottom:10px;"></div>
+
+      <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
+        <label style="margin-bottom:6px;display:block;">O compartir per codi</label>
+        <button onclick="shareBoardByCode()" style="width:100%;padding:10px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);color:#38d9f5;border-radius:10px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">🔗 GENERAR I COPIAR CODI</button>
+      </div>
+
+      <div class="board-modal-btns" style="margin-top:14px;">
+        <button class="bm-cancel-btn" onclick="closeShareBoardModal()">Tancar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal: Crear/Editar tauler -->
