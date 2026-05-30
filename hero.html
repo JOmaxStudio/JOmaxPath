@@ -418,6 +418,8 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .friends-import-inp{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:8px 12px;color:var(--text);font-size:11px;font-family:'Space Mono',monospace;outline:none;box-sizing:border-box;}
 .friends-import-inp:focus{border-color:rgba(124,58,237,0.4);}
 </style>
+<!-- Supabase client — required for friend/competition requests and leaderboard -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -747,7 +749,7 @@ body.mob-sb #sb{width:var(--sb) !important;}
           <button class="hero-tab on" id="tab-missions" onclick="switchTab('missions')">⚡ MISSIONS</button>
           <button class="hero-tab" id="tab-stats" onclick="switchTab('stats')">📊 STATS</button>
           <button class="hero-tab" id="tab-path" onclick="switchTab('path')">🗺️ CAMÍ</button>
-          <button class="hero-tab" id="tab-friends" onclick="switchTab('friends')">👥 AMICS</button>
+          <button class="hero-tab" id="tab-friends" onclick="switchTab('friends')">👥 AMICS <span id="friends-tab-badge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
         </div>
 
         <!-- ── TAB: MISSIONS ── -->
@@ -1099,6 +1101,25 @@ function renderEquip(){
   document.getElementById('char-class-disp').textContent=(CLASSES[Math.min(level-1,9)]||'Guerrer').toUpperCase()+' · NV.'+level;
 }
 
+/* ── Badge counter for Friends tab ── */
+async function updateFriendsTabBadge() {
+  const badge = document.getElementById('friends-tab-badge');
+  if (!badge) return;
+  const myUsername = _getMyUsername();
+  if (!myUsername) { badge.style.display='none'; return; }
+  const sb = _getSupabase();
+  if (!sb) { badge.style.display='none'; return; }
+  try {
+    const [fr, cr] = await Promise.all([
+      sb.from('friend_requests').select('id',{count:'exact',head:true}).eq('to_username', myUsername).eq('status','pending'),
+      sb.from('competition_requests').select('id',{count:'exact',head:true}).eq('to_username', myUsername).eq('status','pending')
+    ]);
+    const total = (fr.count||0) + (cr.count||0);
+    if (total > 0) { badge.textContent = total; badge.style.display='inline'; }
+    else { badge.style.display='none'; }
+  } catch { badge.style.display='none'; }
+}
+
 /* ═══ TABS ═══ */
 function switchTab(name){
   ['missions','stats','path','friends'].forEach(t=>{
@@ -1307,15 +1328,18 @@ function goTo(page){window.open('index.html','_self');}
 /* ═══ FRIENDS ═══ */
 const FRIEND_REQUESTS_KEY = 'jomaxpath_friend_requests_v1';
 
+let _heroSupabaseClient = null;
 function _getSupabase() {
-  // Reuse Supabase from index.html if loaded in same context, else recreate
+  if (_heroSupabaseClient) return _heroSupabaseClient;
   try {
-    if (typeof _supabase !== 'undefined' && _supabase) return _supabase;
-    if (typeof supabase !== 'undefined' && supabase.createClient) {
-      return supabase.createClient(
+    // Try supabase global from CDN (supabase-js v2 exposes window.supabase)
+    const lib = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if (lib && lib.createClient) {
+      _heroSupabaseClient = lib.createClient(
         'https://toefrxqijvextqqngapx.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI'
       );
+      return _heroSupabaseClient;
     }
   } catch {}
   return null;
@@ -1484,6 +1508,7 @@ async function acceptFriendRequest(reqId, fromUsername, fromAvatar, fromLevel) {
   showToast('🎉 '+fromUsername+' ara és el teu amic!');
   renderFriends();
   loadFriendRequests();
+  updateFriendsTabBadge();
 }
 
 async function rejectFriendRequest(reqId, fromUsername) {
@@ -1497,6 +1522,7 @@ async function rejectFriendRequest(reqId, fromUsername) {
   }
   showToast('👋 Sol·licitud rebutjada');
   loadFriendRequests();
+  updateFriendsTabBadge();
 }
 
 function addFriendByCode(){
@@ -1556,6 +1582,7 @@ async function acceptCompetitionRequest(reqId, fromUsername) {
   try { await sb.from('competition_requests').update({status:'accepted'}).eq('id',reqId); } catch {}
   showToast('⚔️ Competició acceptada amb '+fromUsername+'! Que guanyi el millor!');
   loadCompetitionRequests();
+  updateFriendsTabBadge();
 }
 
 async function rejectCompetitionRequest(reqId) {
@@ -1564,6 +1591,7 @@ async function rejectCompetitionRequest(reqId) {
   try { await sb.from('competition_requests').update({status:'rejected'}).eq('id',reqId); } catch {}
   showToast('👋 Sol·licitud rebutjada');
   loadCompetitionRequests();
+  updateFriendsTabBadge();
 }
 
 function renderFriends(){
@@ -1706,6 +1734,8 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 /* ═══ BOOT ═══ */
 applyCollapse();
 init();
+// Auto-check pending notifications for friends tab badge
+setTimeout(updateFriendsTabBadge, 800);
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.shiftKey&&e.key==='X'){hero.xp+=50;const{level}=computeLevel(hero.xp);hero.level=level;saveHero(hero);renderHeader();renderSidebar();renderPath();renderEquip();renderGlobalStats();showToast('⚡ +50 XP (demo · Ctrl+Shift+X)');}
   if(e.key==='Escape'){document.getElementById('edit-ov').classList.remove('open');closeTutorial();}

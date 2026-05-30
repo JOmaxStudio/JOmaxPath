@@ -1566,7 +1566,7 @@ body.view-pages.sb-collapsed-desktop .container {
     <!-- Mode switcher: Personal / Compartides -->
     <div class="tasks-mode-bar">
       <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
-      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides</button>
+      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides <span id="shared-tab-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
     </div>
 
     <!-- VISTA PERSONAL -->
@@ -1627,6 +1627,11 @@ body.view-pages.sb-collapsed-desktop .container {
           <div class="shared-boards-title-row">
             <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
             <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
+          </div>
+          <!-- Unir-se per codi -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+            <input id="join-board-code-inp" placeholder="Enganxa codi BRD_..." maxlength="30" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSharedBoard(this.value)" />
+            <button onclick="joinSharedBoard(document.getElementById('join-board-code-inp').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2,#38d9f5);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;letter-spacing:1px;">🔗 UNIR-SE</button>
           </div>
           <!-- Invitacions rebudes -->
           <div id="board-invites-section" style="display:none;margin-bottom:16px;">

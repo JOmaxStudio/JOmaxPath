@@ -576,15 +576,25 @@ async function sendBoardInviteByUsername() {
   } catch(e) { if(msg) msg.textContent = '❌ Error de connexió'; }
 }
 
+async function updateSharedTabBadge() {
+  const badge = document.getElementById('shared-tab-badge');
+  if (!badge||!_supabase||!_userProfile?.username) { if(badge) badge.style.display='none'; return; }
+  try {
+    const {count} = await _supabase.from('board_invites').select('id',{count:'exact',head:true}).eq('to_username',_userProfile.username).eq('status','pending');
+    if (count>0) { badge.textContent=count; badge.style.display='inline'; }
+    else { badge.style.display='none'; }
+  } catch { if(badge) badge.style.display='none'; }
+}
+
 async function loadBoardInvites() {
   const section = document.getElementById('board-invites-section');
   const list = document.getElementById('board-invites-list');
   if (!section||!list) return;
-  if (!_supabase||!_userProfile?.username) { section.style.display='none'; return; }
+  if (!_supabase||!_userProfile?.username) { section.style.display='none'; updateSharedTabBadge(); return; }
   try {
     const {data} = await _supabase.from('board_invites')
       .select('*').eq('to_username', _userProfile.username).eq('status','pending');
-    if (!data||data.length===0) { section.style.display='none'; return; }
+    if (!data||data.length===0) { section.style.display='none'; updateSharedTabBadge(); return; }
     section.style.display = 'block';
     list.innerHTML = data.map(inv=>`
       <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-bottom:6px;">
@@ -595,6 +605,7 @@ async function loadBoardInvites() {
         <button onclick="acceptBoardInvite('${inv.id}','${inv.board_code}')" style="padding:7px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;">✓ UNIR-SE</button>
         <button onclick="rejectBoardInvite('${inv.id}')" style="padding:7px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:10px;cursor:pointer;">✕</button>
       </div>`).join('');
+    updateSharedTabBadge();
   } catch { section.style.display='none'; }
 }
 
@@ -619,6 +630,7 @@ async function rejectBoardInvite(inviteId) {
   try { await _supabase.from('board_invites').update({status:'rejected'}).eq('id',inviteId); } catch {}
   showToast('👋 Invitació rebutjada');
   loadBoardInvites();
+  updateSharedTabBadge();
 }
 
 async function joinSharedBoard(code) {
@@ -1139,7 +1151,7 @@ function setTasksMode(mode) {
   document.getElementById('tasks-shared-view').style.display=mode==='shared'?'block':'none';
   document.querySelectorAll('.tasks-mode-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tmode-'+mode)?.classList.add('active');
-  if (mode==='shared') renderSharedBoards();
+  if (mode==='shared') { renderSharedBoards(); loadBoardInvites(); }
 }
 function setPersonalView(view) {
   _personalView=view;
