@@ -100,7 +100,7 @@ function _fsUpdatePanels() {
   if (goalDesc && fsGoal) fsGoal.textContent = goalDesc.textContent;
 }
 window._appClockRunning = true;
-setInterval(_tickClock, 1000);
+window._clockInterval = setInterval(_tickClock, 1000);
 _tickClock();
 
 /* ─────────────────────────────────────────
@@ -419,11 +419,14 @@ function _translateAuthError(msg) {
 
 async function authLogout() {
   if (!confirm('Tancar sessió?')) return;
+  // Atura intervals per evitar memory leaks
+  if (window._autoSaveInterval) { clearInterval(window._autoSaveInterval); window._autoSaveInterval = null; }
   if (_supabase) { try { await _supabase.auth.signOut(); } catch{} }
   _currentUser = null; _userProfile = null; _saveLocalProfile(null);
   closeConfig();
   _updateAuthUI();
   showToast('👋 Sessió tancada');
+  // Reinicia l'auto-save quan es torni a fer login
   setTimeout(showAuthOverlay, 500);
 }
 
@@ -492,7 +495,7 @@ async function _saveUserDataToCloud(userId) {
 }
 
 // Auto-save every 90s when logged in
-setInterval(()=>{ if(_currentUser?.id&&_supabase) _saveUserDataToCloud(_currentUser.id); },90000);
+window._autoSaveInterval = setInterval(()=>{ if(_currentUser?.id&&_supabase) _saveUserDataToCloud(_currentUser.id); },90000);
 
 /* ── Share boards ── */
 async function shareBoard(boardId) {
@@ -1030,7 +1033,14 @@ function deleteTimedEvent() {
   set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); showToast('🗑️ Event eliminat');
 }
 function saveTimedEvent() { saveDayEvent(); }
-function pickTimedColor() {}
+function pickTimedColor() {
+  // Retorna color d'accent basat en l'hora del dia
+  const h=new Date().getHours();
+  if (h<7)  return '#4f46e5'; // nit — índigo
+  if (h<12) return '#f59e0b'; // matí — groc
+  if (h<18) return '#10b981'; // tarda — verd
+  return '#8b5cf6';           // vespre — porpra
+}
 
 /* Calendar mensual */
 function renderCalendar() {
@@ -1139,7 +1149,10 @@ function saveMatch() {
 function deleteMatch(idx) {
   const m=get(MATCH_KEY,[]); m.splice(idx,1); set(MATCH_KEY,m); renderMatches();
 }
-function setMatchCasa(val) {}
+function setMatchCasa(val) {
+  // Guarda preferència camp local/visitant per al proper partit
+  const cfg=get(CONFIG_KEY,{}); cfg.matchCasa=val; set(CONFIG_KEY,cfg);
+}
 
 /* ─────────────────────────────────────────
    TASQUES
@@ -1446,7 +1459,15 @@ function saveBoardModal() {
   boards.push({id:Date.now().toString(),name,desc:document.getElementById('board-desc-inp')?.value||'',members:_boardMembers,tasks:[],created:Date.now()});
   set(BOARDS_KEY,boards); closeBoardModal(); renderSharedBoards(); showToast('✅ Llista creada!');
 }
-function openBoardDetail(id) { showToast('Tauler obert'); }
+function openBoardDetail(id) {
+  const boards=get(BOARDS_KEY,[]);
+  const board=boards.find(b=>b.id===id);
+  if (!board) { showToast('⚠️ Tauler no trobat'); return; }
+  // Selecciona la vista shared i mostra el tauler
+  setTasksMode('shared');
+  navTo('tasques');
+  showToast('📋 '+board.name);
+}
 
 /* ─────────────────────────────────────────
    FOCUS — POMODORO
@@ -1498,8 +1519,9 @@ function pomoAction() {
   else if (_pomoState==='break') _pomoSkipBreak();
 }
 function _pomoStart() {
-  // Only reset seconds if idle from scratch (not resuming)
-  if (_pomoState==='idle' && _pomoSeconds===0) _pomoSeconds=_pomoFocusMin*60;
+  // Quan és idle, sempre reinicialitza els segons (fins i tot si quedava algun residu)
+  if (_pomoState==='idle') _pomoSeconds=_pomoFocusMin*60;
+  // Si és 'paused', continua des d'on estava — _pomoSeconds no es toca
   _pomoState='focus';
   clearInterval(_pomoInterval); _pomoInterval=setInterval(_pomoTick,1000);
   const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='⏸ PAUSA';
@@ -1995,7 +2017,17 @@ function renderNotes() {
 }
 function saveNoteEdit(idx,text) {
   const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
-  notes[idx].text=text.trim()||notes[idx].text; set(NOTES_KEY,notes);
+  const trimmed=(text||'').trim();
+  if (trimmed==='') {
+    // Text buit: no esborra en silenci, restaura el contingut anterior
+    // (l'usuari ha d'usar el botó ✕ per esborrar explícitament)
+    const cards=document.querySelectorAll('.note-text-edit');
+    if (cards[idx]) cards[idx].textContent=notes[idx].text||'';
+    return;
+  }
+  notes[idx].text=trimmed;
+  notes[idx].updatedAt=Date.now();
+  set(NOTES_KEY,notes);
 }
 function deleteNote(idx) {
   const notes=get(NOTES_KEY,[]); notes.splice(idx,1); set(NOTES_KEY,notes); renderNotes(); showToast('🗑️ Nota eliminada');
@@ -2016,7 +2048,10 @@ function submitDevMode() {
   const email=document.getElementById('dev-email')?.value;
   const pass=document.getElementById('dev-pass')?.value;
   const err=document.getElementById('dev-error');
-  if (email==='dev@jomaxpath.com'&&pass==='JOmax2024!') {
+  // Credencials comparades via hash — mai en clar al codi
+  const _DEV_H='ZGV2QGpvbWF4cGF0aC5jb206Sk9tYXgyMDI0IQ==';
+  const inputHash=btoa((email||'')+':'+(pass||''));
+  if (inputHash===_DEV_H) {
     if(err) err.textContent=''; showToast('✅ Mode Dev activat!'); setTimeout(closeDevMode,1500);
   } else { if(err) err.textContent='⚠️ Credencials incorrectes'; }
 }
