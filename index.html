@@ -1244,6 +1244,28 @@ body.view-pages.sb-collapsed-desktop .container {
 </div>
 
 <!-- Bottom nav (pages mode) -->
+<nav id="bnav">
+  <div class="bnav-item active" onclick="navTo('home');lsbMobileClose()">
+    <div class="bnav-icon">🏠</div>
+    <div class="bnav-lbl">INICI</div>
+  </div>
+  <div class="bnav-item" onclick="navTo('horari');lsbMobileClose()">
+    <div class="bnav-icon">📅</div>
+    <div class="bnav-lbl">HORARI</div>
+  </div>
+  <div class="bnav-item" onclick="navTo('tasques');lsbMobileClose()">
+    <div class="bnav-icon">📋</div>
+    <div class="bnav-lbl">TASQUES</div>
+  </div>
+  <div class="bnav-item" onclick="navTo('julians');lsbMobileClose()">
+    <img id="julians-bnav-logo" src="julians-ai.png" style="width:22px;height:22px;object-fit:cover;border-radius:50%;opacity:0.45;" alt="J"/>
+    <div class="bnav-lbl">JULIANS</div>
+  </div>
+  <div class="bnav-item" onclick="navTo('focus');lsbMobileClose()">
+    <div class="bnav-icon">🎯</div>
+    <div class="bnav-lbl">FOCUS</div>
+  </div>
+</nav>
 
 <div class="container">
 

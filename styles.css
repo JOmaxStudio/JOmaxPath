@@ -1240,9 +1240,8 @@
   body.view-pages .page-active .page-label{display:flex;align-items:center;gap:8px;}
 
   /* BOTTOM NAV */
-  /* ══ BOTTOM NAV — Idèntic a hero.html ══ */
+  /* ══ BOTTOM NAV — Ocult en escriptori (sidebar substitueix) ══ */
   #bnav{ display:none !important; }
-  body.view-pages #bnav{ display:none !important; }
   .bnav-item{
     display:flex;flex-direction:column;align-items:center;gap:3px;
     cursor:pointer;padding:6px 14px;border-radius:10px;
@@ -5705,3 +5704,61 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
 .moto-text { font-size: 13px !important; line-height: 1.6 !important; }
 .moto-sub { font-size: 9px !important; margin-top: 8px !important; }
 
+
+/* ══════════════════════════════════════════════
+   BOTTOM NAV MOBILE — JOmaxPath
+   Visible únicament en mòbil (≤768px)
+══════════════════════════════════════════════ */
+#bnav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  z-index: 290;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  background: rgba(8,8,16,0.96);
+  border-top: 1px solid rgba(124,58,237,0.2);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  safe-area-inset-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 768px) {
+  #bnav {
+    display: flex !important;
+  }
+
+  /* Amaga el botó hamburger en mòbil ja que el bnav substitueix la navegació */
+  #lsb-mobile-btn {
+    display: none !important;
+  }
+
+  /* Empeny el contingut cap amunt per no quedar amagat pel bnav */
+  .container {
+    padding-bottom: 80px !important;
+  }
+
+  /* FABs: pujar per sobre del bnav */
+  #add-note-fab { bottom: 76px !important; }
+  #ai-fab       { bottom: 76px !important; }
+  #config-btn   { bottom: 146px !important; }
+  #note-picker  { bottom: 142px !important; }
+
+  /* Pomo / clock fullscreen: no afectat */
+}
+
+/* Temes: colors del bnav */
+body.theme-ocean    #bnav { background: rgba(3,17,31,0.96)    !important; border-top-color: rgba(14,165,233,0.25)  !important; }
+body.theme-forest   #bnav { background: rgba(4,14,7,0.96)     !important; border-top-color: rgba(22,163,74,0.25)   !important; }
+body.theme-sunset   #bnav { background: rgba(19,4,8,0.96)     !important; border-top-color: rgba(225,29,72,0.25)   !important; }
+body.theme-midnight #bnav { background: rgba(5,5,15,0.98)     !important; border-top-color: rgba(79,70,229,0.3)    !important; }
+body.theme-caramel  #bnav { background: rgba(14,10,2,0.96)    !important; border-top-color: rgba(217,119,6,0.25)   !important; }
+body.theme-violet   #bnav { background: rgba(8,4,19,0.97)     !important; border-top-color: rgba(147,51,234,0.3)   !important; }
+body.theme-rose     #bnav { background: rgba(15,5,8,0.97)     !important; border-top-color: rgba(190,24,93,0.25)   !important; }
+body.theme-blanc    #bnav { background: rgba(240,242,248,0.98) !important; border-top-color: rgba(109,40,217,0.15)  !important; }
