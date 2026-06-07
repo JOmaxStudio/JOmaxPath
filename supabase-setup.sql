@@ -1,0 +1,234 @@
+-- ═══════════════════════════════════════════════════════════════
+-- JOMAXPATH — SUPABASE SETUP v2 (MIGRACIÓ SEGURA)
+-- Executa al SQL Editor: https://supabase.com/dashboard → SQL Editor
+-- Si et dona error "already exists", simplement ignora'l i continua
+-- ═══════════════════════════════════════════════════════════════
+
+-- ── Extensió UUID ──
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ══════════════════════════
+-- 1. PROFILES
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY,
+  email TEXT,
+  username TEXT,
+  avatar TEXT DEFAULT '⚔️',
+  hero_xp INTEGER DEFAULT 0,
+  hero_level INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Afegir columnes que potser falten (segur si ja existeix la taula)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS username TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT '⚔️';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS hero_xp INTEGER DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS hero_level INTEGER DEFAULT 1;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Índex per username (cerca ràpida)
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_idx ON profiles (lower(username)) WHERE username IS NOT NULL;
+
+-- RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "perfils_select" ON profiles;
+DROP POLICY IF EXISTS "perfils_insert" ON profiles;
+DROP POLICY IF EXISTS "perfils_update" ON profiles;
+CREATE POLICY "perfils_select" ON profiles FOR SELECT USING (true);
+CREATE POLICY "perfils_insert" ON profiles FOR INSERT WITH CHECK (true);
+CREATE POLICY "perfils_update" ON profiles FOR UPDATE USING (auth.uid() = id OR auth.uid() IS NOT NULL);
+
+-- Trigger auto-crear perfil quan es registra un usuari
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  INSERT INTO profiles (id, email, username, avatar, hero_xp, hero_level)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
+    '⚔️', 0, 1
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    username = COALESCE(profiles.username, EXCLUDED.username);
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+
+-- ══════════════════════════
+-- 2. USER DATA
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS user_data (
+  user_id UUID PRIMARY KEY,
+  data JSONB DEFAULT '{}',
+  updated TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE user_data ADD COLUMN IF NOT EXISTS data JSONB DEFAULT '{}';
+ALTER TABLE user_data ADD COLUMN IF NOT EXISTS updated TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "userdata_all" ON user_data;
+CREATE POLICY "userdata_all" ON user_data FOR ALL USING (auth.uid() = user_id);
+
+
+-- ══════════════════════════
+-- 3. SHARED BOARDS
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS shared_boards (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT UNIQUE NOT NULL,
+  owner_id TEXT,
+  owner_name TEXT,
+  board_data JSONB DEFAULT '{}',
+  updated TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+-- owner_id com TEXT (no FK) per evitar errors si l'usuari és local
+ALTER TABLE shared_boards ADD COLUMN IF NOT EXISTS owner_id TEXT;
+ALTER TABLE shared_boards ADD COLUMN IF NOT EXISTS owner_name TEXT;
+ALTER TABLE shared_boards ADD COLUMN IF NOT EXISTS board_data JSONB DEFAULT '{}';
+ALTER TABLE shared_boards ADD COLUMN IF NOT EXISTS updated TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE shared_boards ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE shared_boards ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "boards_select" ON shared_boards;
+DROP POLICY IF EXISTS "boards_insert" ON shared_boards;
+DROP POLICY IF EXISTS "boards_update" ON shared_boards;
+CREATE POLICY "boards_select" ON shared_boards FOR SELECT USING (true);
+CREATE POLICY "boards_insert" ON shared_boards FOR INSERT WITH CHECK (true);
+CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (true);
+
+
+-- ══════════════════════════
+-- 4. BOARD INVITES
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS board_invites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  board_code TEXT NOT NULL,
+  board_name TEXT,
+  from_username TEXT NOT NULL,
+  to_username TEXT NOT NULL,
+  invite_type TEXT DEFAULT 'username',
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS board_code TEXT;
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS board_name TEXT;
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS from_username TEXT;
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS to_username TEXT;
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS invite_type TEXT DEFAULT 'username';
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+ALTER TABLE board_invites ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE board_invites ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "invites_select" ON board_invites;
+DROP POLICY IF EXISTS "invites_insert" ON board_invites;
+DROP POLICY IF EXISTS "invites_update" ON board_invites;
+CREATE POLICY "invites_select" ON board_invites FOR SELECT USING (true);
+CREATE POLICY "invites_insert" ON board_invites FOR INSERT WITH CHECK (true);
+CREATE POLICY "invites_update" ON board_invites FOR UPDATE USING (true);
+
+
+-- ══════════════════════════
+-- 5. FRIEND REQUESTS
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS friend_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_username TEXT NOT NULL,
+  to_username TEXT NOT NULL,
+  from_avatar TEXT DEFAULT '⚔️',
+  from_level INTEGER DEFAULT 1,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS from_username TEXT;
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS to_username TEXT;
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS from_avatar TEXT DEFAULT '⚔️';
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS from_level INTEGER DEFAULT 1;
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+ALTER TABLE friend_requests ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Índex per evitar duplicats
+CREATE UNIQUE INDEX IF NOT EXISTS friend_req_unique ON friend_requests (lower(from_username), lower(to_username));
+
+ALTER TABLE friend_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "freq_select" ON friend_requests;
+DROP POLICY IF EXISTS "freq_insert" ON friend_requests;
+DROP POLICY IF EXISTS "freq_update" ON friend_requests;
+CREATE POLICY "freq_select" ON friend_requests FOR SELECT USING (true);
+CREATE POLICY "freq_insert" ON friend_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "freq_update" ON friend_requests FOR UPDATE USING (true);
+
+
+-- ══════════════════════════
+-- 6. COMPETITION REQUESTS
+-- ══════════════════════════
+CREATE TABLE IF NOT EXISTS competition_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_username TEXT NOT NULL,
+  to_username TEXT NOT NULL,
+  from_avatar TEXT DEFAULT '⚔️',
+  from_level INTEGER DEFAULT 1,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS from_username TEXT;
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS to_username TEXT;
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS from_avatar TEXT DEFAULT '⚔️';
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS from_level INTEGER DEFAULT 1;
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+ALTER TABLE competition_requests ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE competition_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "creq_select" ON competition_requests;
+DROP POLICY IF EXISTS "creq_insert" ON competition_requests;
+DROP POLICY IF EXISTS "creq_update" ON competition_requests;
+CREATE POLICY "creq_select" ON competition_requests FOR SELECT USING (true);
+CREATE POLICY "creq_insert" ON competition_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "creq_update" ON competition_requests FOR UPDATE USING (true);
+
+
+-- ══════════════════════════════════════════════════════════════
+-- VERIFICACIÓ — executa per comprovar que tot és correcte:
+-- SELECT table_name FROM information_schema.tables
+-- WHERE table_schema = 'public' ORDER BY table_name;
+-- ══════════════════════════════════════════════════════════════
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 🔐 GOOGLE AUTH — PASSOS AL DASHBOARD (no es fa des d'aquí)
+-- ════════════════════════════════════════════════════════════════
+-- 1. https://console.cloud.google.com/
+--    → Crea projecte → APIs & Services → Credentials
+--    → "+ CREATE CREDENTIALS" → OAuth 2.0 Client ID
+--    → Application type: Web application
+--    → Authorized redirect URIs: https://toefrxqijvextqqngapx.supabase.co/auth/v1/callback
+--    → Guarda el CLIENT ID i CLIENT SECRET
+--
+-- 2. https://supabase.com/dashboard/project/toefrxqijvextqqngapx
+--    → Authentication → Providers → Google → ENABLE
+--    → Enganxa Client ID i Client Secret
+--    → Save
+--
+-- 3. Authentication → URL Configuration
+--    → Site URL: https://jomaxpath.com (o la teva URL)
+--    → Redirect URLs (afegeix totes):
+--        https://jomaxpath.com/**
+--        http://localhost:3000/**
+--        http://localhost:8080/**
+--        http://127.0.0.1:*/**
+--    → Save
+--
+-- Un cop fet, el botó "Continuar amb Google" funcionarà! ✅
+-- ════════════════════════════════════════════════════════════════
