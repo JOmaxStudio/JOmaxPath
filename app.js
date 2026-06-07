@@ -252,13 +252,14 @@ async function authWithGoogle() {
     return;
   }
   const btn = document.getElementById('auth-google-btn');
-  if (btn) { btn.textContent = 'Redirigint...'; btn.disabled = true; }
+  if (btn) { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3" fill="none"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/></svg> Redirigint...'; btn.disabled = true; }
   try {
+    const redirectTo = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
     const { error } = await _supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://jomaxpath.com/',
-        queryParams: { access_type: 'offline', prompt: 'consent' }
+        redirectTo: redirectTo,
+        queryParams: { access_type: 'offline', prompt: 'select_account' }
       }
     });
     if (error) {
@@ -706,6 +707,27 @@ async function getHeroLeaderboard() {
     authSkip(); return;
   }
 
+  // Always set up auth state listener first (handles OAuth callback too)
+  _supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      _currentUser = session.user;
+      await _loadUserProfile(session.user.id).catch(()=>{});
+      await _syncUserData(session.user.id).catch(()=>{});
+      _updateAuthUI();
+      // Hide auth overlay if it's open
+      _hideAuthOverlay();
+      // Reload current page
+      if (typeof renderHome === 'function' && _currentPage === 'home') renderHome();
+      showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
+    } else if (event === 'SIGNED_OUT') {
+      _currentUser = null; _userProfile = null;
+      _updateAuthUI();
+    } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+      _currentUser = session.user;
+      _updateAuthUI();
+    }
+  });
+
   try {
     // Timeout on session check — don't block app if network is slow/down
     const {data, error} = await Promise.race([
@@ -732,13 +754,6 @@ async function getHeroLeaderboard() {
       _updateAuthUI();
       showAuthOverlay();
     }
-
-    _supabase.auth.onAuthStateChange((event, session) => {
-      _currentUser = session?.user || null;
-      if (!_currentUser) { _userProfile = null; }
-      else { _loadUserProfile(_currentUser.id).then(()=>_updateAuthUI()).catch(()=>{}); }
-      _updateAuthUI();
-    });
   } catch(e) {
     // Network error or timeout
     const local = _getLocalProfile();
