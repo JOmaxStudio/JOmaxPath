@@ -170,13 +170,13 @@ function _updateServerStatusIndicator() {
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
-      'https://toefrxqijvextqqngapx.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
+      'https://fcoitcesjyjkfcqwrblm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjb2l0Y2Vzanlqa2ZjcXdyYmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MDUwNDQsImV4cCI6MjA4ODE4MTA0NH0.bvwDg2ThL4HivusLJEUhbV9VdJ7VAuHwE2CtCE0oZ3w',
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
     // Test connectivity — any HTTP response means server is reachable
     Promise.race([
-      fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health'),
+      fetch('https://fcoitcesjyjkfcqwrblm.supabase.co/auth/v1/health'),
       new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
     ]).then(() => { /* got HTTP response = server is up */ })
       .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
@@ -264,7 +264,19 @@ async function authWithGoogle() {
     });
     if (error) {
       const msg = document.getElementById('auth-msg');
-      if (msg) msg.textContent = '❌ Error: ' + error.message;
+      const isProviderError = error.message && (error.message.includes('provider') || error.message.includes('validation_failed') || error.message.includes('not enabled'));
+      if (msg) {
+        if (isProviderError) {
+          msg.innerHTML = `<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);border-radius:12px;padding:12px 14px;font-size:11px;line-height:1.6;">
+            <div style="color:#fcd34d;font-weight:700;margin-bottom:6px;">⚙️ GOOGLE NO ESTÀ ACTIVAT AL SUPABASE</div>
+            <div style="color:#e2e8f0;opacity:0.85;">Cal que vagis al Supabase Dashboard:<br>
+            <b>Authentication → Providers → Google → Enable</b><br>
+            <span style="opacity:0.6;font-size:10px;">Veure instruccions a supabase-setup.sql</span></div>
+          </div>`;
+        } else {
+          msg.textContent = '❌ Error: ' + error.message;
+        }
+      }
       if (btn) { btn.innerHTML = getSvgGoogle() + ' CONTINUAR AMB GOOGLE'; btn.disabled = false; }
     }
   } catch(e) {
@@ -1722,17 +1734,78 @@ function loadSpotify() {
   const container=document.getElementById('spotify-embed-container');
   if(container){container.innerHTML=`<iframe style="border-radius:12px;width:100%;height:152px;border:none;" src="https://open.spotify.com/embed/playlist/${embedId}?utm_source=generator&theme=0" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`;showToast('🎵 Playlist carregada!');}
 }
-function saveVictories() {
-  const inp=document.getElementById('victories-inp'); if(!inp) return;
-  const text=inp.value.trim(); if(!text) return;
-  const vics=get(VICTORIES_KEY,[]); vics.unshift({text,date:new Date().toLocaleDateString('ca'),id:Date.now().toString()});
-  if(vics.length>20) vics.pop(); set(VICTORIES_KEY,vics); inp.value=''; renderVictories(); showToast('🏆 Victòria guardada!');
+let _vicWeekOffset = 0;
+// Migra el format antic (array) al nou (objecte keyed per setmana)
+(function migrateVictories() {
+  try {
+    const raw = localStorage.getItem(VICTORIES_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const obj = {};
+      const today = new Date();
+      const d = new Date(today); d.setDate(d.getDate() - d.getDay() + 1);
+      const key = `${d.getFullYear()}-W${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+      obj[key] = { texts: parsed.map(v=>v.text||v).filter(Boolean).slice(0,3), date: today.toLocaleDateString('ca'), saved: Date.now() };
+      localStorage.setItem(VICTORIES_KEY, JSON.stringify(obj));
+    }
+  } catch(e) {}
+})();
+function changeVictoriesWeek(delta) {
+  _vicWeekOffset += (delta||0);
+  renderVictories();
 }
-function changeVictoriesWeek() { renderVictories(); }
+function _getWeekKey(offset) {
+  const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + offset*7);
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), w=String(d.getDate()).padStart(2,'0');
+  return `${y}-W${m}${w}`;
+}
+function _getWeekLabel(offset) {
+  if(offset===0) return 'Setmana actual';
+  if(offset===-1) return 'Setmana passada';
+  if(offset===1) return 'Setmana vinent';
+  const d=new Date(); d.setDate(d.getDate()-d.getDay()+1+offset*7);
+  return d.toLocaleDateString('ca',{day:'2-digit',month:'short',year:'numeric'});
+}
+function saveVictories() {
+  const v1=(document.getElementById('v1')?.value||'').trim();
+  const v2=(document.getElementById('v2')?.value||'').trim();
+  const v3=(document.getElementById('v3')?.value||'').trim();
+  const texts=[v1,v2,v3].filter(Boolean);
+  if(!texts.length){showToast('✏️ Escriu almenys una victòria!');return;}
+  const weekKey=_getWeekKey(_vicWeekOffset);
+  const allVics=get(VICTORIES_KEY,{});
+  allVics[weekKey]={texts,date:new Date().toLocaleDateString('ca'),saved:Date.now()};
+  set(VICTORIES_KEY,allVics);
+  // Feedback visual
+  const btn=document.querySelector('.victories-save-btn');
+  if(btn){btn.textContent='✅ VICTÒRIES GUARDADES!';btn.style.background='linear-gradient(135deg,rgba(16,185,129,0.25),rgba(6,78,59,0.2))';btn.style.borderColor='rgba(16,185,129,0.5)';btn.style.color='#6ee7b7';setTimeout(()=>{btn.textContent='💾 GUARDAR VICTÒRIES';btn.style.cssText='';},2200);}
+  showToast('🏆 Victòries guardades!');
+  renderVictories();
+}
 function renderVictories() {
-  const list=document.getElementById('victories-list'); if(!list) return;
-  const vics=get(VICTORIES_KEY,[]);
-  list.innerHTML=vics.length===0?'<div style="color:var(--muted);font-size:12px;">Registra la teva primera victòria!</div>':vics.map(v=>`<div class="victory-item"><span class="vi-date">${v.date}</span><span class="vi-text">${v.text}</span></div>`).join('');
+  const lbl=document.getElementById('victories-week-label');
+  if(lbl) lbl.textContent=_getWeekLabel(_vicWeekOffset);
+  // Carregar inputs de la setmana
+  const weekKey=_getWeekKey(_vicWeekOffset);
+  const allVics=get(VICTORIES_KEY,{});
+  const entry=allVics[weekKey]||{};
+  const texts=entry.texts||['','',''];
+  ['v1','v2','v3'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=texts[i]||'';});
+  // Mostrar historial recent
+  const list=document.getElementById('victories-list');
+  if(!list) return;
+  const weeks=Object.keys(allVics).sort().reverse().slice(0,6);
+  if(!weeks.length){list.innerHTML='<div style="color:var(--muted);font-size:12px;margin-top:8px;">Registra la teva primera victòria!</div>';return;}
+  const EMOJIS=['🥇','🥈','🥉'];
+  list.innerHTML=weeks.map(wk=>{
+    const e=allVics[wk]; if(!e||!e.texts?.length) return '';
+    const isActive=wk===weekKey;
+    return `<div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:${isActive?'rgba(167,139,250,0.08)':'rgba(255,255,255,0.02)'};border:1px solid ${isActive?'rgba(167,139,250,0.3)':'rgba(255,255,255,0.05)'};">
+      <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">${e.date||wk} ${isActive?'· <span style="color:#a78bfa;">ACTUAL</span>':''}</div>
+      ${e.texts.filter(Boolean).map((t,i)=>`<div style="font-size:12px;color:var(--text);padding:2px 0;display:flex;gap:8px;align-items:flex-start;"><span style="flex-shrink:0;">${EMOJIS[i]||'✨'}</span><span>${t}</span></div>`).join('')}
+    </div>`;
+  }).join('');
 }
 
 /* ─────────────────────────────────────────
@@ -2051,16 +2124,39 @@ function saveQuickCapture() {
 }
 function toggleNotePicker() { navTo('notes'); lsbMobileClose(); }
 function createNote() { openQuickCapture(); setQCType('nota'); }
+const NOTE_COLORS = [
+  {key:'purple', bg:'rgba(124,58,237,0.12)', border:'rgba(124,58,237,0.35)', dot:'#a78bfa'},
+  {key:'blue',   bg:'rgba(59,130,246,0.10)', border:'rgba(59,130,246,0.30)', dot:'#93c5fd'},
+  {key:'cyan',   bg:'rgba(0,180,216,0.10)',  border:'rgba(0,180,216,0.30)',  dot:'#67e8f9'},
+  {key:'green',  bg:'rgba(16,185,129,0.10)', border:'rgba(16,185,129,0.30)', dot:'#6ee7b7'},
+  {key:'amber',  bg:'rgba(245,158,11,0.10)', border:'rgba(245,158,11,0.30)', dot:'#fcd34d'},
+  {key:'rose',   bg:'rgba(239,68,68,0.09)',  border:'rgba(239,68,68,0.28)',  dot:'#fca5a5'},
+];
+function getNoteColor(key) { return NOTE_COLORS.find(c=>c.key===key) || NOTE_COLORS[0]; }
+function setNoteColor(idx, key) {
+  const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
+  notes[idx].color=key; set(NOTES_KEY,notes); renderNotes();
+}
 function renderNotes() {
   const list=document.getElementById('notes-page-list'); if(!list) return;
   const notes=get(NOTES_KEY,[]);
   if(notes.length===0){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:48px 0;"><div style="font-size:40px;margin-bottom:12px;">📝</div><div style="font-size:14px;">Sense notes. Afegeix-ne una!</div></div>';return;}
-  list.innerHTML=notes.map((n,i)=>`
-    <div class="note-card" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;position:relative;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;">${new Date(n.created||Date.now()).toLocaleDateString('ca',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-      <div class="note-text-edit" contenteditable="true" style="font-size:14px;color:var(--text);line-height:1.6;outline:none;min-height:24px;" onblur="saveNoteEdit(${i},this.textContent)">${n.text||''}</div>
-      <button onclick="deleteNote(${i})" style="position:absolute;top:10px;right:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;padding:3px 9px;font-size:11px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">✕</button>
-    </div>`).join('');
+  list.innerHTML=notes.map((n,i)=>{
+    const c=getNoteColor(n.color);
+    const swatches=NOTE_COLORS.map(col=>`<span class="ncp-swatch${col.key===(n.color||'purple')?' sel':''}" style="background:${col.dot};opacity:${col.key===(n.color||'purple')?1:0.4};" onclick="setNoteColor(${i},'${col.key}')" title="${col.key}"></span>`).join('');
+    const dateStr=new Date(n.created||Date.now()).toLocaleDateString('ca',{day:'2-digit',month:'short',year:'numeric'});
+    return `<div class="note-card note-card-colored" style="background:${c.bg};border:1px solid ${c.border};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${c.dot};flex-shrink:0;box-shadow:0 0 6px ${c.dot}55;"></span>
+          <span style="font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;">${dateStr}</span>
+        </div>
+        <button onclick="deleteNote(${i})" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);color:#fca5a5;border-radius:7px;padding:2px 8px;font-size:10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;">✕</button>
+      </div>
+      <div class="note-text-edit" contenteditable="true" style="font-size:14px;color:var(--text);line-height:1.65;outline:none;min-height:28px;" onblur="saveNoteEdit(${i},this.textContent)">${n.text||''}</div>
+      <div class="note-color-picker" style="display:flex;gap:6px;align-items:center;">${swatches}</div>
+    </div>`;
+  }).join('');
 }
 function saveNoteEdit(idx,text) {
   const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
