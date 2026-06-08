@@ -2,7 +2,7 @@
 // Gestiona /api/julians (proxy segur a Google Gemini) i delega la resta a l'assets binding.
 // La clau GEMINI_API_KEY viu com a secret del Worker i mai s'exposa al navegador.
 
-const MODEL_DEFAULT = 'gemini-2.0-flash';
+const MODEL_DEFAULT = 'gemini-2.5-flash-lite';
 
 export default {
   async fetch(request, env, ctx) {
@@ -80,7 +80,7 @@ async function handleJulians(request, env) {
 
     if (!res.ok) {
       const errTxt = await res.text().catch(() => '');
-      return json({ error: 'Error de la IA: ' + res.status, detail: errTxt.slice(0, 300) }, 502, env);
+      return json({ error: 'Error de la IA: ' + res.status, detail: errTxt.slice(0, 900) }, 502, env);
     }
 
     const data = await res.json();
