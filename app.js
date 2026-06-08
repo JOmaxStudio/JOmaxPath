@@ -2446,7 +2446,7 @@ const LANGS = {
     nav_home:'Inici', nav_schedule:'Horari', nav_tasks:'Tasques', nav_notes:'Notes',
     nav_focus:'Focus', nav_hero:'Heroi', nav_ai:'Julians AI',
     // Seccions home
-    sec_habits:'🌱 hàbits diaris', sec_streak:'Ratxa', sec_victories:'Victòries de la setmana',
+    sec_habits:'🌱 hàbits diaris', sec_streak:'Ratxa', sec_victories:'🏆 les meves victòries de la setmana',
     sec_goal:'Objectiu principal', sec_progress:'El meu objectiu', sec_today:'📍 ara mateix',
     // Stats
     stat_streak_lbl:'dies ratxa', stat_habits_lbl:'hàbits avui', stat_tasks_lbl:'tasques pend.',
@@ -2464,9 +2464,23 @@ const LANGS = {
     // Focus/Pomodoro
     focus_phase:'FOCUS', break_phase:'DESCANS', long_break:'DESCANS LLARG',
     // Tasques
-    tasks_title:'Tasques', tasks_add:'Afegir tasca...',
+    tasks_title:'📋 Tasques a realitzar', tasks_add:'Afegir tasca...',
     // Heroi
     hero_title:'El meu heroi',
+    // Drawer
+    drawer_themes:'Temes', drawer_julians:'🧠 Julians AI',
+    // Sidebar
+    nav_quick:'Captura ràpida', nav_notes2:'Notes', nav_search:'Cerca global',
+    lsb_sec_main:'PRINCIPAL', lsb_sec_tools:'EINES',
+    // Seccions extra
+    sec_ara_mateix:'📍 ara mateix', next_task:'PRÒXIMA TASCA',
+    sec_this_week:'aquesta setmana', btn_today:'↩ AVUI',
+    sec_weekly_summary:'resum setmanal', sec_pomodoro:'⏱️ focus timer — pomodoro',
+    sec_victories2:'🏆 les meves victòries de la setmana',
+    sec_screen_tips:'📵 trucs per no mirar tant les pantalles',
+    sec_motivation_rules:"regles d'or per no perdre la motivació",
+    tasks_title2:'📋 Tasques a realitzar',
+    qct_task:'📋 Tasca', qct_event:'📅 Event', qct_note:'📝 Nota',
     // Errors/missatges
     msg_saved:'✅ Guardat!', msg_error:'❌ Error'
   },
@@ -2476,7 +2490,7 @@ const LANGS = {
     greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
     nav_home:'Inicio', nav_schedule:'Horario', nav_tasks:'Tareas', nav_notes:'Notas',
     nav_focus:'Focus', nav_hero:'Héroe', nav_ai:'Julians AI',
-    sec_habits:'🌱 hábitos diarios', sec_streak:'Racha', sec_victories:'Victorias de la semana',
+    sec_habits:'🌱 hábitos diarios', sec_streak:'Racha', sec_victories:'🏆 mis victorias de la semana',
     sec_goal:'Objetivo principal', sec_progress:'Mi objetivo', sec_today:'📍 ahora mismo',
     stat_streak_lbl:'días racha', stat_habits_lbl:'hábitos hoy', stat_tasks_lbl:'tareas pend.',
     stat_pomo_lbl:'pomodoros hoy',
@@ -2489,8 +2503,22 @@ const LANGS = {
     cfg_logout:'🚪 Cerrar sesión', cfg_sync:'🔄 Sincronizar perfil',
     cfg_save_cloud:'☁️ Guardar en la nube',
     focus_phase:'ENFOQUE', break_phase:'DESCANSO', long_break:'DESCANSO LARGO',
-    tasks_title:'Tareas', tasks_add:'Añadir tarea...',
+    tasks_title:'📋 Tareas a realizar', tasks_add:'Añadir tarea...',
     hero_title:'Mi héroe',
+    // Drawer
+    drawer_themes:'Temas', drawer_julians:'🧠 Julians AI',
+    // Sidebar
+    nav_quick:'Captura rápida', nav_notes2:'Notas', nav_search:'Búsqueda global',
+    lsb_sec_main:'PRINCIPAL', lsb_sec_tools:'HERRAMIENTAS',
+    // Seccions extra
+    sec_ara_mateix:'📍 ahora mismo', next_task:'PRÓXIMA TAREA',
+    sec_this_week:'esta semana', btn_today:'↩ HOY',
+    sec_weekly_summary:'resumen semanal', sec_pomodoro:'⏱️ focus timer — pomodoro',
+    sec_victories2:'🏆 mis victorias de la semana',
+    sec_screen_tips:'📵 trucos para mirar menos el móvil',
+    sec_motivation_rules:'reglas de oro para no perder la motivación',
+    tasks_title2:'📋 Tareas a realizar',
+    qct_task:'📋 Tarea', qct_event:'📅 Evento', qct_note:'📝 Nota',
     msg_saved:'✅ Guardado!', msg_error:'❌ Error'
   },
   en: {
@@ -2499,7 +2527,7 @@ const LANGS = {
     greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
     nav_home:'Home', nav_schedule:'Schedule', nav_tasks:'Tasks', nav_notes:'Notes',
     nav_focus:'Focus', nav_hero:'Hero', nav_ai:'Julians AI',
-    sec_habits:'🌱 daily habits', sec_streak:'Streak', sec_victories:'Week victories',
+    sec_habits:'🌱 daily habits', sec_streak:'Streak', sec_victories:'🏆 my victories this week',
     sec_goal:'Main goal', sec_progress:'My goal', sec_today:'📍 right now',
     stat_streak_lbl:'day streak', stat_habits_lbl:'habits today', stat_tasks_lbl:'tasks pend.',
     stat_pomo_lbl:'pomodoros today',
@@ -2512,8 +2540,22 @@ const LANGS = {
     cfg_logout:'🚪 Sign out', cfg_sync:'🔄 Sync profile',
     cfg_save_cloud:'☁️ Save to cloud',
     focus_phase:'FOCUS', break_phase:'BREAK', long_break:'LONG BREAK',
-    tasks_title:'Tasks', tasks_add:'Add task...',
+    tasks_title:'📋 Tasks to do', tasks_add:'Add task...',
     hero_title:'My hero',
+    // Drawer
+    drawer_themes:'Themes', drawer_julians:'🧠 Julians AI',
+    // Sidebar
+    nav_quick:'Quick capture', nav_notes2:'Notes', nav_search:'Global search',
+    lsb_sec_main:'MAIN', lsb_sec_tools:'TOOLS',
+    // Seccions extra
+    sec_ara_mateix:'📍 right now', next_task:'NEXT TASK',
+    sec_this_week:'this week', btn_today:'↩ TODAY',
+    sec_weekly_summary:'weekly summary', sec_pomodoro:'⏱️ focus timer — pomodoro',
+    sec_victories2:'🏆 my victories this week',
+    sec_screen_tips:'📵 tips to spend less time on screens',
+    sec_motivation_rules:'golden rules to stay motivated',
+    tasks_title2:'📋 Tasks to do',
+    qct_task:'📋 Task', qct_event:'📅 Event', qct_note:'📝 Note',
     msg_saved:'✅ Saved!', msg_error:'❌ Error'
   }
 };
@@ -2526,19 +2568,30 @@ function setLanguage(lang) {
 }
 // Mapa d'element ID → clau de traducció
 const LANG_ID_MAP = {
-  'pt-home-h2':        'nav_home',
-  'pt-horari-h2':      'nav_schedule',
-  'pt-tasques-h2':     'nav_tasks',
-  'pt-focus-h2':       'nav_focus',
+  // No traduïm pt-home-h2 (és el títol JOmaxPath)
   'hsr-streak-lbl':    'stat_streak_lbl',
   'hsr-habits-lbl':    'stat_habits_lbl',
   'hsr-tasks-lbl':     'stat_tasks_lbl',
   'hsr-pomo-lbl':      'stat_pomo_lbl',
   'goal-title':        'sec_goal',
-  'prog-title':        null, // gestionat per renderProgress
   'streak-btn':        'btn_session',
   'cfg-title-text':    'cfg_title',
 };
+function _setI18nText(el, text) {
+  // Si l'element té fills (ex: botons info), actualitza només el primer text node
+  if (el.children.length > 0) {
+    for (const node of el.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = text + ' ';
+        return;
+      }
+    }
+    // Si no hi ha text node, inserim un al principi
+    el.insertBefore(document.createTextNode(text + ' '), el.firstChild);
+  } else {
+    el.textContent = text;
+  }
+}
 function applyLanguage() {
   const lang = getLang();
   const map = LANGS[lang] || LANGS.ca;
@@ -2546,12 +2599,12 @@ function applyLanguage() {
   Object.entries(LANG_ID_MAP).forEach(([id, key]) => {
     if (!key) return;
     const el = document.getElementById(id);
-    if (el && map[key]) el.textContent = map[key];
+    if (el && map[key]) _setI18nText(el, map[key]);
   });
   // Aplica als elements amb data-i18n
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (map[key]) el.textContent = map[key];
+    if (map[key]) _setI18nText(el, map[key]);
   });
   // Actualitza botons del selector d'idioma
   document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -2561,7 +2614,7 @@ function applyLanguage() {
     btn.style.borderColor = code === lang ? 'rgba(124,58,237,0.5)' : 'rgba(255,255,255,0.1)';
   });
   // Títol del browser
-  document.title = 'JOmaxPath — ' + (map['nav_home'] || 'Inici');
+  document.title = 'JOmaxPath';
   // Actualitza salutació (sense cridar renderHome sencer per evitar loops)
   if (typeof renderHomeHeader === 'function') renderHomeHeader();
   // Re-render config panel si és obert per actualitzar textos
