@@ -1612,94 +1612,68 @@ body.view-pages.sb-collapsed-desktop .container {
       <button class="info-btn" onclick="showInfo('tasques')" title="Com funciona?">i</button>
     </div>
 
-    <!-- Mode switcher: Personal / Compartides -->
-    <div class="tasks-mode-bar">
-      <button class="tasks-mode-btn active" id="tmode-personal" onclick="setTasksMode('personal')">📋 Les meves tasques</button>
-      <button class="tasks-mode-btn" id="tmode-shared" onclick="setTasksMode('shared')">🤝 Llistes compartides <span id="shared-tab-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
+    <!-- ═══ VISTA COL·LECCIÓ: graella de llistes ═══ -->
+    <div id="lists-collection-view">
+      <!-- Mode: Personal / Compartides -->
+      <div class="tasks-mode-bar">
+        <button class="tasks-mode-btn active" id="lmode-personal" onclick="setListsMode('personal')">📋 Les meves llistes</button>
+        <button class="tasks-mode-btn" id="lmode-shared" onclick="setListsMode('shared')">🤝 Compartides <span id="shared-tab-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
+      </div>
+
+      <!-- Extres del mode compartit: unir-se per codi + invitacions -->
+      <div id="shared-extras" style="display:none;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+          <input id="join-board-code-inp" placeholder="Enganxa codi BRD_..." maxlength="30" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSharedBoard(this.value)" />
+          <button onclick="joinSharedBoard(document.getElementById('join-board-code-inp').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2,#38d9f5);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;letter-spacing:1px;">🔗 UNIR-SE</button>
+        </div>
+        <div id="board-invites-section" style="display:none;margin-bottom:16px;">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">📬 SOL·LICITUDS DE LLISTA</div>
+          <div id="board-invites-list"></div>
+        </div>
+      </div>
+
+      <div class="lists-header-row">
+        <h3 id="lists-collection-title" class="shared-boards-h3">Les meves llistes</h3>
+        <button class="create-board-btn" onclick="createNewList()">+ Nova llista</button>
+      </div>
+      <div id="lists-grid"></div>
     </div>
 
-    <!-- VISTA PERSONAL -->
-    <div id="tasks-personal-view">
-      <!-- Sub-switcher: Llista / Kanban personal -->
-      <div class="tasks-view-toggle">
-        <button class="tvt-btn active" id="tvt-list" onclick="setPersonalView('list')">☰ Llista</button>
-        <button class="tvt-btn" id="tvt-kanban" onclick="setPersonalView('kanban')">⠿ Kanban</button>
-      </div>
-
-      <!-- Vista llista personal (original) -->
-      <div id="personal-list-view">
-        <div class="exam-section">
-          <div class="exam-header-bar">
-            <h3 data-i18n="tasks_title">📋 Tasques a realitzar</h3>
-            <button class="add-exam-btn" onclick="toggleExamForm()" data-i18n="btn_add">+ AFEGIR</button>
+    <!-- ═══ VISTA DETALL: dins d'una llista ═══ -->
+    <div id="list-detail-view" style="display:none;">
+      <div class="list-detail-header">
+        <button class="list-back-btn" onclick="closeList()">← Tornar</button>
+        <div class="list-detail-titlewrap">
+          <span id="ld-icon" class="ld-icon">📋</span>
+          <div>
+            <h3 id="ld-name" class="ld-name">Llista</h3>
+            <div id="ld-meta" class="ld-meta"></div>
           </div>
-          <div class="exam-form" id="exam-form">
-            <input type="text" id="exam-name" placeholder="Nom de la tasca..." />
-            <input type="date" id="exam-date" />
-            <select id="exam-type">
-              <option value="deures">📚 Deures/Entrega</option>
-              <option value="treball">📄 Treball/Projecte</option>
-              <option value="tasca">🗂️ Tasca general</option>
-              <option value="personal">🙋 Feina personal</option>
-            </select>
-            <select id="exam-prio">
-              <option value="1">🔴 P1 Urgent</option>
-              <option value="2">🟡 P2 Important</option>
-              <option value="3" selected>🔵 P3 Normal</option>
-              <option value="4">⚪ P4 Baix</option>
-            </select>
-            <button class="save-exam-btn" onclick="addExam()">AFEGIR</button>
-          </div>
-          <div class="exam-list" id="exam-list"></div>
+        </div>
+        <!-- Toggle Llista/Kanban — NOMÉS visible dins la llista -->
+        <div class="tasks-view-toggle ld-toggle">
+          <button class="tvt-btn active" id="ldv-list" onclick="setListView('list')">☰ Llista</button>
+          <button class="tvt-btn" id="ldv-kanban" onclick="setListView('kanban')">⠿ Kanban</button>
         </div>
       </div>
 
-      <!-- Vista Kanban personal -->
-      <div id="personal-kanban-view" style="display:none;">
-        <div class="personal-kanban-header">
-          <button class="board-add-task-btn" onclick="openPersonalKanbanModal('todo')">+ Nova tasca</button>
-        </div>
-        <div id="personal-kanban-board"></div>
-      </div>
-    </div>
+      <!-- Barra d'accions de la llista (compartir, etc.) -->
+      <div id="ld-actions" class="ld-actions"></div>
 
-    <!-- VISTA COMPARTIDA -->
-    <div id="tasks-shared-view" style="display:none;">
-      <!-- Sub-switcher: Llista taulers / Detall kanban -->
-      <div id="shared-boards-list-view">
-        <div class="tasks-view-toggle" style="margin-bottom:18px;">
-          <button class="tvt-btn active" id="tvt-shared-list" onclick="setSharedView('list')">☰ Llista</button>
-          <button class="tvt-btn" id="tvt-shared-kanban" onclick="setSharedView('kanban')">⠿ Kanban</button>
-        </div>
-        <!-- Vista llista de taulers -->
-        <div id="shared-list-inner">
-          <div class="shared-boards-title-row">
-            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
-            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
-          </div>
-          <!-- Unir-se per codi -->
-          <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
-            <input id="join-board-code-inp" placeholder="Enganxa codi BRD_..." maxlength="30" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSharedBoard(this.value)" />
-            <button onclick="joinSharedBoard(document.getElementById('join-board-code-inp').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2,#38d9f5);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;letter-spacing:1px;">🔗 UNIR-SE</button>
-          </div>
-          <!-- Invitacions rebudes -->
-          <div id="board-invites-section" style="display:none;margin-bottom:16px;">
-            <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">📬 SOL·LICITUDS DE LLISTA</div>
-            <div id="board-invites-list"></div>
-          </div>
-          <div id="shared-boards-grid"></div>
-        </div>
-        <!-- Vista kanban directe (mostra el primer tauler o selector) -->
-        <div id="shared-kanban-inner" style="display:none;">
-          <div class="shared-boards-title-row">
-            <h3 class="shared-boards-h3">🤝 Llistes compartides</h3>
-            <button class="create-board-btn" onclick="openCreateBoardModal()">+ Nova llista</button>
-          </div>
-          <div id="shared-board-selector"></div>
-          <div id="shared-kanban-board-container"></div>
-        </div>
+      <!-- Afegir tasca -->
+      <div class="ld-add-row">
+        <input type="text" id="ld-new-task" placeholder="Escriu una tasca i prem Enter..." maxlength="120" onkeydown="if(event.key==='Enter')addListTask()"/>
+        <select id="ld-new-prio" class="ld-prio-select">
+          <option value="1">🔴 Urgent</option>
+          <option value="2">🟡 Important</option>
+          <option value="3" selected>🔵 Normal</option>
+          <option value="4">⚪ Baix</option>
+        </select>
+        <button class="ld-add-btn" onclick="addListTask()">+ Afegir</button>
       </div>
-      <div id="shared-board-detail" style="display:none;"></div>
+
+      <div id="ld-list-view"></div>
+      <div id="ld-kanban-view" style="display:none;"></div>
     </div>
   </div>
 

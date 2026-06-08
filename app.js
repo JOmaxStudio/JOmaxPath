@@ -654,6 +654,7 @@ function closeShareBoardModal() {
   const modal = document.getElementById('share-board-modal-overlay');
   if (modal) modal.style.display = 'none';
   _pendingShareBoardId = null;
+  _pendingShareListId = null;
 }
 
 /* Cerca robusta d'usuari per username o email prefix */
@@ -678,39 +679,41 @@ async function sendBoardInviteByUsername() {
   const msg = document.getElementById('sbi-msg');
   const target = (inp?.value||'').trim();
   if (!target) { if(msg) msg.textContent = '⚠️ Escriu el pseudònim'; return; }
-  const boardId = _pendingShareBoardId; if (!boardId) return;
-  const boards = get(BOARDS_KEY,[]);
-  const board = boards.find(b=>b.id===boardId); if (!board) return;
+  const listId = _pendingShareListId; if (!listId) return;
+  const list = _getList(listId); if (!list) return;
   const myUsername = _userProfile?.username || 'Usuari';
 
-  if (!_supabase) { if(msg) msg.textContent = '⚠️ Necessites connexió'; return; }
+  if (!_supabase || !_currentUser) { if(msg){ msg.textContent='⚠️ Inicia sessió per compartir'; msg.style.color='#fca5a5'; } return; }
   if(msg) { msg.textContent = '🔍 Cercant...'; msg.style.color='var(--muted)'; }
   try {
-    // Cerca robusta
     const targetProfile = await _findUserProfile(target);
-    if (!targetProfile) { if(msg){ msg.textContent = '❌ Usuari "'+target+'" no trobat. Comprova que l\'altre usuari ha iniciat sessió almenys un cop.'; msg.style.color='#fca5a5'; } return; }
+    if (!targetProfile) { if(msg){ msg.textContent = '❌ Usuari "'+target+'" no trobat. Ha d\'haver creat un compte.'; msg.style.color='#fca5a5'; } return; }
+    if (targetProfile.username.toLowerCase()===myUsername.toLowerCase()) { if(msg){ msg.textContent='⚠️ No et pots convidar a tu mateix'; msg.style.color='#fca5a5'; } return; }
 
-    // Reutilitza el codi existent del tauler o en crea un de nou (un sol codi per tauler)
-    const shareCode = board.shareCode || ('BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4));
+    // Assegura que la llista és compartida i té codi
+    const shareCode = list.shareCode || ('BRD_'+listId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4));
+    list.shared = true; list.shareCode = shareCode; list.icon = '🤝';
+    if (!list.ownerName) list.ownerName = myUsername;
+    if (!(list.members||[]).includes(myUsername)) list.members = [...(list.members||[]), myUsername];
+    // Desa al núvol i local
     await _supabase.from('shared_boards').upsert({
       code: shareCode, owner_id: _currentUser.id,
-      owner_name: myUsername, board_data: board, updated: new Date().toISOString()
+      owner_name: myUsername, board_data: list, updated: new Date().toISOString()
     });
-    // Desa el codi al tauler local perquè els canvis futurs se sincronitzin
-    const _bs = get(BOARDS_KEY,[]); const _bi = _bs.findIndex(b=>b.id===boardId);
-    if (_bi>=0 && !_bs[_bi].shareCode) { _bs[_bi].shareCode = shareCode; set(BOARDS_KEY,_bs); }
+    setLists(getLists().map(l=>l.id===listId?list:l));
 
-    // Send invite notification
+    // Notificació d'invitació
     const {error} = await _supabase.from('board_invites').insert({
-      board_code: shareCode, board_name: board.name,
+      board_code: shareCode, board_name: list.name,
       from_username: myUsername, to_username: targetProfile.username,
       invite_type: 'username', status: 'pending',
       created_at: new Date().toISOString()
     });
     if (error) { if(msg) msg.textContent = '❌ '+error.message; return; }
-    if(msg) msg.textContent = '✅ Invitació enviada a '+targetProfile.username+'!';
+    if(msg){ msg.textContent = '✅ Invitació enviada a '+targetProfile.username+'!'; msg.style.color='#6ee7b7'; }
     if(inp) inp.value = '';
     showToast('📨 Invitació enviada a '+targetProfile.username+'!');
+    setTimeout(closeShareBoardModal, 1200);
   } catch(e) { if(msg) msg.textContent = '❌ Error de connexió'; }
 }
 
@@ -747,19 +750,41 @@ async function loadBoardInvites() {
   } catch { section.style.display='none'; }
 }
 
+async function _addSharedListFromCloud(data, code) {
+  // Crea/actualitza una llista compartida local a partir de les dades del núvol
+  const lists = getLists()||[];
+  const bd = data.board_data||{};
+  const myUsername = _userProfile?.username||'jo';
+  const existing = lists.find(l=>l.shareCode===code);
+  const members = bd.members||[];
+  if (myUsername && !members.map(m=>m.toLowerCase()).includes(myUsername.toLowerCase())) members.push(myUsername);
+  const listObj = {
+    id: existing?existing.id:(bd.id||Date.now().toString()+Math.random().toString(36).slice(2,6)),
+    name: bd.name||'Llista compartida', icon:'🤝',
+    shared:true, shareCode:code, ownerName:data.owner_name||bd.ownerName||'algú',
+    members,
+    tasks:(bd.tasks||[]).map(t=>({
+      id:t.id||Date.now().toString()+Math.random().toString(36).slice(2,6),
+      name:t.name||t.t||'', done:!!t.done, status:t.status||(t.done?'done':'todo'), prio:t.prio||3, date:t.date||''
+    }))
+  };
+  if (existing) { setLists(lists.map(l=>l.shareCode===code?listObj:l)); }
+  else { lists.push(listObj); setLists(lists); }
+  // Actualitza la llista de membres al núvol
+  if (_supabase) { try { await _supabase.from('shared_boards').update({board_data:{...bd, members, tasks:listObj.tasks, name:listObj.name}, updated:new Date().toISOString()}).eq('code',code); } catch {} }
+  return listObj;
+}
+
 async function acceptBoardInvite(inviteId, boardCode) {
   if (!_supabase) return;
   try {
-    const {data} = await _supabase.from('shared_boards').select('*').eq('code',boardCode).single();
+    const {data} = await _supabase.from('shared_boards').select('*').eq('code',boardCode).maybeSingle();
     if (!data) { showToast('❌ Llista no trobada'); return; }
-    const boards = get(BOARDS_KEY,[]);
-    if (!boards.find(b=>b.shareCode===boardCode)) {
-      boards.push({...data.board_data, sharedWith:true, ownerName:data.owner_name, shareCode:boardCode});
-      set(BOARDS_KEY, boards);
-    }
+    if ((getLists()||[]).find(l=>l.shareCode===boardCode)) { showToast('⚠️ Ja tens aquesta llista'); }
+    else { await _addSharedListFromCloud(data, boardCode); }
     await _supabase.from('board_invites').update({status:'accepted'}).eq('id',inviteId);
     showToast('✅ Llista de '+data.owner_name+' afegida!');
-    loadBoardInvites(); renderSharedBoards?.();
+    loadBoardInvites(); renderListsCollection();
   } catch { showToast('❌ Error acceptant'); }
 }
 
@@ -779,14 +804,12 @@ async function joinSharedBoard(code) {
     const {data, error} = await _supabase.from('shared_boards').select('*').eq('code', cleanCode).maybeSingle();
     if (error) { showToast('❌ Error: '+error.message); return; }
     if (!data) { showToast('❌ Codi «'+cleanCode+'» no trobat. Comprova que el codi sigui correcte.'); return; }
-    const boards = get(BOARDS_KEY,[]);
-    if (boards.find(b=>b.shareCode===cleanCode)) { showToast('⚠️ Ja tens aquesta llista'); return; }
-    const joined = {...(data.board_data||{}), sharedWith:true, ownerName:data.owner_name, shareCode:cleanCode};
-    boards.push(joined); set(BOARDS_KEY,boards);
+    if ((getLists()||[]).find(l=>l.shareCode===cleanCode)) { showToast('⚠️ Ja tens aquesta llista'); return; }
+    await _addSharedListFromCloud(data, cleanCode);
     const inp = document.getElementById('join-board-code-inp');
     if (inp) inp.value = '';
     showToast('✅ Llista de '+data.owner_name+' afegida!');
-    renderSharedBoards?.();
+    _listsMode='shared'; renderListsCollection();
   } catch(e) { showToast('❌ Error carregant llista: '+(e.message||e)); }
 }
 
@@ -956,7 +979,10 @@ function renderHomeHeader() {
   const streak = get('jomaxpath_streak_v1',{count:0});
   const habits = get(HABITS_KEY,[]);
   const doneH = habits.filter(h=>(h.days||[]).includes(today)).length;
-  const tasks = get(TASKS_KEY,[]).filter(t=>!t.done).length;
+  const _lists = (typeof getLists==='function' ? getLists() : null);
+  const tasks = _lists
+    ? _lists.reduce((n,l)=>n+(l.tasks||[]).filter(t=>!t.done).length, 0)
+    : get(TASKS_KEY,[]).filter(t=>!t.done).length;
   const pomoData = get('jomaxpath_pomo_v1',{today:0});
   const sv = document.getElementById('hsr-streak-val'); if(sv) sv.textContent = streak.count||0;
   const hv = document.getElementById('hsr-habits-val'); if(hv) hv.textContent = doneH+'/'+habits.length;
@@ -1362,7 +1388,352 @@ function setMatchCasa(val) {
 let _tasksMode='personal', _personalView='list', _currentBoardId=null, _taskDirty=false, _btUrgency='green';
 let _editingBoardId=null, _boardMembers=[];
 
-function renderTasques() { renderExamList(); renderPersonalKanban(); renderSharedBoards(); }
+/* ═══════════════════════════════════════════════════
+   SISTEMA UNIFICAT DE LLISTES (personals + compartides)
+   Model: una "llista" conté tasques. Entres a la llista i
+   tries vista Llista o Kanban a dins. Les compartides les
+   poden editar tots els membres (sincronitza a Supabase).
+═══════════════════════════════════════════════════ */
+const LISTS_KEY = 'jomaxpath_lists_v3';
+let _listsMode = 'personal';
+let _openListId = null;
+let _listView = 'list';
+
+function getLists() { return get(LISTS_KEY, null); }
+function setLists(l) { set(LISTS_KEY, l); }
+
+function _migrateLists() {
+  if (getLists() !== null) return; // ja migrat
+  const lists = [];
+  // 1) Tasques personals flat → llista per defecte
+  const oldTasks = get(TASKS_KEY, []);
+  lists.push({
+    id: 'personal_default', name: 'Les meves tasques', icon: '📋',
+    shared: false, shareCode: null, ownerName: null, members: [],
+    tasks: (oldTasks||[]).map(t=>({
+      id: t.id||Date.now().toString()+Math.random().toString(36).slice(2,6),
+      name: t.name||'', done: !!t.done,
+      status: t.status || (t.done?'done':'todo'),
+      prio: t.prio||3, date: t.date||''
+    }))
+  });
+  // 2) Taulers compartits existents → llistes compartides
+  const oldBoards = get(BOARDS_KEY, []);
+  (oldBoards||[]).forEach(b=>{
+    lists.push({
+      id: b.id||Date.now().toString()+Math.random().toString(36).slice(2,6),
+      name: b.name||'Llista', icon: '🤝',
+      shared: true, shareCode: b.shareCode||null, ownerName: b.ownerName||null,
+      members: b.members||[],
+      tasks: (b.tasks||[]).map(t=>({
+        id: Date.now().toString()+Math.random().toString(36).slice(2,6),
+        name: t.t||t.name||'', done: !!t.done,
+        status: t.status || (t.done?'done':'todo'),
+        prio: t.prio||3, date: t.date||''
+      }))
+    });
+  });
+  setLists(lists);
+}
+
+function _getList(id) { return (getLists()||[]).find(l=>l.id===id); }
+
+async function _saveList(list) {
+  const lists = getLists()||[];
+  const idx = lists.findIndex(l=>l.id===list.id);
+  if (idx>=0) lists[idx]=list; else lists.push(list);
+  setLists(lists);
+  // Sincronitza al núvol si és compartida
+  if (list.shared && list.shareCode && _supabase) {
+    try {
+      await _supabase.from('shared_boards').update({
+        board_data: list, updated: new Date().toISOString()
+      }).eq('code', list.shareCode);
+    } catch {}
+  }
+}
+
+/* ── Entrada principal ── */
+function renderTasques() {
+  _migrateLists();
+  // Torna sempre a la col·lecció en entrar a la pàgina
+  _openListId = null;
+  document.getElementById('list-detail-view').style.display = 'none';
+  document.getElementById('lists-collection-view').style.display = 'block';
+  setListsMode(_listsMode);
+}
+
+function setListsMode(mode) {
+  _listsMode = mode;
+  document.getElementById('lmode-personal')?.classList.toggle('active', mode==='personal');
+  document.getElementById('lmode-shared')?.classList.toggle('active', mode==='shared');
+  const extras = document.getElementById('shared-extras');
+  if (extras) extras.style.display = mode==='shared' ? 'block' : 'none';
+  const title = document.getElementById('lists-collection-title');
+  if (title) title.textContent = mode==='shared' ? '🤝 Llistes compartides' : 'Les meves llistes';
+  if (mode==='shared') { loadBoardInvites(); updateSharedTabBadge(); }
+  renderListsCollection();
+}
+
+function renderListsCollection() {
+  const grid = document.getElementById('lists-grid');
+  if (!grid) return;
+  _migrateLists();
+  const lists = (getLists()||[]).filter(l => _listsMode==='shared' ? l.shared : !l.shared);
+  if (lists.length===0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 16px;color:var(--muted);">
+      <div style="font-size:42px;margin-bottom:10px;opacity:0.5;">${_listsMode==='shared'?'🤝':'📋'}</div>
+      <div style="font-size:13px;line-height:1.6;">${_listsMode==='shared'?'Encara no tens llistes compartides.<br>Crea\'n una i convida amics, o uneix-te amb un codi.':'Encara no tens llistes.<br>Crea la teva primera! ↑'}</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = lists.map(l=>{
+    const total = (l.tasks||[]).length;
+    const done = (l.tasks||[]).filter(t=>t.done).length;
+    const pct = total? Math.round(done/total*100) : 0;
+    return `<div class="list-card" onclick="openList('${l.id}')">
+      <div class="list-card-top">
+        <span class="list-card-icon">${l.icon||'📋'}</span>
+        ${l.shared?`<span class="list-card-badge">${l.ownerName&&l.ownerName!==(_userProfile?.username)?'de '+l.ownerName:'compartida'}</span>`:''}
+      </div>
+      <div class="list-card-name">${l.name}</div>
+      <div class="list-card-meta">${done}/${total} tasques fetes</div>
+      <div class="list-card-bar"><div class="list-card-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Crear llista ── */
+function createNewList() {
+  _inputPrompt(_listsMode==='shared'?'Nova llista compartida':'Nova llista', 'Nom de la llista...', async (name)=>{
+    name = (name||'').trim(); if(!name) return;
+    const lists = getLists()||[];
+    const newList = {
+      id: Date.now().toString()+Math.random().toString(36).slice(2,6),
+      name, icon: _listsMode==='shared'?'🤝':'📋',
+      shared: _listsMode==='shared', shareCode: null,
+      ownerName: _listsMode==='shared'?(_userProfile?.username||'jo'):null,
+      members: _listsMode==='shared'?[(_userProfile?.username||'jo')]:[],
+      tasks: []
+    };
+    lists.push(newList); setLists(lists);
+    // Si és compartida i hi ha sessió, crea-la al núvol de seguida
+    if (newList.shared && _supabase && _currentUser) {
+      const code = 'BRD_'+newList.id.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
+      newList.shareCode = code;
+      try {
+        await _supabase.from('shared_boards').upsert({
+          code, owner_id: _currentUser.id, owner_name: _userProfile?.username||'Usuari',
+          board_data: newList, updated: new Date().toISOString()
+        });
+        setLists(getLists().map(l=>l.id===newList.id?newList:l));
+      } catch {}
+    }
+    renderListsCollection();
+    showToast('✅ Llista creada!');
+    openList(newList.id);
+  });
+}
+
+/* ── Obrir / tancar detall ── */
+async function openList(id) {
+  const list = _getList(id);
+  if (!list) { showToast('⚠️ Llista no trobada'); return; }
+  _openListId = id;
+  _listView = 'list';
+  // Refresca des del núvol si és compartida (per veure canvis d'altres membres)
+  if (list.shared && list.shareCode && _supabase) {
+    try {
+      const {data} = await _supabase.from('shared_boards').select('board_data').eq('code', list.shareCode).maybeSingle();
+      if (data?.board_data?.tasks) {
+        const lists = getLists();
+        const idx = lists.findIndex(l=>l.id===id);
+        lists[idx] = {...lists[idx], name:data.board_data.name||list.name, tasks:data.board_data.tasks||[], members:data.board_data.members||list.members};
+        setLists(lists);
+      }
+    } catch {}
+  }
+  document.getElementById('lists-collection-view').style.display = 'none';
+  document.getElementById('list-detail-view').style.display = 'block';
+  setListView('list');
+}
+
+function closeList() {
+  _openListId = null;
+  document.getElementById('list-detail-view').style.display = 'none';
+  document.getElementById('lists-collection-view').style.display = 'block';
+  renderListsCollection();
+}
+
+function setListView(view) {
+  _listView = view;
+  document.getElementById('ldv-list')?.classList.toggle('active', view==='list');
+  document.getElementById('ldv-kanban')?.classList.toggle('active', view==='kanban');
+  document.getElementById('ld-list-view').style.display = view==='list'?'block':'none';
+  document.getElementById('ld-kanban-view').style.display = view==='kanban'?'block':'none';
+  renderListDetail();
+}
+
+function renderListDetail() {
+  const list = _getList(_openListId);
+  if (!list) { closeList(); return; }
+  const total=(list.tasks||[]).length, done=(list.tasks||[]).filter(t=>t.done).length;
+  document.getElementById('ld-icon').textContent = list.icon||'📋';
+  document.getElementById('ld-name').textContent = list.name;
+  document.getElementById('ld-meta').textContent =
+    (list.shared?`Compartida${list.ownerName?(' · '+(list.members||[]).length+' membres'):''} · `:'') + `${done}/${total} fetes`;
+  // Accions
+  const actions = document.getElementById('ld-actions');
+  if (actions) {
+    actions.innerHTML = list.shared
+      ? `<button class="ld-action-btn" onclick="shareList('${list.id}')">📤 Convidar amic</button>
+         <button class="ld-action-btn" onclick="openList('${list.id}')">🔄 Actualitzar</button>
+         <button class="ld-action-btn danger" onclick="deleteList('${list.id}')">🗑️ Sortir</button>`
+      : `<button class="ld-action-btn" onclick="deleteList('${list.id}')">🗑️ Eliminar llista</button>`;
+  }
+  if (_listView==='list') renderListTasks(list); else renderListKanban(list);
+}
+
+function renderListTasks(list) {
+  const el = document.getElementById('ld-list-view');
+  if (!el) return;
+  const tasks = list.tasks||[];
+  if (tasks.length===0) { el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:24px;text-align:center;">Encara no hi ha tasques. Afegeix-ne una a dalt ↑</div>'; return; }
+  const prioColors={1:'#ef4444',2:'#f59e0b',3:'#3b82f6',4:'#64748b'};
+  el.innerHTML = [...tasks].sort((a,b)=>(a.done-b.done)||((a.prio||3)-(b.prio||3))).map(t=>`
+    <div class="ld-task ${t.done?'done':''}">
+      <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
+      <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
+      <div class="ld-task-body">
+        <div class="ld-task-name">${t.name}</div>
+        ${t.date?`<div class="ld-task-date">📅 ${t.date}</div>`:''}
+      </div>
+      <button class="ld-task-del" onclick="deleteListTask('${t.id}')">✕</button>
+    </div>`).join('');
+}
+
+function renderListKanban(list) {
+  const el = document.getElementById('ld-kanban-view');
+  if (!el) return;
+  const cols=[{k:'todo',t:'📥 Per fer'},{k:'doing',t:'⚡ Fent'},{k:'done',t:'✅ Fet'}];
+  const tasks=list.tasks||[];
+  el.innerHTML = `<div class="ld-kanban-cols">${cols.map(c=>`
+    <div class="ld-kcol" ondragover="event.preventDefault()" ondrop="dropListTask(event,'${c.k}')">
+      <div class="ld-kcol-head">${c.t} <span>${tasks.filter(t=>(t.status||'todo')===c.k).length}</span></div>
+      <div class="ld-kcol-body">
+        ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>`
+          <div class="ld-kcard" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
+            <div class="ld-kcard-name">${t.name}</div>
+            <div class="ld-kcard-foot">
+              ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
+              <button onclick="deleteListTask('${t.id}')" title="Eliminar">✕</button>
+            </div>
+          </div>`).join('')||'<div class="ld-kcol-empty">—</div>'}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function dropListTask(ev, status) {
+  ev.preventDefault();
+  const id = ev.dataTransfer.getData('id');
+  if (id) moveListTask(id, status);
+}
+
+async function addListTask() {
+  const inp = document.getElementById('ld-new-task');
+  const prioSel = document.getElementById('ld-new-prio');
+  const name = (inp?.value||'').trim();
+  if (!name) return;
+  const list = _getList(_openListId); if(!list) return;
+  if (!list.tasks) list.tasks=[];
+  list.tasks.push({
+    id: Date.now().toString()+Math.random().toString(36).slice(2,6),
+    name, done:false, status:'todo', prio:parseInt(prioSel?.value||'3'), date:'',
+    by:_userProfile?.username||'jo'
+  });
+  if (inp) inp.value='';
+  await _saveList(list);
+  renderListDetail();
+}
+
+async function toggleListTask(taskId) {
+  const list = _getList(_openListId); if(!list) return;
+  const t = list.tasks.find(x=>x.id===taskId); if(!t) return;
+  t.done=!t.done; t.status=t.done?'done':'todo';
+  await _saveList(list);
+  renderListDetail();
+}
+
+async function moveListTask(taskId, status) {
+  const list = _getList(_openListId); if(!list) return;
+  const t = list.tasks.find(x=>x.id===taskId); if(!t) return;
+  t.status=status; t.done=(status==='done');
+  await _saveList(list);
+  renderListDetail();
+}
+
+async function deleteListTask(taskId) {
+  const list = _getList(_openListId); if(!list) return;
+  list.tasks = list.tasks.filter(x=>x.id!==taskId);
+  await _saveList(list);
+  renderListDetail();
+}
+
+function deleteList(id) {
+  const list=_getList(id); if(!list) return;
+  const isShared=list.shared;
+  showDeleteConfirm(()=>{
+    setLists((getLists()||[]).filter(l=>l.id!==id));
+    closeList();
+    showToast(isShared?'👋 Has sortit de la llista':'🗑️ Llista eliminada');
+  });
+}
+
+/* Compartir una llista (reusa el modal de compartir per nom d'usuari) */
+function shareList(id) {
+  const list=_getList(id); if(!list) return;
+  if (!_currentUser) { showToast('⚠️ Inicia sessió per compartir'); return; }
+  _pendingShareListId = id;
+  const modal = document.getElementById('share-board-modal-overlay');
+  if (modal) {
+    document.getElementById('sbi-board-name').textContent = list.name;
+    document.getElementById('sbi-username-inp').value='';
+    document.getElementById('sbi-msg').textContent='';
+    modal.style.display='flex';
+  }
+}
+let _pendingShareListId = null;
+
+/* Petit modal de prompt reutilitzable */
+function _inputPrompt(title, placeholder, cb) {
+  let ov=document.getElementById('input-prompt-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='input-prompt-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);';
+    ov.innerHTML=`<div style="background:var(--card);border:1px solid rgba(124,58,237,0.3);border-radius:20px;padding:26px 28px;max-width:360px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+      <h3 id="ip-title" style="font-size:15px;margin-bottom:14px;color:var(--text);"></h3>
+      <input id="ip-input" type="text" maxlength="40" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;box-sizing:border-box;margin-bottom:16px;" />
+      <div style="display:flex;gap:10px;">
+        <button id="ip-ok" style="flex:1;padding:11px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.45);color:var(--accent2);border-radius:12px;font-size:13px;cursor:pointer;font-weight:600;">Crear</button>
+        <button id="ip-cancel" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:12px;font-size:13px;cursor:pointer;">Cancel·lar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+  }
+  ov.style.display='flex';
+  const titleEl=document.getElementById('ip-title');
+  const input=document.getElementById('ip-input');
+  titleEl.textContent=title; input.placeholder=placeholder||''; input.value='';
+  setTimeout(()=>input.focus(),50);
+  const close=()=>{ov.style.display='none';};
+  document.getElementById('ip-ok').onclick=()=>{const v=input.value;close();cb(v);};
+  document.getElementById('ip-cancel').onclick=close;
+  input.onkeydown=(e)=>{if(e.key==='Enter'){const v=input.value;close();cb(v);}if(e.key==='Escape')close();};
+  ov.onclick=(e)=>{if(e.target===ov)close();};
+}
+
+function _oldRenderTasques() { renderExamList(); renderPersonalKanban(); renderSharedBoards(); }
 
 function setTasksMode(mode) {
   _tasksMode=mode;
