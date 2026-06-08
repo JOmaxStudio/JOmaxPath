@@ -1733,6 +1733,22 @@ body.view-pages.sb-collapsed-desktop .container {
     </div>
   </div>
 
+  <!-- Modal: Detall de tauler (veure/afegir tasques) -->
+  <div id="board-detail-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardDetail()" style="display:none;">
+    <div class="board-modal" style="max-width:480px;width:94vw;">
+      <h3 id="bd-title" style="margin-bottom:2px;">Llista</h3>
+      <div id="bd-meta" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;"></div>
+      <div id="bd-tasks" style="max-height:48vh;overflow-y:auto;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="bd-new-task" placeholder="Nova tasca..." style="flex:1;" maxlength="120" onkeydown="if(event.key==='Enter')addBoardTask()"/>
+        <button onclick="addBoardTask()" style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:13px;white-space:nowrap;">+ Afegir</button>
+      </div>
+      <div class="board-modal-btns" style="margin-top:14px;">
+        <button class="bm-cancel-btn" onclick="closeBoardDetail()">Tancar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Crear/Editar tauler -->
   <div id="board-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeBoardModal()" style="display:none;">
     <div class="board-modal">

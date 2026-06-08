@@ -1150,6 +1150,8 @@ function init(){
   renderGlobalStats();
   renderFriends();
   updateInviteCode();
+  // Carrega sol·licituds pendents i badge de seguida (perquè es vegi on arriben)
+  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); } catch(e){} }, 300);
   // First time tutorial
   if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
 }
@@ -1237,8 +1239,8 @@ async function updateFriendsTabBadge() {
   if (!sb) { badge.style.display='none'; return; }
   try {
     const [fr, cr] = await Promise.all([
-      sb.from('friend_requests').select('id',{count:'exact',head:true}).eq('to_username', myUsername).eq('status','pending'),
-      sb.from('competition_requests').select('id',{count:'exact',head:true}).eq('to_username', myUsername).eq('status','pending')
+      sb.from('friend_requests').select('id',{count:'exact',head:true}).ilike('to_username', myUsername).eq('status','pending'),
+      sb.from('competition_requests').select('id',{count:'exact',head:true}).ilike('to_username', myUsername).eq('status','pending')
     ]);
     const total = (fr.count||0) + (cr.count||0);
     if (total > 0) { badge.textContent = total; badge.style.display='inline'; }
@@ -1514,16 +1516,18 @@ function copyInviteCode(){
 /* Cerca robusta d'usuari (exacte → prefix → email) */
 async function _findHeroProfile(targetUsername) {
   const sb = _getSupabase(); if (!sb) return null;
-  const t = targetUsername.trim().toLowerCase();
-  // 1. Exacte
-  let {data} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('username', t).maybeSingle();
-  if (data) return data;
+  const t = (targetUsername||'').trim();
+  if (!t) return null;
+  const cols = 'id,username,avatar,hero_level,hero_xp';
+  // 1. Exacte case-insensitive (limit 1 per no petar amb duplicats)
+  let {data} = await sb.from('profiles').select(cols).ilike('username', t).limit(1);
+  if (data && data.length) return data[0];
   // 2. Comença amb
-  const {data: p} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('username', t+'%').limit(1).maybeSingle();
-  if (p) return p;
+  const {data: p} = await sb.from('profiles').select(cols).ilike('username', t+'%').limit(1);
+  if (p && p.length) return p[0];
   // 3. Email prefix
-  const {data: e} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('email', t+'@%').limit(1).maybeSingle();
-  return e || null;
+  const {data: e} = await sb.from('profiles').select(cols).ilike('email', t+'%').limit(1);
+  return (e && e.length) ? e[0] : null;
 }
 
 /* ── Send friend request by username ── */
@@ -1593,7 +1597,7 @@ async function loadFriendRequests() {
   if (sb) {
     try {
       const {data} = await sb.from('friend_requests')
-        .select('*').eq('to_username', myUsername).eq('status','pending');
+        .select('*').ilike('to_username', myUsername).eq('status','pending');
       requests = data||[];
     } catch {}
   }
@@ -1704,7 +1708,7 @@ async function loadCompetitionRequests() {
   if (!sb) { section.style.display='none'; return; }
   try {
     const {data} = await sb.from('competition_requests')
-      .select('*').eq('to_username', myUsername).eq('status','pending');
+      .select('*').ilike('to_username', myUsername).eq('status','pending');
     if (!data||data.length===0) { section.style.display='none'; return; }
     section.style.display='block';
     list.innerHTML = data.map(req=>`
