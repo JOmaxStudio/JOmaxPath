@@ -321,6 +321,18 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .fc-xpfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;}
 .fc-stats{display:flex;gap:6px;flex-wrap:wrap;}
 .fc-stat{font-family:'Space Mono',monospace;font-size:7.5px;padding:2px 6px;border-radius:5px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.15);color:var(--accent2);}
+/* Lligues */
+.leagues-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.league-new-btn{background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.35);color:#fcd34d;border-radius:9px;padding:7px 12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.league-new-btn:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.league-card{background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(124,58,237,0.05));border:1px solid rgba(245,158,11,0.2);border-radius:16px;padding:16px;margin-bottom:12px;}
+.league-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.league-card-name{font-size:15px;font-weight:800;color:var(--text);line-height:1.2;}
+.league-card-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.league-card-actions{display:flex;gap:5px;flex-shrink:0;}
+.league-card-actions button{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;width:30px;height:28px;cursor:pointer;font-size:12px;transition:all .2s;}
+.league-card-actions button:hover{border-color:rgba(245,158,11,0.4);color:#fcd34d;}
+.league-code-chip{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#fcd34d;background:rgba(245,158,11,0.1);border:1px dashed rgba(245,158,11,0.3);border-radius:8px;padding:4px 10px;user-select:all;}
 .friends-empty{text-align:center;padding:30px;color:var(--muted);}
 .friends-empty .fe-icon{font-size:40px;margin-bottom:10px;opacity:0.4;}
 .friends-empty p{font-size:12px;line-height:1.6;}
@@ -934,9 +946,24 @@ body.mob-sb #sb{width:var(--sb) !important;}
           <!-- Friends list -->
           <div id="friends-list" class="friends-grid"></div>
 
+          <!-- ═══ LLIGUES ═══ -->
+          <div style="margin-top:22px;">
+            <div class="leagues-head">
+              <div class="sec-lbl" style="margin:0;">🏆 LES MEVES LLIGUES</div>
+              <button class="league-new-btn" onclick="createLeague()">+ Nova lliga</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Crea una lliga i competeix amb els teus amics. El que més XP guanyi lidera! 🔥</div>
+            <!-- Unir-se per codi -->
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
+              <input id="league-join-code" class="friends-search" type="text" placeholder="Codi de lliga (LGA_...)" maxlength="20" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter')joinLeague(this.value)"/>
+              <button class="friends-add-btn" onclick="joinLeague(document.getElementById('league-join-code').value)">🔗 UNIR-SE</button>
+            </div>
+            <div id="leagues-list"></div>
+          </div>
+
           <!-- Leaderboard -->
-          <div style="margin-top:18px;">
-            <div class="sec-lbl">🏆 RÀNQUING GLOBAL</div>
+          <div style="margin-top:22px;">
+            <div class="sec-lbl">🌍 RÀNQUING GLOBAL</div>
             <div id="leaderboard-list" style="display:flex;flex-direction:column;gap:5px;">
               <div style="text-align:center;padding:20px;color:var(--muted);font-size:11px;">Carregant rànquing...</div>
             </div>
@@ -1151,7 +1178,7 @@ function init(){
   renderFriends();
   updateInviteCode();
   // Carrega sol·licituds pendents i badge de seguida (perquè es vegi on arriben)
-  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); syncFriendsFromServer(); } catch(e){} }, 300);
+  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); syncFriendsFromServer(); loadLeagues(); } catch(e){} }, 300);
   // First time tutorial
   if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
 }
@@ -1259,6 +1286,7 @@ function switchTab(name){
     loadCompetitionRequests();
     loadLeaderboard();
     syncFriendsFromServer();
+    loadLeagues();
   }
 }
 
@@ -1715,19 +1743,19 @@ async function sendCompetitionRequest(friendUsername) {
   const sb = _getSupabase();
   if (!sb) { showToast('⚠️ Necessites connexió'); return; }
   try {
-    const {data:target, error:tErr} = await sb.from('profiles').select('id,username,avatar,hero_level').ilike('username', friendUsername).maybeSingle();
-    if (tErr) { showToast('❌ Error cercant usuari: '+tErr.message); return; }
-    if (!target) { showToast('❌ Usuari no trobat'); return; }
+    // Cerca robusta; si no es troba perfil, usa el nom tal qual (només cal el username)
+    let targetName = friendUsername;
+    try { const target = await _findHeroProfile(friendUsername); if (target) targetName = target.username; } catch {}
     const {error} = await sb.from('competition_requests').insert({
       from_username: myUsername,
-      to_username: target.username,
+      to_username: targetName,
       from_avatar: hero.avatar,
       from_level: computeLevel(hero.xp).level,
       status: 'pending',
       created_at: new Date().toISOString()
     });
-    if (error && !error.message.includes('duplicate')) { showToast('❌ '+error.message); return; }
-    showToast('⚔️ Sol·licitud de competició enviada a '+target.username+'!');
+    if (error && !(''+error.message).toLowerCase().includes('duplicate')) { showToast('❌ '+error.message); return; }
+    showToast('⚔️ Sol·licitud de competició enviada a '+targetName+'!');
   } catch { showToast('❌ Error de connexió'); }
 }
 
@@ -1774,6 +1802,159 @@ async function rejectCompetitionRequest(reqId) {
   updateFriendsTabBadge();
 }
 
+/* ═══════════════════════════════════════════════════
+   LLIGUES — competició en grup entre amics per XP
+═══════════════════════════════════════════════════ */
+const LEAGUES_KEY = 'jomaxpath_leagues_v1';
+function loadMyLeagues(){ try{ return JSON.parse(localStorage.getItem(LEAGUES_KEY))||[]; }catch{ return []; } }
+function saveMyLeagues(l){ localStorage.setItem(LEAGUES_KEY, JSON.stringify(l)); }
+
+/* Prompt estilitzat reutilitzable a hero.html */
+function _heroPrompt(title, placeholder, cb){
+  let ov=document.getElementById('hero-prompt-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='hero-prompt-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);';
+    ov.innerHTML=`<div style="background:var(--card,#161229);border:1px solid rgba(124,58,237,0.35);border-radius:20px;padding:26px 28px;max-width:360px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+      <h3 id="hp-title" style="font-size:16px;margin:0 0 14px;color:var(--text,#fff);"></h3>
+      <input id="hp-input" type="text" maxlength="30" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:12px 14px;color:var(--text,#fff);font-size:14px;outline:none;box-sizing:border-box;margin-bottom:16px;"/>
+      <div style="display:flex;gap:10px;">
+        <button id="hp-ok" style="flex:1;padding:12px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,180,216,0.15));border:1px solid rgba(124,58,237,0.5);color:#c4b5fd;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">🏆 Crear</button>
+        <button id="hp-cancel" style="flex:1;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--muted,#94a3b8);border-radius:12px;font-size:13px;cursor:pointer;">Cancel·lar</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+  }
+  ov.style.display='flex';
+  const i=document.getElementById('hp-input');
+  document.getElementById('hp-title').textContent=title; i.placeholder=placeholder||''; i.value='';
+  setTimeout(()=>i.focus(),50);
+  const close=()=>ov.style.display='none';
+  document.getElementById('hp-ok').onclick=()=>{const v=i.value;close();cb(v);};
+  document.getElementById('hp-cancel').onclick=close;
+  i.onkeydown=(e)=>{if(e.key==='Enter'){const v=i.value;close();cb(v);}if(e.key==='Escape')close();};
+  ov.onclick=(e)=>{if(e.target===ov)close();};
+}
+
+async function createLeague(){
+  const me=_getMyUsername();
+  if(!me){ showToast('⚠️ Necessites un compte per crear lligues'); return; }
+  const sb=_getSupabase();
+  if(!sb){ showToast('⚠️ Necessites connexió'); return; }
+  _heroPrompt('🏆 Nova lliga','Nom de la lliga (ex: Els Cracks)...', async(name)=>{
+    name=(name||'').trim(); if(!name) return;
+    const code='LGA_'+Date.now().toString(36).toUpperCase().slice(-6);
+    try{
+      const {error}=await sb.from('leagues').insert({name,code,owner_username:me,members:[me]});
+      if(error){ showToast('❌ '+error.message); return; }
+      const ls=loadMyLeagues(); if(!ls.includes(code)){ ls.push(code); saveMyLeagues(ls); }
+      showToast('🏆 Lliga "'+name+'" creada! Convida amics amb el codi '+code);
+      loadLeagues();
+    }catch{ showToast('❌ Error creant lliga'); }
+  });
+}
+
+async function joinLeague(code){
+  const me=_getMyUsername();
+  if(!me){ showToast('⚠️ Necessites un compte'); return; }
+  const sb=_getSupabase(); if(!sb){ showToast('⚠️ Necessites connexió'); return; }
+  code=(code||'').trim().toUpperCase();
+  if(!code.startsWith('LGA_')){ showToast('⚠️ Codi invàlid (comença amb LGA_)'); return; }
+  try{
+    const {data}=await sb.from('leagues').select('*').eq('code',code).maybeSingle();
+    if(!data){ showToast('❌ Lliga «'+code+'» no trobada'); return; }
+    let members=data.members||[];
+    if(!members.map(m=>(''+m).toLowerCase()).includes(me.toLowerCase())){
+      members.push(me);
+      await sb.from('leagues').update({members}).eq('code',code);
+    }
+    const ls=loadMyLeagues(); if(!ls.includes(code)){ ls.push(code); saveMyLeagues(ls); }
+    const inp=document.getElementById('league-join-code'); if(inp) inp.value='';
+    showToast('✅ T\'has unit a "'+data.name+'"!');
+    loadLeagues();
+  }catch{ showToast('❌ Error unint-se a la lliga'); }
+}
+
+async function leaveLeague(code, name){
+  if(!confirm('Sortir de la lliga "'+name+'"?')) return;
+  const sb=_getSupabase(); const me=_getMyUsername();
+  const ls=loadMyLeagues().filter(c=>c!==code); saveMyLeagues(ls);
+  if(sb&&me){
+    try{
+      const {data}=await sb.from('leagues').select('members,owner_username').eq('code',code).maybeSingle();
+      if(data){
+        const members=(data.members||[]).filter(m=>(''+m).toLowerCase()!==me.toLowerCase());
+        if(members.length===0){ await sb.from('leagues').delete().eq('code',code); }
+        else { await sb.from('leagues').update({members}).eq('code',code); }
+      }
+    }catch{}
+  }
+  showToast('👋 Has sortit de "'+name+'"');
+  loadLeagues();
+}
+
+function copyLeagueCode(code){
+  navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat: '+code)).catch(()=>showToast('📋 '+code));
+}
+
+async function loadLeagues(){
+  const el=document.getElementById('leagues-list'); if(!el) return;
+  const sb=_getSupabase(); const me=_getMyUsername();
+  const codes=loadMyLeagues();
+  if(!sb||!me||codes.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:11px;opacity:0.7;line-height:1.6;">⚔️ Encara no estàs en cap lliga.<br>Crea\'n una i convida els teus amics!</div>';
+    return;
+  }
+  el.innerHTML='<div style="text-align:center;padding:14px;color:var(--muted);font-size:11px;">Carregant lligues...</div>';
+  try{
+    const {data:leagues}=await sb.from('leagues').select('*').in('code',codes);
+    if(!leagues||!leagues.length){ saveMyLeagues([]); el.innerHTML='<div style="text-align:center;padding:18px;color:var(--muted);font-size:11px;opacity:0.7;">Cap lliga activa. Crea\'n una! ↑</div>'; return; }
+    // Perfils de tots els membres per al rànquing
+    const profiles={};
+    try{
+      const {data:profs}=await sb.from('profiles').select('username,avatar,hero_xp,hero_level');
+      (profs||[]).forEach(p=>{ if(p.username) profiles[p.username.toLowerCase()]=p; });
+    }catch{}
+    el.innerHTML=leagues.map(lg=>renderLeagueCard(lg,profiles,me)).join('');
+  }catch{ el.innerHTML='<div style="text-align:center;padding:14px;color:#fca5a5;font-size:11px;">Error carregant lligues</div>'; }
+}
+
+function renderLeagueCard(lg, profiles, me){
+  const medals=['🥇','🥈','🥉'];
+  const ranked=(lg.members||[]).map(m=>{
+    const p=profiles[(''+m).toLowerCase()];
+    return { name:m, avatar:p?.avatar||'⚔️', xp:p?.hero_xp||0, level:p?.hero_level||1 };
+  }).sort((a,b)=>b.xp-a.xp);
+  const rows=ranked.map((r,i)=>{
+    const isMe=r.name.toLowerCase()===me.toLowerCase();
+    const rankIcon = i<3 ? medals[i] : `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);width:18px;display:inline-block;text-align:center;">${i+1}</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;background:${isMe?'rgba(124,58,237,0.16)':'rgba(255,255,255,0.03)'};border:1px solid ${isMe?'rgba(124,58,237,0.35)':'transparent'};margin-bottom:5px;">
+      <span style="font-size:16px;width:22px;text-align:center;">${rankIcon}</span>
+      <span style="font-size:18px;">${r.avatar}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12.5px;font-weight:${isMe?800:600};color:${isMe?'#c4b5fd':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}${isMe?' (tu)':''}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:var(--muted);">NV.${r.level}</div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fcd34d;">${r.xp} XP</div>
+    </div>`;
+  }).join('');
+  const leader = ranked[0];
+  return `<div class="league-card">
+    <div class="league-card-head">
+      <div>
+        <div class="league-card-name">🏆 ${lg.name}</div>
+        <div class="league-card-sub">${ranked.length} membres · Lidera: ${leader?leader.name:'—'}</div>
+      </div>
+      <div class="league-card-actions">
+        <button onclick="copyLeagueCode('${lg.code}')" title="Copiar codi per convidar">🔗</button>
+        <button onclick="leaveLeague('${lg.code}','${(lg.name||'').replace(/'/g,'')}')" title="Sortir">✕</button>
+      </div>
+    </div>
+    <div class="league-code-chip">${lg.code}</div>
+    <div style="margin-top:10px;">${rows}</div>
+  </div>`;
+}
+
 function renderFriends(){
   const list=document.getElementById('friends-list');
   if (!list) return;
@@ -1817,10 +1998,18 @@ function renderFriends(){
   });
 }
 
-function removeFriend(idx, name) {
+async function removeFriend(idx, name) {
   if (!confirm('Eliminar '+name+' de la llista d\'amics?')) return;
   const fr = loadFriends(); fr.splice(idx,1); saveFriends(fr); renderFriends();
   showToast('👋 '+name+' eliminat');
+  // Elimina les sol·licituds d'amistat al servidor (ambdós sentits) perquè NO reaparegui en refrescar
+  const sb = _getSupabase(); const me = _getMyUsername();
+  if (sb && me) {
+    try {
+      await sb.from('friend_requests').delete().ilike('from_username', me).ilike('to_username', name);
+      await sb.from('friend_requests').delete().ilike('from_username', name).ilike('to_username', me);
+    } catch {}
+  }
 }
 
 async function loadLeaderboard() {
