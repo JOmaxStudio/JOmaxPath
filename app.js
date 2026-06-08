@@ -376,6 +376,43 @@ async function authLogin() {
   }
 }
 
+/* Indicador de disponibilitat del nom d'usuari en temps real (debounce 450ms) */
+let _usernameCheckTimer = null;
+let _lastUsernameAvailable = null;
+function checkUsernameAvailability() {
+  const inp = document.getElementById('auth-reg-username');
+  const icon = document.getElementById('username-check-icon');
+  const msg = document.getElementById('username-check-msg');
+  const val = (inp?.value||'').trim();
+  _lastUsernameAvailable = null;
+  if (_usernameCheckTimer) clearTimeout(_usernameCheckTimer);
+  if (!val) { if(icon) icon.textContent=''; if(msg) msg.textContent=''; return; }
+  if (val.length < 3) {
+    if(icon){ icon.textContent='❌'; }
+    if(msg){ msg.textContent='Mínim 3 caràcters'; msg.style.color='#fca5a5'; }
+    return;
+  }
+  if(icon){ icon.innerHTML='<span style="opacity:0.5;">⏳</span>'; }
+  if(msg){ msg.textContent='Comprovant...'; msg.style.color='var(--muted)'; }
+  _usernameCheckTimer = setTimeout(async ()=>{
+    if (!_supabase) { if(icon) icon.textContent=''; if(msg) msg.textContent=''; return; }
+    try {
+      const {data} = await _supabase.from('profiles').select('username').ilike('username', val).limit(1);
+      // Comprova que l'input no hagi canviat mentre esperàvem
+      if ((inp?.value||'').trim() !== val) return;
+      if (data && data.length) {
+        _lastUsernameAvailable = false;
+        if(icon) icon.textContent='❌';
+        if(msg){ msg.textContent='Aquest nom ja està agafat'; msg.style.color='#fca5a5'; }
+      } else {
+        _lastUsernameAvailable = true;
+        if(icon) icon.textContent='✅';
+        if(msg){ msg.textContent='Disponible!'; msg.style.color='#6ee7b7'; }
+      }
+    } catch { if(icon) icon.textContent=''; if(msg) msg.textContent=''; }
+  }, 450);
+}
+
 async function authRegister() {
   const username = (document.getElementById('auth-reg-username')?.value||'').trim();
   const email    = (document.getElementById('auth-reg-email')?.value||'').trim();

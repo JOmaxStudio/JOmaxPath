@@ -1151,7 +1151,7 @@ function init(){
   renderFriends();
   updateInviteCode();
   // Carrega sol·licituds pendents i badge de seguida (perquè es vegi on arriben)
-  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); } catch(e){} }, 300);
+  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); syncFriendsFromServer(); } catch(e){} }, 300);
   // First time tutorial
   if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
 }
@@ -1258,6 +1258,7 @@ function switchTab(name){
     loadFriendRequests();
     loadCompetitionRequests();
     loadLeaderboard();
+    syncFriendsFromServer();
   }
 }
 
@@ -1629,33 +1630,64 @@ async function loadFriendRequests() {
 
 async function acceptFriendRequest(reqId, fromUsername, fromAvatar, fromLevel) {
   const sb = _getSupabase();
+  // Dades de l'amic per defecte (de la pròpia sol·licitud) — s'afegeix SEMPRE encara que el perfil no es trobi
+  let friendData = {name:fromUsername, avatar:fromAvatar||'⚔️', level:fromLevel||1, xp:0, class:'Guerrer', stats:{}, addedAt:Date.now()};
   if (sb && !reqId.startsWith('local_')) {
     try {
       await sb.from('friend_requests').update({status:'accepted'}).eq('id', reqId);
-      // Fetch full profile of accepted friend
-      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).maybeSingle();
-      if (profile) {
-        const friends = loadFriends();
-        if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
-          friends.push({name:profile.username,avatar:profile.avatar||'⚔️',level:profile.hero_level||1,xp:profile.hero_xp||0,class:'Guerrer',stats:{},addedAt:Date.now()});
-          saveFriends(friends);
-        }
+      // Enriqueix amb el perfil real si existeix (best-effort)
+      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).limit(1);
+      if (profile && profile.length) {
+        const p = profile[0];
+        friendData = {name:p.username, avatar:p.avatar||fromAvatar||'⚔️', level:p.hero_level||fromLevel||1, xp:p.hero_xp||0, class:'Guerrer', stats:{}, addedAt:Date.now()};
       }
     } catch {}
   } else {
-    const friends = loadFriends();
-    if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
-      friends.push({name:fromUsername,avatar:fromAvatar,level:fromLevel,xp:0,class:'Guerrer',stats:{},addedAt:Date.now()});
-      saveFriends(friends);
-    }
     const req = _getLocalRequests();
     req.received = (req.received||[]).filter(r=>r.from!==fromUsername);
     _saveLocalRequests(req);
+  }
+  // Desa l'amic SEMPRE (això arregla el bug de "encara no tens amics")
+  const friends = loadFriends();
+  if (!friends.find(f=>f.name?.toLowerCase()===fromUsername.toLowerCase())) {
+    friends.push(friendData);
+    saveFriends(friends);
   }
   showToast('🎉 '+fromUsername+' ara és el teu amic!');
   renderFriends();
   loadFriendRequests();
   updateFriendsTabBadge();
+}
+
+/* Sincronitza amistats des del servidor (bidireccional): qualsevol sol·licitud
+   ACCEPTADA on jo hi participi (en qualsevol sentit) em dóna l'altre com a amic */
+async function syncFriendsFromServer() {
+  const sb = _getSupabase();
+  const me = _getMyUsername();
+  if (!sb || !me) return;
+  try {
+    // Dues consultes separades (evita problemes de .or amb noms que tenen punts)
+    const [a, b] = await Promise.all([
+      sb.from('friend_requests').select('*').ilike('from_username', me).eq('status','accepted'),
+      sb.from('friend_requests').select('*').ilike('to_username', me).eq('status','accepted')
+    ]);
+    const rows = [...(a.data||[]), ...(b.data||[])];
+    if (!rows.length) return;
+    const friends = loadFriends();
+    let changed = false;
+    for (const r of rows) {
+      const other = (r.from_username?.toLowerCase()===me.toLowerCase()) ? r.to_username : r.from_username;
+      if (!other || other.toLowerCase()===me.toLowerCase()) continue;
+      if (friends.find(f=>f.name?.toLowerCase()===other.toLowerCase())) continue;
+      let fd = {name:other, avatar:'⚔️', level:1, xp:0, class:'Guerrer', stats:{}, addedAt:Date.now()};
+      try {
+        const {data:prof} = await sb.from('profiles').select('*').ilike('username', other).limit(1);
+        if (prof && prof.length) fd = {...fd, avatar:prof[0].avatar||'⚔️', level:prof[0].hero_level||1, xp:prof[0].hero_xp||0};
+      } catch {}
+      friends.push(fd); changed = true;
+    }
+    if (changed) { saveFriends(friends); renderFriends(); updateFriendsTabBadge(); }
+  } catch {}
 }
 
 async function rejectFriendRequest(reqId, fromUsername) {

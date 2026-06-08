@@ -1165,7 +1165,11 @@ body.view-pages.sb-collapsed-desktop .container {
     <div id="auth-register-form" style="display:none">
       <div class="auth-field">
         <label>PSEUDÒNIM <span style="color:rgba(167,139,250,0.7);font-size:8px;">— visible als amics</span></label>
-        <input type="text" id="auth-reg-username" placeholder="ElTeuNom" autocomplete="username" maxlength="24" onkeydown="if(event.key==='Enter')authRegister()"/>
+        <div style="position:relative;">
+          <input type="text" id="auth-reg-username" placeholder="ElTeuNom" autocomplete="username" maxlength="24" oninput="checkUsernameAvailability()" onkeydown="if(event.key==='Enter')authRegister()" style="padding-right:34px;"/>
+          <span id="username-check-icon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;"></span>
+        </div>
+        <div id="username-check-msg" style="font-size:10px;margin-top:4px;min-height:13px;"></div>
       </div>
       <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authRegister()"/></div>
       <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()"/></div>
