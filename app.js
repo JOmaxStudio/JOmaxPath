@@ -173,13 +173,13 @@ function _updateServerStatusIndicator() {
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
-      'https://fcoitcesjyjkfcqwrblm.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjb2l0Y2Vzanlqa2ZjcXdyYmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MDUwNDQsImV4cCI6MjA4ODE4MTA0NH0.bvwDg2ThL4HivusLJEUhbV9VdJ7VAuHwE2CtCE0oZ3w',
+      'https://toefrxqijvextqqngapx.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
     // Test connectivity — any HTTP response means server is reachable
     Promise.race([
-      fetch('https://fcoitcesjyjkfcqwrblm.supabase.co/auth/v1/health'),
+      fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health'),
       new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
     ]).then(() => { /* got HTTP response = server is up */ })
       .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
@@ -557,6 +557,9 @@ async function shareBoard(boardId) {
     document.getElementById('sbi-board-name').textContent = board.name;
     document.getElementById('sbi-username-inp').value = '';
     document.getElementById('sbi-msg').textContent = '';
+    // Amaga el box del codi de sessions anteriors
+    const codeBox = document.getElementById('sbi-code-box');
+    if (codeBox) codeBox.style.display = 'none';
     modal.style.display = 'flex';
   }
 }
@@ -579,9 +582,23 @@ async function shareBoardByCode() {
     const idx = boards.findIndex(b=>b.id===boardId);
     if (idx>=0) { boards[idx].shareCode = shareCode; set(BOARDS_KEY,boards); }
     navigator.clipboard.writeText(shareCode).catch(()=>{});
-    showToast('📋 Codi copiat: '+shareCode);
-    closeShareBoardModal(); renderSharedBoards();
+    // Mostra el codi de forma persistent al modal
+    const box = document.getElementById('sbi-code-box');
+    const val = document.getElementById('sbi-code-value');
+    if (val) val.textContent = shareCode;
+    if (box) box.style.display = 'block';
+    showToast('📋 Codi generat i copiat!');
+    renderSharedBoards();
   } catch { showToast('❌ Error generant codi'); }
+}
+
+function copyBoardCode() {
+  const val = document.getElementById('sbi-code-value');
+  const btn = document.getElementById('sbi-copy-btn');
+  if (!val||!val.textContent) return;
+  navigator.clipboard.writeText(val.textContent).then(()=>{
+    if (btn) { const o=btn.textContent; btn.textContent='✅ Copiat!'; setTimeout(()=>{btn.textContent=o;},1500); }
+  }).catch(()=>showToast('📋 '+val.textContent));
 }
 
 function closeShareBoardModal() {

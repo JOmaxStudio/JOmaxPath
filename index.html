@@ -1728,7 +1728,13 @@ body.view-pages.sb-collapsed-desktop .container {
 
       <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
         <label style="margin-bottom:6px;display:block;">O compartir per codi</label>
-        <button onclick="shareBoardByCode()" style="width:100%;padding:10px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);color:#38d9f5;border-radius:10px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">🔗 GENERAR I COPIAR CODI</button>
+        <button onclick="shareBoardByCode()" style="width:100%;padding:10px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);color:#38d9f5;border-radius:10px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">🔗 GENERAR CODI</button>
+        <!-- Codi generat (es mostra després de generar) -->
+        <div id="sbi-code-box" style="display:none;margin-top:10px;background:rgba(0,180,216,0.08);border:1px dashed rgba(0,180,216,0.35);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">COMPARTEIX AQUEST CODI AMB EL TEU AMIC</div>
+          <div id="sbi-code-value" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:#38d9f5;letter-spacing:2px;margin-bottom:8px;user-select:all;"></div>
+          <button onclick="copyBoardCode()" id="sbi-copy-btn" style="width:100%;padding:8px;background:rgba(0,180,216,0.18);border:1px solid rgba(0,180,216,0.4);color:#38d9f5;border-radius:8px;cursor:pointer;font-size:11px;">📋 Copiar codi</button>
+        </div>
       </div>
 
       <div class="board-modal-btns" style="margin-top:14px;">
