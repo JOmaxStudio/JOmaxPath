@@ -142,6 +142,7 @@ function navTo(page) {
   if (page === 'tasques') renderTasques();
   if (page === 'focus')   renderFocus();
   if (page === 'julians') initJulians();
+  if (page === 'examenia') renderExamenia();
   if (page === 'notes')   renderNotes();
 
   // Aplica traduccions al contingut de la nova pàgina
@@ -2782,6 +2783,212 @@ function removeAttachment() {
   _attachment=null;
   const prev=document.getElementById('ai-doc-preview'); if(prev) prev.style.display='none';
   const inp=document.getElementById('ai-file-input'); if(inp) inp.value='';
+}
+
+/* ═══════════════════════════════════════════════════
+   PREPARADOR D'EXÀMENS — tutor IA + pla d'estudi
+═══════════════════════════════════════════════════ */
+const EXAMS_KEY='jomaxpath_exams_v1';
+let _examFilesText='';
+let _openExamId=null;
+let _examTab='plan';
+function getExams(){ return get(EXAMS_KEY,[]); }
+function setExams(e){ set(EXAMS_KEY,e); }
+
+function renderExamenia(){
+  _openExamId=null;
+  const dv=document.getElementById('exam-detail-view'); if(dv) dv.style.display='none';
+  const sv=document.getElementById('exam-setup-view'); if(sv) sv.style.display='block';
+  _examFilesText='';
+  const fl=document.getElementById('exam-files-list'); if(fl) fl.innerHTML='';
+  renderExamSessions();
+}
+
+function renderExamSessions(){
+  const grid=document.getElementById('exam-sessions-grid'); if(!grid) return;
+  const exams=getExams();
+  if(exams.length===0){ grid.innerHTML=''; return; }
+  const today=new Date(); today.setHours(0,0,0,0);
+  grid.innerHTML=`<label class="exam-label">📚 Els teus exàmens</label><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;">`+
+    exams.map(e=>{
+      const d=e.date?new Date(e.date+'T00:00:00'):null;
+      const diff=d?Math.round((d-today)/86400000):null;
+      const when=diff===null?'sense data':diff<0?'ja passat':diff===0?'🔥 AVUI!':diff===1?'demà':'en '+diff+' dies';
+      return `<div class="exam-card" onclick="openExam('${e.id}')">
+        <button class="exam-card-del" onclick="event.stopPropagation();deleteExam('${e.id}')">✕</button>
+        <div style="font-size:26px;margin-bottom:6px;">🎓</div>
+        <div style="font-size:14px;font-weight:700;line-height:1.3;">${e.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${e.subject||''}</div>
+        <div style="font-size:11px;color:${diff!==null&&diff>=0&&diff<=3?'#fca5a5':'var(--accent2)'};margin-top:8px;font-weight:600;">📅 ${when}</div>
+      </div>`;
+    }).join('')+`</div>`;
+}
+
+function deleteExam(id){
+  showDeleteConfirm(()=>{
+    setExams(getExams().filter(e=>e.id!==id));
+    renderExamSessions();
+    showToast('🗑️ Examen eliminat');
+  });
+}
+
+async function handleExamFiles(input){
+  const files=Array.from(input.files||[]); if(!files.length) return;
+  const listEl=document.getElementById('exam-files-list');
+  for(const file of files){
+    const row=document.createElement('div'); row.className='exam-file-row';
+    row.innerHTML=`<span>📄 ${file.name}</span><span class="exam-file-status">⏳ llegint...</span>`;
+    if(listEl) listEl.appendChild(row);
+    const txt=await extractFileText(file);
+    const st=row.querySelector('.exam-file-status');
+    if(txt==='__OLD_DOC__'){ if(st) st.textContent='⚠️ .doc no suportat (desa\'l com .docx)'; }
+    else if(txt){ _examFilesText+='\n\n['+file.name+']:\n'+txt; if(st) st.innerHTML='<span style="color:#6ee7b7;">✓ '+txt.length+' car.</span>'; }
+    else { if(st) st.textContent='⚠️ sense text llegible'; }
+  }
+}
+
+async function generateStudyPlan(){
+  const name=(document.getElementById('exam-w-name')?.value||'').trim();
+  const subject=(document.getElementById('exam-w-subject')?.value||'').trim();
+  const date=document.getElementById('exam-w-date')?.value||'';
+  const paste=(document.getElementById('exam-w-paste')?.value||'').trim();
+  const syllabus=(_examFilesText+'\n\n'+paste).trim();
+  if(!name){ showToast('⚠️ Posa un nom a l\'examen'); return; }
+  if(!syllabus){ showToast('⚠️ Penja el temari o enganxa\'l al quadre de text'); return; }
+  const btn=document.getElementById('exam-generate-btn');
+  if(btn){ btn.disabled=true; btn.textContent='✨ Generant el teu pla...'; }
+  try{
+    const today=new Date().toLocaleDateString('ca-ES');
+    const sys=`Ets un tutor expert que crea plans d'estudi realistes i motivadors. Respon SEMPRE en català amb markdown clar (encapçalaments, llistes, negretes).`;
+    const prompt=`Crea un pla d'estudi personalitzat per a aquest examen.
+EXAMEN: ${name}${subject?' — '+subject:''}
+DATA DE L'EXAMEN: ${date||'no especificada'}
+AVUI: ${today}
+TEMARI / APUNTS:
+"""
+${syllabus.slice(0,30000)}
+"""
+INSTRUCCIONS:
+1. Comença amb un resum breu (2-3 línies) del que cal dominar.
+2. Fes un pla dia a dia (o per sessions si no hi ha data) repartint els temes de manera equilibrada fins l'examen, deixant els últims dies per a repàs.
+3. Per cada sessió: què estudiar + una tècnica concreta (resum, esquema, test, flashcards...).
+4. Acaba EXACTAMENT amb una secció titulada "### CHECKLIST" i, a sota, UNA tasca per línia amb aquest format: YYYY-MM-DD | descripció curta de la sessió. Si no hi ha data d'examen, posa només la descripció (sense data ni barra).
+Sigues realista amb el temps disponible i motivador.`;
+    const reply=await callJulians([{role:'user',content:prompt}], sys, 4096);
+    if(!reply) throw new Error('resposta buida');
+    const exam={ id:Date.now().toString(), name, subject, date, syllabus:syllabus.slice(0,40000), plan:reply, tutorMessages:[], created:Date.now() };
+    const exams=getExams(); exams.unshift(exam); setExams(exams);
+    if(btn){ btn.disabled=false; btn.textContent='✨ Generar pla d\'estudi amb IA'; }
+    ['exam-w-name','exam-w-subject','exam-w-date','exam-w-paste'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    _examFilesText=''; const fl=document.getElementById('exam-files-list'); if(fl) fl.innerHTML='';
+    showToast('✅ Pla d\'estudi creat!');
+    openExam(exam.id);
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='✨ Generar pla d\'estudi amb IA'; }
+    showToast('❌ Error generant el pla: '+(e.message||e));
+  }
+}
+
+function openExam(id){
+  const exam=getExams().find(e=>e.id===id); if(!exam) return;
+  _openExamId=id; _examTab='plan';
+  document.getElementById('exam-setup-view').style.display='none';
+  document.getElementById('exam-detail-view').style.display='block';
+  renderExamDetail();
+}
+function closeExam(){
+  _openExamId=null;
+  document.getElementById('exam-detail-view').style.display='none';
+  document.getElementById('exam-setup-view').style.display='block';
+  renderExamSessions();
+}
+function setExamTab(tab){
+  _examTab=tab;
+  document.getElementById('exam-tab-btn-plan')?.classList.toggle('active',tab==='plan');
+  document.getElementById('exam-tab-btn-tutor')?.classList.toggle('active',tab==='tutor');
+  document.getElementById('exam-tab-plan').style.display=tab==='plan'?'block':'none';
+  document.getElementById('exam-tab-tutor').style.display=tab==='tutor'?'block':'none';
+  if(tab==='tutor') renderExamTutor();
+}
+function renderExamDetail(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam){ closeExam(); return; }
+  document.getElementById('exam-d-title').textContent=exam.name;
+  const d=exam.date?new Date(exam.date+'T00:00:00'):null; const today=new Date(); today.setHours(0,0,0,0);
+  const diff=d?Math.round((d-today)/86400000):null;
+  document.getElementById('exam-d-meta').textContent=(exam.subject?exam.subject+' · ':'')+(exam.date?('Examen el '+exam.date+(diff!==null&&diff>=0?' (en '+diff+' dies)':'')):'sense data');
+  const planVisible=(exam.plan||'').split(/###\s*CHECKLIST/i)[0];
+  document.getElementById('exam-plan-content').innerHTML=_mdToHtml(planVisible);
+  setExamTab(_examTab);
+}
+
+function _parseChecklist(plan){
+  const parts=(plan||'').split(/###\s*CHECKLIST/i);
+  if(parts.length<2) return [];
+  return parts[1].split('\n').map(l=>l.replace(/^[-*\s]+/,'').trim()).filter(Boolean).map(line=>{
+    const m=line.match(/^(\d{4}-\d{2}-\d{2})\s*\|\s*(.+)$/);
+    if(m) return {name:m[2].trim(), date:m[1]};
+    return {name:line.replace(/^\d+\.\s*/,'').replace(/^\|/,'').trim(), date:''};
+  }).filter(t=>t.name && t.name.length>2);
+}
+
+function saveExamPlanAsList(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const tasks=_parseChecklist(exam.plan);
+  if(tasks.length===0){ showToast('⚠️ No s\'han trobat tasques al pla per desar'); return; }
+  _migrateLists();
+  const lists=getLists()||[];
+  const list={ id:'exam_'+exam.id, name:'📚 '+exam.name, icon:'🎓', shared:false, shareCode:null, ownerName:null, members:[],
+    tasks:tasks.map(t=>({id:Date.now().toString()+Math.random().toString(36).slice(2,6),name:t.name,done:false,status:'todo',prio:2,date:t.date||''})) };
+  const idx=lists.findIndex(l=>l.id===list.id);
+  if(idx>=0) lists[idx]=list; else lists.push(list);
+  setLists(lists);
+  showToast('✅ '+tasks.length+' tasques desades a Tasques → Les meves llistes!');
+}
+
+function renderExamTutor(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const c=document.getElementById('exam-tutor-messages'); if(!c) return;
+  if((exam.tutorMessages||[]).length===0){
+    c.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px;line-height:1.6;">Pregunta\'m el que vulguis sobre el temari,<br>o usa els botons ràpids de dalt 👆</div>';
+    return;
+  }
+  c.innerHTML=exam.tutorMessages.map(m=>`<div class="ai-msg ${m.role}"><div class="ai-msg-bubble">${m.role==='assistant'?_mdToHtml(m.content):m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div></div>`).join('');
+  c.scrollTop=c.scrollHeight;
+}
+
+function examTutorAsk(q){ const inp=document.getElementById('exam-tutor-input'); if(inp) inp.value=q; examTutorSend(); }
+
+async function examTutorSend(){
+  let exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const inp=document.getElementById('exam-tutor-input');
+  const text=(inp?.value||'').trim(); if(!text) return;
+  if(inp) inp.value='';
+  if(!exam.tutorMessages) exam.tutorMessages=[];
+  exam.tutorMessages.push({role:'user',content:text});
+  setExams(getExams().map(e=>e.id===exam.id?exam:e));
+  renderExamTutor();
+  const c=document.getElementById('exam-tutor-messages');
+  const typing=document.createElement('div'); typing.className='ai-msg assistant'; typing.innerHTML='<div class="ai-msg-bubble">💭 Pensant...</div>';
+  if(c){ c.appendChild(typing); c.scrollTop=c.scrollHeight; }
+  try{
+    const sys=`Ets un tutor expert que ajuda un estudiant a preparar l'examen "${exam.name}"${exam.subject?' ('+exam.subject+')':''}. Respon en català amb markdown. Basa't en el temari proporcionat; si et pregunten coses fora del temari, ajuda igualment. Sigues clar, pedagògic i motivador.
+TEMARI:
+"""
+${(exam.syllabus||'').slice(0,28000)}
+"""`;
+    const msgs=exam.tutorMessages.slice(-8).map(m=>({role:m.role,content:m.content}));
+    const reply=await callJulians(msgs, sys, 2048);
+    exam=getExams().find(e=>e.id===_openExamId);
+    exam.tutorMessages.push({role:'assistant',content:reply||'(resposta buida)'});
+    setExams(getExams().map(e=>e.id===_openExamId?exam:e));
+    renderExamTutor();
+  }catch(e){
+    if(typing.parentNode) typing.remove();
+    exam=getExams().find(e=>e.id===_openExamId);
+    exam.tutorMessages.push({role:'assistant',content:'⚠️ Error: '+(e.message||e)});
+    setExams(getExams().map(e=>e.id===_openExamId?exam:e));
+    renderExamTutor();
+  }
 }
 
 /* ─────────────────────────────────────────

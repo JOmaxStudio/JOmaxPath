@@ -1047,6 +1047,9 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="lsb-item" data-tip="Julians AI" onclick="navTo('julians');lsbMobileClose()">
       <div class="lsb-ico">🧠</div><span class="lsb-lbl">Julians AI</span>
     </div>
+    <div class="lsb-item" data-tip="Preparar exàmens" onclick="navTo('examenia');lsbMobileClose()">
+      <div class="lsb-ico">🎓</div><span class="lsb-lbl">Preparar exàmens</span>
+    </div>
 
     <div class="lsb-sec" data-i18n="lsb_sec_tools">EINES</div>
     <div class="lsb-item" data-tip="Captura ràpida" onclick="openQuickCapture();lsbMobileClose()">
@@ -1679,6 +1682,88 @@ body.view-pages.sb-collapsed-desktop .container {
     </div>
   </div>
 
+
+  <!-- ═══ PAGE: PREPARADOR D'EXÀMENS ═══ -->
+  <div class="app-page" id="page-examenia">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(16,185,129,0.15);">🎓</div>
+      <div class="page-title-text">
+        <h2>PREPARAR EXÀMENS</h2>
+        <p>El teu tutor IA: penja el temari i et crea un pla d'estudi</p>
+      </div>
+    </div>
+
+    <!-- VISTA SETUP / col·lecció d'exàmens -->
+    <div id="exam-setup-view">
+      <div id="exam-sessions-grid" style="margin-bottom:20px;"></div>
+
+      <div class="exam-wizard">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:4px;">📝 Nou examen</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Omple les dades i penja el temari. El Julians et crearà un pla d'estudi personalitzat.</p>
+
+        <label class="exam-label">Nom de l'examen</label>
+        <input id="exam-w-name" class="exam-input" placeholder="Ex: Examen final d'Història" maxlength="80"/>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label class="exam-label">Assignatura / tema</label>
+            <input id="exam-w-subject" class="exam-input" placeholder="Ex: Història contemporània" maxlength="60"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label class="exam-label">Data de l'examen</label>
+            <input id="exam-w-date" class="exam-input" type="date"/>
+          </div>
+        </div>
+
+        <label class="exam-label">Temari (penja fitxers o enganxa text)</label>
+        <div class="exam-dropzone" id="exam-dropzone" onclick="document.getElementById('exam-w-files').click()">
+          <input type="file" id="exam-w-files" multiple accept=".pdf,.docx,.pptx,.txt,.md" style="display:none;" onchange="handleExamFiles(this)"/>
+          <div style="font-size:30px;margin-bottom:6px;">📎</div>
+          <div style="font-size:13px;font-weight:600;">Clica per pujar PDF, Word o PowerPoint</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">.pdf · .docx · .pptx · .txt</div>
+        </div>
+        <div id="exam-files-list" style="margin:8px 0;"></div>
+        <textarea id="exam-w-paste" class="exam-input" rows="3" placeholder="...o enganxa aquí el temari / apunts directament" style="resize:vertical;"></textarea>
+
+        <button class="exam-generate-btn" id="exam-generate-btn" onclick="generateStudyPlan()">✨ Generar pla d'estudi amb IA</button>
+      </div>
+    </div>
+
+    <!-- VISTA DETALL: pla + tutor -->
+    <div id="exam-detail-view" style="display:none;">
+      <button class="list-back-btn" onclick="closeExam()" style="margin-bottom:14px;">← Tornar</button>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:30px;">🎓</span>
+        <div>
+          <h3 id="exam-d-title" style="font-size:19px;font-weight:800;margin:0;">Examen</h3>
+          <div id="exam-d-meta" class="ld-meta"></div>
+        </div>
+      </div>
+      <div class="exam-tabs">
+        <button class="exam-tab active" id="exam-tab-btn-plan" onclick="setExamTab('plan')">📅 Pla d'estudi</button>
+        <button class="exam-tab" id="exam-tab-btn-tutor" onclick="setExamTab('tutor')">💬 Tutor IA</button>
+      </div>
+
+      <div id="exam-tab-plan">
+        <div id="exam-plan-content" class="exam-plan-content"></div>
+        <button class="exam-save-list-btn" onclick="saveExamPlanAsList()">📋 Desar el pla com a llista de tasques</button>
+      </div>
+
+      <div id="exam-tab-tutor" style="display:none;">
+        <div class="exam-tutor-quick">
+          <button onclick="examTutorAsk('Fes-me un resum clar dels punts més importants del temari.')">📝 Resum</button>
+          <button onclick="examTutorAsk('Fes-me un test de 5 preguntes (amb opcions) sobre el temari per practicar.')">❓ Quiz</button>
+          <button onclick="examTutorAsk('Explica\'m de forma senzilla el concepte més difícil del temari.')">💡 Explica</button>
+          <button onclick="examTutorAsk('Fes-me preguntes flash (pregunta-resposta) per memoritzar.')">🃏 Flashcards</button>
+        </div>
+        <div id="exam-tutor-messages" class="exam-tutor-messages"></div>
+        <div class="exam-tutor-inputbar">
+          <input id="exam-tutor-input" class="exam-input" placeholder="Pregunta el que vulguis sobre el temari..." style="margin:0;" onkeydown="if(event.key==='Enter')examTutorSend()"/>
+          <button onclick="examTutorSend()" class="exam-tutor-send">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ═══ PAGE: NOTES ═══ -->
   <div class="app-page" id="page-notes">
