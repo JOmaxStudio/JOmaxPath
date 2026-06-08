@@ -7175,3 +7175,17 @@ body.view-pages.sb-collapsed-desktop #bnav {
 .quiz-opt.correct{background:rgba(16,185,129,0.18);border-color:rgba(16,185,129,0.5);color:#6ee7b7;font-weight:600;}
 .quiz-opt.wrong{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.45);color:#fca5a5;}
 .quiz-explain{margin-top:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border-left:3px solid rgba(124,58,237,0.5);border-radius:8px;font-size:12px;line-height:1.5;color:var(--muted);}
+
+/* ── Editor de tasca ── */
+.te-label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 5px;}
+.te-input{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 13px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color .2s;}
+.te-input:focus{border-color:rgba(124,58,237,0.45);}
+.te-link-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.te-link-open{flex-shrink:0;width:34px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:#38d9f5;text-decoration:none;font-size:14px;}
+.te-link-del{flex-shrink:0;width:34px;height:38px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:9px;color:#fca5a5;cursor:pointer;font-size:12px;}
+.te-addlink{background:rgba(0,180,216,0.1);border:1px dashed rgba(0,180,216,0.3);color:#38d9f5;border-radius:9px;padding:7px 12px;font-size:11px;cursor:pointer;margin-top:2px;}
+.te-addlink:hover{background:rgba(0,180,216,0.18);}
+/* Indicadors a la tasca */
+.ld-task-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.ld-task-edit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;opacity:0.45;transition:opacity .2s;padding:0 2px;}
+.ld-task-edit:hover{opacity:1;color:var(--accent2);}

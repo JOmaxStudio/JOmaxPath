@@ -1778,16 +1778,21 @@ function renderListTasks(list) {
   const tasks = list.tasks||[];
   if (tasks.length===0) { el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:24px;text-align:center;">Encara no hi ha tasques. Afegeix-ne una a dalt ↑</div>'; return; }
   const prioColors={1:'#ef4444',2:'#f59e0b',3:'#3b82f6',4:'#64748b'};
-  el.innerHTML = [...tasks].sort((a,b)=>(a.done-b.done)||((a.prio||3)-(b.prio||3))).map(t=>`
+  el.innerHTML = [...tasks].sort((a,b)=>(a.done-b.done)||((a.prio||3)-(b.prio||3))).map(t=>{
+    const nLinks=(t.links||[]).length;
+    return `
     <div class="ld-task ${t.done?'done':''}">
       <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
       <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
-      <div class="ld-task-body">
+      <div class="ld-task-body" onclick="openTaskEditor('${t.id}')" style="cursor:pointer;">
         <div class="ld-task-name">${t.name}</div>
-        ${(t.date||t.assignee)?`<div style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
+        ${t.desc?`<div class="ld-task-desc">${(t.desc||'').slice(0,80).replace(/</g,'&lt;')}${t.desc.length>80?'…':''}</div>`:''}
+        ${(t.date||t.assignee||nLinks)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}</div>`:''}
       </div>
+      <button class="ld-task-edit" onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
       <button class="ld-task-del" onclick="deleteListTask('${t.id}')">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderListKanban(list) {
@@ -1861,6 +1866,68 @@ async function deleteListTask(taskId) {
   list.tasks = list.tasks.filter(x=>x.id!==taskId);
   await _saveList(list);
   renderListDetail();
+}
+
+/* ── Editor de tasca (descripció, enllaços, data, prioritat) ── */
+let _editingTaskId=null;
+function openTaskEditor(taskId){
+  const list=_getList(_openListId); if(!list) return;
+  const t=(list.tasks||[]).find(x=>x.id===taskId); if(!t) return;
+  _editingTaskId=taskId;
+  document.getElementById('te-name').value=t.name||'';
+  document.getElementById('te-desc').value=t.desc||'';
+  document.getElementById('te-date').value=t.date||'';
+  document.getElementById('te-prio').value=String(t.prio||3);
+  teRenderLinks(t.links||[]);
+  // Assignat (només compartides)
+  const wrap=document.getElementById('te-assignee-wrap');
+  const sel=document.getElementById('te-assignee');
+  if(list.shared && (list.members||[]).length){
+    wrap.style.display='block';
+    sel.innerHTML='<option value="">👥 Ningú</option>'+(list.members||[]).map(m=>`<option value="${m}" ${t.assignee===m?'selected':''}>${m===(_userProfile?.username)?'🙋 Jo':'👤 '+m}</option>`).join('');
+  } else { wrap.style.display='none'; }
+  document.getElementById('task-editor-overlay').style.display='flex';
+}
+function teRenderLinks(links){
+  const c=document.getElementById('te-links'); if(!c) return;
+  c.innerHTML=(links||[]).map((url,i)=>`
+    <div class="te-link-row">
+      <input type="url" class="te-input te-link-input" value="${(url||'').replace(/"/g,'&quot;')}" placeholder="https://..." style="margin:0;"/>
+      <a href="${(url||'').replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="te-link-open" title="Obrir">↗</a>
+      <button onclick="teRemoveLink(${i})" class="te-link-del" title="Treure">✕</button>
+    </div>`).join('');
+}
+function _teCurrentLinks(){
+  return Array.from(document.querySelectorAll('#te-links .te-link-input')).map(i=>i.value.trim()).filter(Boolean);
+}
+function teAddLink(){
+  const links=_teCurrentLinks(); links.push(''); teRenderLinks(links);
+  const inputs=document.querySelectorAll('#te-links .te-link-input');
+  inputs[inputs.length-1]?.focus();
+}
+function teRemoveLink(i){
+  const links=_teCurrentLinks(); links.splice(i,1); teRenderLinks(links);
+}
+async function saveTaskEditor(){
+  const list=_getList(_openListId); if(!list){ closeTaskEditor(); return; }
+  const t=(list.tasks||[]).find(x=>x.id===_editingTaskId); if(!t){ closeTaskEditor(); return; }
+  const name=(document.getElementById('te-name').value||'').trim();
+  if(!name){ showToast('⚠️ La tasca necessita un nom'); return; }
+  t.name=name;
+  t.desc=(document.getElementById('te-desc').value||'').trim();
+  t.date=document.getElementById('te-date').value||'';
+  t.prio=parseInt(document.getElementById('te-prio').value||'3');
+  t.links=_teCurrentLinks().map(u=>/^https?:\/\//i.test(u)?u:'https://'+u);
+  const sel=document.getElementById('te-assignee');
+  if(list.shared && sel) t.assignee=sel.value||'';
+  await _saveList(list);
+  closeTaskEditor();
+  renderListDetail();
+  showToast('✅ Tasca actualitzada');
+}
+function closeTaskEditor(){
+  _editingTaskId=null;
+  document.getElementById('task-editor-overlay').style.display='none';
 }
 
 function deleteList(id) {
