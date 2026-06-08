@@ -873,12 +873,8 @@ function renderHomeHeader() {
   const dateEl = document.getElementById('home-date-display');
   if(dateEl) {
     const now = new Date();
-    const opts = {weekday:'short', day:'numeric', month:'short'};
-    dateEl.textContent = now.toLocaleDateString('ca-ES', opts);
+    dateEl.textContent = now.toLocaleDateString('ca-ES', {weekday:'short', day:'numeric', month:'short'});
   }
-  // Data
-  const dateEl = document.getElementById('home-date-display');
-  if(dateEl) dateEl.textContent = new Date().toLocaleDateString('ca',{weekday:'long',day:'numeric',month:'long'});
   // Stats
   const today = new Date().toISOString().slice(0,10);
   const streak = get('jomaxpath_streak_v1',{count:0});
