@@ -2638,7 +2638,12 @@ async function sendAI() {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
     });
-    if(!response.ok){const err=await response.json().catch(()=>({error:response.statusText}));throw new Error(err.error||response.statusText);}
+    if(!response.ok){
+      let detail='HTTP '+response.status;
+      try { const err=await response.json(); detail=(err.error||detail)+(err.detail?(' — '+err.detail):''); }
+      catch { const txt=await response.text().catch(()=>''); if(txt) detail='HTTP '+response.status+' (resposta no-JSON: '+txt.slice(0,80)+'…)'; }
+      throw new Error(detail);
+    }
     const data=await response.json();
     const reply=data.reply||'Error en la resposta.';
     if(container&&typing.parentNode) container.removeChild(typing);
@@ -2647,7 +2652,7 @@ async function sendAI() {
   } catch(e) {
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
-    if(chat){chat.messages.push({role:'assistant',content:`⚠️ No s'ha pogut connectar amb el Julians AI. Torna-ho a provar en uns segons.`,ts:Date.now()});set(CHATS_KEY,_chats);}
+    if(chat){chat.messages.push({role:'assistant',content:`⚠️ Error del Julians AI: ${e.message||e}`,ts:Date.now()});set(CHATS_KEY,_chats);}
   }
   _attachment=null;
   const docPrev=document.getElementById('ai-doc-preview'); if(docPrev) docPrev.style.display='none';
