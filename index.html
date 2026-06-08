@@ -1663,12 +1663,14 @@ body.view-pages.sb-collapsed-desktop .container {
       <!-- Afegir tasca -->
       <div class="ld-add-row">
         <input type="text" id="ld-new-task" placeholder="Escriu una tasca i prem Enter..." maxlength="120" onkeydown="if(event.key==='Enter')addListTask()"/>
+        <input type="date" id="ld-new-date" class="ld-prio-select" title="Data límit (opcional)"/>
         <select id="ld-new-prio" class="ld-prio-select">
           <option value="1">🔴 Urgent</option>
           <option value="2">🟡 Important</option>
           <option value="3" selected>🔵 Normal</option>
           <option value="4">⚪ Baix</option>
         </select>
+        <select id="ld-new-assignee" class="ld-prio-select" style="display:none;" title="Assignar a un membre"></select>
         <button class="ld-add-btn" onclick="addListTask()">+ Afegir</button>
       </div>
 

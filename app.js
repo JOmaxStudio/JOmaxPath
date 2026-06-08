@@ -717,6 +717,24 @@ async function sendBoardInviteByUsername() {
   } catch(e) { if(msg) msg.textContent = '❌ Error de connexió'; }
 }
 
+let _invitesChannel = null;
+function _subscribeInvitesRealtime() {
+  if (!_supabase || !_userProfile?.username) return;
+  if (_invitesChannel) { try { _supabase.removeChannel(_invitesChannel); } catch {} _invitesChannel=null; }
+  try {
+    _invitesChannel = _supabase.channel('invites_'+_userProfile.username)
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'board_invites'}, (payload)=>{
+        const inv = payload.new;
+        if (inv?.to_username && _userProfile?.username && inv.to_username.toLowerCase()===_userProfile.username.toLowerCase()) {
+          updateSharedTabBadge();
+          if (_currentPage==='tasques' && _listsMode==='shared') loadBoardInvites();
+          showToast('📬 '+inv.from_username+' t\'ha convidat a "'+inv.board_name+'"');
+        }
+      })
+      .subscribe();
+  } catch {}
+}
+
 async function updateSharedTabBadge() {
   const badge = document.getElementById('shared-tab-badge');
   if (!badge||!_supabase||!_userProfile?.username) { if(badge) badge.style.display='none'; return; }
@@ -855,8 +873,9 @@ async function getHeroLeaderboard() {
       _hideAuthOverlay();
       // Reload current page
       if (typeof renderHome === 'function' && _currentPage === 'home') renderHome();
-      // Actualitza badge d'invitacions de llistes pendents
+      // Actualitza badge d'invitacions de llistes pendents + realtime
       if (typeof updateSharedTabBadge === 'function') setTimeout(updateSharedTabBadge, 500);
+      if (typeof _subscribeInvitesRealtime === 'function') setTimeout(_subscribeInvitesRealtime, 800);
       showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null; _userProfile = null;
@@ -998,6 +1017,7 @@ function renderHome() {
   renderHabits();
   renderProgress();
   renderTodayPanel();
+  renderNextTask();
   renderVictories();
   applyConfig();
 }
@@ -1137,6 +1157,30 @@ function resetProgress() {
 }
 
 /* ── Today panel ── */
+function renderNextTask() {
+  const bar=document.getElementById('next-up-bar'); if(!bar) return;
+  const lists = (typeof getLists==='function') ? getLists() : null;
+  if (!lists) { bar.style.display='none'; return; }
+  // Totes les tasques pendents amb data, ordenades per data
+  const today = new Date(); today.setHours(0,0,0,0);
+  const pending = [];
+  lists.forEach(l=>(l.tasks||[]).forEach(t=>{ if(!t.done && t.date) pending.push({...t, listName:l.name}); }));
+  pending.sort((a,b)=> new Date(a.date)-new Date(b.date));
+  if (pending.length===0) { bar.style.display='none'; return; }
+  const next = pending[0];
+  const d = new Date(next.date+'T00:00:00');
+  const diff = Math.round((d-today)/86400000);
+  let when = '📅 '+next.date, cd='', cdColor='var(--accent2)';
+  if (diff<0) { when='Endarrerida'; cd='⚠️'; cdColor='#fca5a5'; }
+  else if (diff===0) { when='Venç avui'; cd='HOY'; cdColor='#fcd34d'; }
+  else if (diff===1) { when='Venç demà'; cd='1d'; cdColor='#fcd34d'; }
+  else { when='En '+diff+' dies'; cd=diff+'d'; }
+  document.getElementById('next-up-text').textContent = next.name + ' · ' + next.listName;
+  document.getElementById('next-up-when').textContent = when;
+  const cdEl=document.getElementById('next-up-cd'); if(cdEl){ cdEl.textContent=cd; cdEl.style.color=cdColor; }
+  bar.style.display='flex';
+}
+
 function renderTodayPanel() {
   const grid=document.getElementById('today-grid'); if (!grid) return;
   const now=new Date(), days=['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
@@ -1556,10 +1600,33 @@ async function openList(id) {
   document.getElementById('lists-collection-view').style.display = 'none';
   document.getElementById('list-detail-view').style.display = 'block';
   setListView('list');
+  _subscribeListRealtime(list);
+}
+
+let _listChannel = null;
+function _subscribeListRealtime(list) {
+  // Cancel·la subscripció anterior
+  if (_listChannel && _supabase) { try { _supabase.removeChannel(_listChannel); } catch {} _listChannel=null; }
+  if (!list.shared || !list.shareCode || !_supabase) return;
+  try {
+    _listChannel = _supabase.channel('list_'+list.shareCode)
+      .on('postgres_changes', {event:'UPDATE', schema:'public', table:'shared_boards', filter:'code=eq.'+list.shareCode}, (payload)=>{
+        // Un altre membre ha editat → actualitza si encara tenim la llista oberta
+        if (_openListId !== list.id) return;
+        const bd = payload.new?.board_data;
+        if (bd?.tasks) {
+          const lists = getLists();
+          const idx = lists.findIndex(l=>l.id===_openListId);
+          if (idx>=0) { lists[idx] = {...lists[idx], tasks:bd.tasks, name:bd.name||lists[idx].name, members:bd.members||lists[idx].members}; setLists(lists); renderListDetail(); }
+        }
+      })
+      .subscribe();
+  } catch {}
 }
 
 function closeList() {
   _openListId = null;
+  if (_listChannel && _supabase) { try { _supabase.removeChannel(_listChannel); } catch {} _listChannel=null; }
   document.getElementById('list-detail-view').style.display = 'none';
   document.getElementById('lists-collection-view').style.display = 'block';
   renderListsCollection();
@@ -1591,7 +1658,35 @@ function renderListDetail() {
          <button class="ld-action-btn danger" onclick="deleteList('${list.id}')">🗑️ Sortir</button>`
       : `<button class="ld-action-btn" onclick="deleteList('${list.id}')">🗑️ Eliminar llista</button>`;
   }
+  // Poblar selector d'assignats (només llistes compartides)
+  const assigneeSel = document.getElementById('ld-new-assignee');
+  if (assigneeSel) {
+    if (list.shared && (list.members||[]).length) {
+      assigneeSel.style.display='';
+      assigneeSel.innerHTML = '<option value="">👥 Tothom</option>' + (list.members||[]).map(m=>`<option value="${m}">${m===(_userProfile?.username)?'🙋 Jo':'👤 '+m}</option>`).join('');
+    } else {
+      assigneeSel.style.display='none';
+    }
+  }
   if (_listView==='list') renderListTasks(list); else renderListKanban(list);
+}
+
+function _dueChip(date) {
+  if (!date) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(date+'T00:00:00');
+  const diff = Math.round((d-today)/86400000);
+  let color='var(--muted)', txt='📅 '+date;
+  if (diff<0) { color='#fca5a5'; txt='⚠️ Endarrerida'; }
+  else if (diff===0) { color='#fcd34d'; txt='🔥 Avui'; }
+  else if (diff===1) { color='#fcd34d'; txt='Demà'; }
+  else if (diff<=7) { color='#7dd3fc'; txt='En '+diff+' dies'; }
+  return `<span style="font-size:10px;color:${color};">${txt}</span>`;
+}
+function _assigneeChip(a) {
+  if (!a) return '';
+  const isMe = a===(_userProfile?.username);
+  return `<span style="font-size:9px;color:${isMe?'#c4b5fd':'var(--muted)'};background:${isMe?'rgba(124,58,237,0.15)':'rgba(255,255,255,0.05)'};border-radius:10px;padding:1px 7px;white-space:nowrap;">${isMe?'🙋 Jo':'👤 '+a}</span>`;
 }
 
 function renderListTasks(list) {
@@ -1606,7 +1701,7 @@ function renderListTasks(list) {
       <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
       <div class="ld-task-body">
         <div class="ld-task-name">${t.name}</div>
-        ${t.date?`<div class="ld-task-date">📅 ${t.date}</div>`:''}
+        ${(t.date||t.assignee)?`<div style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
       </div>
       <button class="ld-task-del" onclick="deleteListTask('${t.id}')">✕</button>
     </div>`).join('');
@@ -1624,6 +1719,7 @@ function renderListKanban(list) {
         ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>`
           <div class="ld-kcard" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
             <div class="ld-kcard-name">${t.name}</div>
+            ${(t.date||t.assignee)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
             <div class="ld-kcard-foot">
               ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
               <button onclick="deleteListTask('${t.id}')" title="Eliminar">✕</button>
@@ -1642,16 +1738,21 @@ function dropListTask(ev, status) {
 async function addListTask() {
   const inp = document.getElementById('ld-new-task');
   const prioSel = document.getElementById('ld-new-prio');
+  const dateInp = document.getElementById('ld-new-date');
+  const assigneeSel = document.getElementById('ld-new-assignee');
   const name = (inp?.value||'').trim();
   if (!name) return;
   const list = _getList(_openListId); if(!list) return;
   if (!list.tasks) list.tasks=[];
   list.tasks.push({
     id: Date.now().toString()+Math.random().toString(36).slice(2,6),
-    name, done:false, status:'todo', prio:parseInt(prioSel?.value||'3'), date:'',
+    name, done:false, status:'todo', prio:parseInt(prioSel?.value||'3'),
+    date: dateInp?.value || '',
+    assignee: (list.shared && assigneeSel?.value) ? assigneeSel.value : '',
     by:_userProfile?.username||'jo'
   });
   if (inp) inp.value='';
+  if (dateInp) dateInp.value='';
   await _saveList(list);
   renderListDetail();
 }
