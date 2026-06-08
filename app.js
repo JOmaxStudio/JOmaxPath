@@ -1157,6 +1157,62 @@ function resetProgress() {
 }
 
 /* ── Today panel ── */
+/* Recordatoris de dates límit: banner intern + notificació del navegador (1/dia) */
+function _checkDueReminders() {
+  const lists = (typeof getLists==='function') ? getLists() : null;
+  if (!lists) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let overdue=0, dueToday=0, dueTomorrow=[];
+  lists.forEach(l=>(l.tasks||[]).forEach(t=>{
+    if (t.done || !t.date) return;
+    const d=new Date(t.date+'T00:00:00'); const diff=Math.round((d-today)/86400000);
+    if (diff<0) overdue++;
+    else if (diff===0) dueToday++;
+    else if (diff===1) dueTomorrow.push({name:t.name, list:l.name});
+  }));
+  // Banner intern si hi ha res urgent
+  if (overdue>0 || dueToday>0) {
+    const parts=[];
+    if (overdue>0) parts.push(`${overdue} endarrerida${overdue>1?'es':''}`);
+    if (dueToday>0) parts.push(`${dueToday} que vence${dueToday>1?'n':''} avui`);
+    _showReminderBanner('⏰ Tens '+parts.join(' i ')+'. Ves a Tasques!');
+  }
+  // Notificació del navegador per a tasques de demà (un cop al dia)
+  if (dueTomorrow.length && 'Notification' in window) {
+    const todayKey='jomaxpath_notif_'+today.toISOString().slice(0,10);
+    if (!localStorage.getItem(todayKey)) {
+      const fire=()=>{
+        try {
+          new Notification('📅 Tasques per a demà', {
+            body: dueTomorrow.slice(0,3).map(t=>'• '+t.name).join('\n') + (dueTomorrow.length>3?`\n+${dueTomorrow.length-3} més`:''),
+            icon: 'icona.png'
+          });
+          localStorage.setItem(todayKey,'1');
+        } catch {}
+      };
+      if (Notification.permission==='granted') fire();
+      else if (Notification.permission!=='denied') Notification.requestPermission().then(p=>{ if(p==='granted') fire(); });
+    }
+  }
+}
+function _showReminderBanner(text) {
+  let b=document.getElementById('due-reminder-banner');
+  if (!b) {
+    b=document.createElement('div');
+    b.id='due-reminder-banner';
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:9000;background:linear-gradient(135deg,rgba(245,158,11,0.95),rgba(239,68,68,0.92));color:#fff;padding:12px 18px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.4);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;max-width:90vw;animation:slideUpBanner .4s ease;';
+    b.onclick=()=>{ navTo('tasques'); b.remove(); };
+    document.body.appendChild(b);
+    if (!document.getElementById('slideUpBannerKf')) {
+      const st=document.createElement('style'); st.id='slideUpBannerKf';
+      st.textContent='@keyframes slideUpBanner{from{opacity:0;transform:translate(-50%,20px);}to{opacity:1;transform:translate(-50%,0);}}';
+      document.head.appendChild(st);
+    }
+  }
+  b.innerHTML=`<span>${text}</span><span style="opacity:0.7;font-size:16px;">→</span>`;
+  setTimeout(()=>{ if(b&&b.parentNode) b.remove(); }, 9000);
+}
+
 function renderNextTask() {
   const bar=document.getElementById('next-up-bar'); if(!bar) return;
   const lists = (typeof getLists==='function') ? getLists() : null;
@@ -3271,6 +3327,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   try { navTo('home'); } catch(e){ console.warn('navTo error',e); }
   // Aplica idioma DESPRÉS que tot estigui renderitzat
   setTimeout(()=>{ try { applyLanguage(); } catch(e){ console.warn('applyLanguage error',e); } }, 50);
+  // Recordatoris de dates límit
+  setTimeout(()=>{ try { _checkDueReminders(); } catch(e){} }, 1500);
   try {
     const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v2'));
     if(h){

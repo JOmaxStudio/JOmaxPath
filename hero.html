@@ -1116,7 +1116,41 @@ const TUT_STEPS=[
 
 /* ═══ STATE ═══ */
 function loadHero(){try{return JSON.parse(localStorage.getItem(HERO_KEY))||defaultHero();}catch{return defaultHero();}}
-function saveHero(h){localStorage.setItem(HERO_KEY,JSON.stringify(h));}
+let _heroSyncTimer=null;
+function saveHero(h){
+  localStorage.setItem(HERO_KEY,JSON.stringify(h));
+  // Sincronitza XP/nivell al núvol (debounce) perquè lligues i rànquing siguin REALS
+  if(_heroSyncTimer) clearTimeout(_heroSyncTimer);
+  _heroSyncTimer=setTimeout(()=>_syncHeroToCloud(h),1800);
+}
+async function _syncHeroToCloud(h){
+  const sb=_getSupabase(); const prof=_getMyProfile();
+  if(!sb||!prof?.id) return;
+  try{
+    const {level}=computeLevel(h.xp||0);
+    await sb.from('profiles').update({hero_xp:h.xp||0,hero_level:level,avatar:h.avatar||'⚔️'}).eq('id',prof.id);
+  }catch{}
+}
+/* Data del dilluns d'aquesta setmana (YYYY-MM-DD, hora local) */
+function _thisMonday(){
+  const d=new Date(); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _daysUntilNextMonday(){
+  const d=new Date(); const day=(d.getDay()+6)%7; return 7-day;
+}
+/* Reset setmanal: ancora la meva XP d'inici de setmana (per a l'XP setmanal de lligues) */
+async function _checkWeeklyReset(){
+  const sb=_getSupabase(); const prof=_getMyProfile();
+  if(!sb||!prof?.id) return;
+  const monday=_thisMonday();
+  try{
+    const {data}=await sb.from('profiles').select('week_anchor').eq('id',prof.id).maybeSingle();
+    if(data && data.week_anchor!==monday){
+      await sb.from('profiles').update({week_anchor:monday,week_start_xp:hero.xp||0}).eq('id',prof.id);
+    }
+  }catch{}
+}
 function defaultHero(){return{name:'Heroi en Construcció',avatar:'⚔️',xp:0,level:1,stats:{cos:1,ment:1,social:1,prop:1,disc:0,fin:0,fisic:0,lid:0},streaks:{},missionsDone:{},lastReset:new Date().toDateString()};}
 function loadFriends(){try{return JSON.parse(localStorage.getItem(FRIENDS_KEY))||[];}catch{return[];}}
 function saveFriends(f){localStorage.setItem(FRIENDS_KEY,JSON.stringify(f));}
@@ -1178,7 +1212,7 @@ function init(){
   renderFriends();
   updateInviteCode();
   // Carrega sol·licituds pendents i badge de seguida (perquè es vegi on arriben)
-  setTimeout(()=>{ try { loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); syncFriendsFromServer(); loadLeagues(); } catch(e){} }, 300);
+  setTimeout(()=>{ try { _syncHeroToCloud(hero); _checkWeeklyReset(); loadFriendRequests(); loadCompetitionRequests(); updateFriendsTabBadge(); syncFriendsFromServer(); loadLeagues(); } catch(e){} }, 300);
   // First time tutorial
   if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
 }
@@ -1909,36 +1943,58 @@ async function loadLeagues(){
   try{
     const {data:leagues}=await sb.from('leagues').select('*').in('code',codes);
     if(!leagues||!leagues.length){ saveMyLeagues([]); el.innerHTML='<div style="text-align:center;padding:18px;color:var(--muted);font-size:11px;opacity:0.7;">Cap lliga activa. Crea\'n una! ↑</div>'; return; }
-    // Perfils de tots els membres per al rànquing
+    // Perfils de tots els membres per al rànquing (inclou XP setmanal)
     const profiles={};
     try{
-      const {data:profs}=await sb.from('profiles').select('username,avatar,hero_xp,hero_level');
+      const {data:profs}=await sb.from('profiles').select('username,avatar,hero_xp,hero_level,week_start_xp,week_anchor');
       (profs||[]).forEach(p=>{ if(p.username) profiles[p.username.toLowerCase()]=p; });
     }catch{}
     el.innerHTML=leagues.map(lg=>renderLeagueCard(lg,profiles,me)).join('');
   }catch{ el.innerHTML='<div style="text-align:center;padding:14px;color:#fca5a5;font-size:11px;">Error carregant lligues</div>'; }
 }
 
+/* Divisió segons XP total (com Duolingo: ladder de progrés a llarg termini) */
+function _division(xp){
+  if(xp>=3000) return {n:'Diamant',i:'💎',c:'#7dd3fc'};
+  if(xp>=1500) return {n:'Robí',i:'🔴',c:'#fca5a5'};
+  if(xp>=800)  return {n:'Safir',i:'🔷',c:'#60a5fa'};
+  if(xp>=400)  return {n:'Or',i:'🥇',c:'#fcd34d'};
+  if(xp>=150)  return {n:'Plata',i:'⚪',c:'#cbd5e1'};
+  return {n:'Bronze',i:'🟫',c:'#d6a06a'};
+}
+let _leagueView = 'week'; // 'week' o 'total'
+function toggleLeagueView(){ _leagueView = _leagueView==='week'?'total':'week'; loadLeagues(); }
+
 function renderLeagueCard(lg, profiles, me){
   const medals=['🥇','🥈','🥉'];
+  const monday=_thisMonday();
   const ranked=(lg.members||[]).map(m=>{
     const p=profiles[(''+m).toLowerCase()];
-    return { name:m, avatar:p?.avatar||'⚔️', xp:p?.hero_xp||0, level:p?.hero_level||1 };
-  }).sort((a,b)=>b.xp-a.xp);
+    const total=p?.hero_xp||0;
+    // XP setmanal: només compta si l'usuari ha estat actiu aquesta setmana (ancora = aquest dilluns)
+    const weekly = (p && p.week_anchor===monday) ? Math.max(0,(p.hero_xp||0)-(p.week_start_xp||0)) : 0;
+    return { name:m, avatar:p?.avatar||'⚔️', total, weekly, level:p?.hero_level||1 };
+  }).sort((a,b)=> _leagueView==='week' ? (b.weekly-a.weekly)||(b.total-a.total) : (b.total-a.total));
   const rows=ranked.map((r,i)=>{
     const isMe=r.name.toLowerCase()===me.toLowerCase();
     const rankIcon = i<3 ? medals[i] : `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);width:18px;display:inline-block;text-align:center;">${i+1}</span>`;
+    const div=_division(r.total);
+    const shownXp = _leagueView==='week' ? r.weekly : r.total;
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;background:${isMe?'rgba(124,58,237,0.16)':'rgba(255,255,255,0.03)'};border:1px solid ${isMe?'rgba(124,58,237,0.35)':'transparent'};margin-bottom:5px;">
       <span style="font-size:16px;width:22px;text-align:center;">${rankIcon}</span>
       <span style="font-size:18px;">${r.avatar}</span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12.5px;font-weight:${isMe?800:600};color:${isMe?'#c4b5fd':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}${isMe?' (tu)':''}</div>
-        <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:var(--muted);">NV.${r.level}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:${div.c};">${div.i} ${div.n} · NV.${r.level}</div>
       </div>
-      <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fcd34d;">${r.xp} XP</div>
+      <div style="text-align:right;">
+        <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fcd34d;">${shownXp} XP</div>
+        ${_leagueView==='week'?'<div style="font-size:7.5px;color:var(--muted);">aquesta setm.</div>':''}
+      </div>
     </div>`;
   }).join('');
   const leader = ranked[0];
+  const days=_daysUntilNextMonday();
   return `<div class="league-card">
     <div class="league-card-head">
       <div>
@@ -1950,8 +2006,12 @@ function renderLeagueCard(lg, profiles, me){
         <button onclick="leaveLeague('${lg.code}','${(lg.name||'').replace(/'/g,'')}')" title="Sortir">✕</button>
       </div>
     </div>
-    <div class="league-code-chip">${lg.code}</div>
-    <div style="margin-top:10px;">${rows}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 4px;">
+      <div class="league-code-chip">${lg.code}</div>
+      <button onclick="toggleLeagueView()" style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);color:var(--accent2);border-radius:8px;padding:4px 10px;font-size:9px;cursor:pointer;font-family:'Space Mono',monospace;">${_leagueView==='week'?'📅 SETMANA':'🏆 TOTAL'}</button>
+    </div>
+    ${_leagueView==='week'?`<div style="font-size:9px;color:var(--muted);margin-bottom:8px;">⏳ La setmana acaba en ${days} ${days===1?'dia':'dies'} · qui guanyi més XP lidera!</div>`:''}
+    <div style="margin-top:6px;">${rows}</div>
   </div>`;
 }
 
