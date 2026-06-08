@@ -1719,23 +1719,13 @@ body.view-pages.sb-collapsed-desktop .container {
       <h3>📤 Compartir llista</h3>
       <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);margin-bottom:14px;" id="sbi-board-name"></div>
 
-      <label>Compartir per pseudònim</label>
+      <label>Nom d'usuari de l'amic</label>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input type="text" id="sbi-username-inp" placeholder="Pseudònim de l'usuari..." style="flex:1;" maxlength="24" onkeydown="if(event.key==='Enter')sendBoardInviteByUsername()"/>
+        <input type="text" id="sbi-username-inp" placeholder="Ex: J4NS4N5..." style="flex:1;" maxlength="24" onkeydown="if(event.key==='Enter')sendBoardInviteByUsername()"/>
         <button onclick="sendBoardInviteByUsername()" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;white-space:nowrap;">📨 Enviar</button>
       </div>
       <div id="sbi-msg" style="font-size:11px;color:var(--accent2);min-height:18px;margin-bottom:10px;"></div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
-        <label style="margin-bottom:6px;display:block;">O compartir per codi</label>
-        <button onclick="shareBoardByCode()" style="width:100%;padding:10px;background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);color:#38d9f5;border-radius:10px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">🔗 GENERAR CODI</button>
-        <!-- Codi generat (es mostra després de generar) -->
-        <div id="sbi-code-box" style="display:none;margin-top:10px;background:rgba(0,180,216,0.08);border:1px dashed rgba(0,180,216,0.35);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">COMPARTEIX AQUEST CODI AMB EL TEU AMIC</div>
-          <div id="sbi-code-value" style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:#38d9f5;letter-spacing:2px;margin-bottom:8px;user-select:all;"></div>
-          <button onclick="copyBoardCode()" id="sbi-copy-btn" style="width:100%;padding:8px;background:rgba(0,180,216,0.18);border:1px solid rgba(0,180,216,0.4);color:#38d9f5;border-radius:8px;cursor:pointer;font-size:11px;">📋 Copiar codi</button>
-        </div>
-      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.5;">L'amic rebrà la invitació a la pestanya <b>Compartides</b> i només l'haurà d'acceptar. Ha d'haver creat un compte.</div>
 
       <div class="board-modal-btns" style="margin-top:14px;">
         <button class="bm-cancel-btn" onclick="closeShareBoardModal()">Tancar</button>

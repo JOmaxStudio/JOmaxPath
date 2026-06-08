@@ -403,6 +403,18 @@ async function authRegister() {
 
   if (_supabase) {
     try {
+      // Comprova que el nom d'usuari no estigui agafat (case-insensitive)
+      try {
+        const {data: existing} = await Promise.race([
+          _supabase.from('profiles').select('username').ilike('username', username).maybeSingle(),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),5000))
+        ]);
+        if (existing) {
+          if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;}
+          if(msg){ msg.textContent='❌ El nom d\'usuari "'+username+'" ja existeix. Tria\'n un altre.'; msg.style.color='#fca5a5'; }
+          return;
+        }
+      } catch(_) { /* si la comprovació falla per xarxa, continua; el trigger evita duplicats */ }
       const {data,error} = await Promise.race([
         _supabase.auth.signUp({email,password:pass,options:{data:{username}}}),
         new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
