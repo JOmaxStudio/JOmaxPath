@@ -175,7 +175,7 @@ try {
     _supabase = supabase.createClient(
       'https://toefrxqijvextqqngapx.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
-      { auth: { persistSession: true, autoRefreshToken: true } }
+      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
     );
     // Test connectivity — any HTTP response means server is reachable
     Promise.race([
