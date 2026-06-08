@@ -1058,10 +1058,6 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="lsb-item" data-tip="Cerca" onclick="openSearch();lsbMobileClose()">
       <div class="lsb-ico">🔍</div><span class="lsb-lbl">Cerca global</span>
     </div>
-    <div class="lsb-item" data-tip="Premium" onclick="window.open('pricing.html','_self')">
-      <div class="lsb-ico" style="background:rgba(124,58,237,0.15);">✨</div><span class="lsb-lbl" style="color:#a78bfa;">Premium</span>
-      <span class="lsb-pill">PRO</span>
-    </div>
   </div>
 
   <div class="lsb-bottom">
@@ -1281,29 +1277,49 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="page-title-bar">
       <div class="page-title-icon" style="background:rgba(0,0,0,0.3);">🏠</div>
       <div class="page-title-text">
-        <h2 id="pt-home-h2">INICI</h2>
+        <h2 id="pt-home-h2">JOmaxPath</h2>
         <p id="pt-home-sub">Objectiu · Progrés · Ratxa · Hàbits</p>
       </div>
       <button class="info-btn" onclick="showInfo('home')" title="Com funciona?">i</button>
     </div>
 
-    <div class="header">
-      <div class="jomaxpath-tag">✦ El teu espai de productivitat ✦</div>
-      <div class="jomaxpath-hero">
-        <div id="header-name" style="font-family:'Space Mono',monospace;font-size:clamp(4.5rem,13vw,9rem);font-weight:700;letter-spacing:-2px;line-height:1;color:#ffffff;text-shadow:0 0 30px rgba(124,58,237,0.9),0 0 60px rgba(124,58,237,0.5);animation:heroGlow 4s ease-in-out infinite;display:block;">JOmaxPath</div>
-        <div class="jomaxpath-hero-title" style="font-size:clamp(1.3rem,3.5vw,2.2rem);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:none;margin-top:8px;">PLANIFICADOR PERSONAL</div>
+    <!-- ── HOME HERO HEADER ── -->
+    <div class="home-hero-header">
+      <div class="hhh-top-row">
+        <div class="hhh-brand">
+          <span class="hhh-brand-dot"></span>
+          <span class="hhh-brand-name">JOmaxPath</span>
+        </div>
+        <div class="hhh-date-chip" id="home-date-display"></div>
       </div>
-      <div class="jomaxpath-user" id="header-sub">Developed by JOmax <span class="jomaxpath-version">v2.0</span></div>
+      <div class="hhh-greeting-line" id="home-greeting">Bon dia 👋</div>
+      <div class="hhh-sub">
+        <span id="home-pomo-quick">0 pomodoros avui</span>
+      </div>
     </div>
 
-    <!-- ⚡ Banner Premium -->
-    <div id="premium-home-banner" onclick="window.open('pricing.html','_self')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(124,58,237,0.13),rgba(0,184,217,0.08));border:1px solid rgba(124,58,237,0.3);border-radius:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.6)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
-      <span style="font-size:20px;">⚡</span>
-      <div style="flex:1;">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:#a78bfa;font-weight:700;">DESBLOQUEJA PREMIUM</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">IA Julians il·limitada · Temes exclusius · Sense límits</div>
+    <!-- ── STATS ROW RÀPID ── -->
+    <div class="home-stats-row" id="home-stats-row">
+      <div class="hsr-card" id="hsr-streak">
+        <div class="hsr-icon">🔥</div>
+        <div class="hsr-val" id="hsr-streak-val">0</div>
+        <div class="hsr-lbl" id="hsr-streak-lbl" data-i18n="stat_streak_lbl">dies ratxa</div>
       </div>
-      <span style="font-family:'Space Mono',monospace;font-size:10px;color:#a78bfa;letter-spacing:1px;">VEURE PLANS →</span>
+      <div class="hsr-card" id="hsr-habits">
+        <div class="hsr-icon">✅</div>
+        <div class="hsr-val" id="hsr-habits-val">0/0</div>
+        <div class="hsr-lbl" id="hsr-habits-lbl" data-i18n="stat_habits_lbl">hàbits avui</div>
+      </div>
+      <div class="hsr-card" id="hsr-tasks">
+        <div class="hsr-icon">📋</div>
+        <div class="hsr-val" id="hsr-tasks-val">0</div>
+        <div class="hsr-lbl" id="hsr-tasks-lbl" data-i18n="stat_tasks_lbl">tasques pend.</div>
+      </div>
+      <div class="hsr-card" id="hsr-pomo" onclick="navTo('focus')" style="cursor:pointer;">
+        <div class="hsr-icon">⏱</div>
+        <div class="hsr-val" id="hsr-pomo-val">0</div>
+        <div class="hsr-lbl" id="hsr-pomo-lbl" data-i18n="stat_pomo_lbl">pomodoros</div>
+      </div>
     </div>
 
     <div class="home-two-col">
@@ -1313,7 +1329,7 @@ body.view-pages.sb-collapsed-desktop .container {
           <div class="icon" id="goal-icon">🚀</div>
           <div>
             <h3 id="goal-title">Objectiu principal</h3>
-            <p id="goal-desc">Crear la meva empresa abans de complir els 18 anys. Cada línia de codi és un pas cap a la independència.</p>
+            <p id="goal-desc">Defineix el teu gran objectiu aquí. Ves a Configuració → General per personalitzar-lo.</p>
           </div>
         </div>
         <div class="daily-quote" id="daily-quote">
@@ -1331,15 +1347,15 @@ body.view-pages.sb-collapsed-desktop .container {
         </div>
         <div class="progress-section">
           <div class="progress-header">
-            <h3 id="prog-title">📚 Curs de Programació</h3>
-            <span id="prog-fraction">Capítol 4 de 9</span>
+            <h3 id="prog-title">🎯 El meu objectiu</h3>
+            <span id="prog-fraction" style="font-size:11px;color:var(--accent2);font-weight:700;">0% completat</span>
           </div>
-          <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+          <div class="progress-bar" style="margin:10px 0 6px;"><div class="progress-fill" id="prog-fill"></div></div>
           <div class="progress-chapters" id="prog-chapters"></div>
-          <div class="progress-btn-row">
-            <button class="progress-btn" onclick="changeChapter(-1)">← Anterior</button>
-            <button class="progress-btn" onclick="changeChapter(1)">Capítol completat ✓ →</button>
-            <button class="progress-btn minus" onclick="resetProgress()" title="Reset">↺</button>
+          <div class="progress-btn-row" style="margin-top:12px;">
+            <button class="progress-btn" onclick="changeChapter(-1)" title="Pas anterior">← Enrere</button>
+            <button class="progress-btn primary-prog-btn" onclick="changeChapter(1)">✓ Pas completat</button>
+            <button class="progress-btn minus" onclick="resetProgress()" title="Reiniciar">↺</button>
           </div>
           <div class="progress-congrats" id="prog-congrats"></div>
         </div>
@@ -2185,8 +2201,8 @@ body.view-pages.sb-collapsed-desktop .container {
         <option value="📌 Recordatori">📌 Recordatori</option>
         <option value="📚 Escolar">📚 Escolar</option>
         <option value="🏒 Esport">🏒 Esport</option>
-        <option value="💻 Programació">💻 Programació</option>
-        <option value="🤖 Robotech">🤖 Robotech</option>
+        <option value="💻 Tecnologia">💻 Tecnologia</option>
+        <option value="🎨 Creativitat">🎨 Creativitat</option>
         <option value="📝 Examen">📝 Examen</option>
         <option value="📦 Entrega">📦 Entrega</option>
         <option value="🎯 Altres">🎯 Altres</option>
@@ -2322,7 +2338,7 @@ body.view-pages.sb-collapsed-desktop .container {
 
 
 <!-- ⚡ Premium FAB -->
-<button id="premium-fab" style="display:none!important;" onclick="window.open('pricing.html','_self')" title="Actualitza a Premium">
+<button id="premium-fab" style="display:none!important;" title="Premium">
   <span class="premium-fab-bolt">⚡</span>
   <span class="premium-fab-label">ACTUALITZA A</span>
 </button>
@@ -2366,22 +2382,6 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="config-header">
       <h2>⚙️ Configuració</h2>
       <button class="config-close" onclick="closeConfig()">×</button>
-    </div>
-    <!-- ⚡ Accés ràpid a Premium des de Configuració -->
-    <div onclick="window.open('pricing.html','_self')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 16px;margin:0 16px 12px;background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,184,217,0.08));border:1px solid rgba(124,58,237,0.3);border-radius:10px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(167,139,250,0.6)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
-      <span style="font-size:16px;">⚡</span>
-      <div style="flex:1;">
-        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;font-weight:700;">ACTUALITZA A PREMIUM</div>
-        <div style="font-size:10px;color:#64748b;margin-top:1px;">IA il·limitada · Temes exclusius</div>
-      </div>
-      <span style="font-family:'Space Mono',monospace;font-size:9px;color:#a78bfa;">PLANS →</span>
-    </div>
-    <div class="config-tabs">
-      <button class="config-tab active" onclick="switchTab('horari')">📅 Horari</button>
-      <button class="config-tab" onclick="switchTab('perfil')">👤 Perfil</button>
-      <button class="config-tab" onclick="switchTab('objectiu')">🎯 Objectiu</button>
-      <button class="config-tab" onclick="switchTab('ia')">🔑 IA</button>
-      <button class="config-tab" onclick="switchTab('reset')">🔄 Reset</button>
     </div>
     <div class="config-body" id="config-body"></div>
   </div>
@@ -2439,18 +2439,17 @@ body.view-pages.sb-collapsed-desktop .container {
 
 <!-- ═══ POMODORO FULLSCREEN ═══ -->
 <div id="pomo-fullscreen" onclick="handlePomoFsClick(event)">
-  <!-- SVG ring -->
+  <!-- SVG ring + digits — CSS Grid overlay trick: tots dos al grid-area 1/1 -->
   <div id="pomo-fs-svg-wrap">
     <svg id="pomo-fs-svg" viewBox="0 0 200 200">
       <circle class="pomo-fs-bg-circle" cx="100" cy="100" r="88"/>
       <circle class="pomo-fs-arc" id="pomo-fs-arc" cx="100" cy="100" r="88"
         stroke-dasharray="553" stroke-dashoffset="0"/>
     </svg>
-  </div>
-  <!-- Digits — posicionats absolutament respecte a #pomo-fullscreen (position:fixed) -->
-  <div id="pomo-fs-center">
-    <div id="pomo-fs-digits">25:00</div>
-    <div id="pomo-fs-phase">FOCUS</div>
+    <div id="pomo-fs-center">
+      <div id="pomo-fs-digits">25:00</div>
+      <div id="pomo-fs-phase">FOCUS</div>
+    </div>
   </div>
 
   <!-- Session dots -->
@@ -3311,36 +3310,37 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   display: flex !important;
 }
 #pomo-fs-svg-wrap {
-  position: relative !important;
-  width: min(60vw, 50vh, 460px) !important;
-  height: min(60vw, 50vh, 460px) !important;
+  /* CSS Grid: SVG i center es superposen a la mateixa cel·la */
+  display: grid !important;
+  place-items: center !important;
+  width: min(60vw, 60vh, 500px) !important;
+  height: min(60vw, 60vh, 500px) !important;
   flex-shrink: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 #pomo-fs-svg {
-  position: absolute !important;
-  inset: 0 !important;
+  grid-area: 1 / 1 !important;   /* cel·la 1,1 */
   width: 100% !important;
   height: 100% !important;
   transform: rotate(-90deg) !important;
   transform-origin: center center !important;
 }
 #pomo-fs-center {
-  /* Posicionat respecte a #pomo-fullscreen (position:fixed inset:0) */
-  position: absolute !important;
-  inset: 0 !important;
+  grid-area: 1 / 1 !important;   /* MATEIXA cel·la → superposa sobre el SVG */
+  position: static !important;   /* IMPORTANT: evita position:absolute dels altres fulls */
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   pointer-events: none !important;
-  z-index: 100 !important;
+  z-index: 2 !important;
+  width: auto !important;
 }
 #pomo-fs-digits {
   font-family: 'Space Mono', monospace !important;
-  font-size: clamp(2.5rem, min(9vw, 9vh), 5.5rem) !important;
+  font-size: clamp(2rem, min(8vw, 8vh), 4.8rem) !important;
   font-weight: 700 !important;
   color: #fff !important;
   line-height: 1 !important;

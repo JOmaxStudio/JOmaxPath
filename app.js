@@ -587,6 +587,21 @@ function closeShareBoardModal() {
   _pendingShareBoardId = null;
 }
 
+/* Cerca robusta d'usuari per username o email prefix */
+async function _findUserProfile(target) {
+  if (!_supabase || !target) return null;
+  const t = target.trim().toLowerCase();
+  // 1) Match exacte case-insensitive
+  let {data} = await _supabase.from('profiles').select('id,username,avatar,hero_level').ilike('username', t).maybeSingle();
+  if (data) return data;
+  // 2) Match parcial (comença amb)
+  const {data: partial} = await _supabase.from('profiles').select('id,username,avatar,hero_level').ilike('username', t+'%').limit(1).maybeSingle();
+  if (partial) return partial;
+  // 3) Match per email prefix (si l'usuari escriu la part de l'email)
+  const {data: byEmail} = await _supabase.from('profiles').select('id,username,avatar,hero_level').ilike('email', t+'%').limit(1).maybeSingle();
+  return byEmail || null;
+}
+
 async function sendBoardInviteByUsername() {
   const inp = document.getElementById('sbi-username-inp');
   const msg = document.getElementById('sbi-msg');
@@ -598,11 +613,11 @@ async function sendBoardInviteByUsername() {
   const myUsername = _userProfile?.username || 'Usuari';
 
   if (!_supabase) { if(msg) msg.textContent = '⚠️ Necessites connexió'; return; }
+  if(msg) { msg.textContent = '🔍 Cercant...'; msg.style.color='var(--muted)'; }
   try {
-    // Check target exists
-    const {data:targetProfile, error:te} = await _supabase.from('profiles').select('id,username').ilike('username', target).maybeSingle();
-    if (te) { if(msg) msg.textContent = '❌ Error cercant usuari: '+te.message; return; }
-    if (!targetProfile) { if(msg) msg.textContent = '❌ Usuari "'+target+'" no trobat'; return; }
+    // Cerca robusta
+    const targetProfile = await _findUserProfile(target);
+    if (!targetProfile) { if(msg){ msg.textContent = '❌ Usuari "'+target+'" no trobat. Comprova que l\'altre usuari ha iniciat sessió almenys un cop.'; msg.style.color='#fca5a5'; } return; }
 
     // Save board to shared_boards
     const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
@@ -844,7 +859,42 @@ function refreshQuote() {
   if (au) au.textContent = '— '+q.a;
 }
 
+function renderHomeHeader() {
+  const h = new Date().getHours();
+  const greetingBase = h < 12 ? 'Bon dia' : h < 18 ? 'Bona tarda' : 'Bona nit';
+  const emoji = h < 12 ? '👋' : h < 18 ? '💪' : '🌙';
+  const username = _userProfile?.username || '';
+  // Salutació amb nom d'usuari
+  const grEl = document.getElementById('home-greeting');
+  if(grEl) grEl.textContent = username
+    ? `${greetingBase}, ${username.charAt(0).toUpperCase()+username.slice(1)} ${emoji}`
+    : `${greetingBase} ${emoji}`;
+  // Data en chip
+  const dateEl = document.getElementById('home-date-display');
+  if(dateEl) {
+    const now = new Date();
+    const opts = {weekday:'short', day:'numeric', month:'short'};
+    dateEl.textContent = now.toLocaleDateString('ca-ES', opts);
+  }
+  // Data
+  const dateEl = document.getElementById('home-date-display');
+  if(dateEl) dateEl.textContent = new Date().toLocaleDateString('ca',{weekday:'long',day:'numeric',month:'long'});
+  // Stats
+  const today = new Date().toISOString().slice(0,10);
+  const streak = get('jomaxpath_streak_v1',{count:0});
+  const habits = get(HABITS_KEY,[]);
+  const doneH = habits.filter(h=>(h.days||[]).includes(today)).length;
+  const tasks = get(TASKS_KEY,[]).filter(t=>!t.done).length;
+  const pomoData = get('jomaxpath_pomo_v1',{today:0});
+  const sv = document.getElementById('hsr-streak-val'); if(sv) sv.textContent = streak.count||0;
+  const hv = document.getElementById('hsr-habits-val'); if(hv) hv.textContent = doneH+'/'+habits.length;
+  const tv = document.getElementById('hsr-tasks-val'); if(tv) tv.textContent = tasks;
+  const pv = document.getElementById('hsr-pomo-val'); if(pv) pv.textContent = pomoData.today||0;
+  const pq = document.getElementById('home-pomo-quick'); if(pq) pq.textContent = (pomoData.today||0)+' pomodoros avui';
+}
+
 function renderHome() {
+  renderHomeHeader();
   refreshQuote();
   renderStreakWidget();
   renderHabits();
@@ -957,7 +1007,7 @@ function selectHabitEmoji() {
 }
 
 /* ── Progress ── */
-const PROG_DEF={chapter:4,total:9,title:'Curs de Programació'};
+const PROG_DEF={chapter:1,total:10,title:'El meu objectiu'};
 function renderProgress() {
   const p=get(PROGRESS_KEY,PROG_DEF);
   const title=document.getElementById('prog-title');
@@ -966,18 +1016,21 @@ function renderProgress() {
   const chaps=document.getElementById('prog-chapters');
   const congrats=document.getElementById('prog-congrats');
   const moto=document.getElementById('moto-sub');
-  if (title)   title.textContent='📚 '+(p.title||'Curs de Programació');
-  if (frac)    frac.textContent=`Capítol ${p.chapter} de ${p.total}`;
-  if (fill)    fill.style.width=Math.round((p.chapter/p.total)*100)+'%';
-  if (moto)    moto.textContent=`CAPÍTOL ${p.chapter} → ${p.chapter+1} · EMPRESA PRÒPIA`;
-  if (chaps)   chaps.innerHTML=Array.from({length:p.total},(_,i)=>{const n=i+1,done=n<p.chapter,curr=n===p.chapter;return `<div class="prog-chap ${done?'done':''} ${curr?'curr':''}">${n}</div>`;}).join('');
-  if (congrats) congrats.textContent=p.chapter>=p.total?'🎉 Curs completat!':'';
+  const pct=Math.round(((p.chapter-1)/p.total)*100);
+  if (title)   title.innerHTML=`<span style="font-size:16px;margin-right:8px;">🎯</span>${p.title||'El meu objectiu'}`;
+  if (frac)    frac.textContent=`${pct}% completat`;
+  if (fill)    fill.style.width=pct+'%';
+  if (moto)    moto.textContent=`PAS ${p.chapter} DE ${p.total}`;
+  if (chaps)   chaps.innerHTML=Array.from({length:p.total},(_,i)=>{const n=i+1,done=n<p.chapter,curr=n===p.chapter;return `<div class="prog-chap ${done?'done':''} ${curr?'curr':''}" title="Pas ${n}">${done?'✓':n}</div>`;}).join('');
+  if (congrats) congrats.textContent=p.chapter>p.total?'🎉 Objectiu assolit!':'';
 }
 function changeChapter(delta) {
   const p=get(PROGRESS_KEY,PROG_DEF);
-  p.chapter=Math.max(1,Math.min(p.total,(p.chapter||1)+delta));
+  const prev=p.chapter||1;
+  p.chapter=Math.max(1,Math.min(p.total+1,prev+delta));
   set(PROGRESS_KEY,p); renderProgress();
-  if (delta>0) showToast('🎉 Capítol '+p.chapter+' completat!');
+  if (delta>0 && p.chapter<=p.total) showToast('✅ Pas '+prev+' completat!');
+  else if (delta>0 && p.chapter>p.total) showToast('🎉 Objectiu completat al 100%!');
 }
 function resetProgress() {
   if (!confirm('Reiniciar el progrés?')) return;
@@ -1015,7 +1068,12 @@ function renderTodayPanel() {
 /* ── Config aplicat ── */
 function applyConfig() {
   const cfg=get(CONFIG_KEY,{});
-  if (cfg.mainGoal) { const el=document.getElementById('goal-desc'); if(el) el.textContent=cfg.mainGoal; }
+  const goalEl=document.getElementById('goal-desc');
+  if (goalEl) {
+    goalEl.textContent = cfg.mainGoal && cfg.mainGoal.trim()
+      ? cfg.mainGoal
+      : 'Defineix el teu gran objectiu aquí. Ves a Configuració → General per personalitzar-lo.';
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -1986,9 +2044,56 @@ function openConfig() {
   ov.style.display='flex'; renderConfigBody();
 }
 function closeConfig() { document.getElementById('config-overlay').style.display='none'; }
+
+async function updateUsername() {
+  const inp = document.getElementById('cfg-new-username');
+  const newName = (inp?.value||'').trim().toLowerCase().replace(/[^a-z0-9_.]/g,'');
+  if (!newName || newName.length < 2) { showToast('⚠️ El nom ha de tenir mínim 2 caràcters (a-z, 0-9, _, .)'); return; }
+  if (!_currentUser || !_supabase) { showToast('⚠️ Necessites connexió'); return; }
+  try {
+    const {error} = await _supabase.from('profiles').update({username: newName}).eq('id', _currentUser.id);
+    if (error) { showToast('❌ Error: '+(error.message.includes('unique')?'Aquest nom ja existeix':error.message)); return; }
+    if (_userProfile) { _userProfile.username = newName; _saveLocalProfile(_userProfile); }
+    showToast('✅ Nom actualitzat a: '+newName);
+    renderConfigBody();
+    // Update hero name too
+    try { const h=get('jomaxpath_hero_v2',null); if(h){h.name=newName;set('jomaxpath_hero_v2',h);} } catch {}
+  } catch(e) { showToast('❌ Error de connexió'); }
+}
+
+async function forceSyncProfile() {
+  if (!_currentUser || !_supabase) { showToast('⚠️ Sessió no activa'); return; }
+  showToast('🔄 Sincronitzant...');
+  try {
+    const u = _currentUser;
+    const hero = get('jomaxpath_hero_v2', null);
+    const autoUsername = (_userProfile?.username) ||
+      (u.user_metadata?.full_name||'').toLowerCase().replace(/[^a-z0-9_.]/g,'')||
+      u.email?.split('@')[0] || 'user_'+u.id.slice(-6);
+    const {error} = await _supabase.from('profiles').upsert({
+      id: u.id, email: u.email||'',
+      username: autoUsername,
+      avatar: hero?.avatar || '⚔️',
+      hero_xp: hero?.xp || 0,
+      hero_level: hero ? (computeLevel ? computeLevel(hero.xp).level : 1) : 1
+    }, {onConflict: 'id'});
+    if (error) { showToast('❌ '+error.message); return; }
+    await _loadUserProfile(u.id);
+    showToast('✅ Perfil sincronitzat! Nom: '+(_userProfile?.username||autoUsername));
+    renderConfigBody();
+  } catch(e) { showToast('❌ Error: '+e.message); }
+}
+
+// Helper computeLevel for app.js context (simplified)
+function computeLevel(xp) {
+  const levels=[0,100,250,500,900,1400,2100,3000,4200,5700,7500];
+  let lvl=1,xpIn=xp,xpNeed=levels[1]||100;
+  for(let i=0;i<levels.length-1;i++){if(xp>=levels[i+1]){lvl=i+2;xpIn=xp-levels[i+1];xpNeed=(levels[i+2]||levels[i+1])-levels[i+1];}else{xpIn=xp-levels[i];xpNeed=levels[i+1]-levels[i];break;}}
+  return {level:Math.min(lvl,10),xpInLevel:Math.max(0,xpIn),xpNeeded:Math.max(1,xpNeed)};
+}
 function renderConfigBody() {
   const body=document.getElementById('config-body'); if(!body) return;
-  const cfg=get(CONFIG_KEY,{progressTitle:'Curs de Programació',progressTotal:9,mainGoal:"Crear la meva empresa abans de complir els 18 anys."});
+  const cfg=get(CONFIG_KEY,{progressTitle:'El meu objectiu',progressTotal:10,mainGoal:""});
   const apiKey=localStorage.getItem('jomaxpath_anthropic_key')||'';
   const isLoggedIn = !!_currentUser;
   const username = _userProfile?.username || (_currentUser?.email?.split('@')[0]) || '—';
@@ -2001,9 +2106,13 @@ function renderConfigBody() {
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-compte').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">👤 Compte</button>
     </div>
     <div id="cfgp-general" class="cfg-panel">
+      <div class="cfg-section" style="margin-bottom:16px;">
+        <h4 style="margin-bottom:10px;">🌐 Idioma / Language / Idioma</h4>
+        <div id="cfg-lang-switcher" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
       <div class="cfg-section"><h4>🚀 Objectiu principal</h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${cfg.mainGoal||''}</textarea></div>
-      <div class="cfg-section"><h4>📚 Nom del progrés</h4><input id="cfg-prog-title" type="text" value="${cfg.progressTitle||''}" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
-      <div class="cfg-section"><h4>🔢 Total capítols</h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${cfg.progressTotal||9}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
+      <div class="cfg-section"><h4>📚 Nom de l'objectiu de progrés</h4><input id="cfg-prog-title" type="text" value="${cfg.progressTitle||''}" placeholder="Ex: Aprendre guitarra, Preparar oposicions..." style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
+      <div class="cfg-section"><h4>🔢 Total de passos</h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${cfg.progressTotal||10}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
       <div style="margin-top:20px;display:flex;gap:10px;">
         <button onclick="saveConfig()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;">✅ Guardar</button>
         <button onclick="closeConfig()" style="padding:12px 20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;">Cancel·lar</button>
@@ -2031,21 +2140,30 @@ function renderConfigBody() {
         <h4 style="margin-bottom:12px;">👤 El teu compte</h4>
         <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;margin-bottom:14px;">
           <div style="width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,180,216,0.2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${_userProfile?.avatar||'⚔️'}</div>
-          <div>
+          <div style="flex:1;min-width:0;">
             <div style="font-size:16px;font-weight:700;color:var(--text);">${username}</div>
             <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:2px;">${email}</div>
+            <div style="font-family:'Space Mono',monospace;font-size:8px;color:rgba(0,180,216,0.7);margin-top:3px;letter-spacing:1px;">NOM D'USUARI: <span style="color:#a78bfa;">${username}</span></div>
+          </div>
+        </div>
+        <!-- Editar nom d'usuari -->
+        <div style="margin-bottom:12px;">
+          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">CANVIAR NOM D'USUARI (per compartir amb amics)</div>
+          <div style="display:flex;gap:8px;">
+            <input id="cfg-new-username" placeholder="${username}" maxlength="24" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-size:13px;outline:none;"/>
+            <button onclick="updateUsername()" style="padding:9px 14px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.35);border-radius:9px;color:#a78bfa;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;">✓ DESAR</button>
           </div>
         </div>
         <div style="margin-bottom:10px;">
-          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">COMPARTIR LLISTA DE TASQUES</div>
+          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">UNIR-SE A UNA LLISTA COMPARTIDA</div>
           <div style="display:flex;gap:8px;">
             <input id="cfg-join-code" placeholder="Codi BRD_..." style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;"/>
             <button onclick="joinSharedBoard(document.getElementById('cfg-join-code').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;">+ UNIR-SE</button>
           </div>
         </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;">SINCRONITZAR DADES AL NÚvOL</div>
-          <button onclick="_saveUserDataToCloud(_currentUser?.id).then(()=>showToast('☁️ Dades guardades!'))" style="width:100%;padding:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:9px;color:#6ee7b7;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;">☁️ GUARDAR AL NÚvOL ARA</button>
+        <div style="margin-bottom:10px;display:flex;gap:8px;">
+          <button onclick="_saveUserDataToCloud(_currentUser?.id).then(()=>showToast('☁️ Dades guardades!'))" style="flex:1;padding:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:9px;color:#6ee7b7;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;">☁️ GUARDAR AL NÚvOL</button>
+          <button onclick="forceSyncProfile()" style="flex:1;padding:10px;background:rgba(0,180,216,0.12);border:1px solid rgba(0,180,216,0.25);border-radius:9px;color:var(--cyan2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;">🔄 SINCRONITZAR PERFIL</button>
         </div>
       </div>
       <div class="cfg-section" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:4px;">
@@ -2069,6 +2187,8 @@ function renderConfigBody() {
         <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,${t.dot1||t.bg},${t.dot2||t.accent});border:2px solid ${t.id===curTheme?t.dot2:t.accent+'44'};box-shadow:${t.id===curTheme?'0 0 12px '+t.dot2:'none'};"></div>
         <span style="font-size:9px;font-family:'Space Mono',monospace;color:${t.id===curTheme?'#a78bfa':'var(--muted)'};letter-spacing:1px;">${t.name}</span>
       </div>`).join('');
+    // Render language switcher
+    renderLangSwitcher('cfg-lang-switcher');
   },50);
 }
 function saveApiKey() {
@@ -2081,10 +2201,10 @@ function saveApiKey() {
 function saveConfig() {
   const cfg=get(CONFIG_KEY,{});
   cfg.mainGoal=document.getElementById('cfg-goal')?.value||'';
-  cfg.progressTitle=document.getElementById('cfg-prog-title')?.value||'Curs';
-  cfg.progressTotal=parseInt(document.getElementById('cfg-prog-total')?.value||'9');
+  cfg.progressTitle=document.getElementById('cfg-prog-title')?.value||'El meu objectiu';
+  cfg.progressTotal=parseInt(document.getElementById('cfg-prog-total')?.value||'10');
   set(CONFIG_KEY,cfg);
-  const p=get(PROGRESS_KEY,{chapter:1,total:9,title:'Curs'});
+  const p=get(PROGRESS_KEY,{chapter:1,total:10,title:'El meu objectiu'});
   p.title=cfg.progressTitle; p.total=cfg.progressTotal; set(PROGRESS_KEY,p);
   const gd=document.getElementById('goal-desc'); if(gd&&cfg.mainGoal) gd.textContent=cfg.mainGoal;
   closeConfig(); renderProgress(); showToast('✅ Configuració guardada!');
@@ -2316,11 +2436,155 @@ function _applyLayoutMode(mode) {
 /* ─────────────────────────────────────────
    INIT
 ───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   IDIOMES — sistema multi-llengua (CA / ES / EN)
+═══════════════════════════════════════════════════ */
+const LANG_KEY = 'jomaxpath_lang_v1';
+const LANGS = {
+  ca: {
+    lang_name:'🐦 Català',
+    // Salutacions
+    greeting_morning:'Bon dia', greeting_afternoon:'Bona tarda', greeting_night:'Bona nit',
+    greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
+    // Nav / sidebar
+    nav_home:'Inici', nav_schedule:'Horari', nav_tasks:'Tasques', nav_notes:'Notes',
+    nav_focus:'Focus', nav_hero:'Heroi', nav_ai:'Julians AI',
+    // Seccions home
+    sec_habits:'🌱 hàbits diaris', sec_streak:'Ratxa', sec_victories:'Victòries de la setmana',
+    sec_goal:'Objectiu principal', sec_progress:'El meu objectiu', sec_today:'📍 ara mateix',
+    // Stats
+    stat_streak_lbl:'dies ratxa', stat_habits_lbl:'hàbits avui', stat_tasks_lbl:'tasques pend.',
+    stat_pomo_lbl:'pomodoros avui',
+    // Botons
+    btn_save:'Guardar', btn_add:'+ Afegir', btn_cancel:'Cancel·lar',
+    btn_session:'✓ SESSIÓ FETA', btn_add_habit:'+ AFEGIR',
+    // Config
+    cfg_title:'Configuració', cfg_general:'⚙️ General', cfg_ai:'🔑 IA',
+    cfg_themes:'🎨 Temes', cfg_account:'👤 Compte',
+    cfg_goal_lbl:'Objectiu principal', cfg_prog_name:'Nom de l\'objectiu',
+    cfg_prog_steps:'Total de passos', cfg_save:'✅ Guardar', cfg_cancel:'Cancel·lar',
+    cfg_logout:'🚪 Tancar sessió', cfg_sync:'🔄 Sincronitzar perfil',
+    cfg_save_cloud:'☁️ Guardar al núvol',
+    // Focus/Pomodoro
+    focus_phase:'FOCUS', break_phase:'DESCANS', long_break:'DESCANS LLARG',
+    // Tasques
+    tasks_title:'Tasques', tasks_add:'Afegir tasca...',
+    // Heroi
+    hero_title:'El meu heroi',
+    // Errors/missatges
+    msg_saved:'✅ Guardat!', msg_error:'❌ Error'
+  },
+  es: {
+    lang_name:'🇪🇸 Español',
+    greeting_morning:'Buenos días', greeting_afternoon:'Buenas tardes', greeting_night:'Buenas noches',
+    greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
+    nav_home:'Inicio', nav_schedule:'Horario', nav_tasks:'Tareas', nav_notes:'Notas',
+    nav_focus:'Focus', nav_hero:'Héroe', nav_ai:'Julians AI',
+    sec_habits:'🌱 hábitos diarios', sec_streak:'Racha', sec_victories:'Victorias de la semana',
+    sec_goal:'Objetivo principal', sec_progress:'Mi objetivo', sec_today:'📍 ahora mismo',
+    stat_streak_lbl:'días racha', stat_habits_lbl:'hábitos hoy', stat_tasks_lbl:'tareas pend.',
+    stat_pomo_lbl:'pomodoros hoy',
+    btn_save:'Guardar', btn_add:'+ Añadir', btn_cancel:'Cancelar',
+    btn_session:'✓ SESIÓN HECHA', btn_add_habit:'+ AÑADIR',
+    cfg_title:'Configuración', cfg_general:'⚙️ General', cfg_ai:'🔑 IA',
+    cfg_themes:'🎨 Temas', cfg_account:'👤 Cuenta',
+    cfg_goal_lbl:'Objetivo principal', cfg_prog_name:'Nombre del objetivo',
+    cfg_prog_steps:'Total de pasos', cfg_save:'✅ Guardar', cfg_cancel:'Cancelar',
+    cfg_logout:'🚪 Cerrar sesión', cfg_sync:'🔄 Sincronizar perfil',
+    cfg_save_cloud:'☁️ Guardar en la nube',
+    focus_phase:'ENFOQUE', break_phase:'DESCANSO', long_break:'DESCANSO LARGO',
+    tasks_title:'Tareas', tasks_add:'Añadir tarea...',
+    hero_title:'Mi héroe',
+    msg_saved:'✅ Guardado!', msg_error:'❌ Error'
+  },
+  en: {
+    lang_name:'🇬🇧 English',
+    greeting_morning:'Good morning', greeting_afternoon:'Good afternoon', greeting_night:'Good evening',
+    greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
+    nav_home:'Home', nav_schedule:'Schedule', nav_tasks:'Tasks', nav_notes:'Notes',
+    nav_focus:'Focus', nav_hero:'Hero', nav_ai:'Julians AI',
+    sec_habits:'🌱 daily habits', sec_streak:'Streak', sec_victories:'Week victories',
+    sec_goal:'Main goal', sec_progress:'My goal', sec_today:'📍 right now',
+    stat_streak_lbl:'day streak', stat_habits_lbl:'habits today', stat_tasks_lbl:'tasks pend.',
+    stat_pomo_lbl:'pomodoros today',
+    btn_save:'Save', btn_add:'+ Add', btn_cancel:'Cancel',
+    btn_session:'✓ SESSION DONE', btn_add_habit:'+ ADD',
+    cfg_title:'Settings', cfg_general:'⚙️ General', cfg_ai:'🔑 AI',
+    cfg_themes:'🎨 Themes', cfg_account:'👤 Account',
+    cfg_goal_lbl:'Main goal', cfg_prog_name:'Goal name',
+    cfg_prog_steps:'Total steps', cfg_save:'✅ Save', cfg_cancel:'Cancel',
+    cfg_logout:'🚪 Sign out', cfg_sync:'🔄 Sync profile',
+    cfg_save_cloud:'☁️ Save to cloud',
+    focus_phase:'FOCUS', break_phase:'BREAK', long_break:'LONG BREAK',
+    tasks_title:'Tasks', tasks_add:'Add task...',
+    hero_title:'My hero',
+    msg_saved:'✅ Saved!', msg_error:'❌ Error'
+  }
+};
+function getLang() { return localStorage.getItem(LANG_KEY) || 'ca'; }
+function t(key) { return (LANGS[getLang()]||LANGS.ca)[key] || (LANGS.ca[key] || key); }
+function setLanguage(lang) {
+  localStorage.setItem(LANG_KEY, lang);
+  applyLanguage();
+  showToast('🌐 Idioma: '+(LANGS[lang]?.lang_name||lang));
+}
+// Mapa d'element ID → clau de traducció
+const LANG_ID_MAP = {
+  'pt-home-h2':        'nav_home',
+  'pt-horari-h2':      'nav_schedule',
+  'pt-tasques-h2':     'nav_tasks',
+  'pt-focus-h2':       'nav_focus',
+  'hsr-streak-lbl':    'stat_streak_lbl',
+  'hsr-habits-lbl':    'stat_habits_lbl',
+  'hsr-tasks-lbl':     'stat_tasks_lbl',
+  'hsr-pomo-lbl':      'stat_pomo_lbl',
+  'goal-title':        'sec_goal',
+  'prog-title':        null, // gestionat per renderProgress
+  'streak-btn':        'btn_session',
+  'cfg-title-text':    'cfg_title',
+};
+function applyLanguage() {
+  const lang = getLang();
+  const map = LANGS[lang] || LANGS.ca;
+  // Aplica per ID
+  Object.entries(LANG_ID_MAP).forEach(([id, key]) => {
+    if (!key) return;
+    const el = document.getElementById(id);
+    if (el && map[key]) el.textContent = map[key];
+  });
+  // Aplica als elements amb data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (map[key]) el.textContent = map[key];
+  });
+  // Actualitza botons del selector d'idioma
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const code = btn.getAttribute('data-lang-code');
+    btn.style.fontWeight = code === lang ? '700' : '400';
+    btn.style.background = code === lang ? 'rgba(124,58,237,0.25)' : 'transparent';
+    btn.style.borderColor = code === lang ? 'rgba(124,58,237,0.5)' : 'rgba(255,255,255,0.1)';
+  });
+  // Títol del browser
+  document.title = 'JOmaxPath — ' + (map['nav_home'] || 'Inici');
+  // Actualitza salutació (sense cridar renderHome sencer per evitar loops)
+  if (typeof renderHomeHeader === 'function') renderHomeHeader();
+  // Re-render config panel si és obert per actualitzar textos
+  if (document.getElementById('config-body')?.children.length) renderConfigBody();
+}
+function renderLangSwitcher(containerId) {
+  const el = document.getElementById(containerId); if (!el) return;
+  const cur = getLang();
+  el.innerHTML = Object.entries(LANGS).map(([code, l]) =>
+    `<button class="lang-btn" data-lang-code="${code}" onclick="setLanguage('${code}')" style="background:${code===cur?'rgba(124,58,237,0.2)':'transparent'};border:1px solid ${code===cur?'rgba(124,58,237,0.4)':'rgba(255,255,255,0.1)'};border-radius:8px;padding:5px 12px;color:var(--text);cursor:pointer;font-size:11px;font-weight:${code===cur?700:400};transition:all 0.2s;">${l.lang_name}</button>`
+  ).join('');
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   const arc=document.getElementById('pomo-arc');
   if(arc) arc.style.strokeDasharray=2*Math.PI*80;
   applyConfig();
   applyStoredTheme();
+  applyLanguage();
   renderThemesGrid();
   navTo('home');
   try {

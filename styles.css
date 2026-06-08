@@ -1962,17 +1962,16 @@
     radial-gradient(ellipse at 80% 20%, rgba(0,180,216,0.07) 0%, transparent 40%);
 }
 
-/* SVG ring */
+/* SVG ring — CSS Grid overlay: SVG i center a la mateixa cel·la */
 #pomo-fs-svg-wrap {
-  position:relative;
-  width:min(55vw, 55vh, 500px);
-  height:min(55vw, 55vh, 500px);
+  display:grid;
+  place-items:center;
+  width:min(60vw, 60vh, 500px);
+  height:min(60vw, 60vh, 500px);
   flex-shrink:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 #pomo-fs-svg {
+  grid-area: 1/1;
   width:100%; height:100%;
   transform:rotate(-90deg);
   overflow:visible;
@@ -1988,10 +1987,8 @@
 .pomo-fs-arc.break-mode  { stroke:#10b981; }
 .pomo-fs-arc.long-break  { stroke:#3b82f6; }
 #pomo-fs-center {
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
+  grid-area: 1/1;
+  position:static;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -5935,20 +5932,35 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
 }
 
 /* ══════════════════════════════════════════════════════════════
-   POMODORO FULLSCREEN — centrat garantit
+   POMODORO FULLSCREEN — CSS Grid overlay (SVG + center a grid-area 1/1)
 ══════════════════════════════════════════════════════════════ */
+#pomo-fs-svg-wrap {
+  display: grid !important;
+  place-items: center !important;
+  width: min(60vw, 60vh, 500px) !important;
+  height: min(60vw, 60vh, 500px) !important;
+  flex-shrink: 0 !important;
+  position: static !important;
+}
+#pomo-fs-svg {
+  grid-area: 1 / 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: static !important;
+}
 #pomo-fs-center {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  grid-area: 1 / 1 !important;
+  position: static !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   pointer-events: none !important;
   z-index: 2 !important;
-  width: 100% !important;
+  width: auto !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -6523,6 +6535,91 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
 @keyframes shimmer { 0%,100%{opacity:0;}50%{opacity:1;} }
 #premium-home-banner:hover { border-color: rgba(167,139,250,0.55) !important; transform: translateY(-1px) !important; box-shadow: 0 8px 24px rgba(124,58,237,0.18) !important; }
 
+/* ══ HOME HERO HEADER — disseny modern tipus Notion/Linear ══ */
+.home-hero-header {
+  padding: 4px 0 22px !important;
+}
+.hhh-top-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 18px !important;
+}
+.hhh-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.hhh-brand-dot {
+  width: 10px !important; height: 10px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #a78bfa, #38d9f5) !important;
+  box-shadow: 0 0 10px rgba(167,139,250,0.7) !important;
+  flex-shrink: 0 !important;
+}
+.hhh-brand-name {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #38d9f5 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+.hhh-date-chip {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 10px !important;
+  color: var(--muted) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 20px !important;
+  padding: 4px 12px !important;
+  letter-spacing: 0.5px !important;
+  text-transform: capitalize !important;
+}
+.hhh-greeting-line {
+  font-size: clamp(1.5rem, 5vw, 2.4rem) !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  line-height: 1.2 !important;
+  margin-bottom: 6px !important;
+  letter-spacing: -0.5px !important;
+}
+.hhh-sub {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.hhh-dot { opacity: 0.3 !important; }
+
+/* ══ HOME STATS ROW ══ */
+.home-stats-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  margin-bottom: 22px !important;
+}
+@media(max-width:600px) {
+  .home-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+}
+.hsr-card {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 16px !important;
+  padding: 16px 14px !important;
+  text-align: center !important;
+  transition: all 0.2s !important;
+}
+.hsr-card:hover { border-color: rgba(124,58,237,0.3) !important; background: rgba(124,58,237,0.06) !important; transform: translateY(-2px) !important; }
+.hsr-icon { font-size: 20px !important; margin-bottom: 6px !important; }
+.hsr-val { font-family: 'Space Mono', monospace !important; font-size: 22px !important; font-weight: 700 !important; color: var(--text) !important; line-height: 1 !important; margin-bottom: 4px !important; }
+.hsr-lbl { font-size: 9px !important; color: var(--muted) !important; letter-spacing: 0.5px !important; }
+#hsr-streak .hsr-val { color: #fcd34d !important; text-shadow: 0 0 14px rgba(245,158,11,0.4) !important; }
+#hsr-habits .hsr-val { color: #6ee7b7 !important; }
+#hsr-tasks .hsr-val { color: #93c5fd !important; }
+#hsr-pomo .hsr-val { color: #fca5a5 !important; }
+
 /* Amagam el config-btn flotant (redundant amb sidebar) */
 #config-btn { display: none !important; }
 
@@ -6533,6 +6630,114 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
   backdrop-filter: blur(12px) !important;
 }
 #nav-hamburger:hover { border-color: rgba(167,139,250,0.4) !important; background: rgba(14,14,30,0.95) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE — Tota la app ha de funcionar bé al mòbil
+══════════════════════════════════════════════════════════════ */
+@media(max-width:768px) {
+  /* Contenidor principal — menys padding lateral */
+  .container { padding: 10px 10px 90px !important; }
+  .app-page { padding-bottom: 100px !important; }
+
+  /* Home hero header — més petit al mòbil */
+  .hhh-name { font-size: clamp(1.6rem, 8vw, 2.4rem) !important; }
+  .home-stats-row { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
+  .hsr-val { font-size: 18px !important; }
+  .hsr-card { padding: 12px 10px !important; }
+
+  /* Goal banner */
+  .goal-banner { flex-direction: column !important; text-align: center !important; gap: 10px !important; }
+
+  /* Two column → single column on mobile */
+  .home-two-col { grid-template-columns: 1fr !important; gap: 14px !important; }
+
+  /* Habits — més compactes */
+  .habits-section { padding: 16px !important; }
+  .habit-item { padding: 8px 10px !important; }
+
+  /* Streak — menys padding */
+  .streak-widget { padding: 16px 18px !important; }
+  .streak-number { font-size: 40px !important; }
+
+  /* Progress caps */
+  .progress-chapters { grid-template-columns: repeat(3,1fr) !important; }
+
+  /* Victories inputs */
+  .victories-section { padding: 18px !important; }
+  .victory-input { padding: 10px 12px !important; font-size: 12px !important; }
+
+  /* Today grid — 2 cols max */
+  .today-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+
+  /* Notes — 1 col */
+  #notes-page-list { grid-template-columns: 1fr !important; }
+
+  /* Horari tabs */
+  .horari-tab { font-size: 8px !important; padding: 8px 8px !important; }
+
+  /* Week grid — 3 cols on mobile */
+  .week-grid { grid-template-columns: repeat(3,1fr) !important; }
+
+  /* Monthly calendar */
+  .calendar-grid { font-size: 11px !important; }
+  .cal-day { min-height: 48px !important; }
+
+  /* Pomodoro fullscreen */
+  #pomo-fs-svg-wrap { width: min(85vw,85vh,420px) !important; height: min(85vw,85vh,420px) !important; }
+  #pomo-fs-digits { font-size: clamp(1.8rem, 14vw, 4rem) !important; }
+
+  /* Sidebar — amagat per defecte al mòbil, accessible via hamburger */
+  #left-sidebar { transform: translateX(-100%) !important; }
+  #left-sidebar.sb-mobile-open { transform: translateX(0) !important; }
+
+  /* Bottom nav — visible i gran */
+  #bnav { height: 72px !important; }
+  .bnav-icon { font-size: 22px !important; }
+  .bnav-lbl { font-size: 7px !important; }
+
+  /* Pomodoro main — més compacte */
+  .pomo-ring-wrap { width: 160px !important; height: 160px !important; }
+  .pomo-digits { font-size: 38px !important; }
+
+  /* Task items */
+  .exam-item { padding: 10px 12px !important; }
+
+  /* Kanban — 1 columna */
+  .kanban-board { grid-template-columns: 1fr !important; }
+
+  /* Config panel — full screen */
+  #config-panel { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; height: 100vh !important; }
+  #config-overlay { align-items: flex-start !important; }
+
+  /* Font sizes globals */
+  .section-title { font-size: 8px !important; }
+  .page-title-text h2 { font-size: 12px !important; }
+
+  /* Pomo display */
+  .pomo-display { gap: 12px !important; }
+  .pomo-controls { gap: 6px !important; }
+  .pomo-btn { font-size: 10px !important; padding: 9px 14px !important; }
+
+  /* AI / Julians */
+  #ai-section-card { padding: 16px !important; }
+
+  /* Nav drawer */
+  #nav-drawer { width: min(85vw, 320px) !important; }
+
+  /* Share modals */
+  .board-modal { width: calc(100vw - 32px) !important; }
+
+  /* Hero page */
+  .hero-layout { flex-direction: column !important; }
+}
+
+@media(max-width:400px) {
+  .hhh-name { font-size: 1.4rem !important; }
+  .hsr-card { padding: 10px 8px !important; }
+  .hsr-val { font-size: 16px !important; }
+  .streak-number { font-size: 34px !important; }
+  .week-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
 
 
 /* ══════════════════════════════════════════════
@@ -6592,3 +6797,237 @@ body.theme-caramel  #bnav { background: rgba(14,10,2,0.96)    !important; border
 body.theme-violet   #bnav { background: rgba(8,4,19,0.97)     !important; border-top-color: rgba(147,51,234,0.3)   !important; }
 body.theme-rose     #bnav { background: rgba(15,5,8,0.97)     !important; border-top-color: rgba(190,24,93,0.25)   !important; }
 body.theme-blanc    #bnav { background: rgba(240,242,248,0.98) !important; border-top-color: rgba(109,40,217,0.15)  !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   HOME HERO HEADER — greeting amb username més visible
+══════════════════════════════════════════════════════════════ */
+.hhh-greeting {
+  font-size: 13px !important;
+  letter-spacing: 0.5px !important;
+  text-transform: none !important;
+  color: rgba(255,255,255,0.55) !important;
+  font-family: inherit !important;
+  margin-bottom: 4px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROGRESS SECTION — passos visuals redesignats
+══════════════════════════════════════════════════════════════ */
+.progress-chapters {
+  display: flex !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  margin-top: 12px !important;
+}
+.prog-chap {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  font-family: 'Space Mono', monospace !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: rgba(255,255,255,0.04) !important;
+  color: var(--muted) !important;
+  transition: all 0.2s !important;
+  cursor: default !important;
+}
+.prog-chap.done {
+  background: rgba(124,58,237,0.25) !important;
+  border-color: rgba(124,58,237,0.5) !important;
+  color: #a78bfa !important;
+  font-size: 12px !important;
+}
+.prog-chap.curr {
+  background: linear-gradient(135deg, rgba(124,58,237,0.5), rgba(0,180,216,0.3)) !important;
+  border-color: rgba(124,58,237,0.8) !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(124,58,237,0.4) !important;
+  transform: scale(1.15) !important;
+}
+.primary-prog-btn {
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,180,216,0.2)) !important;
+  border-color: rgba(124,58,237,0.5) !important;
+  color: #fff !important;
+  flex: 1 !important;
+}
+.primary-prog-btn:hover {
+  background: linear-gradient(135deg, rgba(124,58,237,0.5), rgba(0,180,216,0.35)) !important;
+  box-shadow: 0 0 16px rgba(124,58,237,0.3) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FIX LAYOUT GLOBAL — sidebar + contingut + mòbil
+   Versió definitiva, afegit al final per màxima prioritat
+══════════════════════════════════════════════════════════════ */
+
+/* ── Fix bnav: no ha de tenir margin-left (és position:fixed full-width) ── */
+body.view-pages.sb-open-desktop #bnav,
+body.view-pages.sb-collapsed-desktop #bnav {
+  margin-left: 0 !important;
+}
+
+/* ── Mobile sidebar: JS fa toggle de 'lsb-mobile-open' al body ── */
+@media (max-width: 768px) {
+  body.lsb-mobile-open #left-sidebar {
+    transform: translateX(0) !important;
+  }
+  /* Overlay fosc darrere la sidebar en mòbil */
+  body.lsb-mobile-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 299;
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* ══ MÒBIL COMPLET — tota la UI ══ */
+@media (max-width: 768px) {
+
+  /* Sidebar sempre amagada en mòbil (l'inline style ja ho fa, reforcem) */
+  #left-sidebar {
+    transform: translateX(-100%) !important;
+    width: 220px !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  /* Contingut ocupa tot l'ample */
+  body.view-pages.sb-open-desktop .container,
+  body.view-pages.sb-collapsed-desktop .container {
+    margin-left: 0 !important;
+  }
+
+  /* ── HEADER HOME ── */
+  .hhh-brand-name { font-size: 11px !important; letter-spacing: 2px !important; }
+  .hhh-greeting-line { font-size: clamp(1.3rem, 6vw, 1.8rem) !important; }
+  .hhh-top-row { margin-bottom: 10px !important; }
+
+  /* ── STATS ROW: 2 columnes ── */
+  .home-stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .hsr-card { padding: 12px 10px !important; }
+  .hsr-val { font-size: 20px !important; }
+  .hsr-lbl { font-size: 9px !important; }
+
+  /* ── LAYOUT 2 COLS → 1 COL ── */
+  .home-two-col,
+  .focus-two-col,
+  .cal-two-col {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* ── CONTAINER padding ── */
+  .container {
+    padding: 12px 14px 90px !important;
+  }
+
+  /* ── PAGE TITLE BAR més compacte ── */
+  .page-title-bar {
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+  }
+  .page-title-text h2 { font-size: 12px !important; letter-spacing: 2px !important; }
+  .page-title-icon { width: 28px !important; height: 28px !important; font-size: 14px !important; }
+
+  /* ── GOAL BANNER ── */
+  .goal-banner { flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+
+  /* ── STREAK ── */
+  .streak-widget { gap: 12px !important; padding: 16px !important; flex-wrap: wrap !important; }
+  .streak-number { font-size: 32px !important; }
+  .streak-actions { flex-direction: row !important; width: 100% !important; }
+
+  /* ── HABITS ── */
+  .habit-item { padding: 8px 10px !important; }
+  .habits-section { padding: 14px 14px !important; }
+
+  /* ── PROGRESS ── */
+  .progress-section { padding: 16px !important; }
+  .progress-chapters { gap: 4px !important; }
+  .prog-chap { width: 24px !important; height: 24px !important; font-size: 9px !important; }
+  .progress-btn-row { flex-wrap: wrap !important; }
+
+  /* ── VICTORIES ── */
+  .victories-section { padding: 16px !important; }
+
+  /* ── POMODORO fullscreen ── */
+  #pomo-fs-svg-wrap { width: min(82vw, 82vh, 380px) !important; height: min(82vw, 82vh, 380px) !important; }
+  #pomo-fs-digits { font-size: clamp(1.8rem, 13vw, 3.5rem) !important; }
+  #pomo-fs-controls { gap: 8px !important; flex-wrap: wrap !important; }
+  .pomo-fs-btn { padding: 10px 20px !important; font-size: 10px !important; }
+
+  /* ── POMODORO normal ── */
+  .pomo-ring-wrap { width: 150px !important; height: 150px !important; }
+  .pomo-display { gap: 14px !important; }
+  .pomo-btn { font-size: 10px !important; padding: 8px 14px !important; }
+  .pomo-controls { gap: 6px !important; flex-wrap: wrap !important; justify-content: center !important; }
+
+  /* ── TASQUES ── */
+  .exam-item { padding: 10px 12px !important; }
+  .kanban-board { grid-template-columns: 1fr !important; }
+
+  /* ── NOTES ── */
+  #notes-page-list { grid-template-columns: 1fr !important; }
+
+  /* ── HORARI ── */
+  .horari-tab { font-size: 9px !important; padding: 8px 6px !important; letter-spacing: 0.5px !important; }
+  .week-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .cal-day { min-height: 44px !important; }
+
+  /* ── CONFIG PANEL ── */
+  #config-overlay { align-items: flex-end !important; }
+  #config-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 92vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin-left: 0 !important;
+    animation: slideUp 0.3s ease !important;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .cfg-tab { font-size: 9px !important; padding: 8px 4px !important; }
+  #cfg-themes-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
+  /* ── HEROI ── */
+  .hero-layout { flex-direction: column !important; }
+
+  /* ── BOTTOM NAV ── */
+  #bnav { height: 62px !important; padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+  .bnav-icon { font-size: 20px !important; }
+  .bnav-lbl { font-size: 7px !important; }
+
+  /* ── MODALS ── */
+  .board-modal, .timed-modal { width: calc(100vw - 24px) !important; }
+
+  /* ── GENERAL: texts i spacing ── */
+  .section-title { font-size: 9px !important; }
+  h3 { font-size: 14px !important; }
+
+  /* ── FABs: moure per sobre del bnav ── */
+  #add-note-fab, #ai-fab { bottom: 74px !important; }
+  #quick-capture-btn { bottom: 148px !important; }
+  #search-fab { bottom: 128px !important; }
+}
+
+/* Mòbil molt petit */
+@media (max-width: 380px) {
+  .home-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+  .hsr-val { font-size: 18px !important; }
+  .container { padding: 10px 10px 85px !important; }
+  .hhh-greeting-line { font-size: 1.2rem !important; }
+  .prog-chap { width: 20px !important; height: 20px !important; font-size: 8px !important; }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .home-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+  .home-two-col { grid-template-columns: 1fr !important; }
+}

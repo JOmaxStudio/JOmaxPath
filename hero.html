@@ -1463,8 +1463,8 @@ function _getSupabase() {
     const lib = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
     if (lib && lib.createClient) {
       _heroSupabaseClient = lib.createClient(
-        'https://toefrxqijvextqqngapx.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI'
+        'https://fcoitcesjyjkfcqwrblm.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjb2l0Y2Vzanlqa2ZjcXdyYmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MDUwNDQsImV4cCI6MjA4ODE4MTA0NH0.bvwDg2ThL4HivusLJEUhbV9VdJ7VAuHwE2CtCE0oZ3w'
       );
       return _heroSupabaseClient;
     }
@@ -1511,6 +1511,21 @@ function copyInviteCode(){
   navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat!')).catch(()=>showToast('Codi: '+code.slice(0,20)+'...'));
 }
 
+/* Cerca robusta d'usuari (exacte → prefix → email) */
+async function _findHeroProfile(targetUsername) {
+  const sb = _getSupabase(); if (!sb) return null;
+  const t = targetUsername.trim().toLowerCase();
+  // 1. Exacte
+  let {data} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('username', t).maybeSingle();
+  if (data) return data;
+  // 2. Comença amb
+  const {data: p} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('username', t+'%').limit(1).maybeSingle();
+  if (p) return p;
+  // 3. Email prefix
+  const {data: e} = await sb.from('profiles').select('id,username,avatar,hero_level,hero_xp').ilike('email', t+'@%').limit(1).maybeSingle();
+  return e || null;
+}
+
 /* ── Send friend request by username ── */
 async function sendFriendRequest() {
   const inp = document.getElementById('friend-username-inp');
@@ -1526,10 +1541,10 @@ async function sendFriendRequest() {
   const sb = _getSupabase();
   if (sb) {
     try {
-      // Check target exists
-      const {data: target, error: targetErr} = await sb.from('profiles').select('id,username,avatar').ilike('username', targetUsername).maybeSingle();
-      if (targetErr) { showToast('❌ Error cercant usuari: '+targetErr.message); return; }
-      if (!target) { showToast('❌ Usuari "'+targetUsername+'" no trobat'); return; }
+      showToast('🔍 Cercant usuari...');
+      // Cerca robusta
+      const target = await _findHeroProfile(targetUsername);
+      if (!target) { showToast('❌ Usuari "'+targetUsername+'" no trobat. Ha d\'haver iniciat sessió almenys un cop.'); return; }
       // Check not already friends
       const friends = loadFriends();
       if (friends.find(f => f.name?.toLowerCase() === targetUsername.toLowerCase())) {
