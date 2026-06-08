@@ -144,6 +144,9 @@ function navTo(page) {
   if (page === 'julians') initJulians();
   if (page === 'notes')   renderNotes();
 
+  // Aplica traduccions al contingut de la nova pàgina
+  setTimeout(()=>{ try { if(typeof applyLanguage==='function') applyLanguage(); } catch(e){} }, 30);
+
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -861,8 +864,8 @@ function refreshQuote() {
 
 function renderHomeHeader() {
   const h = new Date().getHours();
-  const greetingBase = h < 12 ? 'Bon dia' : h < 18 ? 'Bona tarda' : 'Bona nit';
-  const emoji = h < 12 ? '👋' : h < 18 ? '💪' : '🌙';
+  const greetingBase = h < 12 ? t('greeting_morning') : h < 18 ? t('greeting_afternoon') : t('greeting_night');
+  const emoji = h < 12 ? t('greeting_emoji_m') : h < 18 ? t('greeting_emoji_a') : t('greeting_emoji_n');
   const username = _userProfile?.username || '';
   // Salutació amb nom d'usuari
   const grEl = document.getElementById('home-greeting');
@@ -2629,13 +2632,13 @@ function renderLangSwitcher(containerId) {
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  const arc=document.getElementById('pomo-arc');
-  if(arc) arc.style.strokeDasharray=2*Math.PI*80;
-  applyConfig();
-  applyStoredTheme();
-  applyLanguage();
-  renderThemesGrid();
-  navTo('home');
+  try { const arc=document.getElementById('pomo-arc'); if(arc) arc.style.strokeDasharray=2*Math.PI*80; } catch(e){}
+  try { applyConfig(); } catch(e){ console.warn('applyConfig error',e); }
+  try { applyStoredTheme(); } catch(e){ console.warn('applyStoredTheme error',e); }
+  try { renderThemesGrid(); } catch(e){ console.warn('renderThemesGrid error',e); }
+  try { navTo('home'); } catch(e){ console.warn('navTo error',e); }
+  // Aplica idioma DESPRÉS que tot estigui renderitzat
+  setTimeout(()=>{ try { applyLanguage(); } catch(e){ console.warn('applyLanguage error',e); } }, 50);
   try {
     const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v2'));
     if(h){
