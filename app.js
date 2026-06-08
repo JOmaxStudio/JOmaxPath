@@ -2633,21 +2633,21 @@ async function sendAI() {
   typing.innerHTML='<div class="ai-msg-bubble">💭 Pensant...</div>';
   if(container){container.appendChild(typing);container.scrollTop=container.scrollHeight;}
   try {
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
+    const response=await fetch('/api/julians',{
       method:'POST',
-      headers:(()=>{const k=localStorage.getItem('jomaxpath_anthropic_key');const h={'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'};if(k)h['x-api-key']=k;return h;})(),
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
     });
-    if(!response.ok){const err=await response.json().catch(()=>({error:{message:response.statusText}}));throw new Error(err.error?.message||response.statusText);}
+    if(!response.ok){const err=await response.json().catch(()=>({error:response.statusText}));throw new Error(err.error||response.statusText);}
     const data=await response.json();
-    const reply=data.content?.[0]?.text||'Error en la resposta.';
+    const reply=data.reply||'Error en la resposta.';
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
     if(chat){chat.messages.push({role:'assistant',content:reply,ts:Date.now()});set(CHATS_KEY,_chats);}
-  } catch {
+  } catch(e) {
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
-    if(chat){chat.messages.push({role:'assistant',content:`⚠️ No s'ha pogut connectar. Comprova que has afegit la clau API d'Anthropic a la Configuració → IA.`,ts:Date.now()});set(CHATS_KEY,_chats);}
+    if(chat){chat.messages.push({role:'assistant',content:`⚠️ No s'ha pogut connectar amb el Julians AI. Torna-ho a provar en uns segons.`,ts:Date.now()});set(CHATS_KEY,_chats);}
   }
   _attachment=null;
   const docPrev=document.getElementById('ai-doc-preview'); if(docPrev) docPrev.style.display='none';
@@ -2807,14 +2807,14 @@ function renderConfigBody() {
     </div>
     <div id="cfgp-ia" class="cfg-panel" style="display:none;">
       <div class="cfg-section">
-        <h4 style="margin-bottom:6px;">🔑 Clau API d'Anthropic</h4>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Necessites una clau API d'Anthropic per usar Julians AI. <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent2);">Obtén-la aquí →</a></p>
-        <input id="cfg-api-key" type="password" placeholder="sk-ant-api03-..." value="${apiKey}" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;font-family:'Space Mono',monospace;"/>
-        <div style="margin-top:8px;display:flex;gap:8px;">
-          <button onclick="saveApiKey()" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;">💾 Guardar clau</button>
-          <button onclick="document.getElementById('cfg-api-key').type=document.getElementById('cfg-api-key').type==='password'?'text':'password'" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px;">👁</button>
+        <h4 style="margin-bottom:6px;">🧠 Julians AI</h4>
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(0,180,216,0.05));border:1px solid rgba(124,58,237,0.25);border-radius:14px;">
+          <div style="font-size:32px;">✅</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">Julians AI a punt</div>
+            <p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0;">No cal configurar res. El Julians funciona amb Google Gemini i és gratuït per a tothom. Ves a <b>🧠 Julians AI</b> al menú i comença a xerrar!</p>
+          </div>
         </div>
-        <div id="cfg-api-status" style="margin-top:8px;font-size:11px;color:${apiKey?'#6ee7b7':'var(--muted)'};">${apiKey?'✅ Clau guardada':'⚠️ Cap clau configurada'}</div>
       </div>
     </div>
     <div id="cfgp-temes" class="cfg-panel" style="display:none;">
