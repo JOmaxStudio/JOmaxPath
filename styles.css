@@ -7099,3 +7099,10 @@ body.view-pages.sb-collapsed-desktop #bnav {
   #lists-grid{grid-template-columns:1fr 1fr;}
   .list-detail-header .ld-toggle{width:100%;}
 }
+
+/* Markdown a les respostes del Julians AI */
+.ai-msg-bubble .ai-h{font-size:14px;font-weight:700;margin:8px 0 4px;color:var(--text);}
+.ai-msg-bubble .ai-ul{margin:6px 0 6px 4px;padding-left:18px;}
+.ai-msg-bubble .ai-ul li{margin:3px 0;line-height:1.5;}
+.ai-msg-bubble .ai-inline-code{background:rgba(124,58,237,0.15);border-radius:5px;padding:1px 6px;font-family:'Space Mono',monospace;font-size:0.9em;}
+.ai-msg-bubble .ai-code{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:'Space Mono',monospace;font-size:12px;overflow-x:auto;white-space:pre-wrap;margin:8px 0;}

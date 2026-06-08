@@ -2600,7 +2600,7 @@ function renderMessages() {
     container.innerHTML=`<div class="ai-welcome"><div class="ai-welcome-icon">🧠</div><h3>Sóc Julians AI</h3><p>El teu assistent personal intel·ligent. Pregunta'm qualsevol cosa!</p></div>`;
     return;
   }
-  container.innerHTML=chat.messages.map(m=>`<div class="ai-msg ${m.role}"><div class="ai-msg-bubble">${m.content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div></div>`).join('');
+  container.innerHTML=chat.messages.map(m=>`<div class="ai-msg ${m.role}"><div class="ai-msg-bubble">${m.role==='assistant'?_mdToHtml(m.content):m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div></div>`).join('');
   container.scrollTop=container.scrollHeight;
 }
 function setAIMode(mode) {
@@ -2633,22 +2633,16 @@ async function sendAI() {
   typing.innerHTML='<div class="ai-msg-bubble">💭 Pensant...</div>';
   if(container){container.appendChild(typing);container.scrollTop=container.scrollHeight;}
   try {
-    const response=await fetch('/api/julians',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system:_buildSystemPrompt(),messages:chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}))})
-    });
-    if(!response.ok){
-      let detail='HTTP '+response.status;
-      try { const err=await response.json(); detail=(err.error||detail)+(err.detail?(' — '+err.detail):''); }
-      catch { const txt=await response.text().catch(()=>''); if(txt) detail='HTTP '+response.status+' (resposta no-JSON: '+txt.slice(0,80)+'…)'; }
-      throw new Error(detail);
+    // Prepara els missatges per a la IA; si hi ha document adjunt, n'afegeix el text al darrer missatge
+    const aiMessages=chat.messages.slice(-10).map(m=>({role:m.role,content:m.content}));
+    if (_attachment?.text) {
+      const last=aiMessages[aiMessages.length-1];
+      if (last && last.role==='user') last.content += `\n\n[Contingut del document "${_attachment.name}"]:\n${_attachment.text.slice(0,40000)}`;
     }
-    const data=await response.json();
-    const reply=data.reply||'Error en la resposta.';
+    const reply=await callJulians(aiMessages, _buildSystemPrompt(), 2048);
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
-    if(chat){chat.messages.push({role:'assistant',content:reply,ts:Date.now()});set(CHATS_KEY,_chats);}
+    if(chat){chat.messages.push({role:'assistant',content:reply||'(resposta buida)',ts:Date.now()});set(CHATS_KEY,_chats);}
   } catch(e) {
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
@@ -2658,12 +2652,64 @@ async function sendAI() {
   const docPrev=document.getElementById('ai-doc-preview'); if(docPrev) docPrev.style.display='none';
   renderMessages();
 }
+/* Helper reutilitzable per cridar el Julians AI (xat + eina d'exàmens) */
+async function callJulians(messages, system, maxTokens) {
+  const response = await fetch('/api/julians', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ system: system||'', messages, maxTokens: maxTokens||1024 })
+  });
+  if (!response.ok) {
+    let detail='HTTP '+response.status;
+    try { const err=await response.json(); detail=(err.error||detail)+(err.detail?(' — '+err.detail):''); } catch {}
+    throw new Error(detail);
+  }
+  const data = await response.json();
+  return data.reply || '';
+}
+
+/* Markdown → HTML (segur, per a les respostes de la IA) */
+function _mdToHtml(md) {
+  let h = (md||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Blocs de codi
+  h = h.replace(/```([\s\S]*?)```/g, (m,c)=>`<pre class="ai-code">${c.trim()}</pre>`);
+  h = h.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+  // Encapçalaments
+  h = h.replace(/^### (.*)$/gm, '<h4 class="ai-h">$1</h4>');
+  h = h.replace(/^## (.*)$/gm, '<h3 class="ai-h">$1</h3>');
+  h = h.replace(/^# (.*)$/gm, '<h3 class="ai-h">$1</h3>');
+  // Negreta / cursiva
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  // Llistes
+  h = h.replace(/^\s*[-*] (.*)$/gm, '<li>$1</li>');
+  h = h.replace(/^\s*\d+\. (.*)$/gm, '<li>$1</li>');
+  h = h.replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g, '<ul class="ai-ul">$1</ul>');
+  // Salts de línia
+  h = h.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+  return h;
+}
+
 function _buildSystemPrompt() {
-  const modeP={rapid:'Respon concís. Màxim 3 paràgrafs.',extens:'Respon detalladament amb exemples.',profund:'Analitza en profunditat, pros i contres.',estudi:`Submode ${_estudiSub}.`};
-  const tasks=get(TASKS_KEY,[]).filter(t=>!t.done).slice(0,3).map(t=>t.name).join(', ');
+  const modeP={rapid:'Respon concís i directe. Màxim 3 paràgrafs.',extens:'Respon detalladament amb exemples i estructura.',profund:'Analitza en profunditat: context, pros, contres i conclusió.',estudi:`Mode estudi (${_estudiSub}): explica com un professor pacient, amb exemples i pas a pas.`};
+  // Context ric de l'usuari
   const hero=get('jomaxpath_hero_v2',null);
-  return `Ets Julians AI, l'assistent personal de JOmaxPath creat per JOmax. Intel·ligent, directe i motivador. Parles en català informal.${hero?` Usuari: ${hero.name}, NV.${hero.level}.`:''}${tasks?` Tasques: ${tasks}.`:''}
-Mode: ${modeP[_aiMode]||modeP.rapid} Data: ${new Date().toLocaleDateString('ca')}.`;
+  const cfg=get(CONFIG_KEY,{});
+  const lists=(typeof getLists==='function'?getLists():[])||[];
+  const pend=[]; lists.forEach(l=>(l.tasks||[]).forEach(t=>{ if(!t.done) pend.push(t.name+(t.date?` (venç ${t.date})`:'')); }));
+  const langNames={ca:'català',es:'castellà',en:'anglès'};
+  const lang=langNames[(typeof getLang==='function'?getLang():'ca')]||'català';
+  let ctx='';
+  if(hero?.name) ctx+=`\n- Usuari: ${hero.name} (nivell ${hero.level||1}).`;
+  if(cfg.mainGoal) ctx+=`\n- Objectiu principal: ${cfg.mainGoal}.`;
+  if(pend.length) ctx+=`\n- Tasques pendents: ${pend.slice(0,6).join('; ')}.`;
+  return `Ets Julians AI, l'assistent personal intel·ligent de l'app JOmaxPath, creat per JOmax.
+Personalitat: proper, motivador, clar i pràctic. Vas al gra però amb caliu. Ets expert en productivitat, estudi i organització.
+Respon SEMPRE en ${lang}. Usa markdown (negretes, llistes, encapçalaments) per organitzar les respostes i fer-les fàcils de llegir.
+Quan et demanin ajuda amb estudi o tasques, dóna passos concrets i accionables.
+Context de l'usuari:${ctx||' (sense dades encara)'}
+Estil de resposta: ${modeP[_aiMode]||modeP.rapid}
+Data d'avui: ${new Date().toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}.`;
 }
 function clearCurrentChat() {
   if (!confirm('Netejar el xat?')) return;
@@ -2692,12 +2738,44 @@ function toggleAISidebar() {
   const sb=document.getElementById('ai-sidebar'),btn=document.getElementById('ai-sidebar-toggle');
   if(sb){const open=sb.style.display!=='none';sb.style.display=open?'none':'flex';if(btn)btn.textContent=open?'▶':'◀';}
 }
-function handleFileAttach(input) {
+/* Extreu text de PDF / Word(.docx) / PowerPoint(.pptx) / TXT al navegador */
+async function extractFileText(file) {
+  const name=(file.name||'').toLowerCase();
+  try {
+    if (name.endsWith('.pdf') && window.pdfjsLib) {
+      const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+      let text='';
+      for (let i=1;i<=pdf.numPages;i++){ const page=await pdf.getPage(i); const c=await page.getTextContent(); text+=c.items.map(it=>it.str).join(' ')+'\n'; if(text.length>80000) break; }
+      return text.trim();
+    }
+    if (name.endsWith('.docx') && window.mammoth) {
+      const res=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+      return (res.value||'').trim();
+    }
+    if (name.endsWith('.pptx') && window.JSZip) {
+      const zip=await JSZip.loadAsync(await file.arrayBuffer());
+      const slides=Object.keys(zip.files).filter(f=>/ppt\/slides\/slide\d+\.xml$/.test(f)).sort();
+      let text='';
+      for (const f of slides){ const xml=await zip.files[f].async('string'); const m=xml.match(/<a:t>([^<]*)<\/a:t>/g)||[]; text+=m.map(s=>s.replace(/<\/?a:t>/g,'')).join(' ')+'\n'; }
+      return text.trim();
+    }
+    if (name.endsWith('.txt')||name.endsWith('.md')||(file.type||'').startsWith('text/')) {
+      return (await file.text()).trim();
+    }
+    if (name.endsWith('.doc')) return '__OLD_DOC__';
+    return '';
+  } catch(e){ return ''; }
+}
+
+async function handleFileAttach(input) {
   const file=input.files?.[0]; if(!file) return;
-  _attachment={name:file.name};
   const prev=document.getElementById('ai-doc-preview'); if(prev) prev.style.display='flex';
-  const icon=document.getElementById('ai-doc-icon'); if(icon) icon.textContent=file.name.endsWith('.pdf')?'📄':'📝';
-  const name=document.getElementById('ai-doc-name'); if(name) name.textContent=file.name;
+  const icon=document.getElementById('ai-doc-icon'); if(icon) icon.textContent=file.name.match(/\.pdf$/i)?'📄':file.name.match(/\.pptx?$/i)?'📊':'📝';
+  const nameEl=document.getElementById('ai-doc-name'); if(nameEl) nameEl.textContent='⏳ Llegint '+file.name+'...';
+  _attachment={name:file.name, text:''};
+  const txt=await extractFileText(file);
+  if (txt==='__OLD_DOC__') { if(nameEl) nameEl.textContent=file.name+' (.doc no suportat, desa\'l com .docx)'; }
+  else { _attachment.text=txt; if(nameEl) nameEl.textContent=file.name+(txt?` (${txt.length} car. llegits)`:' (sense text)'); }
   showToast(`📎 "${file.name}" adjuntat`);
 }
 function removeAttachment() {

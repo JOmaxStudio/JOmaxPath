@@ -49,8 +49,9 @@ async function handleJulians(request, env) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const system = (body.system || '').toString().slice(0, 4000);
+    const system = (body.system || '').toString().slice(0, 16000);
     const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
+    const maxTokens = Math.min(Math.max(parseInt(body.maxTokens) || 1024, 256), 8192);
 
     const contents = messages
       .filter((m) => m && m.content)
@@ -64,7 +65,7 @@ async function handleJulians(request, env) {
     const model = env.GEMINI_MODEL || MODEL_DEFAULT;
     const payload = {
       contents,
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.8 },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.8 },
     };
     if (system) payload.system_instruction = { parts: [{ text: system }] };
 
