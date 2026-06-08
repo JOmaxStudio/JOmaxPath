@@ -52,6 +52,7 @@ async function handleJulians(request, env) {
     const system = (body.system || '').toString().slice(0, 16000);
     const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
     const maxTokens = Math.min(Math.max(parseInt(body.maxTokens) || 1024, 256), 8192);
+    const jsonMode = !!body.jsonMode;
 
     const contents = messages
       .filter((m) => m && m.content)
@@ -65,8 +66,9 @@ async function handleJulians(request, env) {
     const model = env.GEMINI_MODEL || MODEL_DEFAULT;
     const payload = {
       contents,
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.8 },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: jsonMode ? 0.4 : 0.8 },
     };
+    if (jsonMode) payload.generationConfig.responseMimeType = 'application/json';
     if (system) payload.system_instruction = { parts: [{ text: system }] };
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;

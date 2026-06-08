@@ -1019,8 +1019,34 @@ function renderHome() {
   renderProgress();
   renderTodayPanel();
   renderNextTask();
+  renderExamCountdown();
   renderVictories();
   applyConfig();
+}
+
+function renderExamCountdown() {
+  const bar=document.getElementById('exam-countdown-bar'); if(!bar) return;
+  const exams=(typeof getExams==='function'?getExams():[])||[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  // Pròxim examen futur (o d'avui)
+  const upcoming=exams.filter(e=>e.date).map(e=>({...e, d:new Date(e.date+'T00:00:00')}))
+    .filter(e=>Math.round((e.d-today)/86400000)>=0)
+    .sort((a,b)=>a.d-b.d);
+  if(!upcoming.length){ bar.style.display='none'; return; }
+  const e=upcoming[0];
+  const diff=Math.round((e.d-today)/86400000);
+  const when=diff===0?'🔥 ÉS AVUI!':diff===1?'És demà!':'Falten '+diff+' dies';
+  const urgent=diff<=3;
+  bar.style.cssText=`display:flex;align-items:center;gap:14px;cursor:pointer;margin:14px 0;padding:14px 18px;border-radius:16px;background:linear-gradient(135deg,${urgent?'rgba(239,68,68,0.15),rgba(245,158,11,0.08)':'rgba(16,185,129,0.12),rgba(14,165,233,0.06)'});border:1px solid ${urgent?'rgba(239,68,68,0.3)':'rgba(16,185,129,0.25)'};`;
+  bar.innerHTML=`<div style="font-size:30px;">🎓</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:${urgent?'#fca5a5':'#6ee7b7'};">PRÒXIM EXAMEN</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div style="font-size:20px;font-weight:800;color:${urgent?'#fca5a5':'#6ee7b7'};">${diff===0?'AVUI':diff}</div>
+      <div style="font-size:9px;color:var(--muted);">${diff===0?'':diff===1?'dia':'dies'}</div>
+    </div>`;
 }
 
 /* ── Streak ── */
@@ -2654,11 +2680,11 @@ async function sendAI() {
   renderMessages();
 }
 /* Helper reutilitzable per cridar el Julians AI (xat + eina d'exàmens) */
-async function callJulians(messages, system, maxTokens) {
+async function callJulians(messages, system, maxTokens, jsonMode) {
   const response = await fetch('/api/julians', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ system: system||'', messages, maxTokens: maxTokens||1024 })
+    body:JSON.stringify({ system: system||'', messages, maxTokens: maxTokens||1024, jsonMode: !!jsonMode })
   });
   if (!response.ok) {
     let detail='HTTP '+response.status;
@@ -2667,6 +2693,19 @@ async function callJulians(messages, system, maxTokens) {
   }
   const data = await response.json();
   return data.reply || '';
+}
+
+/* Crida que retorna JSON parsejat (per flashcards i quiz) */
+async function callJuliansJSON(messages, system, maxTokens) {
+  const raw = await callJulians(messages, system, maxTokens||4096, true);
+  let txt = (raw||'').trim();
+  // Treu tanques de codi per si de cas
+  txt = txt.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  // Agafa des del primer [ o { fins l'últim ] o }
+  const start = Math.min(...[txt.indexOf('['), txt.indexOf('{')].filter(i=>i>=0));
+  const end = Math.max(txt.lastIndexOf(']'), txt.lastIndexOf('}'));
+  if (Number.isFinite(start) && end>start) txt = txt.slice(start, end+1);
+  return JSON.parse(txt);
 }
 
 /* Markdown → HTML (segur, per a les respostes de la IA) */
@@ -2892,6 +2931,7 @@ Sigues realista amb el temps disponible i motivador.`;
 function openExam(id){
   const exam=getExams().find(e=>e.id===id); if(!exam) return;
   _openExamId=id; _examTab='plan';
+  _flashIdx=0; _flashFlipped=false; _quizAnswers={};
   document.getElementById('exam-setup-view').style.display='none';
   document.getElementById('exam-detail-view').style.display='block';
   renderExamDetail();
@@ -2904,11 +2944,13 @@ function closeExam(){
 }
 function setExamTab(tab){
   _examTab=tab;
-  document.getElementById('exam-tab-btn-plan')?.classList.toggle('active',tab==='plan');
-  document.getElementById('exam-tab-btn-tutor')?.classList.toggle('active',tab==='tutor');
-  document.getElementById('exam-tab-plan').style.display=tab==='plan'?'block':'none';
-  document.getElementById('exam-tab-tutor').style.display=tab==='tutor'?'block':'none';
+  ['plan','tutor','cards','quiz'].forEach(t=>{
+    document.getElementById('exam-tab-btn-'+t)?.classList.toggle('active',t===tab);
+    const el=document.getElementById('exam-tab-'+t); if(el) el.style.display=t===tab?'block':'none';
+  });
   if(tab==='tutor') renderExamTutor();
+  if(tab==='cards') renderFlashcards();
+  if(tab==='quiz') renderQuiz();
 }
 function renderExamDetail(){
   const exam=getExams().find(e=>e.id===_openExamId); if(!exam){ closeExam(); return; }
@@ -2988,6 +3030,135 @@ ${(exam.syllabus||'').slice(0,28000)}
     exam.tutorMessages.push({role:'assistant',content:'⚠️ Error: '+(e.message||e)});
     setExams(getExams().map(e=>e.id===_openExamId?exam:e));
     renderExamTutor();
+  }
+}
+
+/* ── FLASHCARDS ── */
+let _flashIdx=0, _flashFlipped=false;
+function renderFlashcards(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const body=document.getElementById('exam-cards-body'); if(!body) return;
+  const cards=exam.cards||[];
+  if(cards.length===0){
+    body.innerHTML=`<div class="exam-empty-tool">
+      <div style="font-size:40px;margin-bottom:10px;">🃏</div>
+      <p>Genera flashcards automàtiques del teu temari per memoritzar amb repàs actiu.</p>
+      <button class="exam-generate-btn" style="max-width:320px;margin:14px auto 0;" onclick="generateFlashcards()">✨ Generar flashcards</button>
+    </div>`;
+    return;
+  }
+  if(_flashIdx>=cards.length) _flashIdx=0;
+  const c=cards[_flashIdx];
+  body.innerHTML=`
+    <div class="flash-counter">Targeta ${_flashIdx+1} / ${cards.length}</div>
+    <div class="flashcard ${_flashFlipped?'flipped':''}" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front"><span class="flashcard-tag">PREGUNTA</span><div class="flashcard-text">${(c.q||'').replace(/</g,'&lt;')}</div><div class="flashcard-hint">Clica per veure la resposta</div></div>
+        <div class="flashcard-face flashcard-back"><span class="flashcard-tag">RESPOSTA</span><div class="flashcard-text">${(c.a||'').replace(/</g,'&lt;')}</div></div>
+      </div>
+    </div>
+    <div class="flash-nav">
+      <button onclick="prevCard()" ${_flashIdx===0?'disabled':''}>← Anterior</button>
+      <button class="flash-regen" onclick="generateFlashcards()">↻ Regenerar</button>
+      <button onclick="nextCard()" ${_flashIdx===cards.length-1?'disabled':''}>Següent →</button>
+    </div>`;
+}
+function flipCard(){ _flashFlipped=!_flashFlipped; renderFlashcards(); }
+function nextCard(){ const exam=getExams().find(e=>e.id===_openExamId); if(_flashIdx<(exam.cards||[]).length-1){_flashIdx++;_flashFlipped=false;renderFlashcards();} }
+function prevCard(){ if(_flashIdx>0){_flashIdx--;_flashFlipped=false;renderFlashcards();} }
+async function generateFlashcards(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const body=document.getElementById('exam-cards-body');
+  if(body) body.innerHTML='<div class="exam-empty-tool"><div style="font-size:34px;">🃏</div><p>Generant flashcards...</p></div>';
+  try{
+    const sys='Generes flashcards d\'estudi en JSON. Respon NOMÉS amb un array JSON, sense text extra.';
+    const prompt=`A partir d'aquest temari, crea entre 8 i 12 flashcards (pregunta curta i resposta concisa) dels conceptes clau. Respon en català.
+Format EXACTE: [{"q":"pregunta","a":"resposta"}, ...]
+TEMARI:
+"""
+${(exam.syllabus||'').slice(0,24000)}
+"""`;
+    const data=await callJuliansJSON([{role:'user',content:prompt}], sys, 4096);
+    const cards=Array.isArray(data)?data:(data.cards||data.flashcards||[]);
+    if(!cards.length) throw new Error('sense targetes');
+    exam.cards=cards.filter(c=>c.q&&c.a);
+    setExams(getExams().map(e=>e.id===_openExamId?exam:e));
+    _flashIdx=0; _flashFlipped=false; renderFlashcards();
+    showToast('✅ '+exam.cards.length+' flashcards creades!');
+  }catch(e){
+    showToast('❌ Error: '+(e.message||e));
+    renderFlashcards();
+  }
+}
+
+/* ── QUIZ PUNTUAT ── */
+let _quizAnswers={};
+function renderQuiz(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const body=document.getElementById('exam-quiz-body'); if(!body) return;
+  const quiz=exam.quiz||[];
+  if(quiz.length===0){
+    body.innerHTML=`<div class="exam-empty-tool">
+      <div style="font-size:40px;margin-bottom:10px;">✅</div>
+      <p>Genera un test tipus examen amb correcció automàtica i nota.</p>
+      <button class="exam-generate-btn" style="max-width:320px;margin:14px auto 0;" onclick="generateQuiz()">✨ Generar quiz</button>
+    </div>`;
+    return;
+  }
+  const answered=Object.keys(_quizAnswers).length;
+  const correct=Object.entries(_quizAnswers).filter(([qi,oi])=>quiz[qi]&&oi===quiz[qi].correct).length;
+  const allDone=answered===quiz.length;
+  let html=`<div class="quiz-scorebar">
+    <span>Encerts: <b>${correct}/${quiz.length}</b></span>
+    <span style="flex:1;"></span>
+    <button class="flash-regen" onclick="generateQuiz()">↻ Nou quiz</button>
+  </div>`;
+  if(allDone){
+    const pct=Math.round(correct/quiz.length*100);
+    const msg=pct>=80?'🏆 Excel·lent!':pct>=50?'💪 Bé, segueix repassant!':'📚 Cal repassar més!';
+    html+=`<div class="quiz-result">Nota: <b>${pct}%</b> · ${msg}</div>`;
+  }
+  html+=quiz.map((q,qi)=>{
+    const sel=_quizAnswers[qi];
+    const done=sel!==undefined;
+    const opts=(q.options||[]).map((o,oi)=>{
+      let cls='quiz-opt';
+      if(done){ if(oi===q.correct) cls+=' correct'; else if(oi===sel) cls+=' wrong'; }
+      return `<button class="${cls}" ${done?'disabled':''} onclick="answerQuiz(${qi},${oi})">${String.fromCharCode(65+oi)}. ${(o||'').replace(/</g,'&lt;')}</button>`;
+    }).join('');
+    return `<div class="quiz-q">
+      <div class="quiz-q-text">${qi+1}. ${(q.question||'').replace(/</g,'&lt;')}</div>
+      <div class="quiz-opts">${opts}</div>
+      ${done?`<div class="quiz-explain">${sel===q.correct?'✅ Correcte!':'❌ Incorrecte.'} ${(q.explanation||'').replace(/</g,'&lt;')}</div>`:''}
+    </div>`;
+  }).join('');
+  body.innerHTML=html;
+}
+function answerQuiz(qi,oi){ _quizAnswers[qi]=oi; renderQuiz(); }
+async function generateQuiz(){
+  const exam=getExams().find(e=>e.id===_openExamId); if(!exam) return;
+  const body=document.getElementById('exam-quiz-body');
+  if(body) body.innerHTML='<div class="exam-empty-tool"><div style="font-size:34px;">✅</div><p>Generant el quiz...</p></div>';
+  try{
+    const sys='Generes tests d\'examen en JSON. Respon NOMÉS amb un array JSON, sense text extra.';
+    const prompt=`A partir d'aquest temari, crea 6 preguntes tipus test (opció múltiple) per practicar per l'examen. Respon en català.
+Cada pregunta amb 4 opcions, l'índex (0-3) de la correcta i una explicació breu.
+Format EXACTE: [{"question":"...","options":["a","b","c","d"],"correct":0,"explanation":"per què"}, ...]
+TEMARI:
+"""
+${(exam.syllabus||'').slice(0,24000)}
+"""`;
+    const data=await callJuliansJSON([{role:'user',content:prompt}], sys, 4096);
+    const quiz=Array.isArray(data)?data:(data.quiz||data.questions||[]);
+    const valid=quiz.filter(q=>q.question&&Array.isArray(q.options)&&q.options.length>=2&&typeof q.correct==='number');
+    if(!valid.length) throw new Error('sense preguntes');
+    exam.quiz=valid;
+    setExams(getExams().map(e=>e.id===_openExamId?exam:e));
+    _quizAnswers={}; renderQuiz();
+    showToast('✅ Quiz de '+valid.length+' preguntes creat!');
+  }catch(e){
+    showToast('❌ Error: '+(e.message||e));
+    renderQuiz();
   }
 }
 

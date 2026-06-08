@@ -1305,6 +1305,9 @@ body.view-pages.sb-collapsed-desktop .container {
       </div>
     </div>
 
+    <!-- ── COMPTE ENRERE EXAMEN ── -->
+    <div id="exam-countdown-bar" style="display:none;" onclick="navTo('examenia')"></div>
+
     <!-- ── STATS ROW RÀPID ── -->
     <div class="home-stats-row" id="home-stats-row">
       <div class="hsr-card" id="hsr-streak">
@@ -1740,8 +1743,10 @@ body.view-pages.sb-collapsed-desktop .container {
         </div>
       </div>
       <div class="exam-tabs">
-        <button class="exam-tab active" id="exam-tab-btn-plan" onclick="setExamTab('plan')">📅 Pla d'estudi</button>
-        <button class="exam-tab" id="exam-tab-btn-tutor" onclick="setExamTab('tutor')">💬 Tutor IA</button>
+        <button class="exam-tab active" id="exam-tab-btn-plan" onclick="setExamTab('plan')">📅 Pla</button>
+        <button class="exam-tab" id="exam-tab-btn-tutor" onclick="setExamTab('tutor')">💬 Tutor</button>
+        <button class="exam-tab" id="exam-tab-btn-cards" onclick="setExamTab('cards')">🃏 Flashcards</button>
+        <button class="exam-tab" id="exam-tab-btn-quiz" onclick="setExamTab('quiz')">✅ Quiz</button>
       </div>
 
       <div id="exam-tab-plan">
@@ -1752,15 +1757,24 @@ body.view-pages.sb-collapsed-desktop .container {
       <div id="exam-tab-tutor" style="display:none;">
         <div class="exam-tutor-quick">
           <button onclick="examTutorAsk('Fes-me un resum clar dels punts més importants del temari.')">📝 Resum</button>
-          <button onclick="examTutorAsk('Fes-me un test de 5 preguntes (amb opcions) sobre el temari per practicar.')">❓ Quiz</button>
           <button onclick="examTutorAsk('Explica\'m de forma senzilla el concepte més difícil del temari.')">💡 Explica</button>
-          <button onclick="examTutorAsk('Fes-me preguntes flash (pregunta-resposta) per memoritzar.')">🃏 Flashcards</button>
+          <button onclick="examTutorAsk('Posa\'m un exemple pràctic d\'un dels temes.')">🔍 Exemple</button>
         </div>
         <div id="exam-tutor-messages" class="exam-tutor-messages"></div>
         <div class="exam-tutor-inputbar">
           <input id="exam-tutor-input" class="exam-input" placeholder="Pregunta el que vulguis sobre el temari..." style="margin:0;" onkeydown="if(event.key==='Enter')examTutorSend()"/>
           <button onclick="examTutorSend()" class="exam-tutor-send">Enviar</button>
         </div>
+      </div>
+
+      <!-- FLASHCARDS -->
+      <div id="exam-tab-cards" style="display:none;">
+        <div id="exam-cards-body"></div>
+      </div>
+
+      <!-- QUIZ -->
+      <div id="exam-tab-quiz" style="display:none;">
+        <div id="exam-quiz-body"></div>
       </div>
     </div>
   </div>
