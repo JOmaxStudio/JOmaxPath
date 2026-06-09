@@ -3701,6 +3701,10 @@ const LANGS = {
     tasks_title2:'📋 Tasques a realitzar',
     qct_task:'📋 Tasca', qct_event:'📅 Event', qct_note:'📝 Nota',
     // Errors/missatges
+    pt_horari:'HORARI', pt_tasques:'TASQUES', pt_examenia:'PREPARAR EXÀMENS', pt_notes:'NOTES', pt_focus:'FOCUS',
+    sub_home:'Objectiu · Progrés · Ratxa · Hàbits', sub_tasques:'Deures · Treballs · Prioritats',
+    sub_examenia:'El teu tutor IA: penja el temari i et crea un pla d\'estudi', sub_notes:'Els teus apunts i recordatoris',
+    sub_julians:'Assistent intel·ligent · Documents', sub_focus:'Pomodoro · Pantalles · Motivació',
     msg_saved:'✅ Guardat!', msg_error:'❌ Error'
   },
   es: {
@@ -3738,6 +3742,10 @@ const LANGS = {
     sec_motivation_rules:'reglas de oro para no perder la motivación',
     tasks_title2:'📋 Tareas a realizar',
     qct_task:'📋 Tarea', qct_event:'📅 Evento', qct_note:'📝 Nota',
+    pt_horari:'HORARIO', pt_tasques:'TAREAS', pt_examenia:'PREPARAR EXÁMENES', pt_notes:'NOTAS', pt_focus:'FOCUS',
+    sub_home:'Objetivo · Progreso · Racha · Hábitos', sub_tasques:'Deberes · Trabajos · Prioridades',
+    sub_examenia:'Tu tutor IA: sube el temario y te crea un plan de estudio', sub_notes:'Tus apuntes y recordatorios',
+    sub_julians:'Asistente inteligente · Documentos', sub_focus:'Pomodoro · Pantallas · Motivación',
     msg_saved:'✅ Guardado!', msg_error:'❌ Error'
   },
   en: {
@@ -3775,6 +3783,10 @@ const LANGS = {
     sec_motivation_rules:'golden rules to stay motivated',
     tasks_title2:'📋 Tasks to do',
     qct_task:'📋 Task', qct_event:'📅 Event', qct_note:'📝 Note',
+    pt_horari:'SCHEDULE', pt_tasques:'TASKS', pt_examenia:'EXAM PREP', pt_notes:'NOTES', pt_focus:'FOCUS',
+    sub_home:'Goal · Progress · Streak · Habits', sub_tasques:'Homework · Projects · Priorities',
+    sub_examenia:'Your AI tutor: upload your syllabus and get a study plan', sub_notes:'Your notes and reminders',
+    sub_julians:'Smart assistant · Documents', sub_focus:'Pomodoro · Screens · Motivation',
     msg_saved:'✅ Saved!', msg_error:'❌ Error'
   }
 };
