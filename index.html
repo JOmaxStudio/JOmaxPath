@@ -2526,7 +2526,7 @@ body.view-pages.sb-collapsed-desktop .container {
 
 
 <!-- ═══ FULLSCREEN CLOCK OVERLAY ═══ -->
-<div id="clock-fullscreen">
+<div id="clock-fullscreen" onclick="closeClockFullscreen()">
   <!-- Left: upcoming tasks -->
   <div class="fs-side" onclick="closeClockFullscreen()">
     <div>
@@ -2571,6 +2571,8 @@ body.view-pages.sb-collapsed-desktop .container {
     <button id="fs-toggle-seconds" onclick="toggleClockSeconds()">⏱ Mostrar segons</button>
     <span id="fs-close-hint">ESC · clic per tancar</span>
   </div>
+  <!-- Botó tancar sempre visible (especialment a mòbil) -->
+  <button id="fs-close-btn" onclick="closeClockFullscreen()" title="Tancar">✕</button>
 </div>
 
 
@@ -3206,6 +3208,11 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
 /* ═══ ARREGLOS GENERALS (totes les mides) ═══ */
 /* El rellotge i l'hamburguer NO s'han d'imposar sobre modals, configuració ni pantalla completa */
 #nav-clock, #nav-hamburger { z-index: 250 !important; }
+/* Rellotge ampliat (zen): cobreix TOTA la pantalla (100dvh per iOS) i és clicable per sortir */
+#clock-fullscreen { inset: 0 !important; width: 100vw !important; height: 100dvh !important; min-height: 100dvh !important; z-index: 100000 !important; cursor: pointer !important; background: #060610 !important; overflow: hidden !important; }
+/* Botó × per tancar el rellotge zen (sempre visible, especialment a mòbil) */
+#fs-close-btn { position: absolute !important; top: 18px !important; right: 18px !important; width: 44px !important; height: 44px !important; border-radius: 50% !important; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.8) !important; font-size: 20px !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 1 !important; transition: background 0.2s !important; }
+#fs-close-btn:hover { background: rgba(255,255,255,0.2) !important; }
 /* Pomodoro normal: centra els números DINS l'anell (truc CSS Grid, com el fullscreen) */
 .pomo-ring-wrap { display: grid !important; place-items: center !important; position: relative !important; }
 .pomo-ring-wrap .pomo-svg { grid-area: 1 / 1 !important; width: 100% !important; height: 100% !important; display: block !important; }
