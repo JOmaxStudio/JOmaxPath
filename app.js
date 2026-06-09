@@ -3664,7 +3664,7 @@ function _applyLayoutMode(mode) {
 const LANG_KEY = 'jomaxpath_lang_v1';
 const LANGS = {
   ca: {
-    lang_name:'🐦 Català',
+    lang_name:'🌹 Català',
     // Salutacions
     greeting_morning:'Bon dia', greeting_afternoon:'Bona tarda', greeting_night:'Bona nit',
     greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',

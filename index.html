@@ -3196,7 +3196,20 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   #ai-main { width: 100% !important; flex: 1 1 auto !important; min-height: 60vh !important; }
   .ai-chat-messages { min-height: 38vh !important; max-height: none !important; }
   .ai-chat-input-row { position: sticky !important; bottom: 0 !important; }
+
+  /* L'hamburguer no ha de tapar el logo quan el menú lateral és obert */
+  body.lsb-mobile-open #lsb-mobile-btn { display: none !important; }
+  /* Rellotge zen: a mòbil, vista neta (només rellotge + data + controls) */
+  #clock-fullscreen .fs-side { display: none !important; }
 }
+
+/* ═══ ARREGLOS GENERALS (totes les mides) ═══ */
+/* El rellotge i l'hamburguer NO s'han d'imposar sobre modals, configuració ni pantalla completa */
+#nav-clock, #nav-hamburger { z-index: 250 !important; }
+/* Pomodoro normal: centra els números DINS l'anell (truc CSS Grid, com el fullscreen) */
+.pomo-ring-wrap { display: grid !important; place-items: center !important; position: relative !important; }
+.pomo-ring-wrap .pomo-svg { grid-area: 1 / 1 !important; width: 100% !important; height: 100% !important; display: block !important; }
+.pomo-ring-wrap .pomo-time { grid-area: 1 / 1 !important; position: static !important; inset: auto !important; }
 
 /* El header principal (títol de pàgina) no ha de quedar tapat */
 .page-title-bar {
