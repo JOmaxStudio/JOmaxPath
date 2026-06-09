@@ -176,7 +176,12 @@ try {
     _supabase = supabase.createClient(
       'https://toefrxqijvextqqngapx.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZWZyeHFpanZleHRxcW5nYXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzg3NDksImV4cCI6MjA5NTcxNDc0OX0.0fJvt9NZYRmA96MkFiHYjz3em5r3-jDjuOqvKjKG8vI',
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
+        // FIX deadlock: el lock per defecte de supabase-js (navigator.locks) es
+        // pot quedar bloquejat i deixa getSession() — i totes les consultes a BD
+        // que adjunten el token — penjades per sempre. Un lock no-bloquejant
+        // evita el deadlock (les consultes responen a l'instant).
+        lock: (name, acquireTimeout, fn) => fn() } }
     );
     // Test connectivity — any HTTP response means server is reachable
     Promise.race([
