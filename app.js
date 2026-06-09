@@ -515,17 +515,29 @@ function _translateAuthError(msg) {
   return msg;
 }
 
-async function authLogout() {
-  if (!confirm('Tancar sessió?')) return;
-  // Atura intervals per evitar memory leaks
-  if (window._autoSaveInterval) { clearInterval(window._autoSaveInterval); window._autoSaveInterval = null; }
-  if (_supabase) { try { await _supabase.auth.signOut(); } catch{} }
-  _currentUser = null; _userProfile = null; _saveLocalProfile(null);
-  closeConfig();
-  _updateAuthUI();
-  showToast('👋 Sessió tancada');
-  // Reinicia l'auto-save quan es torni a fer login
-  setTimeout(showAuthOverlay, 500);
+function authLogout() {
+  // Inline confirm via toast-style overlay to avoid browser confirm() being blocked
+  const existing = document.getElementById('_logout-confirm');
+  if (existing) { existing.remove(); return; }
+  const box = document.createElement('div');
+  box.id = '_logout-confirm';
+  box.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;border:1px solid rgba(239,68,68,0.4);border-radius:14px;padding:24px 28px;z-index:9999;text-align:center;color:#fff;font-family:"Space Mono",monospace;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:260px';
+  box.innerHTML = `<div style="margin-bottom:14px;font-size:14px">Tancar sessió?</div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button onclick="document.getElementById('_logout-confirm').remove()" style="padding:8px 18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#ccc;cursor:pointer;font-family:inherit;font-size:11px">Cancel·lar</button>
+      <button id="_logout-yes" style="padding:8px 18px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:8px;color:#fca5a5;cursor:pointer;font-family:inherit;font-size:11px">Sí, sortir</button>
+    </div>`;
+  document.body.appendChild(box);
+  document.getElementById('_logout-yes').onclick = async () => {
+    box.remove();
+    if (window._autoSaveInterval) { clearInterval(window._autoSaveInterval); window._autoSaveInterval = null; }
+    if (_supabase) { try { await _supabase.auth.signOut(); } catch{} }
+    _currentUser = null; _userProfile = null; _saveLocalProfile(null);
+    closeConfig();
+    _updateAuthUI();
+    showToast('👋 Sessió tancada');
+    setTimeout(showAuthOverlay, 500);
+  };
 }
 
 function authShowMenu() {
@@ -928,7 +940,12 @@ async function getHeroLeaderboard() {
     if (!error && data?.session?.user) {
       _currentUser = data.session.user;
       _loadUserProfile(data.session.user.id).then(()=>_updateAuthUI()).catch(()=>{});
-      _syncUserData(data.session.user.id).catch(()=>{});
+      _syncUserData(data.session.user.id).then(()=>{
+        // Re-render after cloud sync completes so new tasks are visible
+        if (typeof renderHome === 'function' && _currentPage === 'home') renderHome();
+        if (typeof renderTasques === 'function' && _currentPage === 'tasques') renderTasques();
+        if (typeof renderListsCollection === 'function' && _currentPage === 'tasques') renderListsCollection();
+      }).catch(()=>{});
       _updateAuthUI();
       authSkip();
     } else {
