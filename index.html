@@ -3162,15 +3162,22 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
    - Millora l'alineació general
 ══════════════════════════════════════════════════ */
 
-/* Padding dret per evitar solapament amb hamburger+rellotge (42px + 42px + 18px*3 gaps = ~140px) */
-.container {
-  padding-right: 150px !important;
+/* DESKTOP: padding dret per evitar solapament amb hamburger+rellotge fixos a dalt-dreta */
+@media(min-width: 769px) {
+  .container { padding-right: 150px !important; }
 }
+/* MÒBIL: contingut a TOTA AMPLADA, amb espai a dalt per la barra fixa (rellotge+menús)
+   i a baix per la barra de navegació. Així res queda comprimit ni tapat. */
 @media(max-width: 768px) {
-  .container { padding-right: 110px !important; }
-}
-@media(max-width: 480px) {
-  .container { padding-right: 100px !important; }
+  .container { padding: 72px 14px 96px !important; }
+  /* El títol de pàgina ja no queda sota l'hamburguer (el contingut comença sota la barra) */
+  .page-title-bar { padding-left: 0 !important; }
+  /* Amaga decoracions laterals que poden semblar barres */
+  .side-deco-left, .side-deco-right { display: none !important; }
+  /* Barra superior una mica més compacta a mòbil */
+  #nav-clock { top: 14px !important; }
+  #nav-hamburger { top: 14px !important; }
+  #lsb-mobile-btn { top: 14px !important; }
 }
 
 /* El header principal (títol de pàgina) no ha de quedar tapat */
