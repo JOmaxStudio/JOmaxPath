@@ -1597,7 +1597,7 @@ function setListsMode(mode) {
   const extras = document.getElementById('shared-extras');
   if (extras) extras.style.display = mode==='shared' ? 'block' : 'none';
   const title = document.getElementById('lists-collection-title');
-  if (title) title.textContent = mode==='shared' ? '🤝 Llistes compartides' : 'Les meves llistes';
+  if (title) title.textContent = mode==='shared' ? t('lst_shared') : t('lst_my');
   if (mode==='shared') { loadBoardInvites(); updateSharedTabBadge(); }
   renderListsCollection();
 }
@@ -1610,7 +1610,7 @@ function renderListsCollection() {
   if (lists.length===0) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 16px;color:var(--muted);">
       <div style="font-size:42px;margin-bottom:10px;opacity:0.5;">${_listsMode==='shared'?'🤝':'📋'}</div>
-      <div style="font-size:13px;line-height:1.6;">${_listsMode==='shared'?'Encara no tens llistes compartides.<br>Crea\'n una i convida amics, o uneix-te amb un codi.':'Encara no tens llistes.<br>Crea la teva primera! ↑'}</div>
+      <div style="font-size:13px;line-height:1.6;">${_listsMode==='shared'?t('lst_empty_shared'):t('lst_empty_personal')}</div>
     </div>`;
     return;
   }
@@ -1621,10 +1621,10 @@ function renderListsCollection() {
     return `<div class="list-card" onclick="openList('${l.id}')">
       <div class="list-card-top">
         <span class="list-card-icon">${l.icon||'📋'}</span>
-        ${l.shared?`<span class="list-card-badge">${l.ownerName&&l.ownerName!==(_userProfile?.username)?'de '+l.ownerName:'compartida'}</span>`:''}
+        ${l.shared?`<span class="list-card-badge">${l.ownerName&&l.ownerName!==(_userProfile?.username)?l.ownerName:t('lst_badge_shared')}</span>`:''}
       </div>
       <div class="list-card-name">${l.name}</div>
-      <div class="list-card-meta">${done}/${total} tasques fetes</div>
+      <div class="list-card-meta">${done}/${total} ${t('lst_tasks_done')}</div>
       <div class="list-card-bar"><div class="list-card-fill" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
@@ -1632,7 +1632,7 @@ function renderListsCollection() {
 
 /* ── Crear llista ── */
 function createNewList() {
-  _inputPrompt(_listsMode==='shared'?'Nova llista compartida':'Nova llista', 'Nom de la llista...', async (name)=>{
+  _inputPrompt(_listsMode==='shared'?t('np_new_shared'):t('np_new_list'), t('np_list_name'), async (name)=>{
     name = (name||'').trim(); if(!name) return;
     const lists = getLists()||[];
     const newList = {
@@ -1657,7 +1657,7 @@ function createNewList() {
       } catch {}
     }
     renderListsCollection();
-    showToast('✅ Llista creada!');
+    showToast(t('tt_list_created'));
     openList(newList.id);
   });
 }
@@ -1731,22 +1731,22 @@ function renderListDetail() {
   document.getElementById('ld-icon').textContent = list.icon||'📋';
   document.getElementById('ld-name').textContent = list.name;
   document.getElementById('ld-meta').textContent =
-    (list.shared?`Compartida${list.ownerName?(' · '+(list.members||[]).length+' membres'):''} · `:'') + `${done}/${total} fetes`;
+    (list.shared?`${t('lst_shared_meta')}${list.ownerName?(' · '+(list.members||[]).length+' '+t('lst_members')):''} · `:'') + `${done}/${total} ${t('lst_done')}`;
   // Accions
   const actions = document.getElementById('ld-actions');
   if (actions) {
     actions.innerHTML = list.shared
-      ? `<button class="ld-action-btn" onclick="shareList('${list.id}')">📤 Convidar amic</button>
-         <button class="ld-action-btn" onclick="openList('${list.id}')">🔄 Actualitzar</button>
-         <button class="ld-action-btn danger" onclick="deleteList('${list.id}')">🗑️ Sortir</button>`
-      : `<button class="ld-action-btn" onclick="deleteList('${list.id}')">🗑️ Eliminar llista</button>`;
+      ? `<button class="ld-action-btn" onclick="shareList('${list.id}')">${t('lst_invite')}</button>
+         <button class="ld-action-btn" onclick="openList('${list.id}')">${t('lst_refresh')}</button>
+         <button class="ld-action-btn danger" onclick="deleteList('${list.id}')">${t('lst_leave')}</button>`
+      : `<button class="ld-action-btn" onclick="deleteList('${list.id}')">${t('lst_delete')}</button>`;
   }
   // Poblar selector d'assignats (només llistes compartides)
   const assigneeSel = document.getElementById('ld-new-assignee');
   if (assigneeSel) {
     if (list.shared && (list.members||[]).length) {
       assigneeSel.style.display='';
-      assigneeSel.innerHTML = '<option value="">👥 Tothom</option>' + (list.members||[]).map(m=>`<option value="${m}">${m===(_userProfile?.username)?'🙋 Jo':'👤 '+m}</option>`).join('');
+      assigneeSel.innerHTML = `<option value="">${t('lst_everyone')}</option>` + (list.members||[]).map(m=>`<option value="${m}">${m===(_userProfile?.username)?t('lst_me'):'👤 '+m}</option>`).join('');
     } else {
       assigneeSel.style.display='none';
     }
@@ -1760,10 +1760,10 @@ function _dueChip(date) {
   const d = new Date(date+'T00:00:00');
   const diff = Math.round((d-today)/86400000);
   let color='var(--muted)', txt='📅 '+date;
-  if (diff<0) { color='#fca5a5'; txt='⚠️ Endarrerida'; }
-  else if (diff===0) { color='#fcd34d'; txt='🔥 Avui'; }
-  else if (diff===1) { color='#fcd34d'; txt='Demà'; }
-  else if (diff<=7) { color='#7dd3fc'; txt='En '+diff+' dies'; }
+  if (diff<0) { color='#fca5a5'; txt=t('due_overdue'); }
+  else if (diff===0) { color='#fcd34d'; txt=t('due_today'); }
+  else if (diff===1) { color='#fcd34d'; txt=t('due_tomorrow'); }
+  else if (diff<=7) { color='#7dd3fc'; txt=t('due_indays').replace('{n}',diff); }
   return `<span style="font-size:10px;color:${color};">${txt}</span>`;
 }
 function _assigneeChip(a) {
@@ -1776,7 +1776,7 @@ function renderListTasks(list) {
   const el = document.getElementById('ld-list-view');
   if (!el) return;
   const tasks = list.tasks||[];
-  if (tasks.length===0) { el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:24px;text-align:center;">Encara no hi ha tasques. Afegeix-ne una a dalt ↑</div>'; return; }
+  if (tasks.length===0) { el.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:24px;text-align:center;">${t('lst_no_tasks')}</div>`; return; }
   const prioColors={1:'#ef4444',2:'#f59e0b',3:'#3b82f6',4:'#64748b'};
   el.innerHTML = [...tasks].sort((a,b)=>(a.done-b.done)||((a.prio||3)-(b.prio||3))).map(t=>{
     const nLinks=(t.links||[]).length;
@@ -1798,7 +1798,7 @@ function renderListTasks(list) {
 function renderListKanban(list) {
   const el = document.getElementById('ld-kanban-view');
   if (!el) return;
-  const cols=[{k:'todo',t:'📥 Per fer'},{k:'doing',t:'⚡ Fent'},{k:'done',t:'✅ Fet'}];
+  const cols=[{k:'todo',t:t('kb_todo')},{k:'doing',t:t('kb_doing')},{k:'done',t:t('kb_done')}];
   const tasks=list.tasks||[];
   el.innerHTML = `<div class="ld-kanban-cols">${cols.map(c=>`
     <div class="ld-kcol" ondragover="event.preventDefault()" ondrop="dropListTask(event,'${c.k}')">
@@ -1923,7 +1923,7 @@ async function saveTaskEditor(){
   await _saveList(list);
   closeTaskEditor();
   renderListDetail();
-  showToast('✅ Tasca actualitzada');
+  showToast(t('tt_task_updated'));
 }
 function closeTaskEditor(){
   _editingTaskId=null;
@@ -1936,7 +1936,7 @@ function deleteList(id) {
   showDeleteConfirm(()=>{
     setLists((getLists()||[]).filter(l=>l.id!==id));
     closeList();
-    showToast(isShared?'👋 Has sortit de la llista':'🗑️ Llista eliminada');
+    showToast(isShared?t('tt_left_list'):t('tt_list_deleted'));
   });
 }
 
@@ -3709,6 +3709,17 @@ const LANGS = {
     qct_task:'📋 Tasca', qct_event:'📅 Event', qct_note:'📝 Nota',
     // Errors/missatges
     pt_horari:'HORARI', pt_tasques:'TASQUES', pt_examenia:'PREPARAR EXÀMENS', pt_notes:'NOTES', pt_focus:'FOCUS',
+    lst_my:'📋 Les meves llistes', lst_shared:'🤝 Llistes compartides', lst_new:'+ Nova llista',
+    lst_empty_personal:'Encara no tens llistes.<br>Crea la teva primera! ↑', lst_empty_shared:'Encara no tens llistes compartides.<br>Crea\'n una i convida amics, o uneix-te amb un codi.',
+    lst_tasks_done:'tasques fetes', lst_badge_shared:'compartida', lst_back:'← Tornar',
+    lst_invite:'📤 Convidar amic', lst_refresh:'🔄 Actualitzar', lst_leave:'🗑️ Sortir', lst_delete:'🗑️ Eliminar llista',
+    lst_task_ph:'Escriu una tasca i prem Enter...', lst_add:'+ Afegir', lst_no_tasks:'Encara no hi ha tasques. Afegeix-ne una a dalt ↑',
+    lst_shared_meta:'Compartida', lst_members:'membres', lst_done:'fetes', lst_everyone:'👥 Tothom', lst_me:'🙋 Jo',
+    kb_todo:'📥 Per fer', kb_doing:'⚡ Fent', kb_done:'✅ Fet',
+    due_overdue:'⚠️ Endarrerida', due_today:'🔥 Avui', due_tomorrow:'Demà', due_indays:'En {n} dies',
+    prio_urgent:'🔴 Urgent', prio_important:'🟡 Important', prio_normal:'🔵 Normal', prio_low:'⚪ Baix',
+    tt_list_created:'✅ Llista creada!', tt_task_updated:'✅ Tasca actualitzada', tt_list_deleted:'🗑️ Llista eliminada', tt_left_list:'👋 Has sortit de la llista',
+    np_new_list:'Nova llista', np_new_shared:'Nova llista compartida', np_list_name:'Nom de la llista...',
     sub_home:'Objectiu · Progrés · Ratxa · Hàbits', sub_tasques:'Deures · Treballs · Prioritats',
     sub_examenia:'El teu tutor IA: penja el temari i et crea un pla d\'estudi', sub_notes:'Els teus apunts i recordatoris',
     sub_julians:'Assistent intel·ligent · Documents', sub_focus:'Pomodoro · Pantalles · Motivació',
@@ -3750,6 +3761,17 @@ const LANGS = {
     tasks_title2:'📋 Tareas a realizar',
     qct_task:'📋 Tarea', qct_event:'📅 Evento', qct_note:'📝 Nota',
     pt_horari:'HORARIO', pt_tasques:'TAREAS', pt_examenia:'PREPARAR EXÁMENES', pt_notes:'NOTAS', pt_focus:'FOCUS',
+    lst_my:'📋 Mis listas', lst_shared:'🤝 Listas compartidas', lst_new:'+ Nueva lista',
+    lst_empty_personal:'Aún no tienes listas.<br>¡Crea la primera! ↑', lst_empty_shared:'Aún no tienes listas compartidas.<br>Crea una e invita amigos, o únete con un código.',
+    lst_tasks_done:'tareas hechas', lst_badge_shared:'compartida', lst_back:'← Volver',
+    lst_invite:'📤 Invitar amigo', lst_refresh:'🔄 Actualizar', lst_leave:'🗑️ Salir', lst_delete:'🗑️ Eliminar lista',
+    lst_task_ph:'Escribe una tarea y pulsa Enter...', lst_add:'+ Añadir', lst_no_tasks:'Aún no hay tareas. ¡Añade una arriba! ↑',
+    lst_shared_meta:'Compartida', lst_members:'miembros', lst_done:'hechas', lst_everyone:'👥 Todos', lst_me:'🙋 Yo',
+    kb_todo:'📥 Por hacer', kb_doing:'⚡ Haciendo', kb_done:'✅ Hecho',
+    due_overdue:'⚠️ Atrasada', due_today:'🔥 Hoy', due_tomorrow:'Mañana', due_indays:'En {n} días',
+    prio_urgent:'🔴 Urgente', prio_important:'🟡 Importante', prio_normal:'🔵 Normal', prio_low:'⚪ Bajo',
+    tt_list_created:'✅ ¡Lista creada!', tt_task_updated:'✅ Tarea actualizada', tt_list_deleted:'🗑️ Lista eliminada', tt_left_list:'👋 Has salido de la lista',
+    np_new_list:'Nueva lista', np_new_shared:'Nueva lista compartida', np_list_name:'Nombre de la lista...',
     sub_home:'Objetivo · Progreso · Racha · Hábitos', sub_tasques:'Deberes · Trabajos · Prioridades',
     sub_examenia:'Tu tutor IA: sube el temario y te crea un plan de estudio', sub_notes:'Tus apuntes y recordatorios',
     sub_julians:'Asistente inteligente · Documentos', sub_focus:'Pomodoro · Pantallas · Motivación',
@@ -3791,6 +3813,17 @@ const LANGS = {
     tasks_title2:'📋 Tasks to do',
     qct_task:'📋 Task', qct_event:'📅 Event', qct_note:'📝 Note',
     pt_horari:'SCHEDULE', pt_tasques:'TASKS', pt_examenia:'EXAM PREP', pt_notes:'NOTES', pt_focus:'FOCUS',
+    lst_my:'📋 My lists', lst_shared:'🤝 Shared lists', lst_new:'+ New list',
+    lst_empty_personal:'No lists yet.<br>Create your first one! ↑', lst_empty_shared:'No shared lists yet.<br>Create one and invite friends, or join with a code.',
+    lst_tasks_done:'tasks done', lst_badge_shared:'shared', lst_back:'← Back',
+    lst_invite:'📤 Invite friend', lst_refresh:'🔄 Refresh', lst_leave:'🗑️ Leave', lst_delete:'🗑️ Delete list',
+    lst_task_ph:'Type a task and press Enter...', lst_add:'+ Add', lst_no_tasks:'No tasks yet. Add one above! ↑',
+    lst_shared_meta:'Shared', lst_members:'members', lst_done:'done', lst_everyone:'👥 Everyone', lst_me:'🙋 Me',
+    kb_todo:'📥 To do', kb_doing:'⚡ Doing', kb_done:'✅ Done',
+    due_overdue:'⚠️ Overdue', due_today:'🔥 Today', due_tomorrow:'Tomorrow', due_indays:'In {n} days',
+    prio_urgent:'🔴 Urgent', prio_important:'🟡 Important', prio_normal:'🔵 Normal', prio_low:'⚪ Low',
+    tt_list_created:'✅ List created!', tt_task_updated:'✅ Task updated', tt_list_deleted:'🗑️ List deleted', tt_left_list:'👋 You left the list',
+    np_new_list:'New list', np_new_shared:'New shared list', np_list_name:'List name...',
     sub_home:'Goal · Progress · Streak · Habits', sub_tasques:'Homework · Projects · Priorities',
     sub_examenia:'Your AI tutor: upload your syllabus and get a study plan', sub_notes:'Your notes and reminders',
     sub_julians:'Smart assistant · Documents', sub_focus:'Pomodoro · Screens · Motivation',
@@ -3843,6 +3876,11 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (map[key]) _setI18nText(el, map[key]);
+  });
+  // Placeholders amb data-i18n-ph
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (map[key]) el.setAttribute('placeholder', map[key]);
   });
   // Actualitza botons del selector d'idioma
   document.querySelectorAll('.lang-btn').forEach(btn => {

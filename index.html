@@ -1623,8 +1623,8 @@ body.view-pages.sb-collapsed-desktop .container {
     <div id="lists-collection-view">
       <!-- Mode: Personal / Compartides -->
       <div class="tasks-mode-bar">
-        <button class="tasks-mode-btn active" id="lmode-personal" onclick="setListsMode('personal')">📋 Les meves llistes</button>
-        <button class="tasks-mode-btn" id="lmode-shared" onclick="setListsMode('shared')">🤝 Compartides <span id="shared-tab-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
+        <button class="tasks-mode-btn active" id="lmode-personal" onclick="setListsMode('personal')" data-i18n="lst_my">📋 Les meves llistes</button>
+        <button class="tasks-mode-btn" id="lmode-shared" onclick="setListsMode('shared')" data-i18n="lst_shared">🤝 Compartides <span id="shared-tab-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:50%;font-size:9px;font-family:'Space Mono',monospace;padding:1px 5px;margin-left:4px;vertical-align:middle;"></span></button>
       </div>
 
       <!-- Extres del mode compartit: unir-se per codi + invitacions -->
@@ -1641,7 +1641,7 @@ body.view-pages.sb-collapsed-desktop .container {
 
       <div class="lists-header-row">
         <h3 id="lists-collection-title" class="shared-boards-h3">Les meves llistes</h3>
-        <button class="create-board-btn" onclick="createNewList()">+ Nova llista</button>
+        <button class="create-board-btn" onclick="createNewList()" data-i18n="lst_new">+ Nova llista</button>
       </div>
       <div id="lists-grid"></div>
     </div>
@@ -1649,7 +1649,7 @@ body.view-pages.sb-collapsed-desktop .container {
     <!-- ═══ VISTA DETALL: dins d'una llista ═══ -->
     <div id="list-detail-view" style="display:none;">
       <div class="list-detail-header">
-        <button class="list-back-btn" onclick="closeList()">← Tornar</button>
+        <button class="list-back-btn" onclick="closeList()" data-i18n="lst_back">← Tornar</button>
         <div class="list-detail-titlewrap">
           <span id="ld-icon" class="ld-icon">📋</span>
           <div>
@@ -1669,16 +1669,16 @@ body.view-pages.sb-collapsed-desktop .container {
 
       <!-- Afegir tasca -->
       <div class="ld-add-row">
-        <input type="text" id="ld-new-task" placeholder="Escriu una tasca i prem Enter..." maxlength="120" onkeydown="if(event.key==='Enter')addListTask()"/>
+        <input type="text" id="ld-new-task" data-i18n-ph="lst_task_ph" placeholder="Escriu una tasca i prem Enter..." maxlength="120" onkeydown="if(event.key==='Enter')addListTask()"/>
         <input type="date" id="ld-new-date" class="ld-prio-select" title="Data límit (opcional)"/>
         <select id="ld-new-prio" class="ld-prio-select">
-          <option value="1">🔴 Urgent</option>
-          <option value="2">🟡 Important</option>
-          <option value="3" selected>🔵 Normal</option>
-          <option value="4">⚪ Baix</option>
+          <option value="1" data-i18n="prio_urgent">🔴 Urgent</option>
+          <option value="2" data-i18n="prio_important">🟡 Important</option>
+          <option value="3" selected data-i18n="prio_normal">🔵 Normal</option>
+          <option value="4" data-i18n="prio_low">⚪ Baix</option>
         </select>
         <select id="ld-new-assignee" class="ld-prio-select" style="display:none;" title="Assignar a un membre"></select>
-        <button class="ld-add-btn" onclick="addListTask()">+ Afegir</button>
+        <button class="ld-add-btn" onclick="addListTask()" data-i18n="lst_add">+ Afegir</button>
       </div>
 
       <div id="ld-list-view"></div>
