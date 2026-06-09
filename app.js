@@ -555,6 +555,24 @@ async function _loadUserProfile(userId) {
   _saveLocalProfile(_userProfile);
 }
 
+// Merge arrays by id: cloud items + local items not already in cloud
+function _mergeById(cloudArr, localArr) {
+  if (!Array.isArray(cloudArr)) return Array.isArray(localArr) ? localArr : [];
+  if (!Array.isArray(localArr)) return cloudArr;
+  const cloudIds = new Set(cloudArr.map(x => x.id));
+  const onlyLocal = localArr.filter(x => !cloudIds.has(x.id));
+  return [...cloudArr, ...onlyLocal];
+}
+
+// Merge lists (jomaxpath_lists_v3) by list id
+function _mergeLists(cloudLists, localLists) {
+  if (!Array.isArray(cloudLists)) return Array.isArray(localLists) ? localLists : [];
+  if (!Array.isArray(localLists)) return cloudLists;
+  const cloudIds = new Set(cloudLists.map(l => l.id));
+  const onlyLocal = localLists.filter(l => !cloudIds.has(l.id));
+  return [...cloudLists, ...onlyLocal];
+}
+
 async function _syncUserData(userId) {
   if (!_supabase || !userId || userId.startsWith('local_')) return;
   try {
@@ -564,11 +582,24 @@ async function _syncUserData(userId) {
     ]);
     if (data?.data) {
       const d = data.data;
-      ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
+      // Simple overwrite keys (no merge needed)
+      ['jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
        'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
        'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
         if(d[k]) try { localStorage.setItem(k,JSON.stringify(d[k])); } catch{}
       });
+      // Merge tasks: cloud + local tasks not in cloud (preserves [AUDIT] and local tasks)
+      if (d['jomaxpath_tasks']) {
+        const localTasks = get('jomaxpath_tasks', []);
+        const merged = _mergeById(d['jomaxpath_tasks'], localTasks);
+        try { localStorage.setItem('jomaxpath_tasks', JSON.stringify(merged)); } catch{}
+      }
+      // Merge lists v3: cloud + local lists not in cloud
+      if (d['jomaxpath_lists_v3']) {
+        const localLists = get('jomaxpath_lists_v3', []);
+        const merged = _mergeLists(d['jomaxpath_lists_v3'], localLists);
+        try { localStorage.setItem('jomaxpath_lists_v3', JSON.stringify(merged)); } catch{}
+      }
       showToast('☁️ Dades sincronitzades!');
     }
   } catch{} // Silently ignore — tables may not exist yet
@@ -578,7 +609,7 @@ async function _saveUserDataToCloud(userId) {
   if (!_supabase||!userId||userId.startsWith('local_')) return;
   try {
     const data = {};
-    ['jomaxpath_tasks','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
+    ['jomaxpath_tasks','jomaxpath_lists_v3','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
      'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
      'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
       try { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch{}
