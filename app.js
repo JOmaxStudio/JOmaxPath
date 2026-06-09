@@ -31,6 +31,13 @@ function set(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 function pad2(n) { return String(n).padStart(2,'0'); }
+// Escapa HTML per evitar XSS emmagatzemat quan s'injecta contingut d'usuari
+// (noms de tasques/llistes/usuaris) dins d'innerHTML.
+function _esc(s) {
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 let _toastTimer;
 function showToast(msg, duration=3200) {
@@ -148,7 +155,212 @@ function navTo(page) {
   // Aplica traduccions al contingut de la nova pàgina
   setTimeout(()=>{ try { if(typeof applyLanguage==='function') applyLanguage(); } catch(e){} }, 30);
 
+  // Tanca SEMPRE la barra lateral mòbil en navegar (defensa centralitzada)
+  if (typeof lsbMobileClose === 'function') lsbMobileClose();
+
   window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ─────────────────────────────────────────
+   ONBOARDING (primera vegada) — l'usuari tria
+   entre tour ràpid (modal) o tour complet (guiat)
+───────────────────────────────────────── */
+const ONBOARDING_KEY = 'jomaxpath_onboarded_v1';
+
+function _onbDone() { try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch {} _onbCleanup(); }
+function _onbCleanup() { document.getElementById('onb-root')?.remove(); }
+
+function _maybeShowOnboarding(force) {
+  if (!force) {
+    try { if (localStorage.getItem(ONBOARDING_KEY)) return; } catch {}
+    // No el mostris mentre la pantalla de login és visible
+    const ov = document.getElementById('auth-overlay');
+    if (ov && getComputedStyle(ov).display !== 'none') return;
+  }
+  _onbCleanup();
+  const root = document.createElement('div');
+  root.id = 'onb-root';
+  root.innerHTML = `
+    <div class="onb-backdrop"></div>
+    <div class="onb-welcome">
+      <div class="onb-emoji">🚀</div>
+      <h2>Benvingut/da a JOmaxPath!</h2>
+      <p>El teu planificador personal amb heroi, tasques, hàbits i IA. Vols fer una petita visita guiada?</p>
+      <div class="onb-choices">
+        <button class="onb-btn onb-primary" id="onb-quick">⚡ Tour ràpid<small>3 passos clau</small></button>
+        <button class="onb-btn" id="onb-full">🧭 Tour complet<small>visita guiada</small></button>
+      </div>
+      <button class="onb-skip" id="onb-skip">Ara no, gràcies</button>
+    </div>`;
+  document.body.appendChild(root);
+  _injectOnbStyles();
+  document.getElementById('onb-quick').onclick = () => _onbStartQuick();
+  document.getElementById('onb-full').onclick  = () => _onbStartFull();
+  document.getElementById('onb-skip').onclick  = () => _onbDone();
+  root.querySelector('.onb-backdrop').onclick  = () => _onbDone();
+}
+
+/* ── Tour ràpid: modal amb 3 diapositives ── */
+const _ONB_QUICK = [
+  { ico:'🎯', t:'Defineix el teu objectiu', d:'A la pàgina d\'inici tens "El meu objectiu". Marca\'l pas a pas i veuràs el teu progrés.' },
+  { ico:'✅', t:'Crea tasques i llistes', d:'A "Tasques" pots crear llistes personals o compartides, amb vista Llista o Kanban, prioritats i dates.' },
+  { ico:'⚔️', t:'Fes créixer el teu heroi', d:'Completant sessions i hàbits guanyes XP: el teu heroi puja de nivell i evoluciona.' }
+];
+let _onbQuickIdx = 0;
+function _onbStartQuick() {
+  _onbQuickIdx = 0;
+  const root = document.getElementById('onb-root');
+  root.querySelector('.onb-welcome')?.remove();
+  const card = document.createElement('div');
+  card.className = 'onb-quick';
+  root.appendChild(card);
+  _onbRenderQuick();
+}
+function _onbRenderQuick() {
+  const s = _ONB_QUICK[_onbQuickIdx];
+  const card = document.querySelector('.onb-quick');
+  if (!card) return;
+  const last = _onbQuickIdx === _ONB_QUICK.length - 1;
+  card.innerHTML = `
+    <div class="onb-emoji">${s.ico}</div>
+    <h2>${_esc(s.t)}</h2>
+    <p>${_esc(s.d)}</p>
+    <div class="onb-dots">${_ONB_QUICK.map((_,i)=>`<span class="${i===_onbQuickIdx?'on':''}"></span>`).join('')}</div>
+    <div class="onb-quick-nav">
+      ${_onbQuickIdx>0?`<button class="onb-btn onb-ghost" id="onb-prev">‹ Anterior</button>`:'<span></span>'}
+      <button class="onb-btn onb-primary" id="onb-next">${last?'Comencem! 🎉':'Següent ›'}</button>
+    </div>`;
+  const prev = document.getElementById('onb-prev');
+  if (prev) prev.onclick = () => { _onbQuickIdx--; _onbRenderQuick(); };
+  document.getElementById('onb-next').onclick = () => {
+    if (last) { _onbDone(); if (typeof navTo==='function') navTo('home'); }
+    else { _onbQuickIdx++; _onbRenderQuick(); }
+  };
+}
+
+/* ── Tour complet: spotlight sobre elements reals ── */
+const _ONB_FULL = [
+  { sel:'#left-sidebar .lsb-nav, #bnav', t:'Navegació', d:'Des d\'aquí accedeixes a totes les seccions: Inici, Horari, Tasques, Focus, Julians AI i més.' },
+  { sel:'[data-tip="Tasques"], [onclick*="tasques"]', t:'Tasques i llistes', d:'Organitza la teva feina en llistes personals o compartides amb amics, amb vista Llista o Kanban.' },
+  { sel:'[data-tip="Focus"], [onclick*="focus"]', t:'Mode Focus (Pomodoro)', d:'Concentra\'t amb el temporitzador Pomodoro. Cada sessió completada dóna XP al teu heroi.' },
+  { sel:'[data-tip="Julians AI"], [onclick*="julians"]', t:'Julians AI', d:'El teu assistent intel·ligent: pregunta\'l el que vulguis sobre les teves tasques i objectius.' },
+  { sel:'#lsb-hero-mini, .lsb-hero-mini', t:'El teu heroi', d:'El teu avatar evoluciona a mesura que progresses. Clica\'l per personalitzar-lo i veure les lligues.' },
+  { sel:'#lsb-mobile-btn, #nav-hamburger, [onclick*="Config"], [onclick*="config"]', t:'Configuració', d:'Canvia el tema, l\'idioma i el teu objectiu principal des de la configuració. Ja estàs a punt! 🎉' }
+];
+let _onbFullIdx = 0;
+function _onbStartFull() {
+  _onbFullIdx = 0;
+  const root = document.getElementById('onb-root');
+  root.querySelector('.onb-welcome')?.remove();
+  root.querySelector('.onb-backdrop')?.remove();
+  const spot = document.createElement('div'); spot.className='onb-spot'; spot.id='onb-spot';
+  const tip = document.createElement('div'); tip.className='onb-tip'; tip.id='onb-tip';
+  root.appendChild(spot); root.appendChild(tip);
+  window.addEventListener('resize', _onbPositionFull);
+  _onbRenderFull();
+}
+function _onbFindTarget(sel) {
+  for (const s of sel.split(',')) {
+    const el = document.querySelector(s.trim());
+    if (el && el.getBoundingClientRect().width > 0) return el;
+  }
+  return null;
+}
+function _onbRenderFull() {
+  const step = _ONB_FULL[_onbFullIdx];
+  const last = _onbFullIdx === _ONB_FULL.length - 1;
+  const tip = document.getElementById('onb-tip');
+  if (!tip) return;
+  tip.innerHTML = `
+    <div class="onb-tip-step">${_onbFullIdx+1} / ${_ONB_FULL.length}</div>
+    <h3>${_esc(step.t)}</h3>
+    <p>${_esc(step.d)}</p>
+    <div class="onb-quick-nav">
+      <button class="onb-btn onb-ghost" id="onb-fskip">Sortir</button>
+      <div style="display:flex;gap:8px;">
+        ${_onbFullIdx>0?`<button class="onb-btn onb-ghost" id="onb-fprev">‹</button>`:''}
+        <button class="onb-btn onb-primary" id="onb-fnext">${last?'Acabar 🎉':'Següent ›'}</button>
+      </div>
+    </div>`;
+  document.getElementById('onb-fskip').onclick = () => _onbEndFull();
+  const fprev = document.getElementById('onb-fprev');
+  if (fprev) fprev.onclick = () => { _onbFullIdx--; _onbRenderFull(); };
+  document.getElementById('onb-fnext').onclick = () => {
+    if (last) _onbEndFull();
+    else { _onbFullIdx++; _onbRenderFull(); }
+  };
+  _onbPositionFull();
+}
+function _onbPositionFull() {
+  const step = _ONB_FULL[_onbFullIdx];
+  const spot = document.getElementById('onb-spot');
+  const tip = document.getElementById('onb-tip');
+  if (!spot || !tip) return;
+  const target = _onbFindTarget(step.sel);
+  if (!target) { // sense element → centra el tooltip sense spotlight
+    spot.style.opacity = '0';
+    tip.style.left = '50%'; tip.style.top = '50%'; tip.style.transform = 'translate(-50%,-50%)';
+    return;
+  }
+  target.scrollIntoView({block:'center', behavior:'smooth'});
+  const r = target.getBoundingClientRect();
+  const pad = 8;
+  spot.style.opacity = '1';
+  spot.style.left = (r.left-pad)+'px'; spot.style.top = (r.top-pad)+'px';
+  spot.style.width = (r.width+pad*2)+'px'; spot.style.height = (r.height+pad*2)+'px';
+  // Col·loca el tooltip al costat amb més espai
+  const tw = 300, th = 200, vw = window.innerWidth, vh = window.innerHeight;
+  let left, top;
+  if (r.right + tw + 20 < vw) { left = r.right + 16; top = Math.min(Math.max(10, r.top), vh - th); }
+  else if (r.left - tw - 20 > 0) { left = r.left - tw - 16; top = Math.min(Math.max(10, r.top), vh - th); }
+  else { left = Math.max(10, Math.min(r.left, vw - tw - 10)); top = r.bottom + 16 + th < vh ? r.bottom + 16 : Math.max(10, r.top - th - 16); }
+  tip.style.transform = 'none';
+  tip.style.left = left+'px'; tip.style.top = top+'px';
+}
+function _onbEndFull() {
+  window.removeEventListener('resize', _onbPositionFull);
+  _onbDone();
+}
+
+function _injectOnbStyles() {
+  if (document.getElementById('onb-styles')) return;
+  const st = document.createElement('style'); st.id='onb-styles';
+  st.textContent = `
+    #onb-root{position:fixed;inset:0;z-index:100000;font-family:'Rajdhani',sans-serif;}
+    .onb-backdrop{position:absolute;inset:0;background:rgba(5,5,15,0.78);backdrop-filter:blur(3px);}
+    .onb-welcome,.onb-quick{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,92vw);
+      background:linear-gradient(160deg,#1b1b30,#14141f);border:1px solid rgba(124,58,237,0.35);
+      border-radius:20px;padding:30px 28px;text-align:center;color:#e8e8f0;
+      box-shadow:0 20px 60px rgba(0,0,0,0.6);animation:onbIn .35s cubic-bezier(.2,.9,.3,1.2);}
+    @keyframes onbIn{from{opacity:0;transform:translate(-50%,-44%) scale(.94);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+    .onb-emoji{font-size:46px;margin-bottom:10px;}
+    #onb-root h2{font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;}
+    #onb-root p{font-size:14px;line-height:1.6;color:#b9b9cc;margin:0 0 20px;}
+    .onb-choices{display:flex;gap:12px;margin-bottom:14px;}
+    .onb-btn{flex:1;cursor:pointer;border-radius:12px;padding:13px 14px;font-family:inherit;font-size:14px;font-weight:700;
+      background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#e8e8f0;transition:all .18s;
+      display:flex;flex-direction:column;gap:3px;align-items:center;}
+    .onb-btn small{font-size:10px;font-weight:500;color:#9a9ab0;letter-spacing:.5px;}
+    .onb-btn:hover{transform:translateY(-2px);border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.12);}
+    .onb-primary{background:linear-gradient(135deg,#7c3aed,#00b4d8);border-color:transparent;color:#fff;}
+    .onb-primary small{color:rgba(255,255,255,0.8);}
+    .onb-ghost{flex:none;background:transparent;border-color:rgba(255,255,255,0.12);}
+    .onb-skip{margin-top:6px;background:none;border:none;color:#7a7a90;cursor:pointer;font-family:inherit;font-size:12px;text-decoration:underline;}
+    .onb-dots{display:flex;gap:7px;justify-content:center;margin:4px 0 18px;}
+    .onb-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.18);transition:all .2s;}
+    .onb-dots span.on{background:#7c3aed;width:22px;border-radius:4px;}
+    .onb-quick-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .onb-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(5,5,15,0.78),0 0 0 2px #7c3aed,0 0 24px rgba(124,58,237,0.7);
+      transition:all .35s cubic-bezier(.2,.8,.3,1);pointer-events:none;z-index:1;}
+    .onb-tip{position:fixed;width:300px;max-width:92vw;background:linear-gradient(160deg,#1b1b30,#14141f);
+      border:1px solid rgba(124,58,237,0.4);border-radius:16px;padding:18px 20px;color:#e8e8f0;z-index:2;
+      box-shadow:0 16px 48px rgba(0,0,0,0.6);transition:left .3s,top .3s;}
+    .onb-tip-step{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:#a78bfa;margin-bottom:6px;}
+    .onb-tip h3{margin:0 0 6px;font-size:17px;color:#fff;font-weight:800;}
+    .onb-tip p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#b9b9cc;}
+    @media(max-width:480px){.onb-choices{flex-direction:column;}.onb-tip{width:300px;}}
+  `;
+  document.head.appendChild(st);
 }
 
 /* ─────────────────────────────────────────
@@ -183,12 +395,25 @@ try {
         // evita el deadlock (les consultes responen a l'instant).
         lock: (name, acquireTimeout, fn) => fn() } }
     );
-    // Test connectivity — any HTTP response means server is reachable
-    Promise.race([
-      fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health'),
-      new Promise((_,rej) => setTimeout(()=>rej(new Error('ping-timeout')), 5000))
-    ]).then(() => { /* got HTTP response = server is up */ })
-      .catch(() => { _supabaseOffline = true; _updateServerStatusIndicator(); });
+    // Comprovació de connectivitat amb AUTO-RECUPERACIÓ. Abans _supabaseOffline
+    // només passava a true i mai tornava a false → l'avís "servidor no disponible"
+    // es quedava per sempre després d'un tall transitori. Ara re-comprova i
+    // amaga l'avís quan el servidor torna a respondre.
+    window._checkConnectivity = async function() {
+      try {
+        const ctrl = new AbortController();
+        const to = setTimeout(()=>ctrl.abort(), 5000);
+        // Qualsevol resposta HTTP (fins i tot 401) = servidor accessible
+        await fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health', { signal: ctrl.signal });
+        clearTimeout(to);
+        if (_supabaseOffline) { _supabaseOffline = false; _updateServerStatusIndicator(); }
+      } catch {
+        if (!_supabaseOffline) { _supabaseOffline = true; _updateServerStatusIndicator(); }
+      }
+    };
+    _checkConnectivity();
+    // Re-comprova cada 30s perquè l'avís s'actualitzi sol (online↔offline)
+    setInterval(_checkConnectivity, 30000);
   }
 } catch {}
 
@@ -252,7 +477,11 @@ function authSkip() {
   _hideAuthOverlay();
   if (!_currentUser) { _updateAuthUI(); }
   renderHome();
+  // Onboarding la primera vegada (l'usuari tria tour ràpid o complet)
+  setTimeout(()=>{ if (typeof _maybeShowOnboarding==='function') _maybeShowOnboarding(); }, 1100);
 }
+// Permet re-llançar el tour des de configuració
+window.startOnboarding = function(){ if (typeof _maybeShowOnboarding==='function') _maybeShowOnboarding(true); };
 
 async function authWithGoogle() {
   if (!_supabase) {
@@ -1725,9 +1954,9 @@ function renderListsCollection() {
     return `<div class="list-card" onclick="openList('${l.id}')">
       <div class="list-card-top">
         <span class="list-card-icon">${l.icon||'📋'}</span>
-        ${l.shared?`<span class="list-card-badge">${l.ownerName&&l.ownerName!==(_userProfile?.username)?l.ownerName:t('lst_badge_shared')}</span>`:''}
+        ${l.shared?`<span class="list-card-badge">${l.ownerName&&l.ownerName!==(_userProfile?.username)?_esc(l.ownerName):t('lst_badge_shared')}</span>`:''}
       </div>
-      <div class="list-card-name">${l.name}</div>
+      <div class="list-card-name">${_esc(l.name)}</div>
       <div class="list-card-meta">${done}/${total} ${t('lst_tasks_done')}</div>
       <div class="list-card-bar"><div class="list-card-fill" style="width:${pct}%"></div></div>
     </div>`;
@@ -1859,7 +2088,7 @@ function renderListDetail() {
   if (assigneeSel) {
     if (list.shared && (list.members||[]).length) {
       assigneeSel.style.display='';
-      assigneeSel.innerHTML = `<option value="">${t('lst_everyone')}</option>` + (list.members||[]).map(m=>`<option value="${m}">${m===(_userProfile?.username)?t('lst_me'):'👤 '+m}</option>`).join('');
+      assigneeSel.innerHTML = `<option value="">${t('lst_everyone')}</option>` + (list.members||[]).map(m=>`<option value="${_esc(m)}">${m===(_userProfile?.username)?t('lst_me'):'👤 '+_esc(m)}</option>`).join('');
     } else {
       assigneeSel.style.display='none';
     }
@@ -1882,7 +2111,7 @@ function _dueChip(date) {
 function _assigneeChip(a) {
   if (!a) return '';
   const isMe = a===(_userProfile?.username);
-  return `<span style="font-size:9px;color:${isMe?'#c4b5fd':'var(--muted)'};background:${isMe?'rgba(124,58,237,0.15)':'rgba(255,255,255,0.05)'};border-radius:10px;padding:1px 7px;white-space:nowrap;">${isMe?'🙋 Jo':'👤 '+a}</span>`;
+  return `<span style="font-size:9px;color:${isMe?'#c4b5fd':'var(--muted)'};background:${isMe?'rgba(124,58,237,0.15)':'rgba(255,255,255,0.05)'};border-radius:10px;padding:1px 7px;white-space:nowrap;">${isMe?'🙋 Jo':'👤 '+_esc(a)}</span>`;
 }
 
 function renderListTasks(list) {
@@ -1898,8 +2127,8 @@ function renderListTasks(list) {
       <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
       <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
       <div class="ld-task-body" onclick="openTaskEditor('${t.id}')" style="cursor:pointer;">
-        <div class="ld-task-name">${t.name}</div>
-        ${t.desc?`<div class="ld-task-desc">${(t.desc||'').slice(0,80).replace(/</g,'&lt;')}${t.desc.length>80?'…':''}</div>`:''}
+        <div class="ld-task-name">${_esc(t.name)}</div>
+        ${t.desc?`<div class="ld-task-desc">${_esc((t.desc||'').slice(0,80))}${t.desc.length>80?'…':''}</div>`:''}
         ${(t.date||t.assignee||nLinks)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}</div>`:''}
       </div>
       <button class="ld-task-edit" onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
@@ -1919,7 +2148,7 @@ function renderListKanban(list) {
       <div class="ld-kcol-body">
         ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>`
           <div class="ld-kcard" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
-            <div class="ld-kcard-name">${t.name}</div>
+            <div class="ld-kcard-name">${_esc(t.name)}</div>
             ${(t.date||t.assignee)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
             <div class="ld-kcard-foot">
               ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
@@ -1941,7 +2170,7 @@ async function addListTask() {
   const prioSel = document.getElementById('ld-new-prio');
   const dateInp = document.getElementById('ld-new-date');
   const assigneeSel = document.getElementById('ld-new-assignee');
-  const name = (inp?.value||'').trim();
+  const name = (inp?.value||'').trim().slice(0,200); // límit de longitud (defensa)
   if (!name) return;
   const list = _getList(_openListId); if(!list) return;
   if (!list.tasks) list.tasks=[];
@@ -3679,6 +3908,7 @@ document.addEventListener('keydown',e=>{
     closeClockFullscreen();closeDayModal();closeMonthModal();closeTaskDetail();
     const drawer=document.getElementById('nav-drawer');
     if(drawer?.classList.contains('open')) toggleDrawer();
+    if(typeof lsbMobileClose==='function') lsbMobileClose();
   }
   if(e.key==='?'&&e.shiftKey) openShortcuts();
 });

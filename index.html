@@ -1105,8 +1105,17 @@ body.view-pages.sb-collapsed-desktop .container {
     localStorage.setItem(SB_KEY,collapsed?'collapsed':'open');
     apply();
   };
-  window.lsbMobileToggle=function(){document.body.classList.toggle('lsb-mobile-open');};
-  window.lsbMobileClose=function(){document.body.classList.remove('lsb-mobile-open');};
+  // Activa/desactiva les DUES classes alhora: body.lsb-mobile-open (index.html)
+  // i #left-sidebar.sb-mobile-open (styles.css). Estaven desalineades i, segons
+  // l'amplada, la sidebar no s'obria o no es tancava bé en mòbil.
+  window.lsbMobileToggle=function(){
+    const open=document.body.classList.toggle('lsb-mobile-open');
+    document.getElementById('left-sidebar')?.classList.toggle('sb-mobile-open',open);
+  };
+  window.lsbMobileClose=function(){
+    document.body.classList.remove('lsb-mobile-open');
+    document.getElementById('left-sidebar')?.classList.remove('sb-mobile-open');
+  };
 
   apply();
 
@@ -1394,7 +1403,7 @@ body.view-pages.sb-collapsed-desktop .container {
           </div>
           <div id="habits-list"></div>
           <div class="habit-add-form" id="habit-add-form">
-            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." />
+            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." maxlength="60" />
             <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
             <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
           </div>
@@ -1541,7 +1550,7 @@ body.view-pages.sb-collapsed-desktop .container {
         <!-- Form per afegir hàbit -->
         <div class="habitkit-form" id="habitkit-form" style="display:none;">
           <div class="habitkit-form-row">
-            <input type="text" id="hk-name" placeholder="Nom de l'hàbit..." class="habitkit-input">
+            <input type="text" id="hk-name" placeholder="Nom de l'hàbit..." class="habitkit-input" maxlength="60">
           </div>
           <!-- Emoji Picker -->
           <div class="hk-emoji-section">
@@ -1577,7 +1586,7 @@ body.view-pages.sb-collapsed-desktop .container {
               <input type="text" id="hk-icon" value="🏋️" class="hk-emoji-custom" placeholder="O escriu qualsevol emoji..." maxlength="4" oninput="onCustomEmojiInput(this)">
             </div>
           </div>
-          <textarea id="hk-desc" placeholder="Descripció opcional (per què és important aquest hàbit?)..." class="habitkit-textarea"></textarea>
+          <textarea id="hk-desc" placeholder="Descripció opcional (per què és important aquest hàbit?)..." class="habitkit-textarea" maxlength="500"></textarea>
           <div class="habitkit-form-row">
             <select id="hk-color" class="habitkit-select">
               <option value="#10b981">🟢 Verd - Salut</option>
@@ -1841,7 +1850,7 @@ body.view-pages.sb-collapsed-desktop .container {
       <input type="text" id="te-name" class="te-input" maxlength="160" data-i18n-ph="te_name_ph" placeholder="Nom de la tasca"/>
 
       <label class="te-label" data-i18n="te_desc">Descripció</label>
-      <textarea id="te-desc" class="te-input" rows="4" data-i18n-ph="te_desc_ph" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
+      <textarea id="te-desc" class="te-input" rows="4" maxlength="2000" data-i18n-ph="te_desc_ph" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
 
       <label class="te-label" data-i18n="te_links">🔗 Enllaços</label>
       <div id="te-links"></div>
@@ -1908,7 +1917,7 @@ body.view-pages.sb-collapsed-desktop .container {
 
       <!-- Títol editable gran -->
       <div class="tdm-title-zone">
-        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." oninput="tdmMarkDirty()" />
+        <input class="tdm-title-inp" id="tdm-title" placeholder="Títol de la tasca..." maxlength="160" oninput="tdmMarkDirty()" />
       </div>
 
       <!-- Cos en dues columnes -->
@@ -1920,7 +1929,7 @@ body.view-pages.sb-collapsed-desktop .container {
           <!-- Descripció -->
           <div class="tdm-field-block">
             <div class="tdm-field-lbl">📝 Descripció</div>
-            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" oninput="tdmMarkDirty()"></textarea>
+            <textarea class="tdm-textarea" id="tdm-desc" placeholder="Afegir una descripció..." rows="3" maxlength="2000" oninput="tdmMarkDirty()"></textarea>
           </div>
 
           <!-- Responsables -->
@@ -2618,7 +2627,7 @@ body.view-pages.sb-collapsed-desktop .container {
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';}</script>
-<script src="app.js?v=20260610-deadlock2" defer></script>
+<script src="app.js?v=20260610-audit1" defer></script>
 
 <script>
 /* ═══════════════════════════════════════════════════
