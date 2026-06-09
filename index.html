@@ -1833,43 +1833,43 @@ body.view-pages.sb-collapsed-desktop .container {
   <div id="task-editor-overlay" class="modal-overlay" onclick="if(event.target===this)closeTaskEditor()" style="display:none;">
     <div class="board-modal" style="max-width:500px;width:94vw;max-height:90vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="margin:0;">✎ Editar tasca</h3>
+        <h3 style="margin:0;" data-i18n="te_title">✎ Editar tasca</h3>
         <button onclick="closeTaskEditor()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
       </div>
 
-      <label class="te-label">Tasca</label>
-      <input type="text" id="te-name" class="te-input" maxlength="160" placeholder="Nom de la tasca"/>
+      <label class="te-label" data-i18n="te_task">Tasca</label>
+      <input type="text" id="te-name" class="te-input" maxlength="160" data-i18n-ph="te_name_ph" placeholder="Nom de la tasca"/>
 
-      <label class="te-label">Descripció</label>
-      <textarea id="te-desc" class="te-input" rows="4" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
+      <label class="te-label" data-i18n="te_desc">Descripció</label>
+      <textarea id="te-desc" class="te-input" rows="4" data-i18n-ph="te_desc_ph" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
 
-      <label class="te-label">🔗 Enllaços</label>
+      <label class="te-label" data-i18n="te_links">🔗 Enllaços</label>
       <div id="te-links"></div>
-      <button onclick="teAddLink()" class="te-addlink">+ Afegir enllaç</button>
+      <button onclick="teAddLink()" class="te-addlink" data-i18n="te_addlink">+ Afegir enllaç</button>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
         <div style="flex:1;min-width:130px;">
-          <label class="te-label">📅 Data límit</label>
+          <label class="te-label" data-i18n="te_date">📅 Data límit</label>
           <input type="date" id="te-date" class="te-input"/>
         </div>
         <div style="flex:1;min-width:130px;">
-          <label class="te-label">Prioritat</label>
+          <label class="te-label" data-i18n="te_prio">Prioritat</label>
           <select id="te-prio" class="te-input">
-            <option value="1">🔴 Urgent</option>
-            <option value="2">🟡 Important</option>
-            <option value="3">🔵 Normal</option>
-            <option value="4">⚪ Baix</option>
+            <option value="1" data-i18n="prio_urgent">🔴 Urgent</option>
+            <option value="2" data-i18n="prio_important">🟡 Important</option>
+            <option value="3" data-i18n="prio_normal">🔵 Normal</option>
+            <option value="4" data-i18n="prio_low">⚪ Baix</option>
           </select>
         </div>
       </div>
       <div id="te-assignee-wrap" style="display:none;">
-        <label class="te-label">👤 Assignat a</label>
+        <label class="te-label" data-i18n="te_assignee">👤 Assignat a</label>
         <select id="te-assignee" class="te-input"></select>
       </div>
 
       <div class="board-modal-btns" style="margin-top:18px;">
-        <button class="bm-save-btn" onclick="saveTaskEditor()">💾 Desar</button>
-        <button class="bm-cancel-btn" onclick="closeTaskEditor()">Cancel·lar</button>
+        <button class="bm-save-btn" onclick="saveTaskEditor()" data-i18n="te_save">💾 Desar</button>
+        <button class="bm-cancel-btn" onclick="closeTaskEditor()" data-i18n="te_cancel">Cancel·lar</button>
       </div>
     </div>
   </div>
