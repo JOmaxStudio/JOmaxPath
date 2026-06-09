@@ -3496,6 +3496,16 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   color: rgba(255,255,255,0.4) !important;
   margin-top: 10px !important;
 }
+/* Estat DESCANS: tot en verd */
+#pomo-fullscreen.is-break { background: radial-gradient(ellipse at 50% 40%, #052e22 0%, #06080f 65%) !important; }
+#pomo-fullscreen.is-break #pomo-fs-digits { text-shadow: 0 0 60px rgba(16,185,129,0.9), 0 0 120px rgba(16,185,129,0.35) !important; }
+#pomo-fullscreen.is-break #pomo-fs-arc { stroke: #10b981 !important; }
+/* Pols suau quan corre */
+@keyframes pomoBreath { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.025);} }
+#pomo-fullscreen.is-running #pomo-fs-svg-wrap { animation: pomoBreath 4s ease-in-out infinite !important; }
+.pomo-ring-wrap.is-running { animation: pomoBreath 4s ease-in-out infinite; }
+.pomo-ring-wrap.is-break .pomo-arc { stroke: #10b981 !important; }
+.pomo-ring-wrap.is-break .pomo-digits { color: #6ee7b7 !important; }
 #pomo-fs-dots {
   display: flex !important;
   gap: 10px !important;

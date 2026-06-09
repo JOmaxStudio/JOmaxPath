@@ -2414,6 +2414,13 @@ function updatePomoDisplay() {
   const fsPhase=document.getElementById('pomo-fs-phase');
   if (fsDigits) fsDigits.textContent=timeStr;
   if (fsPhase)  fsPhase.textContent=phaseStr;
+  // Estat visual: focus (porpra/vermell) vs descans (verd) + corrent (pols)
+  const isBreak=_pomoState==='break';
+  const running=_pomoState!=='idle'&&_pomoState!=='paused';
+  const ringWrap=document.querySelector('.pomo-ring-wrap');
+  if(ringWrap){ ringWrap.classList.toggle('is-break',isBreak); ringWrap.classList.toggle('is-running',running); }
+  const fs=document.getElementById('pomo-fullscreen');
+  if(fs){ fs.classList.toggle('is-break',isBreak); fs.classList.toggle('is-running',running); }
   const total=(_pomoState==='break'?_pomoBreakMin:_pomoFocusMin)*60;
   const circ=2*Math.PI*80;
   if (arc) { arc.style.strokeDasharray=circ; arc.style.strokeDashoffset=circ*(1-(total-secs)/Math.max(total,1)); }
