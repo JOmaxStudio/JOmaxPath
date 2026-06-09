@@ -567,22 +567,61 @@ async function _loadUserProfile(userId) {
   _saveLocalProfile(_userProfile);
 }
 
-// Merge arrays by id: cloud items + local items not already in cloud
-function _mergeById(cloudArr, localArr) {
-  if (!Array.isArray(cloudArr)) return Array.isArray(localArr) ? localArr : [];
-  if (!Array.isArray(localArr)) return cloudArr;
-  const cloudIds = new Set(cloudArr.map(x => x.id));
-  const onlyLocal = localArr.filter(x => !cloudIds.has(x.id));
-  return [...cloudArr, ...onlyLocal];
-}
-
-// Merge lists (jomaxpath_lists_v3) by list id
+// Merge lists (jomaxpath_lists_v3) by list id: cloud + local lists not in cloud
 function _mergeLists(cloudLists, localLists) {
   if (!Array.isArray(cloudLists)) return Array.isArray(localLists) ? localLists : [];
   if (!Array.isArray(localLists)) return cloudLists;
   const cloudIds = new Set(cloudLists.map(l => l.id));
   const onlyLocal = localLists.filter(l => !cloudIds.has(l.id));
   return [...cloudLists, ...onlyLocal];
+}
+
+// PONT tasques planes (jomaxpath_tasks, on viuen les [AUDIT]) ↔ llistes v3
+// que és el model que mostra realment l'app. Aquesta funció injecta les
+// tasques planes (núvol o externes) dins la llista personal per defecte.
+function _injectFlatTasksIntoLists(flatTasks) {
+  if (!Array.isArray(flatTasks) || !flatTasks.length) return 0;
+  // Garanteix que existeixi lists_v3 (migra des de TASKS_KEY si cal)
+  if (typeof getLists === 'function' && getLists() === null && typeof _migrateLists === 'function') {
+    _migrateLists();
+  }
+  let lists = (typeof getLists === 'function' ? getLists() : null) || [];
+  // Troba la llista personal per defecte (o la primera no compartida)
+  let personal = lists.find(l => l.id === 'personal_default') || lists.find(l => !l.shared);
+  if (!personal) {
+    personal = { id:'personal_default', name:'Les meves tasques', icon:'📋',
+      shared:false, shareCode:null, ownerName:null, members:[], tasks:[] };
+    lists.unshift(personal);
+  }
+  if (!Array.isArray(personal.tasks)) personal.tasks = [];
+  const existing = new Set(personal.tasks.map(t => (t.id||'').toString()));
+  let added = 0;
+  flatTasks.forEach(t => {
+    const id = (t.id || '').toString();
+    if (id && existing.has(id)) return; // ja hi és → no dupliquem
+    personal.tasks.push({
+      id: id || (Date.now().toString()+Math.random().toString(36).slice(2,6)),
+      name: t.name || '', done: !!t.done,
+      status: t.status || (t.done ? 'done' : 'todo'),
+      prio: t.prio || 3, date: t.date || ''
+    });
+    if (id) existing.add(id);
+    added++;
+  });
+  if (typeof setLists === 'function') setLists(lists);
+  return added;
+}
+
+// Abans de pujar al núvol: aboca les tasques de la llista personal cap a
+// jomaxpath_tasks, així el núvol reflecteix el que l'usuari veu i editem,
+// i NO sobreescrivim les [AUDIT] amb dades velles.
+function _syncListsToFlatTasks() {
+  if (typeof getLists !== 'function') return;
+  const lists = getLists();
+  if (!Array.isArray(lists)) return;
+  const personal = lists.find(l => l.id === 'personal_default') || lists.find(l => !l.shared);
+  if (!personal || !Array.isArray(personal.tasks)) return;
+  try { localStorage.setItem('jomaxpath_tasks', JSON.stringify(personal.tasks)); } catch {}
 }
 
 async function _syncUserData(userId) {
@@ -594,23 +633,23 @@ async function _syncUserData(userId) {
     ]);
     if (data?.data) {
       const d = data.data;
-      // Simple overwrite keys (no merge needed)
+      // Claus amb overwrite simple (no cal merge)
       ['jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
        'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
        'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
         if(d[k]) try { localStorage.setItem(k,JSON.stringify(d[k])); } catch{}
       });
-      // Merge tasks: cloud + local tasks not in cloud (preserves [AUDIT] and local tasks)
-      if (d['jomaxpath_tasks']) {
-        const localTasks = get('jomaxpath_tasks', []);
-        const merged = _mergeById(d['jomaxpath_tasks'], localTasks);
-        try { localStorage.setItem('jomaxpath_tasks', JSON.stringify(merged)); } catch{}
-      }
-      // Merge lists v3: cloud + local lists not in cloud
+      // Llistes v3 del núvol → merge per id de llista (preserva llistes locals)
       if (d['jomaxpath_lists_v3']) {
-        const localLists = get('jomaxpath_lists_v3', []);
+        const localLists = get('jomaxpath_lists_v3', null);
         const merged = _mergeLists(d['jomaxpath_lists_v3'], localLists);
         try { localStorage.setItem('jomaxpath_lists_v3', JSON.stringify(merged)); } catch{}
+      }
+      // CLAU: tasques planes del núvol ([AUDIT]) → injecta a la llista personal
+      // que és el que l'app mostra. Sense això no es veurien mai.
+      if (d['jomaxpath_tasks']) {
+        try { localStorage.setItem('jomaxpath_tasks', JSON.stringify(d['jomaxpath_tasks'])); } catch{}
+        _injectFlatTasksIntoLists(d['jomaxpath_tasks']);
       }
       showToast('☁️ Dades sincronitzades!');
     }
@@ -620,6 +659,9 @@ async function _syncUserData(userId) {
 async function _saveUserDataToCloud(userId) {
   if (!_supabase||!userId||userId.startsWith('local_')) return;
   try {
+    // Aboca la llista personal → jomaxpath_tasks abans de pujar (evita
+    // sobreescriure les [AUDIT] del núvol amb dades velles del localStorage)
+    _syncListsToFlatTasks();
     const data = {};
     ['jomaxpath_tasks','jomaxpath_lists_v3','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
      'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
