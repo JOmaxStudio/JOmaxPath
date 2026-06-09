@@ -500,6 +500,26 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .daily-xp-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .daily-xp-ring-num{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--gold2);line-height:1;}
 .daily-xp-ring-lbl{font-family:'Space Mono',monospace;font-size:5.5px;color:var(--muted);letter-spacing:0.5px;}
+
+/* ═══ HERO SELECTOR MODAL ═══ */
+#hero-selector-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);align-items:center;justify-content:center;}
+#hero-selector-modal.open{display:flex;}
+.hero-sel-panel{background:#0c0c1e;border:1px solid rgba(124,58,237,0.32);border-radius:22px;padding:28px 24px 22px;max-width:540px;width:calc(100% - 32px);box-shadow:0 24px 80px rgba(0,0,0,0.65),0 0 48px rgba(124,58,237,0.1);}
+.hero-sel-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3.5px;color:var(--accent2);text-align:center;margin-bottom:5px;}
+.hero-sel-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.5;}
+.hero-sel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.hero-card-sel{border:2px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px 6px 12px;cursor:pointer;transition:all .22s cubic-bezier(.4,0,.2,1);text-align:center;background:rgba(255,255,255,0.02);position:relative;}
+.hero-card-sel:hover{border-color:rgba(255,255,255,0.18);transform:translateY(-3px);background:rgba(255,255,255,0.04);}
+.hero-card-sel.selected{border-width:2px;box-shadow:0 0 18px var(--hs-color,rgba(124,58,237,0.4));background:rgba(124,58,237,0.1);}
+.hero-card-sel.selected::after{content:'✓';position:absolute;top:6px;right:8px;font-size:9px;font-family:'Space Mono',monospace;color:var(--accent2);}
+.hero-card-badge{width:52px;height:52px;border-radius:50%;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.hero-card-name{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--text);margin-bottom:3px;white-space:nowrap;}
+.hero-card-class{font-size:9px;color:var(--muted);}
+.hero-sel-close{display:block;width:100%;padding:10px;border-radius:11px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);color:var(--muted);cursor:pointer;font-size:12px;transition:all .2s;}
+.hero-sel-close:hover{background:rgba(255,255,255,0.07);color:var(--text);}
+.change-hero-btn{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-family:'Space Mono',monospace;letter-spacing:1px;color:var(--muted);background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.16);border-radius:8px;padding:5px 11px;cursor:pointer;margin-top:7px;transition:all .2s;}
+.change-hero-btn:hover{color:var(--accent2);border-color:rgba(167,139,250,0.38);background:rgba(124,58,237,0.13);}
+@media(max-width:480px){.hero-sel-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
 <!-- Supabase client — required for friend/competition requests and leaderboard -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -623,219 +643,101 @@ body.mob-sb #sb{width:var(--sb) !important;}
               <span class="eq-lbl">EXTRA</span>
             </div>
 
-            <!-- SVG Character -->
+            <!-- SVG Character (heroi dinàmic) -->
             <svg id="hero-svg" viewBox="0 0 280 380" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <radialGradient id="bgGlow" cx="50%" cy="60%" r="55%">
-                  <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/>
-                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="cyanHalo" cx="50%" cy="25%" r="40%">
-                  <stop offset="0%" stop-color="#00b8d9" stop-opacity="0.18"/>
-                  <stop offset="100%" stop-color="#00b8d9" stop-opacity="0"/>
-                </radialGradient>
-                <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                <filter id="softGlow" x="-35%" y="-35%" width="170%" height="170%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur"/>
                   <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
-                <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="7" result="blur"/>
+                <filter id="strongGlow" x="-55%" y="-55%" width="210%" height="210%">
+                  <feGaussianBlur stdDeviation="6.5" result="blur"/>
                   <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
-                <linearGradient id="swordGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#e0d4ff"/>
-                  <stop offset="60%" stop-color="#a78bfa"/>
-                  <stop offset="100%" stop-color="#7c3aed"/>
-                </linearGradient>
-                <linearGradient id="armorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#1a1235"/>
-                  <stop offset="100%" stop-color="#0d0a20"/>
-                </linearGradient>
-                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#fff3b0"/>
-                  <stop offset="55%" stop-color="#ffd700"/>
-                  <stop offset="100%" stop-color="#e0a000"/>
-                </linearGradient>
               </defs>
 
-              <!-- Background atmosphere -->
-              <ellipse cx="140" cy="340" rx="90" ry="22" fill="url(#bgGlow)"/>
-              <ellipse cx="140" cy="140" rx="90" ry="90" fill="url(#cyanHalo)"/>
-              <!-- Ground shadow -->
-              <ellipse cx="140" cy="365" rx="55" ry="10" fill="rgba(0,0,0,0.35)"/>
+              <!-- Hero body (canvia per skin) -->
+              <g id="hero-body"></g>
 
-              <!-- Floating runes (background) -->
-              <g opacity="0.18" font-size="10" fill="#a78bfa" font-family="monospace">
-                <text x="24" y="160">⟨/⟩</text>
-                <text x="228" y="200">⟩⟨</text>
-                <text x="18" y="280">◈</text>
-                <text x="238" y="130">◇</text>
+              <!-- ═══ ACCESSORIS (superposats al personatge) ═══ -->
+              <!-- Escut màgic (NV.2+) -->
+              <g id="acc-shield" style="display:none">
+                <ellipse cx="66" cy="218" rx="27" ry="33" fill="rgba(0,184,217,0.07)" stroke="rgba(0,184,217,0.58)" stroke-width="2" filter="url(#softGlow)"/>
+                <ellipse cx="66" cy="218" rx="17" ry="21" fill="none" stroke="rgba(56,217,245,0.28)" stroke-width="1.5"/>
+                <line x1="66" y1="195" x2="66" y2="241" stroke="rgba(0,184,217,0.42)" stroke-width="1"/>
+                <line x1="43" y1="218" x2="89" y2="218" stroke="rgba(0,184,217,0.42)" stroke-width="1"/>
+                <circle cx="66" cy="218" r="5" fill="rgba(0,184,217,0.82)" filter="url(#softGlow)">
+                  <animate attributeName="opacity" values="0.82;1;0.82" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+                <text x="66" y="223" font-size="11" text-anchor="middle" fill="rgba(56,217,245,0.6)">🛡</text>
+              </g>
+              <!-- Millora d'arma / aura daurada (NV.3+) -->
+              <g id="acc-weapon" style="display:none">
+                <ellipse cx="214" cy="162" rx="13" ry="78" fill="rgba(245,158,11,0.1)" filter="url(#strongGlow)"/>
+                <circle cx="214" cy="86" r="22" fill="rgba(245,158,11,0.1)">
+                  <animate attributeName="opacity" values="0.1;0.25;0.1" dur="2.4s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="214" cy="86" r="32" fill="rgba(245,158,11,0.05)">
+                  <animate attributeName="r" values="32;37;32" dur="2.4s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.05;0.02;0.05" dur="2.4s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- Corona daurada (NV.4+) -->
+              <g id="acc-cap" style="display:none">
+                <path d="M113,48 L118,27 L128,41 L140,18 L152,41 L162,27 L167,48 Z" fill="#F59E0B" stroke="rgba(253,211,77,0.8)" stroke-width="1" filter="url(#softGlow)"/>
+                <rect x="111" y="48" width="58" height="7" rx="3.5" fill="#D97706" stroke="rgba(253,211,77,0.6)" stroke-width="1"/>
+                <circle cx="140" cy="18" r="4.5" fill="#FCD34D" filter="url(#softGlow)"/>
+                <circle cx="118" cy="28" r="2.8" fill="#FCD34D"/>
+                <circle cx="162" cy="28" r="2.8" fill="#FCD34D"/>
+                <circle cx="140" cy="18" r="10" fill="rgba(253,211,77,0.18)">
+                  <animate attributeName="opacity" values="0.18;0.45;0.18" dur="2s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- Ales d'energia (NV.5+) -->
+              <g id="acc-extra" style="display:none" opacity="0.7">
+                <path d="M100,160 Q44,144 22,207 Q58,191 100,201 Z" fill="rgba(124,58,237,0.38)" stroke="rgba(167,139,250,0.62)" stroke-width="1.5" filter="url(#softGlow)"/>
+                <path d="M100,198 Q43,210 32,258 Q65,237 102,242 Z" fill="rgba(0,184,217,0.24)" stroke="rgba(56,217,245,0.44)" stroke-width="1"/>
+                <path d="M180,160 Q236,144 258,207 Q222,191 180,201 Z" fill="rgba(124,58,237,0.38)" stroke="rgba(167,139,250,0.62)" stroke-width="1.5" filter="url(#softGlow)"/>
+                <path d="M180,198 Q237,210 248,258 Q215,237 178,242 Z" fill="rgba(0,184,217,0.24)" stroke="rgba(56,217,245,0.44)" stroke-width="1"/>
               </g>
 
-              <!-- CAPE (behind body) -->
-              <path d="M100,148 Q68,200 62,340 Q100,328 140,332 Q180,328 218,340 Q212,200 180,148 Z" fill="#0a0818" opacity="0.92"/>
-              <!-- Cape edge glows -->
-              <path d="M100,148 Q68,200 62,340" fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
-              <path d="M180,148 Q212,200 218,340" fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
-              <!-- Cape center seam -->
-              <path d="M140,155 L140,330" stroke="rgba(124,58,237,0.12)" stroke-width="1"/>
-
-              <!-- BOOTS -->
-              <rect x="112" y="282" width="24" height="72" rx="9" fill="#0e0b1e"/>
-              <rect x="144" y="282" width="24" height="72" rx="9" fill="#0e0b1e"/>
-              <!-- Boot trim (glow line at bottom) -->
-              <rect x="110" y="346" width="28" height="8" rx="4" fill="rgba(124,58,237,0.5)" filter="url(#softGlow)"/>
-              <rect x="142" y="346" width="28" height="8" rx="4" fill="rgba(124,58,237,0.5)" filter="url(#softGlow)"/>
-
-              <!-- LEGS -->
-              <rect x="114" y="240" width="22" height="50" rx="8" fill="#12102a"/>
-              <rect x="144" y="240" width="22" height="50" rx="8" fill="#12102a"/>
-              <!-- Knee armor -->
-              <rect x="111" y="252" width="28" height="12" rx="4" fill="#0d0b1e" stroke="rgba(124,58,237,0.25)" stroke-width="1"/>
-              <rect x="141" y="252" width="28" height="12" rx="4" fill="#0d0b1e" stroke="rgba(124,58,237,0.25)" stroke-width="1"/>
-
-              <!-- BODY / CHEST ARMOR -->
-              <path d="M92,142 Q90,220 96,245 L140,250 L184,245 Q190,220 188,142 Z" fill="url(#armorGrad)"/>
-              <!-- Chest plate -->
-              <path d="M105,158 L140,152 L175,158 L172,205 L140,212 L108,205 Z" fill="#0c0a1e" stroke="rgba(124,58,237,0.32)" stroke-width="1"/>
-              <!-- Chest gem (cyan) -->
-              <polygon points="140,172 150,182 140,192 130,182" fill="rgba(0,184,217,0.85)" filter="url(#softGlow)"/>
-              <polygon points="140,174 148,182 140,190 132,182" fill="rgba(56,217,245,0.5)"/>
-              <!-- Chest energy lines -->
-              <line x1="108" y1="186" x2="130" y2="186" stroke="rgba(124,58,237,0.3)" stroke-width="0.8"/>
-              <line x1="150" y1="186" x2="172" y2="186" stroke="rgba(124,58,237,0.3)" stroke-width="0.8"/>
-              <!-- Belly armor bands -->
-              <rect x="105" y="215" width="70" height="6" rx="3" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.5"/>
-              <rect x="105" y="226" width="70" height="6" rx="3" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.5"/>
-
-              <!-- SHOULDERS -->
-              <circle cx="92" cy="153" r="20" fill="#100e24" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
-              <circle cx="188" cy="153" r="20" fill="#100e24" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
-              <!-- Shoulder gems -->
-              <circle cx="92" cy="153" r="7" fill="rgba(124,58,237,0.28)" stroke="rgba(124,58,237,0.5)" stroke-width="1"/>
-              <circle cx="188" cy="153" r="7" fill="rgba(124,58,237,0.28)" stroke="rgba(124,58,237,0.5)" stroke-width="1"/>
-
-              <!-- ARMS -->
-              <!-- Left arm -->
-              <rect x="70" y="155" width="22" height="68" rx="10" fill="#100e22"/>
-              <circle cx="81" cy="230" r="13" fill="#0c0a1c" stroke="rgba(124,58,237,0.22)" stroke-width="1"/>
-              <!-- Right arm -->
-              <rect x="188" y="155" width="22" height="64" rx="10" fill="#100e22"/>
-              <circle cx="199" cy="228" r="13" fill="#0c0a1c" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
-
-              <!-- SWORD (right side) -->
-              <!-- Sword glow aura -->
-              <rect x="207" y="72" width="14" height="160" rx="7" fill="rgba(124,58,237,0.15)" filter="url(#strongGlow)"/>
-              <!-- Blade -->
-              <rect x="211" y="72" width="6" height="148" rx="3" fill="url(#swordGrad)"/>
-              <!-- Blade edge shimmer -->
-              <rect x="211" y="72" width="2" height="148" rx="1" fill="rgba(255,255,255,0.3)"/>
-              <!-- Sword tip -->
-              <polygon points="214,72 209,90 219,90" fill="#e0d4ff"/>
-              <!-- Crossguard -->
-              <rect x="200" y="210" width="28" height="9" rx="4" fill="#1a1232" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
-              <!-- Sword rune glow -->
-              <circle cx="214" cy="130" r="3" fill="rgba(167,139,250,0.7)" filter="url(#softGlow)">
-                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
-              </circle>
-
-              <!-- SHIELD / energy sigil (left) -->
-              <ellipse cx="66" cy="222" rx="22" ry="28" fill="rgba(0,184,217,0.06)" stroke="rgba(0,184,217,0.28)" stroke-width="1.5"/>
-              <ellipse cx="66" cy="222" rx="14" ry="18" fill="none" stroke="rgba(0,184,217,0.18)" stroke-width="1"/>
-              <!-- Shield center cross -->
-              <line x1="66" y1="210" x2="66" y2="234" stroke="rgba(0,184,217,0.35)" stroke-width="1"/>
-              <line x1="54" y1="222" x2="78" y2="222" stroke="rgba(0,184,217,0.35)" stroke-width="1"/>
-
-              <!-- NECK -->
-              <rect x="128" y="102" width="24" height="30" rx="6" fill="#100e22"/>
-              <!-- Neck collar glow -->
-              <rect x="125" y="128" width="30" height="4" rx="2" fill="rgba(124,58,237,0.35)"/>
-
-              <!-- HEAD -->
-              <circle cx="140" cy="82" r="34" fill="#12102a"/>
-
-              <!-- HELMET -->
-              <path d="M106,76 Q106,44 140,41 Q174,44 174,76 L172,92 Q158,84 140,82 Q122,84 108,92 Z" fill="#0c0a1e"/>
-              <!-- Helmet side plates -->
-              <path d="M106,76 L108,92 Q120,96 125,90" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.8"/>
-              <path d="M174,76 L172,92 Q160,96 155,90" fill="#0e0c22" stroke="rgba(124,58,237,0.2)" stroke-width="0.8"/>
-              <!-- Helmet top trim -->
-              <path d="M106,76 Q106,44 140,41 Q174,44 174,76" fill="none" stroke="rgba(124,58,237,0.5)" stroke-width="2"/>
-              <!-- Helmet center fin/crest -->
-              <path d="M140,41 L140,76" stroke="rgba(167,139,250,0.45)" stroke-width="2.5"/>
-              <!-- Helm crest glow -->
-              <ellipse cx="140" cy="41" rx="8" ry="4" fill="rgba(124,58,237,0.6)" filter="url(#softGlow)">
-                <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
-              </ellipse>
-              <!-- Visor line -->
-              <path d="M112,85 Q140,88 168,85" fill="none" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
-
-              <!-- GLOWING EYES (cyan) -->
-              <ellipse cx="128" cy="80" rx="7" ry="4.5" fill="rgba(0,184,217,0.95)" filter="url(#softGlow)"/>
-              <ellipse cx="152" cy="80" rx="7" ry="4.5" fill="rgba(0,184,217,0.95)" filter="url(#softGlow)"/>
-              <ellipse cx="128" cy="80" rx="10" ry="6" fill="rgba(0,184,217,0.18)"/>
-              <ellipse cx="152" cy="80" rx="10" ry="6" fill="rgba(0,184,217,0.18)"/>
-              <!-- Eye pupils -->
-              <ellipse cx="128" cy="80" rx="3" ry="2.5" fill="rgba(255,255,255,0.9)"/>
-              <ellipse cx="152" cy="80" rx="3" ry="2.5" fill="rgba(255,255,255,0.9)"/>
-
-              <!-- Floating particles -->
-              <circle cx="55" cy="190" r="2.5" fill="rgba(124,58,237,0.7)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 6,-28; 0,-55" dur="4.2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.7;1;0" dur="4.2s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="228" cy="170" r="2" fill="rgba(0,184,217,0.6)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; -7,-24; 0,-48" dur="5s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.6;0.9;0" dur="5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="75" cy="290" r="1.5" fill="rgba(167,139,250,0.8)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 9,-32; 0,-64" dur="3.7s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.8;1;0" dur="3.7s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="195" cy="310" r="2" fill="rgba(124,58,237,0.6)">
-                <animateTransform attributeName="transform" type="translate" values="0,0; -5,-20; 0,-40" dur="4.8s" repeatCount="indefinite" begin="1s"/>
-                <animate attributeName="opacity" values="0;0.7;0" dur="4.8s" repeatCount="indefinite" begin="1s"/>
-              </circle>
-
-              <!-- Idle float animation wrapper -->
-              <g id="char-float">
-                <animateTransform attributeName="transform" type="translate" values="0,0; 0,-6; 0,0" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
-              </g>
-
-              <!-- ═══ EVOLUCIÓ PER NIVELL (es mostren segons el nivell) ═══ -->
-              <!-- Espigues d'espatlla (NV.3+) -->
-              <g id="evo-spikes" style="display:none;">
-                <polygon points="92,140 84,116 100,134" fill="#a78bfa" opacity="0.9" filter="url(#softGlow)"/>
-                <polygon points="188,140 196,116 180,134" fill="#a78bfa" opacity="0.9" filter="url(#softGlow)"/>
+              <!-- ═══ EVOLUCIÓ PER NIVELL ═══ -->
+              <!-- Espigues (NV.3+) -->
+              <g id="evo-spikes" style="display:none">
+                <polygon points="91,140 81,114 101,132" fill="#a78bfa" opacity="0.92" filter="url(#softGlow)"/>
+                <polygon points="189,140 199,114 179,132" fill="#a78bfa" opacity="0.92" filter="url(#softGlow)"/>
+                <polygon points="84,148 73,126 96,141" fill="#8B5CF6" opacity="0.55"/>
+                <polygon points="196,148 207,126 184,141" fill="#8B5CF6" opacity="0.55"/>
               </g>
               <!-- Aura giratòria (NV.5+) -->
-              <g id="evo-aura" style="display:none;">
-                <circle cx="140" cy="200" r="122" fill="none" stroke="rgba(124,58,237,0.22)" stroke-width="2" stroke-dasharray="5 12" filter="url(#softGlow)">
-                  <animateTransform attributeName="transform" type="rotate" from="0 140 200" to="360 140 200" dur="26s" repeatCount="indefinite"/>
+              <g id="evo-aura" style="display:none">
+                <circle cx="140" cy="200" r="126" fill="none" stroke="rgba(124,58,237,0.2)" stroke-width="2" stroke-dasharray="5 12" filter="url(#softGlow)">
+                  <animateTransform attributeName="transform" type="rotate" from="0 140 200" to="360 140 200" dur="28s" repeatCount="indefinite"/>
                 </circle>
-                <circle cx="140" cy="200" r="110" fill="none" stroke="rgba(0,184,217,0.16)" stroke-width="1.5" stroke-dasharray="2 16">
-                  <animateTransform attributeName="transform" type="rotate" from="360 140 200" to="0 140 200" dur="34s" repeatCount="indefinite"/>
+                <circle cx="140" cy="200" r="112" fill="none" stroke="rgba(0,184,217,0.14)" stroke-width="1.5" stroke-dasharray="2 16">
+                  <animateTransform attributeName="transform" type="rotate" from="360 140 200" to="0 140 200" dur="36s" repeatCount="indefinite"/>
                 </circle>
               </g>
-              <!-- Ales d'energia (NV.7+) -->
-              <g id="evo-wings" style="display:none;" opacity="0.5">
-                <path d="M98,158 Q44,146 26,206 Q62,192 98,202 Z" fill="rgba(124,58,237,0.4)" stroke="rgba(167,139,250,0.6)" stroke-width="1" filter="url(#softGlow)"/>
-                <path d="M98,196 Q46,206 36,252 Q68,234 100,238 Z" fill="rgba(0,184,217,0.26)" stroke="rgba(56,217,245,0.45)" stroke-width="1" filter="url(#softGlow)"/>
-                <path d="M182,158 Q236,146 254,206 Q218,192 182,202 Z" fill="rgba(124,58,237,0.4)" stroke="rgba(167,139,250,0.6)" stroke-width="1" filter="url(#softGlow)"/>
-                <path d="M182,196 Q234,206 244,252 Q212,234 180,238 Z" fill="rgba(0,184,217,0.26)" stroke="rgba(56,217,245,0.45)" stroke-width="1" filter="url(#softGlow)"/>
+              <!-- Ales llegendàries (NV.7+) -->
+              <g id="evo-wings" style="display:none" opacity="0.52">
+                <path d="M96,156 Q38,140 18,203 Q56,187 98,199 Z" fill="rgba(124,58,237,0.42)" stroke="rgba(167,139,250,0.68)" stroke-width="1.2" filter="url(#softGlow)"/>
+                <path d="M96,193 Q40,205 30,254 Q62,234 98,239 Z" fill="rgba(0,184,217,0.27)" stroke="rgba(56,217,245,0.47)" stroke-width="1"/>
+                <path d="M184,156 Q242,140 262,203 Q224,187 182,199 Z" fill="rgba(124,58,237,0.42)" stroke="rgba(167,139,250,0.68)" stroke-width="1.2" filter="url(#softGlow)"/>
+                <path d="M184,193 Q240,205 250,254 Q218,234 182,239 Z" fill="rgba(0,184,217,0.27)" stroke="rgba(56,217,245,0.47)" stroke-width="1"/>
               </g>
-              <!-- Corona daurada (NV.9+) -->
-              <g id="evo-crown" style="display:none;">
-                <path d="M116,42 L120,20 L130,34 L140,12 L150,34 L160,20 L164,42 Z" fill="url(#crownGrad)" stroke="rgba(255,215,0,0.7)" stroke-width="1" filter="url(#softGlow)"/>
-                <circle cx="140" cy="18" r="3" fill="#fff7cc"/>
-                <circle cx="120" cy="24" r="2" fill="#ffe680"/>
-                <circle cx="160" cy="24" r="2" fill="#ffe680"/>
-                <rect x="114" y="42" width="52" height="5" rx="2" fill="url(#crownGrad)"/>
+              <!-- Glow corona llegenda (NV.9+) -->
+              <g id="evo-crown" style="display:none">
+                <circle cx="140" cy="40" r="26" fill="rgba(245,158,11,0.2)" filter="url(#strongGlow)">
+                  <animate attributeName="opacity" values="0.2;0.42;0.2" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
               </g>
               <!-- Anell llegendari (NV.10) -->
-              <g id="evo-legend" style="display:none;">
-                <circle cx="140" cy="200" r="132" fill="none" stroke="rgba(255,215,0,0.35)" stroke-width="2.5" filter="url(#strongGlow)">
-                  <animate attributeName="opacity" values="0.35;0.8;0.35" dur="2.6s" repeatCount="indefinite"/>
+              <g id="evo-legend" style="display:none">
+                <circle cx="140" cy="200" r="136" fill="none" stroke="rgba(255,215,0,0.34)" stroke-width="2.5" filter="url(#strongGlow)">
+                  <animate attributeName="opacity" values="0.34;0.78;0.34" dur="2.8s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="140" cy="200" r="120" fill="none" stroke="rgba(255,215,0,0.14)" stroke-width="1.5">
+                  <animateTransform attributeName="transform" type="rotate" from="0 140 200" to="360 140 200" dur="14s" repeatCount="indefinite"/>
                 </circle>
               </g>
             </svg>
@@ -845,6 +747,17 @@ body.mob-sb #sb{width:var(--sb) !important;}
           <div style="text-align:center;margin-top:12px;">
             <div style="font-size:14px;font-weight:700;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" id="char-name-disp">Heroi en Construcció</div>
             <div style="font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:2.5px;color:var(--gold2);margin-top:2px;" id="char-class-disp">GUERRER · NV.1</div>
+            <button class="change-hero-btn" onclick="openHeroSelector()">✦ Canvia Heroi</button>
+          </div>
+        </div>
+
+        <!-- Hero Selector Modal -->
+        <div id="hero-selector-modal" onclick="if(event.target===this)closeHeroSelector()">
+          <div class="hero-sel-panel">
+            <div class="hero-sel-title">✦ TRIA EL TEU HEROI</div>
+            <div class="hero-sel-sub">Cada heroi manté el teu nivell i accessoris. Pots canviar quan vulguis.</div>
+            <div class="hero-sel-grid" id="hero-sel-grid"></div>
+            <button class="hero-sel-close" onclick="closeHeroSelector()">Tancar</button>
           </div>
         </div>
 
@@ -1146,6 +1059,288 @@ const EQUIP_UNLOCKS={
   'Accessori: Aura Llegendària':{slot:'extra',icon:'🌟',lvl:10},
 };
 
+/* ═══ HERO SKINS (4 herois chibi) ═══ */
+const HERO_SKINS={
+  maga:{
+    id:'maga',name:'La Maga',cls:'Arcana',emoji:'🔮',desc:'Màgia i misteri',
+    color:'#7C3AED',bg:'rgba(124,58,237,0.18)',
+    body:`
+<ellipse cx="140" cy="336" rx="58" ry="11" fill="rgba(124,58,237,0.22)"/>
+<path d="M87,74 Q83,32 104,19 Q122,8 140,10 Q158,8 176,19 Q197,32 193,74" fill="#4C1D95"/>
+<path d="M87,74 Q70,118 64,186 Q78,178 90,155 Q92,128 96,104" fill="#4C1D95"/>
+<path d="M193,74 Q210,118 216,186 Q202,178 190,155 Q188,128 184,104" fill="#4C1D95"/>
+<circle cx="140" cy="82" r="54" fill="#FDDBB4"/>
+<ellipse cx="86" cy="88" rx="9" ry="12" fill="#FDDBB4"/><ellipse cx="194" cy="88" rx="9" ry="12" fill="#FDDBB4"/>
+<ellipse cx="86" cy="88" rx="5.5" ry="7.5" fill="#F4C090"/><ellipse cx="194" cy="88" rx="5.5" ry="7.5" fill="#F4C090"/>
+<path d="M88,68 Q90,42 108,30 Q124,44 118,66" fill="#5B21B6"/>
+<path d="M192,68 Q190,42 172,30 Q156,44 162,66" fill="#5B21B6"/>
+<path d="M108,30 Q126,15 140,13 Q154,15 172,30 Q165,52 140,56 Q115,52 108,30 Z" fill="#5B21B6"/>
+<path d="M120,20 Q132,13 142,15 Q138,27 128,30 Z" fill="rgba(167,139,250,0.32)"/>
+<ellipse cx="120" cy="76" rx="13.5" ry="15" fill="white"/>
+<circle cx="120" cy="78" r="10" fill="#7C3AED"/><circle cx="121" cy="79" r="6" fill="#1A0A3E"/>
+<circle cx="116" cy="72" r="3.5" fill="white" opacity="0.92"/><circle cx="123" cy="76" r="1.5" fill="white" opacity="0.6"/>
+<ellipse cx="160" cy="76" rx="13.5" ry="15" fill="white"/>
+<circle cx="160" cy="78" r="10" fill="#7C3AED"/><circle cx="161" cy="79" r="6" fill="#1A0A3E"/>
+<circle cx="156" cy="72" r="3.5" fill="white" opacity="0.92"/><circle cx="163" cy="76" r="1.5" fill="white" opacity="0.6"/>
+<path d="M107,65 Q120,59 133,64" stroke="#2D0A6E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path d="M147,64 Q160,59 173,65" stroke="#2D0A6E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path d="M108,61 Q120,56 132,60" stroke="#3B1480" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M148,60 Q160,56 172,61" stroke="#3B1480" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="104" cy="94" rx="14" ry="8" fill="rgba(255,130,140,0.28)"/>
+<ellipse cx="176" cy="94" rx="14" ry="8" fill="rgba(255,130,140,0.28)"/>
+<circle cx="140" cy="98" r="2" fill="rgba(210,140,100,0.45)"/>
+<path d="M128,108 Q140,117 152,108" stroke="#C07070" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<rect x="129" y="134" width="22" height="14" rx="7" fill="#FDDBB4"/>
+<path d="M96,148 Q66,202 60,326 Q100,314 140,318 Q180,314 220,326 Q214,202 184,148 Z" fill="#1A0844" opacity="0.94"/>
+<path d="M104,148 Q96,196 98,228 L140,234 L182,228 Q184,196 176,148 Z" fill="#2D1060"/>
+<path d="M120,148 Q140,160 160,148 L156,178 L140,184 L124,178 Z" fill="#1A0A44"/>
+<polygon points="140,178 149,187 140,196 131,187" fill="#C4B5FD" filter="url(#softGlow)"/>
+<polygon points="140,180 147,187 140,194 133,187" fill="rgba(167,139,250,0.65)"/>
+<rect x="102" y="218" width="76" height="9" rx="4.5" fill="#0E0524" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+<circle cx="140" cy="222" r="5" fill="#6D28D9" stroke="rgba(196,181,253,0.5)" stroke-width="1.2"/>
+<circle cx="140" cy="222" r="2.5" fill="#A78BFA"/>
+<text x="110" y="206" font-size="9" fill="rgba(196,181,253,0.42)" text-anchor="middle">✦</text>
+<text x="170" y="202" font-size="8" fill="rgba(196,181,253,0.38)" text-anchor="middle">✦</text>
+<path d="M104,148 Q80,162 76,208 Q88,213 100,208 Q100,184 104,165" fill="#2D1060"/>
+<circle cx="79" cy="213" r="11" fill="#FDDBB4"/><circle cx="79" cy="213" r="7.5" fill="#F4C090"/>
+<path d="M176,148 Q200,162 204,204 Q192,209 180,204 Q180,182 176,165" fill="#2D1060"/>
+<circle cx="200" cy="209" r="11" fill="#FDDBB4"/>
+<ellipse cx="214" cy="153" rx="9" ry="74" fill="rgba(124,58,237,0.14)" filter="url(#strongGlow)"/>
+<rect x="211" y="88" width="6" height="150" rx="3" fill="#5B21B6"/>
+<rect x="212" y="88" width="2.5" height="150" rx="1" fill="rgba(255,255,255,0.2)"/>
+<circle cx="214" cy="84" r="17" fill="rgba(124,58,237,0.22)" filter="url(#strongGlow)"/>
+<circle cx="214" cy="84" r="13" fill="#5B21B6"/><circle cx="214" cy="84" r="9" fill="#8B5CF6"/>
+<circle cx="209" cy="79" r="4" fill="rgba(255,255,255,0.88)"/>
+<circle cx="214" cy="84" r="15" fill="none" stroke="rgba(196,181,253,0.45)" stroke-width="1.5"/>
+<circle cx="214" cy="66" r="3.5" fill="#C4B5FD"><animateTransform attributeName="transform" type="rotate" from="0 214 84" to="360 214 84" dur="4.2s" repeatCount="indefinite"/></circle>
+<circle cx="214" cy="84" r="20" fill="rgba(139,92,246,0.18)"><animate attributeName="r" values="20;25;20" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.18;0.05;0.18" dur="3s" repeatCount="indefinite"/></circle>
+<path d="M106,228 L110,308 L126,318 L154,318 L170,308 L174,228 Z" fill="#1E0A4C"/>
+<rect x="104" y="306" width="28" height="14" rx="9" fill="#2D1060"/><rect x="148" y="306" width="28" height="14" rx="9" fill="#2D1060"/>
+<ellipse cx="118" cy="317" rx="16" ry="8" fill="#3B1380"/><ellipse cx="162" cy="317" rx="16" ry="8" fill="#3B1380"/>
+<circle cx="56" cy="182" r="2.5" fill="rgba(196,181,253,0.85)"><animateTransform attributeName="transform" type="translate" values="0,0;7,-26;0,-52" dur="3.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.85;1;0" dur="3.8s" repeatCount="indefinite"/></circle>
+<circle cx="234" cy="168" r="2" fill="rgba(167,139,250,0.75)"><animateTransform attributeName="transform" type="translate" values="0,0;-5,-22;0,-44" dur="4.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.75;1;0" dur="4.6s" repeatCount="indefinite"/></circle>
+<circle cx="44" cy="256" r="1.5" fill="rgba(216,180,254,0.9)"><animateTransform attributeName="transform" type="translate" values="0,0;10,-33;0,-66" dur="5.4s" repeatCount="indefinite" begin="1.4s"/><animate attributeName="opacity" values="0;0.9;0" dur="5.4s" repeatCount="indefinite" begin="1.4s"/></circle>`
+  },
+  guerrer:{
+    id:'guerrer',name:'El Guerrer',cls:'Paladin',emoji:'⚔️',desc:'Força i honor',
+    color:'#3B82F6',bg:'rgba(59,130,246,0.18)',
+    body:`
+<ellipse cx="140" cy="336" rx="58" ry="11" fill="rgba(59,130,246,0.22)"/>
+<path d="M90,78 Q86,34 106,20 Q124,10 140,12 Q156,10 174,20 Q194,34 190,78" fill="#0F172A"/>
+<path d="M90,78 Q82,52 92,36" fill="#0F172A"/><path d="M190,78 Q198,52 188,36" fill="#0F172A"/>
+<path d="M106,30 Q114,18 122,24 Q116,38 110,46" fill="#0F172A"/>
+<path d="M140,12 Q150,8 158,14 Q148,24 140,22" fill="#0F172A"/>
+<path d="M166,24 Q172,18 178,24 Q172,36 168,42" fill="#0F172A"/>
+<path d="M106,22 Q118,15 126,17 Q120,30 114,34 Z" fill="rgba(96,165,250,0.22)"/>
+<circle cx="140" cy="80" r="54" fill="#FDDBB4"/>
+<ellipse cx="86" cy="86" rx="9" ry="12" fill="#FDDBB4"/><ellipse cx="194" cy="86" rx="9" ry="12" fill="#FDDBB4"/>
+<ellipse cx="86" cy="86" rx="5.5" ry="7.5" fill="#F4C090"/><ellipse cx="194" cy="86" rx="5.5" ry="7.5" fill="#F4C090"/>
+<path d="M92,70 Q94,48 108,36 Q118,46 114,70" fill="#0F172A"/>
+<path d="M188,70 Q186,48 172,36 Q162,46 166,70" fill="#0F172A"/>
+<path d="M114,38 Q128,28 140,26 Q152,28 166,38 Q162,54 140,56 Q118,54 114,38 Z" fill="#0F172A"/>
+<ellipse cx="120" cy="75" rx="13" ry="14" fill="white"/>
+<circle cx="120" cy="77" r="9.5" fill="#3B82F6"/><circle cx="121" cy="78" r="5.5" fill="#1E3A5F"/>
+<circle cx="116" cy="72" r="3.5" fill="white" opacity="0.9"/><circle cx="123" cy="75" r="1.5" fill="white" opacity="0.6"/>
+<ellipse cx="160" cy="75" rx="13" ry="14" fill="white"/>
+<circle cx="160" cy="77" r="9.5" fill="#3B82F6"/><circle cx="161" cy="78" r="5.5" fill="#1E3A5F"/>
+<circle cx="156" cy="72" r="3.5" fill="white" opacity="0.9"/><circle cx="163" cy="75" r="1.5" fill="white" opacity="0.6"/>
+<path d="M107,60 Q120,55 133,59" stroke="#0F172A" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M147,59 Q160,55 173,60" stroke="#0F172A" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M128,103 Q136,110 150,106" stroke="#C07070" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<circle cx="140" cy="95" r="2" fill="rgba(210,140,100,0.4)"/>
+<rect x="129" y="132" width="22" height="15" rx="7" fill="#FDDBB4"/>
+<path d="M96,146 Q90,200 92,230 L140,236 L188,230 Q190,200 184,146 Z" fill="#1E3A5F"/>
+<path d="M108,156 L140,150 L172,156 L170,204 L140,210 L110,204 Z" fill="#1E3A5F" stroke="rgba(59,130,246,0.35)" stroke-width="1.2"/>
+<line x1="140" y1="158" x2="140" y2="210" stroke="rgba(59,130,246,0.25)" stroke-width="1"/>
+<path d="M108,156 L110,204" stroke="rgba(245,158,11,0.5)" stroke-width="2"/>
+<path d="M172,156 L170,204" stroke="rgba(245,158,11,0.5)" stroke-width="2"/>
+<path d="M108,156 L140,150 L172,156" stroke="rgba(245,158,11,0.5)" stroke-width="2" fill="none"/>
+<polygon points="140,170 144,180 154,180 146,187 149,197 140,191 131,197 134,187 126,180 136,180" fill="rgba(245,158,11,0.7)" filter="url(#softGlow)"/>
+<circle cx="93" cy="152" r="18" fill="#1A3252" stroke="rgba(245,158,11,0.35)" stroke-width="1.5"/>
+<circle cx="187" cy="152" r="18" fill="#1A3252" stroke="rgba(245,158,11,0.35)" stroke-width="1.5"/>
+<circle cx="93" cy="152" r="8" fill="rgba(59,130,246,0.3)" stroke="rgba(59,130,246,0.5)" stroke-width="1"/>
+<circle cx="187" cy="152" r="8" fill="rgba(59,130,246,0.3)" stroke="rgba(59,130,246,0.5)" stroke-width="1"/>
+<rect x="72" y="154" width="21" height="60" rx="9" fill="#1A3252"/>
+<rect x="70" y="154" width="23" height="30" rx="8" fill="#1E3A5F" stroke="rgba(245,158,11,0.25)" stroke-width="1"/>
+<circle cx="83" cy="222" r="12" fill="#1A3252" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+<rect x="187" y="154" width="21" height="58" rx="9" fill="#1A3252"/>
+<rect x="187" y="154" width="23" height="30" rx="8" fill="#1E3A5F" stroke="rgba(245,158,11,0.25)" stroke-width="1"/>
+<circle cx="197" cy="220" r="12" fill="#1A3252" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+<rect x="106" y="230" width="28" height="70" rx="10" fill="#1A1A2E"/>
+<rect x="146" y="230" width="28" height="70" rx="10" fill="#1A1A2E"/>
+<rect x="104" y="288" width="32" height="16" rx="10" fill="#0F172A"/><rect x="144" y="288" width="32" height="16" rx="10" fill="#0F172A"/>
+<ellipse cx="120" cy="302" rx="18" ry="7" fill="#0C1220"/><ellipse cx="160" cy="302" rx="18" ry="7" fill="#0C1220"/>
+<path d="M104,289 Q120,284 136,289" stroke="rgba(245,158,11,0.45)" stroke-width="1.5" fill="none"/>
+<path d="M144,289 Q160,284 176,289" stroke="rgba(245,158,11,0.45)" stroke-width="1.5" fill="none"/>
+<rect x="200" y="162" width="12" height="108" rx="6" fill="rgba(59,130,246,0.15)" filter="url(#strongGlow)"/>
+<rect x="204" y="162" width="5" height="98" rx="2.5" fill="#94A3B8"/>
+<rect x="204" y="162" width="2" height="98" rx="1" fill="rgba(255,255,255,0.35)"/>
+<polygon points="206.5,162 202,178 211,178" fill="#CBD5E1"/>
+<rect x="198" y="252" width="22" height="8" rx="4" fill="#F59E0B" stroke="rgba(253,211,77,0.6)" stroke-width="1"/>
+<rect x="203" y="260" width="8" height="16" rx="4" fill="#0F172A" stroke="rgba(245,158,11,0.3)" stroke-width="1"/>
+<circle cx="207" cy="216" r="3" fill="rgba(59,130,246,0.8)" filter="url(#softGlow)"><animate attributeName="opacity" values="0.8;1;0.8" dur="2.4s" repeatCount="indefinite"/></circle>
+<circle cx="48" cy="200" r="2" fill="rgba(59,130,246,0.7)"><animateTransform attributeName="transform" type="translate" values="0,0;6,-22;0,-44" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;1;0" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="238" cy="180" r="1.5" fill="rgba(147,197,253,0.75)"><animateTransform attributeName="transform" type="translate" values="0,0;-5,-20;0,-40" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.75;1;0" dur="5s" repeatCount="indefinite"/></circle>`
+  },
+  cacadora:{
+    id:'cacadora',name:'La Caçadora',cls:'Ranger',emoji:'🏹',desc:'Velocitat i natura',
+    color:'#10B981',bg:'rgba(16,185,129,0.18)',
+    body:`
+<ellipse cx="140" cy="336" rx="58" ry="11" fill="rgba(16,185,129,0.2)"/>
+<ellipse cx="80" cy="180" rx="12" ry="70" fill="none" stroke="#92400E" stroke-width="4" opacity="0.85"/>
+<line x1="80" y1="112" x2="80" y2="248" stroke="#D4A017" stroke-width="1.2" opacity="0.7"/>
+<path d="M88,74 Q84,32 106,19 Q123,9 140,11 Q157,9 174,19 Q196,32 192,74" fill="#92400E"/>
+<path d="M182,80 Q210,92 218,140 Q208,148 200,142 Q196,102 186,90" fill="#92400E"/>
+<path d="M108,22 Q122,14 132,16 Q126,30 118,34 Z" fill="rgba(245,158,11,0.28)"/>
+<circle cx="140" cy="80" r="54" fill="#F4C07A"/>
+<ellipse cx="86" cy="86" rx="9" ry="12" fill="#F4C07A"/><ellipse cx="194" cy="86" rx="9" ry="12" fill="#F4C07A"/>
+<ellipse cx="86" cy="86" rx="5.5" ry="7.5" fill="#EAB060"/><ellipse cx="194" cy="86" rx="5.5" ry="7.5" fill="#EAB060"/>
+<path d="M88,70 Q90,44 108,32 Q122,46 116,70" fill="#92400E"/>
+<path d="M192,70 Q190,44 172,32 Q158,46 164,70" fill="#92400E"/>
+<path d="M108,32 Q126,17 140,15 Q154,17 172,32 Q166,54 140,56 Q114,54 108,32 Z" fill="#92400E"/>
+<circle cx="183" cy="78" r="7" fill="#064E3B" stroke="rgba(52,211,153,0.5)" stroke-width="1.5"/>
+<ellipse cx="120" cy="75" rx="13" ry="14" fill="white"/>
+<circle cx="120" cy="77" r="9.5" fill="#10B981"/><circle cx="121" cy="78" r="5.5" fill="#064E3B"/>
+<circle cx="116" cy="72" r="3.5" fill="white" opacity="0.9"/><circle cx="123" cy="75" r="1.5" fill="white" opacity="0.6"/>
+<ellipse cx="160" cy="75" rx="13" ry="14" fill="white"/>
+<circle cx="160" cy="77" r="9.5" fill="#10B981"/><circle cx="161" cy="78" r="5.5" fill="#064E3B"/>
+<circle cx="156" cy="72" r="3.5" fill="white" opacity="0.9"/><circle cx="163" cy="75" r="1.5" fill="white" opacity="0.6"/>
+<path d="M107,61 Q120,56 133,60" stroke="#7C2D12" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M147,60 Q160,56 173,61" stroke="#7C2D12" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M126,104 Q140,116 154,104" stroke="#C07070" stroke-width="2.5" fill="rgba(255,200,190,0.3)" stroke-linecap="round"/>
+<circle cx="140" cy="96" r="2" fill="rgba(180,110,60,0.4)"/>
+<ellipse cx="104" cy="92" rx="13" ry="7" fill="rgba(255,140,120,0.24)"/>
+<ellipse cx="176" cy="92" rx="13" ry="7" fill="rgba(255,140,120,0.24)"/>
+<rect x="129" y="132" width="22" height="14" rx="7" fill="#F4C07A"/>
+<path d="M104,146 Q96,196 98,228 L140,234 L182,228 Q184,196 176,146 Z" fill="#064E3B"/>
+<path d="M120,146 Q140,158 160,146 L156,176 L140,182 L124,176 Z" fill="#065F46"/>
+<path d="M120,146 L125,170 L140,175" stroke="rgba(52,211,153,0.35)" stroke-width="1" fill="none"/>
+<path d="M160,146 L155,170 L140,175" stroke="rgba(52,211,153,0.35)" stroke-width="1" fill="none"/>
+<rect x="100" y="218" width="80" height="10" rx="5" fill="#7C2D12" stroke="rgba(180,83,9,0.4)" stroke-width="1"/>
+<rect x="132" y="218" width="16" height="10" rx="3" fill="#92400E" stroke="rgba(245,158,11,0.5)" stroke-width="1"/>
+<rect x="134" y="220" width="12" height="6" rx="2" fill="rgba(245,158,11,0.6)"/>
+<rect x="108" y="190" width="18" height="14" rx="3" fill="#054F3A" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+<circle cx="117" cy="197" r="3" fill="rgba(52,211,153,0.6)"/>
+<path d="M104,146 Q80,160 76,206 Q88,211 100,206 Q100,182 104,163" fill="#064E3B"/>
+<circle cx="79" cy="211" r="11" fill="#F4C07A"/><circle cx="79" cy="211" r="7.5" fill="#EAB060"/>
+<path d="M176,146 Q200,160 204,202 Q192,207 180,202 Q180,180 176,163" fill="#064E3B"/>
+<circle cx="200" cy="207" r="11" fill="#F4C07A"/>
+<rect x="106" y="228" width="27" height="70" rx="10" fill="#065F46"/>
+<rect x="147" y="228" width="27" height="70" rx="10" fill="#065F46"/>
+<rect x="104" y="254" width="31" height="10" rx="4" fill="#054F3A" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+<rect x="145" y="254" width="31" height="10" rx="4" fill="#054F3A" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+<rect x="104" y="292" width="30" height="14" rx="8" fill="#7C2D12"/><rect x="145" y="292" width="30" height="14" rx="8" fill="#7C2D12"/>
+<ellipse cx="119" cy="304" rx="17" ry="7" fill="#6B2314"/><ellipse cx="160" cy="304" rx="17" ry="7" fill="#6B2314"/>
+<rect x="105" y="298" width="28" height="4" rx="2" fill="rgba(180,83,9,0.5)" stroke="rgba(245,158,11,0.3)" stroke-width="0.5"/>
+<rect x="146" y="298" width="28" height="4" rx="2" fill="rgba(180,83,9,0.5)" stroke="rgba(245,158,11,0.3)" stroke-width="0.5"/>
+<circle cx="50" cy="185" r="2" fill="rgba(52,211,153,0.75)"><animateTransform attributeName="transform" type="translate" values="0,0;8,-24;0,-48" dur="4.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.75;1;0" dur="4.2s" repeatCount="indefinite"/></circle>
+<circle cx="236" cy="170" r="1.5" fill="rgba(110,231,183,0.8)"><animateTransform attributeName="transform" type="translate" values="0,0;-6,-22;0,-44" dur="3.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;1;0" dur="3.6s" repeatCount="indefinite"/></circle>`
+  },
+  curandera:{
+    id:'curandera',name:'La Curandera',cls:'Sanadora',emoji:'✨',desc:'Llum i guariment',
+    color:'#0EA5E9',bg:'rgba(14,165,233,0.18)',
+    body:`
+<ellipse cx="140" cy="336" rx="58" ry="11" fill="rgba(14,165,233,0.18)"/>
+<circle cx="140" cy="82" r="66" fill="rgba(14,165,233,0.06)" filter="url(#softGlow)"/>
+<path d="M88,74 Q84,32 106,18 Q123,8 140,10 Q157,8 174,18 Q196,32 192,74" fill="#CBD5E1"/>
+<path d="M88,74 Q70,118 62,190 Q76,182 90,158 Q92,128 96,106" fill="#CBD5E1"/>
+<path d="M192,74 Q210,118 218,190 Q204,182 190,158 Q188,128 184,106" fill="#CBD5E1"/>
+<path d="M92,70 Q102,52 112,44 Q118,56 112,68" fill="rgba(255,255,255,0.45)"/>
+<path d="M118,20 Q130,12 140,14 Q136,26 128,28 Z" fill="rgba(255,255,255,0.6)"/>
+<circle cx="140" cy="82" r="54" fill="#FFE4D6"/>
+<ellipse cx="86" cy="88" rx="9" ry="12" fill="#FFE4D6"/><ellipse cx="194" cy="88" rx="9" ry="12" fill="#FFE4D6"/>
+<ellipse cx="86" cy="88" rx="5.5" ry="7.5" fill="#F9CDB8"/><ellipse cx="194" cy="88" rx="5.5" ry="7.5" fill="#F9CDB8"/>
+<path d="M88,70 Q90,44 108,32 Q124,46 118,68" fill="#CBD5E1"/>
+<path d="M192,70 Q190,44 172,32 Q156,46 162,68" fill="#CBD5E1"/>
+<path d="M108,32 Q126,17 140,15 Q154,17 172,32 Q166,54 140,58 Q114,54 108,32 Z" fill="#CBD5E1"/>
+<circle cx="120" cy="36" r="5" fill="#0D9488" stroke="rgba(110,231,183,0.6)" stroke-width="1.5"/>
+<circle cx="120" cy="36" r="2.5" fill="rgba(167,243,208,0.8)"/>
+<ellipse cx="120" cy="76" rx="13.5" ry="15" fill="white"/>
+<circle cx="120" cy="78" r="10" fill="#0EA5E9"/><circle cx="121" cy="79" r="6" fill="#075985"/>
+<circle cx="116" cy="73" r="3.5" fill="white" opacity="0.92"/><circle cx="123" cy="76" r="1.5" fill="white" opacity="0.6"/>
+<ellipse cx="160" cy="76" rx="13.5" ry="15" fill="white"/>
+<circle cx="160" cy="78" r="10" fill="#0EA5E9"/><circle cx="161" cy="79" r="6" fill="#075985"/>
+<circle cx="156" cy="73" r="3.5" fill="white" opacity="0.92"/><circle cx="163" cy="76" r="1.5" fill="white" opacity="0.6"/>
+<path d="M107,65 Q120,60 133,65" stroke="#0E7490" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M147,65 Q160,60 173,65" stroke="#0E7490" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M108,62 Q121,57 133,61" stroke="#94A3B8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M147,61 Q160,57 172,62" stroke="#94A3B8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="104" cy="95" rx="14" ry="7.5" fill="rgba(255,150,170,0.22)"/>
+<ellipse cx="176" cy="95" rx="14" ry="7.5" fill="rgba(255,150,170,0.22)"/>
+<circle cx="140" cy="98" r="2" fill="rgba(200,130,110,0.38)"/>
+<path d="M128,107 Q140,117 152,107" stroke="#C08080" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<rect x="129" y="134" width="22" height="15" rx="7" fill="#FFE4D6"/>
+<path d="M96,148 Q66,202 60,328 Q100,316 140,320 Q180,316 220,328 Q214,202 184,148 Z" fill="#F0FAFB" opacity="0.95"/>
+<path d="M106,148 Q98,198 100,228 L140,234 L180,228 Q182,198 174,148 Z" fill="#F8FAFC"/>
+<path d="M118,148 Q140,158 162,148 L158,175 L140,180 L122,175 Z" fill="#E0F7FA"/>
+<path d="M118,148 L122,175" stroke="#0D9488" stroke-width="1.5" fill="none"/>
+<path d="M162,148 L158,175" stroke="#0D9488" stroke-width="1.5" fill="none"/>
+<rect x="136" y="175" width="8" height="18" rx="3" fill="#0D9488" opacity="0.8"/>
+<rect x="130" y="181" width="20" height="8" rx="3" fill="#0D9488" opacity="0.8"/>
+<rect x="136.5" y="175.5" width="7" height="17" rx="2.5" fill="#14B8A6" opacity="0.6"/>
+<path d="M106,148 Q82,162 78,208 Q90,213 102,208 Q102,184 106,165" fill="#F0FAFB" stroke="#0D9488" stroke-width="1" stroke-opacity="0.3"/>
+<circle cx="81" cy="213" r="11" fill="#FFE4D6"/><circle cx="81" cy="213" r="7.5" fill="#F9CDB8"/>
+<path d="M174,148 Q198,162 202,204 Q190,209 178,204 Q178,182 174,165" fill="#F0FAFB" stroke="#0D9488" stroke-width="1" stroke-opacity="0.3"/>
+<circle cx="198" cy="209" r="11" fill="#FFE4D6"/>
+<ellipse cx="66" cy="153" rx="9" ry="74" fill="rgba(14,165,233,0.1)" filter="url(#strongGlow)"/>
+<rect x="63" y="86" width="6" height="152" rx="3" fill="#0E7490"/>
+<rect x="64" y="86" width="2.5" height="152" rx="1" fill="rgba(255,255,255,0.25)"/>
+<circle cx="66" cy="82" r="17" fill="rgba(14,165,233,0.2)" filter="url(#strongGlow)"/>
+<circle cx="66" cy="82" r="13" fill="#0EA5E9"/><circle cx="66" cy="82" r="9" fill="#38BDF8"/>
+<circle cx="62" cy="77" r="4" fill="rgba(255,255,255,0.9)"/>
+<rect x="63.5" y="76" width="5" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+<rect x="59" y="80" width="14" height="5" rx="2" fill="rgba(255,255,255,0.7)"/>
+<circle cx="66" cy="82" r="15" fill="none" stroke="rgba(125,211,252,0.45)" stroke-width="1.5"/>
+<circle cx="66" cy="82" r="20" fill="rgba(14,165,233,0.15)"><animate attributeName="r" values="20;26;20" dur="3.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.15;0.04;0.15" dur="3.2s" repeatCount="indefinite"/></circle>
+<path d="M106,228 L110,306 L128,316 L152,316 L170,306 L174,228 Z" fill="#F0FAFB"/>
+<path d="M106,228 Q140,220 174,228" fill="none" stroke="#0D9488" stroke-width="2"/>
+<path d="M108,270 Q140,264 172,270" fill="none" stroke="rgba(13,148,136,0.35)" stroke-width="1.5"/>
+<rect x="106" y="304" width="26" height="14" rx="9" fill="#0D9488"/><rect x="148" y="304" width="26" height="14" rx="9" fill="#0D9488"/>
+<ellipse cx="119" cy="316" rx="15" ry="7" fill="#0B8A7A"/><ellipse cx="161" cy="316" rx="15" ry="7" fill="#0B8A7A"/>
+<circle cx="50" cy="186" r="2" fill="rgba(125,211,252,0.8)"><animateTransform attributeName="transform" type="translate" values="0,0;7,-26;0,-52" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;1;0" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="238" cy="174" r="2" fill="rgba(110,231,183,0.75)"><animateTransform attributeName="transform" type="translate" values="0,0;-6,-24;0,-48" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.75;1;0" dur="5s" repeatCount="indefinite"/></circle>`
+  }
+};
+
+/* ═══ HERO SKIN FUNCTIONS ═══ */
+function renderHeroSkin(){
+  if(!hero.skin) hero.skin='maga';
+  const skin=HERO_SKINS[hero.skin]||HERO_SKINS.maga;
+  const body=document.getElementById('hero-body');
+  if(body) body.innerHTML=skin.body;
+}
+
+function openHeroSelector(){
+  const grid=document.getElementById('hero-sel-grid');
+  if(!grid) return;
+  grid.innerHTML='';
+  Object.values(HERO_SKINS).forEach(s=>{
+    const isSel=(hero.skin||'maga')===s.id;
+    const card=document.createElement('div');
+    card.className='hero-card-sel'+(isSel?' selected':'');
+    card.style.setProperty('--hs-color',s.bg);
+    card.style.borderColor=isSel?s.color:'rgba(255,255,255,0.06)';
+    card.innerHTML=`<div class="hero-card-badge" style="background:${s.bg}">${s.emoji}</div><div class="hero-card-name">${s.name.toUpperCase()}</div><div class="hero-card-class">${s.cls}</div>`;
+    card.onclick=()=>selectHero(s.id);
+    grid.appendChild(card);
+  });
+  document.getElementById('hero-selector-modal').classList.add('open');
+}
+
+function closeHeroSelector(){
+  document.getElementById('hero-selector-modal').classList.remove('open');
+}
+
+function selectHero(id){
+  if(!HERO_SKINS[id]) return;
+  hero.skin=id;
+  saveHero(hero);
+  renderHeroSkin();
+  renderEquip();
+  closeHeroSelector();
+  showToast('✦ Heroi canviat a '+HERO_SKINS[id].name+'!');
+}
+
 const TUT_STEPS=[
   {title:'⚔️ Benvingut al teu Heroi',          desc:'El teu heroi és el nucli de JOmaxPath. Tot el que fas a l\'app —tasques, hàbits, sessions de focus— fa créixer el teu personatge. Aquí ho pots veure tot en un lloc.'},
   {title:'🎭 El teu Personatge',                desc:'Al centre hi veus el teu guerrer. Creix de nivell (del NIVELL 1 al 10) completant missions diàries. Cada equipament que desbloquejis apareix als slots que l\'envolten.'},
@@ -1193,7 +1388,7 @@ async function _checkWeeklyReset(){
     }
   }catch{}
 }
-function defaultHero(){return{name:'Heroi en Construcció',avatar:'⚔️',xp:0,level:1,stats:{cos:1,ment:1,social:1,prop:1,disc:0,fin:0,fisic:0,lid:0},streaks:{},missionsDone:{},lastReset:new Date().toDateString()};}
+function defaultHero(){return{name:'Heroi en Construcció',avatar:'⚔️',xp:0,level:1,skin:'maga',stats:{cos:1,ment:1,social:1,prop:1,disc:0,fin:0,fisic:0,lid:0},streaks:{},missionsDone:{},lastReset:new Date().toDateString()};}
 function loadFriends(){try{return JSON.parse(localStorage.getItem(FRIENDS_KEY))||[];}catch{return[];}}
 function saveFriends(f){localStorage.setItem(FRIENDS_KEY,JSON.stringify(f));}
 
@@ -1241,7 +1436,9 @@ function init(){
       saveHero(hero);
     }
   } catch{}
+  if(!hero.skin) hero.skin='maga';
   checkDailyReset();
+  renderHeroSkin();
   renderHeader();
   renderSidebar();
   renderFocusPanel();
@@ -1322,7 +1519,8 @@ function renderSidebar(){
 /* ═══ EQUIP RENDER ═══ */
 function renderEquip(){
   const{level}=computeLevel(hero.xp);
-  const unlocked={cap:'🪖',weapon:'🗡️',shield:'🛡️',extra:'💍'};
+  const defaults={cap:'🪖',weapon:'🗡️',shield:'🛡️',extra:'💍'};
+  const unlocked={...defaults};
   PATH_LEVELS.forEach(lv=>{
     if(level>=lv.num){
       lv.unlocks.forEach(u=>{
@@ -1335,12 +1533,19 @@ function renderEquip(){
     const box=document.getElementById('eq-'+slot+'-box');
     if(ico)ico.textContent=unlocked[slot];
     if(box){
-      const isUnlocked=unlocked[slot]!={cap:'🪖',weapon:'🗡️',shield:'🛡️',extra:'💍'}[slot];
+      const isUnlocked=unlocked[slot]!==defaults[slot];
       if(isUnlocked||level>1)box.classList.add('filled');
     }
   });
   document.getElementById('char-name-disp').textContent=hero.name;
   document.getElementById('char-class-disp').textContent=(CLASSES[Math.min(level-1,9)]||'Guerrer').toUpperCase()+' · NV.'+level;
+  // Mostra accessoris SVG sobre el personatge
+  const svgSet=(id,on)=>{const el=document.getElementById(id);if(el)el.style.display=on?'':'none';};
+  svgSet('acc-shield', level>=2);
+  svgSet('acc-weapon', level>=3);
+  svgSet('acc-cap',    level>=4);
+  svgSet('acc-extra',  level>=5);
+  renderHeroSkin();
 }
 
 /* ── Badge counter for Friends tab ── */
