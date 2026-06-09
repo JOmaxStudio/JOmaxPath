@@ -1763,22 +1763,31 @@ async function openList(id) {
   if (!list) { showToast('⚠️ Llista no trobada'); return; }
   _openListId = id;
   _listView = 'list';
-  // Refresca des del núvol si és compartida (per veure canvis d'altres membres)
-  if (list.shared && list.shareCode && _supabase) {
-    try {
-      const {data} = await _supabase.from('shared_boards').select('board_data').eq('code', list.shareCode).maybeSingle();
-      if (data?.board_data?.tasks) {
-        const lists = getLists();
-        const idx = lists.findIndex(l=>l.id===id);
-        lists[idx] = {...lists[idx], name:data.board_data.name||list.name, tasks:data.board_data.tasks||[], members:data.board_data.members||list.members};
-        setLists(lists);
-      }
-    } catch {}
-  }
+  // Mostra la llista IMMEDIATAMENT amb dades locals — mai bloquegis la UI per
+  // la xarxa (si la consulta al núvol es penja, igualment pots entrar).
   document.getElementById('lists-collection-view').style.display = 'none';
   document.getElementById('list-detail-view').style.display = 'block';
   setListView('list');
   _subscribeListRealtime(list);
+  // Refresca des del núvol en segon pla (best-effort, amb timeout de 4s)
+  if (list.shared && list.shareCode && _supabase) {
+    try {
+      const {data} = await Promise.race([
+        _supabase.from('shared_boards').select('board_data').eq('code', list.shareCode).maybeSingle(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),4000))
+      ]);
+      // Només aplica si encara tenim aquesta llista oberta
+      if (data?.board_data?.tasks && _openListId===id) {
+        const lists = getLists();
+        const idx = lists.findIndex(l=>l.id===id);
+        if (idx>=0) {
+          lists[idx] = {...lists[idx], name:data.board_data.name||list.name, tasks:data.board_data.tasks||[], members:data.board_data.members||list.members};
+          setLists(lists);
+          renderListDetail();
+        }
+      }
+    } catch {} // timeout o error → ens quedem amb les dades locals
+  }
 }
 
 let _listChannel = null;
