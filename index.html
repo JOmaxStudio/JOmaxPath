@@ -3181,10 +3181,21 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   body.view-pages.sb-collapsed-desktop #bnav { display: none !important; }
   /* Barra superior una mica més compacta a mòbil */
   #nav-clock { top: 14px !important; }
-  #nav-hamburger { top: 14px !important; }
   #lsb-mobile-btn { top: 14px !important; }
+  /* UN SOL HAMBURGUER: amaga el dret (drawer); tot és accessible des del menú ☰ esquerre */
+  #nav-hamburger { display: none !important; }
+  #nav-clock { right: 16px !important; }
   /* Hamburguer esquerre més visible (és la navegació principal al mòbil) */
   #lsb-mobile-btn { background: rgba(124,58,237,0.18) !important; border-color: rgba(124,58,237,0.4) !important; }
+
+  /* ═══ JULIANS AI: apilat vertical al mòbil (llista a dalt, xat + input a sota) ═══ */
+  #ai-layout { display: flex !important; flex-direction: column !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
+  #ai-sidebar { width: 100% !important; max-width: 100% !important; min-width: 0 !important; height: auto !important; max-height: 130px !important; position: static !important; border-right: none !important; border-bottom: 1px solid rgba(124,58,237,0.2) !important; }
+  #ai-sidebar #ai-chat-list { max-height: 78px !important; overflow-y: auto !important; }
+  #ai-sidebar-resize { display: none !important; }
+  #ai-main { width: 100% !important; flex: 1 1 auto !important; min-height: 60vh !important; }
+  .ai-chat-messages { min-height: 38vh !important; max-height: none !important; }
+  .ai-chat-input-row { position: sticky !important; bottom: 0 !important; }
 }
 
 /* El header principal (títol de pàgina) no ha de quedar tapat */
