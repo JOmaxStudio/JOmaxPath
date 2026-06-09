@@ -1086,16 +1086,17 @@ body.view-pages.sb-collapsed-desktop .container {
     // Força la barra inferior a no cobrir el contingut
     var bnav = document.getElementById('bnav');
     if(bnav) bnav.style.height = '58px';
+    var icon=document.getElementById('lsb-toggle-icon');
     if(collapsed){
       sidebar.classList.add('sb-collapsed');
       document.body.classList.remove('sb-open-desktop');
       document.body.classList.add('sb-collapsed-desktop');
-      btn.textContent='▶';
+      if(icon) icon.textContent='▶';
     } else {
       sidebar.classList.remove('sb-collapsed');
       document.body.classList.add('sb-open-desktop');
       document.body.classList.remove('sb-collapsed-desktop');
-      btn.textContent='◀';
+      if(icon) icon.textContent='◀';
     }
   }
 
