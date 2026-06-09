@@ -3169,15 +3169,22 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
 /* MÒBIL: contingut a TOTA AMPLADA, amb espai a dalt per la barra fixa (rellotge+menús)
    i a baix per la barra de navegació. Així res queda comprimit ni tapat. */
 @media(max-width: 768px) {
-  .container { padding: 72px 14px 96px !important; }
+  /* Sense barra inferior: marge inferior petit. Navegació via hamburguer ☰ */
+  .container { padding: 72px 14px 28px !important; }
   /* El títol de pàgina ja no queda sota l'hamburguer (el contingut comença sota la barra) */
   .page-title-bar { padding-left: 0 !important; }
   /* Amaga decoracions laterals que poden semblar barres */
   .side-deco-left, .side-deco-right { display: none !important; }
+  /* AMAGA la barra de navegació inferior (redundant amb el menú ☰) */
+  #bnav { display: none !important; }
+  body.view-pages.sb-open-desktop #bnav,
+  body.view-pages.sb-collapsed-desktop #bnav { display: none !important; }
   /* Barra superior una mica més compacta a mòbil */
   #nav-clock { top: 14px !important; }
   #nav-hamburger { top: 14px !important; }
   #lsb-mobile-btn { top: 14px !important; }
+  /* Hamburguer esquerre més visible (és la navegació principal al mòbil) */
+  #lsb-mobile-btn { background: rgba(124,58,237,0.18) !important; border-color: rgba(124,58,237,0.4) !important; }
 }
 
 /* El header principal (títol de pàgina) no ha de quedar tapat */
