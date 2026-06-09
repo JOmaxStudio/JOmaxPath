@@ -941,33 +941,42 @@ async function getHeroLeaderboard() {
   }
 
   // Always set up auth state listener first (handles OAuth callback too)
-  _supabase.auth.onAuthStateChange(async (event, session) => {
+  // IMPORTANT: el callback HA de ser SÍNCRON i no fer cap await de crides a
+  // supabase aquí dins. onAuthStateChange s'executa DINS del lock d'auth de
+  // supabase-js; qualsevol operació supabase amb await re-entra al lock i
+  // s'encua a pendingInLock → DEADLOCK (totes les consultes es pengen). El
+  // patró oficial és diferir-ho tot amb setTimeout(0) perquè corri FORA del lock.
+  _supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
-      // Garantir que el perfil existeix a Supabase (important per Google OAuth)
-      try {
-        const u = session.user;
-        const autoUsername = (u.user_metadata?.full_name || u.email?.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_.]/g,'').slice(0,24) || 'user_' + u.id.slice(-6);
-        await _supabase.from('profiles').upsert({
-          id: u.id,
-          email: u.email || '',
-          username: autoUsername,
-          avatar: '⚔️',
-          hero_xp: 0,
-          hero_level: 1
-        }, { onConflict: 'id', ignoreDuplicates: true });
-      } catch {}
-      await _loadUserProfile(session.user.id).catch(()=>{});
-      await _syncUserData(session.user.id).catch(()=>{});
       _updateAuthUI();
-      // Hide auth overlay if it's open
-      _hideAuthOverlay();
-      // Reload current page
-      if (typeof renderHome === 'function' && _currentPage === 'home') renderHome();
-      // Actualitza badge d'invitacions de llistes pendents + realtime
-      if (typeof updateSharedTabBadge === 'function') setTimeout(updateSharedTabBadge, 500);
-      if (typeof _subscribeInvitesRealtime === 'function') setTimeout(_subscribeInvitesRealtime, 800);
-      showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
+      setTimeout(async () => {
+        // Garantir que el perfil existeix a Supabase (important per Google OAuth)
+        try {
+          const u = session.user;
+          const autoUsername = (u.user_metadata?.full_name || u.email?.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_.]/g,'').slice(0,24) || 'user_' + u.id.slice(-6);
+          await _supabase.from('profiles').upsert({
+            id: u.id,
+            email: u.email || '',
+            username: autoUsername,
+            avatar: '⚔️',
+            hero_xp: 0,
+            hero_level: 1
+          }, { onConflict: 'id', ignoreDuplicates: true });
+        } catch {}
+        await _loadUserProfile(session.user.id).catch(()=>{});
+        await _syncUserData(session.user.id).catch(()=>{});
+        _updateAuthUI();
+        // Hide auth overlay if it's open
+        _hideAuthOverlay();
+        // Reload current page
+        if (typeof renderHome === 'function' && _currentPage === 'home') renderHome();
+        if (typeof renderTasques === 'function' && _currentPage === 'tasques') renderTasques();
+        // Actualitza badge d'invitacions de llistes pendents + realtime
+        if (typeof updateSharedTabBadge === 'function') setTimeout(updateSharedTabBadge, 500);
+        if (typeof _subscribeInvitesRealtime === 'function') setTimeout(_subscribeInvitesRealtime, 800);
+        showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
+      }, 0);
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null; _userProfile = null;
       _updateAuthUI();
