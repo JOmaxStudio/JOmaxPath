@@ -651,6 +651,11 @@ body.mob-sb #sb{width:var(--sb) !important;}
                   <stop offset="0%" stop-color="#1a1235"/>
                   <stop offset="100%" stop-color="#0d0a20"/>
                 </linearGradient>
+                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#fff3b0"/>
+                  <stop offset="55%" stop-color="#ffd700"/>
+                  <stop offset="100%" stop-color="#e0a000"/>
+                </linearGradient>
               </defs>
 
               <!-- Background atmosphere -->
@@ -795,6 +800,43 @@ body.mob-sb #sb{width:var(--sb) !important;}
               <!-- Idle float animation wrapper -->
               <g id="char-float">
                 <animateTransform attributeName="transform" type="translate" values="0,0; 0,-6; 0,0" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+              </g>
+
+              <!-- ═══ EVOLUCIÓ PER NIVELL (es mostren segons el nivell) ═══ -->
+              <!-- Espigues d'espatlla (NV.3+) -->
+              <g id="evo-spikes" style="display:none;">
+                <polygon points="92,140 84,116 100,134" fill="#a78bfa" opacity="0.9" filter="url(#softGlow)"/>
+                <polygon points="188,140 196,116 180,134" fill="#a78bfa" opacity="0.9" filter="url(#softGlow)"/>
+              </g>
+              <!-- Aura giratòria (NV.5+) -->
+              <g id="evo-aura" style="display:none;">
+                <circle cx="140" cy="200" r="122" fill="none" stroke="rgba(124,58,237,0.22)" stroke-width="2" stroke-dasharray="5 12" filter="url(#softGlow)">
+                  <animateTransform attributeName="transform" type="rotate" from="0 140 200" to="360 140 200" dur="26s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="140" cy="200" r="110" fill="none" stroke="rgba(0,184,217,0.16)" stroke-width="1.5" stroke-dasharray="2 16">
+                  <animateTransform attributeName="transform" type="rotate" from="360 140 200" to="0 140 200" dur="34s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- Ales d'energia (NV.7+) -->
+              <g id="evo-wings" style="display:none;" opacity="0.5">
+                <path d="M98,158 Q44,146 26,206 Q62,192 98,202 Z" fill="rgba(124,58,237,0.4)" stroke="rgba(167,139,250,0.6)" stroke-width="1" filter="url(#softGlow)"/>
+                <path d="M98,196 Q46,206 36,252 Q68,234 100,238 Z" fill="rgba(0,184,217,0.26)" stroke="rgba(56,217,245,0.45)" stroke-width="1" filter="url(#softGlow)"/>
+                <path d="M182,158 Q236,146 254,206 Q218,192 182,202 Z" fill="rgba(124,58,237,0.4)" stroke="rgba(167,139,250,0.6)" stroke-width="1" filter="url(#softGlow)"/>
+                <path d="M182,196 Q234,206 244,252 Q212,234 180,238 Z" fill="rgba(0,184,217,0.26)" stroke="rgba(56,217,245,0.45)" stroke-width="1" filter="url(#softGlow)"/>
+              </g>
+              <!-- Corona daurada (NV.9+) -->
+              <g id="evo-crown" style="display:none;">
+                <path d="M116,42 L120,20 L130,34 L140,12 L150,34 L160,20 L164,42 Z" fill="url(#crownGrad)" stroke="rgba(255,215,0,0.7)" stroke-width="1" filter="url(#softGlow)"/>
+                <circle cx="140" cy="18" r="3" fill="#fff7cc"/>
+                <circle cx="120" cy="24" r="2" fill="#ffe680"/>
+                <circle cx="160" cy="24" r="2" fill="#ffe680"/>
+                <rect x="114" y="42" width="52" height="5" rx="2" fill="url(#crownGrad)"/>
+              </g>
+              <!-- Anell llegendari (NV.10) -->
+              <g id="evo-legend" style="display:none;">
+                <circle cx="140" cy="200" r="132" fill="none" stroke="rgba(255,215,0,0.35)" stroke-width="2.5" filter="url(#strongGlow)">
+                  <animate attributeName="opacity" values="0.35;0.8;0.35" dur="2.6s" repeatCount="indefinite"/>
+                </circle>
               </g>
             </svg>
           </div>
@@ -1255,6 +1297,17 @@ function renderHeader(){
     else if(level>=5) stage.classList.add('aura-gold');
     else if(level>=3) stage.classList.add('aura-bronze');
   }
+  evolveHeroSVG(level);
+}
+
+/* El personatge SVG evoluciona segons el nivell */
+function evolveHeroSVG(level){
+  const set=(id,on)=>{const el=document.getElementById(id); if(el) el.style.display=on?'':'none';};
+  set('evo-spikes', level>=3);
+  set('evo-aura',   level>=5);
+  set('evo-wings',  level>=7);
+  set('evo-crown',  level>=9);
+  set('evo-legend', level>=10);
 }
 
 function renderSidebar(){
