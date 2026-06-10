@@ -1491,8 +1491,10 @@ function toggleHabit(idx) {
   set(HABITS_KEY,habits); renderHabits();
 }
 function deleteHabit(idx) {
-  const habits=get(HABITS_KEY,[]); habits.splice(idx,1);
-  set(HABITS_KEY,habits); renderHabits(); showToast('🗑️ Hàbit eliminat');
+  showDeleteConfirm(()=>{
+    const habits=get(HABITS_KEY,[]); habits.splice(idx,1);
+    set(HABITS_KEY,habits); renderHabits(); showToast('🗑️ Hàbit eliminat');
+  },{title:'ELIMINAR HÀBIT',msg:'Esborraràs aquest hàbit i tot el seu historial.'});
 }
 function selectHabitEmoji() {
   const emojis=['⭐','🏃','📚','💧','🧘','💪','🎯','🍎','😴','🔥','✏️','🎵'];
@@ -1732,9 +1734,11 @@ function saveDayEvent() {
 }
 function deleteTimedEvent() {
   if (!_dayModalDay||!_dayModalEventId) return;
-  const schedule=get(SCHEDULE_KEY,{});
-  if (Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=schedule[_dayModalDay].filter(e=>e.id!==_dayModalEventId);
-  set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); showToast('🗑️ Event eliminat');
+  showDeleteConfirm(()=>{
+    const schedule=get(SCHEDULE_KEY,{});
+    if (Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=schedule[_dayModalDay].filter(e=>e.id!==_dayModalEventId);
+    set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); showToast('🗑️ Event eliminat');
+  },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event de l'horari."});
 }
 function saveTimedEvent() { saveDayEvent(); }
 function pickTimedColor() {
@@ -1801,10 +1805,12 @@ function saveMonthEvent() {
   closeMonthModal(); renderCalendar(); showToast('✅ Event mensual afegit!');
 }
 function deleteMonthEvent(day,idx) {
-  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
-  const data=get(key,{});
-  if (data[day]) data[day].splice(idx,1);
-  set(key,data); openMonthModal(day); renderCalendar();
+  showDeleteConfirm(()=>{
+    const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+    const data=get(key,{});
+    if (data[day]) data[day].splice(idx,1);
+    set(key,data); openMonthModal(day); renderCalendar();
+  },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event del calendari."});
 }
 
 function renderHorariHabits() {
@@ -1851,7 +1857,9 @@ function saveMatch() {
   set(MATCH_KEY,matches); toggleMatchForm(); renderMatches(); showToast('✅ Partit afegit!');
 }
 function deleteMatch(idx) {
-  const m=get(MATCH_KEY,[]); m.splice(idx,1); set(MATCH_KEY,m); renderMatches();
+  showDeleteConfirm(()=>{
+    const m=get(MATCH_KEY,[]); m.splice(idx,1); set(MATCH_KEY,m); renderMatches();
+  },{title:'ELIMINAR PARTIT',msg:"Esborraràs aquest partit del registre."});
 }
 function setMatchCasa(val) {
   // Guarda preferència camp local/visitant per al proper partit
@@ -2221,9 +2229,11 @@ async function moveListTask(taskId, status) {
 
 async function deleteListTask(taskId) {
   const list = _getList(_openListId); if(!list) return;
-  list.tasks = list.tasks.filter(x=>x.id!==taskId);
-  await _saveList(list);
-  renderListDetail();
+  showDeleteConfirm(async ()=>{
+    list.tasks = list.tasks.filter(x=>x.id!==taskId);
+    await _saveList(list);
+    renderListDetail();
+  },{title:'ELIMINAR TASCA',msg:"Esborraràs aquesta tasca de la llista."});
 }
 
 /* ── Editor de tasca (descripció, enllaços, data, prioritat) ── */
@@ -2411,23 +2421,26 @@ function deleteTask(id) {
     renderExamList(); renderPersonalKanban(); showToast('🗑️ Tasca eliminada');
   });
 }
-function showDeleteConfirm(onConfirm) {
+function showDeleteConfirm(onConfirm, opts) {
+  const title = (opts&&opts.title) || 'ELIMINAR';
+  const msg   = (opts&&opts.msg)   || 'Estàs segur? Aquesta acció no es pot desfer.';
+  const icon  = (opts&&opts.icon)  || '🗑️';
   let ov=document.getElementById('del-confirm-ov');
   if(!ov){
     ov=document.createElement('div');
     ov.id='del-confirm-ov';
     ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);';
-    ov.innerHTML=`<div style="background:var(--card);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:28px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
-      <div style="font-size:36px;margin-bottom:10px;">🗑️</div>
-      <h3 style="font-family:'Space Mono',monospace;font-size:14px;color:var(--text);margin-bottom:8px;letter-spacing:1px;">ELIMINAR TASCA</h3>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:22px;">Estàs segur? Aquesta acció no es pot desfer.</p>
-      <div style="display:flex;gap:10px;">
-        <button id="del-confirm-yes" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✓ ELIMINAR</button>
-        <button id="del-confirm-no" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">✕ CANCEL·LAR</button>
-      </div>
-    </div>`;
     document.body.appendChild(ov);
   }
+  ov.innerHTML=`<div style="background:var(--card);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:28px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <div style="font-size:36px;margin-bottom:10px;">${icon}</div>
+    <h3 style="font-family:'Space Mono',monospace;font-size:14px;color:var(--text);margin-bottom:8px;letter-spacing:1px;">${title}</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:22px;">${msg}</p>
+    <div style="display:flex;gap:10px;">
+      <button id="del-confirm-yes" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✓ ELIMINAR</button>
+      <button id="del-confirm-no" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">✕ CANCEL·LAR</button>
+    </div>
+  </div>`;
   ov.style.display='flex';
   document.getElementById('del-confirm-yes').onclick=()=>{ov.style.display='none';onConfirm();};
   document.getElementById('del-confirm-no').onclick=()=>{ov.style.display='none';};
