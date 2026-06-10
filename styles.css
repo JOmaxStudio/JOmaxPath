@@ -7332,3 +7332,39 @@ body.view-pages.sb-collapsed-desktop #bnav {
   #bnav { padding-bottom: max(env(safe-area-inset-bottom), 4px) !important; }
   .container { padding-bottom: max(calc(env(safe-area-inset-bottom) + 80px), 90px) !important; }
 }
+
+/* ── MIDA MÍNIMA TAP TARGET MÒBIL (44×44px WCAG/Apple HIG) ─────
+   Expandeix l'àrea tàctil invisible sense canviar el visual.
+   S'aplica als botons petits que no arriben als 44px visuals.    */
+@media (max-width: 768px) {
+  .ld-task-del, .ld-task-edit, .ld-check,
+  .cfg-btn, .vic-nav-btn, .ai-new-chat-btn, .ai-clear-btn,
+  .tcbtn, .color-pick-btn, .flash-nav button,
+  .ld-kcard-foot button, .mc-del, .search-close,
+  #search-close, .te-link-del, .te-link-open {
+    position: relative !important;
+  }
+  .ld-task-del::after, .ld-task-edit::after, .ld-check::after,
+  .cfg-btn::after, .vic-nav-btn::after, .ai-new-chat-btn::after, .ai-clear-btn::after,
+  .tcbtn::after, .color-pick-btn::after, .flash-nav button::after,
+  .ld-kcard-foot button::after, .mc-del::after, #search-close::after,
+  .te-link-del::after, .te-link-open::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
+  /* Botons de navegació i bnav ja grans per defecte */
+  .bnav-item { min-height: 56px !important; }
+
+  /* Botons principals d'acció: altura mínima */
+  .auth-btn, .bm-save-btn, .bm-cancel-btn, .cfg-save-btn,
+  .month-save-btn, .exam-generate-btn, .qc-add-btn {
+    min-height: 48px !important;
+  }
+}
