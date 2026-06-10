@@ -1184,8 +1184,17 @@ body.view-pages.sb-collapsed-desktop .container {
         </div>
         <div id="username-check-msg" style="font-size:10px;margin-top:4px;min-height:13px;"></div>
       </div>
-      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authRegister()"/></div>
-      <div class="auth-field"><label>CONTRASENYA (mínim 6 caràcters)</label><input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()"/></div>
+      <div class="auth-field"><label>CORREU ELECTRÒNIC</label><input type="email" id="auth-reg-email" placeholder="tu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authRegister()" oninput="_validateRegEmail()" onblur="_validateRegEmail()"/><div id="reg-email-msg" style="font-size:10px;margin-top:4px;min-height:13px;color:#fca5a5;"></div></div>
+      <div class="auth-field">
+        <label>CONTRASENYA (mínim 6 caràcters)</label>
+        <input type="password" id="auth-reg-password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()" oninput="_validateRegPassword()"/>
+        <div id="reg-pass-strength" style="display:flex;gap:4px;margin-top:6px;height:4px;">
+          <div id="rps-1" style="flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .25s;"></div>
+          <div id="rps-2" style="flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .25s;"></div>
+          <div id="rps-3" style="flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .25s;"></div>
+        </div>
+        <div id="reg-pass-msg" style="font-size:10px;margin-top:4px;min-height:13px;"></div>
+      </div>
       <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()">CREAR COMPTE</button>
     </div>
     <div id="auth-msg"></div>
@@ -2627,7 +2636,7 @@ body.view-pages.sb-collapsed-desktop .container {
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';}</script>
-<script src="app.js?v=20260610-audit5" defer></script>
+<script src="app.js?v=20260610-audit6" defer></script>
 
 <script>
 /* ═══════════════════════════════════════════════════

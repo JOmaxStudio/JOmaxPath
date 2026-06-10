@@ -801,6 +801,59 @@ function _translateAuthError(msg) {
   return msg;
 }
 
+// Validació en temps real — formulari de registre
+function _validateRegEmail() {
+  const val = (document.getElementById('auth-reg-email')?.value||'').trim();
+  const msg = document.getElementById('reg-email-msg');
+  if (!msg) return true;
+  if (!val) { msg.textContent=''; return false; }
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
+  msg.style.color = ok ? '#6ee7b7' : '#fca5a5';
+  msg.textContent = ok ? '✓ Correu vàlid' : '✗ Format de correu no vàlid';
+  return ok;
+}
+
+function _validateRegPassword() {
+  const val = document.getElementById('auth-reg-password')?.value||'';
+  const msg = document.getElementById('reg-pass-msg');
+  const bars = [document.getElementById('rps-1'), document.getElementById('rps-2'), document.getElementById('rps-3')];
+  if (!msg || !bars[0]) return;
+  let strength = 0;
+  if (val.length >= 6)  strength++;
+  if (val.length >= 10) strength++;
+  if (/[A-Z]/.test(val) && /[0-9\W]/.test(val)) strength++;
+  const colors = ['#fca5a5','#fcd34d','#6ee7b7'];
+  const labels = ['⚠️ Massa curta (mínim 6 caràcters)','Contrasenya acceptable','✓ Contrasenya forta'];
+  bars.forEach((b,i) => { b.style.background = i < strength ? colors[strength-1] : 'rgba(255,255,255,0.08)'; });
+  msg.style.color = colors[strength-1] || 'var(--muted)';
+  msg.textContent = val.length ? labels[strength-1]||labels[2] : '';
+}
+
+// Comptador de caràcters per a inputs propers al límit
+(function _initCharCounters() {
+  document.addEventListener('input', function(e) {
+    const el = e.target;
+    const max = parseInt(el.getAttribute('maxlength')||'0', 10);
+    if (!max) return;
+    const left = max - el.value.length;
+    let counter = el._charCounter;
+    if (!counter) {
+      counter = document.createElement('span');
+      counter.style.cssText = 'font-size:10px;font-family:"Space Mono",monospace;position:absolute;bottom:8px;right:10px;pointer-events:none;transition:color .2s;';
+      if (el.parentElement.style.position !== 'relative') el.parentElement.style.position = 'relative';
+      el.parentElement.appendChild(counter);
+      el._charCounter = counter;
+    }
+    if (left <= Math.floor(max * 0.2)) {
+      counter.style.display = 'inline';
+      counter.style.color = left <= 10 ? '#fca5a5' : 'var(--muted)';
+      counter.textContent = left;
+    } else {
+      counter.style.display = 'none';
+    }
+  });
+})();
+
 function authLogout() {
   // Inline confirm via toast-style overlay to avoid browser confirm() being blocked
   const existing = document.getElementById('_logout-confirm');
