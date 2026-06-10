@@ -520,24 +520,20 @@ body.mob-sb #sb{width:var(--sb) !important;}
 .change-hero-btn{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-family:'Space Mono',monospace;letter-spacing:1px;color:var(--muted);background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.16);border-radius:8px;padding:5px 11px;cursor:pointer;margin-top:7px;transition:all .2s;}
 .change-hero-btn:hover{color:var(--accent2);border-color:rgba(167,139,250,0.38);background:rgba(124,58,237,0.13);}
 @media(max-width:480px){.hero-sel-grid{grid-template-columns:repeat(2,1fr);}}
-/* ── Pixel Art Hero Animations ── */
-#hero-body rect{shape-rendering:crispEdges;}
-#hero-body line{shape-rendering:crispEdges;}
-.px-char{transform-box:fill-box;transform-origin:center bottom;animation:px-float 2.6s ease-in-out infinite;}
-@keyframes px-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-@keyframes px-attack{
-  0%{transform:translateY(0) translateX(0) rotate(0deg);}
-  20%{transform:translateY(-4px) translateX(14px) rotate(-11deg);}
-  50%{transform:translateY(-2px) translateX(20px) rotate(-15deg);}
-  75%{transform:translateY(0) translateX(8px) rotate(-5deg);}
-  100%{transform:translateY(0) translateX(0) rotate(0deg);}
+/* ── Pixel Art Hero Canvas ── */
+#hero-stage-canvas{
+  position:absolute;left:50%;top:36px;transform:translateX(-50%);
+  width:192px;height:192px;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  cursor:pointer;z-index:5;
 }
-.px-char.is-attacking{animation:px-attack 0.65s ease-out forwards;}
-#hero-svg{cursor:pointer;}
-#hero-svg:active .px-char{filter:brightness(1.25);}
-.hero-card-preview{height:80px;overflow:hidden;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.03);}
-.hero-card-preview svg{width:100%;height:80px;}
-.px-char-preview{animation:none!important;}
+#hero-svg{display:block;position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+#hero-svg #hero-body{display:none;}
+.hero-card-preview{height:84px;overflow:hidden;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;}
+.hero-card-preview canvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+/* Legacy SVG animations (kept for compat) */
+.px-char{transform-box:fill-box;transform-origin:center bottom;}
+@keyframes px-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 </style>
 <!-- Supabase client — required for friend/competition requests and leaderboard -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -660,6 +656,9 @@ body.mob-sb #sb{width:var(--sb) !important;}
               <div class="eq-box" id="eq-extra-box"><span id="eq-extra-ico">💍</span></div>
               <span class="eq-lbl">EXTRA</span>
             </div>
+
+            <!-- Canvas Character (pixel art) -->
+            <canvas id="hero-stage-canvas" width="192" height="192" onclick="if(window.PixelHeroes)window.PixelHeroes.openSelector()"></canvas>
 
             <!-- SVG Character (heroi dinàmic) -->
             <svg id="hero-svg" viewBox="0 0 280 380" xmlns="http://www.w3.org/2000/svg">
@@ -1218,47 +1217,27 @@ const HERO_SKINS={
   },
 };
 
-/* ═══ HERO SKIN FUNCTIONS ═══ */
+/* ═══ HERO SKIN FUNCTIONS (delegat a PixelHeroes) ═══ */
 function renderHeroSkin(){
-  // migrate old skin names
-  const _mg={maga:'exploradora',guerrer:'cavaller',cacadora:'arquero',curandera:'bruixa'};
-  if(_mg[hero.skin]) hero.skin=_mg[hero.skin];
-  if(!HERO_SKINS[hero.skin]) hero.skin='cavaller';
-  const skin=HERO_SKINS[hero.skin];
+  if(window.PixelHeroes){
+    const selId=window.PixelHeroes.getSelectedChar();
+    if(window.PixelHeroes.stageRenderer){
+      window.PixelHeroes.stageRenderer.setChar(selId);
+    }
+  }
+  // hide legacy SVG body (canvas takes over)
   const body=document.getElementById('hero-body');
-  if(body) body.innerHTML=skin.body;
+  if(body) body.innerHTML='';
 }
 
 function openHeroSelector(){
-  const grid=document.getElementById('hero-sel-grid');
-  if(!grid) return;
-  grid.innerHTML='';
-  Object.values(HERO_SKINS).forEach(s=>{
-    const isSel=(hero.skin||'cavaller')===s.id;
-    const card=document.createElement('div');
-    card.className='hero-card-sel'+(isSel?' selected':'');
-    card.style.setProperty('--hs-color',s.bg);
-    card.style.borderColor=isSel?s.color:'rgba(255,255,255,0.06)';
-    const previewBody=s.body.replace(/class="px-char"/g,'class="px-char-preview"');
-    card.innerHTML=`<div class="hero-card-preview"><svg viewBox="65 35 155 260" xmlns="http://www.w3.org/2000/svg">${previewBody}</svg></div><div class="hero-card-name">${s.name.toUpperCase()}</div><div class="hero-card-class">${s.cls}</div>`;
-    card.onclick=()=>selectHero(s.id);
-    grid.appendChild(card);
-  });
-  document.getElementById('hero-selector-modal').classList.add('open');
+  if(window.PixelHeroes) window.PixelHeroes.openSelector();
 }
-
 function closeHeroSelector(){
-  document.getElementById('hero-selector-modal').classList.remove('open');
+  if(window.PixelHeroes) window.PixelHeroes.closeSelector();
 }
-
 function selectHero(id){
-  if(!HERO_SKINS[id]) return;
-  hero.skin=id;
-  saveHero(hero);
-  renderHeroSkin();
-  renderEquip();
-  closeHeroSelector();
-  showToast('✦ Heroi canviat a '+HERO_SKINS[id].name+'!');
+  if(window.PixelHeroes) window.PixelHeroes.selectChar(id);
 }
 
 const TUT_STEPS=[
@@ -1386,6 +1365,15 @@ function init(){
       setTimeout(()=>{ch.classList.remove('is-attacking');try{fx.remove();}catch{}},720);
     });
   }
+  // Init pixel hero stage canvas
+  setTimeout(()=>{
+    if(window.PixelHeroes){
+      window.PixelHeroes.initHeroStage('hero-stage-canvas');
+      const{level}=computeLevel(hero.xp);
+      window.PixelHeroes.updateStageLevel(level);
+      window.PixelHeroes.triggerEvent('app_start');
+    }
+  },200);
   // First time tutorial
   if(!localStorage.getItem('jomaxpath_tut_done_v1')){setTimeout(startTutorial,800);}
 }
@@ -1439,6 +1427,7 @@ function evolveHeroSVG(level){
   set('evo-wings',  level>=7);
   set('evo-crown',  level>=9);
   set('evo-legend', level>=10);
+  if(window.PixelHeroes) window.PixelHeroes.updateStageLevel(level);
 }
 
 function renderSidebar(){
@@ -1550,6 +1539,7 @@ function renderFocusPanel(){
 
 function startTimer(){
   if(!selectedMission)return;
+  if(window.PixelHeroes) window.PixelHeroes.triggerEvent('pomodoro_start');
   const m=selectedMission;
   timerTotal=m.dur*60;timerSeconds=timerTotal;
   document.getElementById('fp-idle').style.display='none';
@@ -1598,6 +1588,10 @@ function completeTimer(){
   saveHero(hero);
   const{level:newLvl}=computeLevel(hero.xp);hero.level=newLvl;
   const levelUp=newLvl>prevLevel;
+  if(window.PixelHeroes){
+    if(levelUp) window.PixelHeroes.triggerEvent('level_up');
+    else window.PixelHeroes.triggerEvent('task_complete');
+  }
   document.getElementById('fp-idle').style.display='none';
   document.getElementById('fp-run').style.display='none';
   document.getElementById('fp-done').style.display='block';
@@ -1666,6 +1660,7 @@ function markStreak(s){
   st.lastDate=today;
   if(st.count>=s.target){hero.xp+=s.xp;showToast('🏆 Ratxa completada! +'+s.xp+' XP');}
   else{hero.xp+=5;showToast(s.icon+' Marcat! +5 XP · '+st.count+'/'+s.target+' dies');}
+  if(window.PixelHeroes) window.PixelHeroes.triggerEvent('habit_marked');
   saveHero(hero);renderHeader();renderSidebar();renderStreaks();
 }
 
@@ -2446,5 +2441,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){document.getElementById('edit-ov').classList.remove('open');closeTutorial();}
 });
 </script>
+<script src="pixel-heroes.js"></script>
 </body>
 </html>
