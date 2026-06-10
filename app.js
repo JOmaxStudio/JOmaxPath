@@ -411,6 +411,19 @@ let _supabase = null;
 let _currentUser = null;
 let _userProfile = null; // {id, email, username, avatar}
 
+// Cache en memòria per a consultes Supabase freqüents (TTL en ms)
+const _sbCache = new Map(); // key → {data, ts}
+const _SB_CACHE_TTL = { profile: 120000, shared_board: 30000, invites: 15000 };
+function _sbCacheGet(key, ttlKey) {
+  const e = _sbCache.get(key);
+  if (!e) return null;
+  if (Date.now() - e.ts > (_SB_CACHE_TTL[ttlKey]||60000)) { _sbCache.delete(key); return null; }
+  return e.data;
+}
+function _sbCacheSet(key, data) { _sbCache.set(key, {data, ts: Date.now()}); }
+function _sbCacheInvalidate(prefix) { for (const k of _sbCache.keys()) { if (k.startsWith(prefix)) _sbCache.delete(k); } }
+
+
 let _supabaseOffline = false;
 
 function _updateServerStatusIndicator() {
@@ -885,6 +898,9 @@ function authShowMenu() {
 }
 
 async function _loadUserProfile(userId) {
+  // Try cache first
+  const cached = _sbCacheGet('profile:'+userId, 'profile');
+  if (cached) { _userProfile = cached; return; }
   // Try Supabase with timeout
   if (_supabase && !userId.startsWith('local_')) {
     try {
@@ -893,8 +909,9 @@ async function _loadUserProfile(userId) {
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),5000))
       ]);
       if (data?.username) {
-        _userProfile = {id:data.id,email:data.email||'',username:data.username,avatar:data.avatar||'âš”ï¸'};
-        _saveLocalProfile(_userProfile); return;
+        _userProfile = {id:data.id,email:data.email||'',username:data.username,avatar:data.avatar||'u{2694}u{FE0F}'};
+        _sbCacheSet('profile:'+userId, _userProfile);
+        _saveLocalProfile(_userProfile);aveLocalProfile(_userProfile); return;
       }
     } catch{}
   }
@@ -2152,18 +2169,27 @@ async function openList(id) {
     document.getElementById(‘_list-refresh-badge’)?.remove();
     document.body.appendChild(refreshBadge);
     try {
-      const {data} = await Promise.race([
-        _supabase.from(‘shared_boards’).select(‘board_data’).eq(‘code’, list.shareCode).maybeSingle(),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error(‘t/o’)),4000))
-      ]);
+      // Cache de 30s per evitar peticions redundants al reobrir la mateixa llista
+      const cacheKey = ‘shared_board:’ + list.shareCode;
+      let boardData = _sbCacheGet(cacheKey, ‘shared_board’);
+      if (!boardData) {
+        const {data} = await Promise.race([
+          _supabase.from(‘shared_boards’).select(‘board_data’).eq(‘code’, list.shareCode).maybeSingle(),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error(‘t/o’)),4000))
+        ]);
+        boardData = data;
+        if (boardData) _sbCacheSet(cacheKey, boardData);
+      }
       refreshBadge.remove();
       // Només aplica si encara tenim aquesta llista oberta
-      if (data?.board_data?.tasks && _openListId===id) {
+      if (boardData?.board_data?.tasks && _openListId===id) {
         const lists = getLists();
         const idx = lists.findIndex(l=>l.id===id);
         if (idx>=0) {
-          lists[idx] = {...lists[idx], name:data.board_data.name||list.name, tasks:data.board_data.tasks||[], members:data.board_data.members||list.members};
+          lists[idx] = {...lists[idx], name:boardData.board_data.name||list.name, tasks:boardData.board_data.tasks||[], members:boardData.board_data.members||list.members};
           setLists(lists);
+          // Invalida el cache quan guardem canvis locals
+          _sbCacheInvalidate(‘shared_board:’+list.shareCode);
           renderListDetail();
         }
       }
