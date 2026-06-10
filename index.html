@@ -1172,7 +1172,7 @@ body.view-pages.sb-collapsed-desktop .container {
           <span>Mantenir sessiÃ³ oberta</span>
         </label>
       </div>
-      <button class="auth-btn" id="auth-submit-btn" onclick="authLogin()">ENTRAR</button>
+      <button class="auth-btn" id="auth-submit-btn" onclick="authLogin()" aria-label="Entrar">ENTRAR</button>
     </div>
     <!-- REGISTER -->
     <div id="auth-register-form" style="display:none">
@@ -1195,11 +1195,11 @@ body.view-pages.sb-collapsed-desktop .container {
         </div>
         <div id="reg-pass-msg" style="font-size:10px;margin-top:4px;min-height:13px;"></div>
       </div>
-      <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()">CREAR COMPTE</button>
+      <button class="auth-btn" id="auth-reg-btn" onclick="authRegister()" aria-label="Crear compte">CREAR COMPTE</button>
     </div>
     <div id="auth-msg"></div>
     <div class="auth-divider"><span>o</span></div>
-    <button class="auth-btn-google" id="auth-google-btn" onclick="authWithGoogle()">
+    <button class="auth-btn-google" id="auth-google-btn" onclick="authWithGoogle()" aria-label="Continuar amb Google">
       <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -1273,24 +1273,24 @@ body.view-pages.sb-collapsed-desktop .container {
 </div>
 
 <!-- Bottom nav (pages mode) -->
-<nav id="bnav">
-  <div class="bnav-item active" onclick="navTo('home');lsbMobileClose()">
+<nav id="bnav" aria-label="Navegació principal">
+  <div class="bnav-item active" role="button" aria-label="Inici" onclick="navTo('home');lsbMobileClose()">
     <div class="bnav-icon">ðŸ </div>
     <div class="bnav-lbl">INICI</div>
   </div>
-  <div class="bnav-item" onclick="navTo('horari');lsbMobileClose()">
+  <div class="bnav-item" role="button" aria-label="Horari" onclick="navTo('horari');lsbMobileClose()">
     <div class="bnav-icon">ðŸ“…</div>
     <div class="bnav-lbl">HORARI</div>
   </div>
-  <div class="bnav-item" onclick="navTo('tasques');lsbMobileClose()">
+  <div class="bnav-item" role="button" aria-label="Tasques" onclick="navTo('tasques');lsbMobileClose()">
     <div class="bnav-icon">ðŸ“‹</div>
     <div class="bnav-lbl">TASQUES</div>
   </div>
-  <div class="bnav-item" onclick="navTo('julians');lsbMobileClose()">
+  <div class="bnav-item" role="button" aria-label="Julians AI" onclick="navTo('julians');lsbMobileClose()">
     <img id="julians-bnav-logo" src="julians-ai.png" style="width:22px;height:22px;object-fit:cover;border-radius:50%;opacity:0.45;" alt="J"/>
     <div class="bnav-lbl">JULIANS</div>
   </div>
-  <div class="bnav-item" onclick="navTo('focus');lsbMobileClose()">
+  <div class="bnav-item" role="button" aria-label="Focus" onclick="navTo('focus');lsbMobileClose()">
     <div class="bnav-icon">ðŸŽ¯</div>
     <div class="bnav-lbl">FOCUS</div>
   </div>
@@ -2489,7 +2489,7 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="color-pick-btn" style="background:#fed7aa" onclick="createNote('orange')"></div>
   </div>
 </div>
-<button id="add-note-fab" onclick="toggleNotePicker()" title="Afegir nota">ðŸ“</button>
+<button id="add-note-fab" aria-label="Nova nota" onclick="toggleNotePicker()" title="Afegir nota">ðŸ“</button>
 
 
 <!-- âš¡ Premium FAB -->
@@ -2524,7 +2524,7 @@ body.view-pages.sb-collapsed-desktop .container {
   </div>
 </div>
 <!-- Julians FAB -->
-<button id="ai-fab" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
+<button id="ai-fab" aria-label="Julians AI" onclick="navTo('julians');window.scrollTo({top:0,behavior:'smooth'})" title="Julians AI">
   <img id="julians-fab-img" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="J"/>
 </button>
 
@@ -2636,7 +2636,7 @@ body.view-pages.sb-collapsed-desktop .container {
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';}</script>
-<script src="app.js?v=20260610-audit9" defer></script>
+<script src="app.js?v=20260610-audit10" defer></script>
 
 <script>
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

@@ -5,7 +5,7 @@
     --cyan: #00b8d9; --cyan2: #38d9f5;
     --green: #10b981; --orange: #f59e0b; --red: #ef4444;
     --blue: #3b82f6; --pink: #ec4899; --yellow: #eab308; --teal: #14b8a6;
-    --text: #e2e8f0; --muted: #64748b; --border: rgba(124,58,237,0.18);
+    --text: #e2e8f0; --muted: #8899aa; --border: rgba(124,58,237,0.18);
     --gold: #f59e0b; --gold2: #fcd34d;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
