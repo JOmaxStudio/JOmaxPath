@@ -417,6 +417,22 @@ try {
   }
 } catch {}
 
+// Ripple feedback visual en clicar qualsevol botó
+(function() {
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button,[role="button"],.bnav-item,.progress-btn,.streak-btn,.qc-type-btn,.cfg-btn,.ndw-bottom-btn,.day-sel-btn,.avui-btn,.search-result,.cal-nav-btn');
+    if (!btn) return;
+    const r = document.createElement('span');
+    r.className = 'ripple-wave';
+    const rect = btn.getBoundingClientRect();
+    r.style.left = (e.clientX - rect.left) + 'px';
+    r.style.top  = (e.clientY - rect.top)  + 'px';
+    btn.classList.add('ripple-host');
+    btn.appendChild(r);
+    r.addEventListener('animationend', () => r.remove(), { once: true });
+  }, true);
+})();
+
 function _getLocalProfile() { try { return JSON.parse(localStorage.getItem('jomaxpath_profile_v1'))||null; } catch { return null; } }
 function _saveLocalProfile(p) { try { if(p) localStorage.setItem('jomaxpath_profile_v1',JSON.stringify(p)); else localStorage.removeItem('jomaxpath_profile_v1'); } catch {} }
 

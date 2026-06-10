@@ -1702,6 +1702,56 @@
     font-family: 'Space Mono', monospace; letter-spacing: 1px;
   }
 
+  /* ── FEEDBACK VISUAL EN CLICAR (bottons) ─────────────
+     Escala lleu en :active per a tots els elements clicables
+     Ripple via pseudo-element ::after en botons amb .btn-ripple  */
+  button:active,
+  [role="button"]:active,
+  .bnav-item:active,
+  .progress-btn:active,
+  .add-exam-btn:active,
+  .save-exam-btn:active,
+  .cal-nav-btn:active,
+  .streak-btn:active,
+  .pomo-btn:active,
+  .ai-mode-btn:active,
+  .qc-type-btn:active,
+  .qc-add-btn:active,
+  .cfg-btn:active,
+  .cfg-add-btn:active,
+  .cfg-save-btn:active,
+  .month-save-btn:active,
+  .add-habit-btn:active,
+  .avui-btn:active,
+  .ndw-bottom-btn:active,
+  .shortcuts-close:active,
+  .vic-nav-btn:active,
+  .day-sel-btn:active,
+  #quick-capture-btn:active,
+  #search-fab:active,
+  #add-note-fab:active,
+  #config-btn:active,
+  #ai-fab:active,
+  .color-pick-btn:active {
+    transform: scale(0.93);
+    transition: transform 0.07s ease;
+  }
+
+  /* Ripple genèric: s'injecta via JS amb la classe .ripple-host */
+  .ripple-host { position: relative; overflow: hidden; }
+  @keyframes rippleAnim {
+    from { transform: scale(0); opacity: 0.35; }
+    to   { transform: scale(4); opacity: 0; }
+  }
+  .ripple-wave {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    width: 60px; height: 60px;
+    margin-top: -30px; margin-left: -30px;
+    pointer-events: none;
+    animation: rippleAnim 0.45s ease-out forwards;
+  }
+
   /* ═══ SECTION TITLES (millorats) ═══════════════════ */
   .section-title {
     font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px;
