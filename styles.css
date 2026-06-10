@@ -1702,6 +1702,36 @@
     font-family: 'Space Mono', monospace; letter-spacing: 1px;
   }
 
+  /* ── SKELETON LOADERS ───────────────────────────────── */
+  @keyframes skeletonShimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position:  400px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 400px 100%;
+    animation: skeletonShimmer 1.4s infinite linear;
+    border-radius: 8px;
+  }
+  .skeleton-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .skeleton-line { height: 12px; }
+  .skeleton-line.short { width: 40%; }
+  .skeleton-line.medium { width: 65%; }
+  .skeleton-line.full { width: 100%; }
+  .skeleton-line.title { height: 16px; width: 55%; }
+  .skeleton-bar { height: 6px; width: 100%; border-radius: 3px; }
+  .skeleton-icon { width: 36px; height: 36px; border-radius: 10px; }
+
+  .skeleton-task-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .skeleton-check { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+  .skeleton-task-text { flex: 1; height: 13px; border-radius: 6px; }
+
   /* ── FEEDBACK VISUAL EN CLICAR (bottons) ─────────────
      Escala lleu en :active per a tots els elements clicables
      Ripple via pseudo-element ::after en botons amb .btn-ripple  */

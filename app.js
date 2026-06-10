@@ -912,6 +912,8 @@ function _syncListsToFlatTasks() {
 
 async function _syncUserData(userId) {
   if (!_supabase || !userId || userId.startsWith('local_')) return;
+  _listsLoading = true;
+  if (typeof renderListsCollection === 'function' && _currentPage === 'tasques') renderListsCollection();
   try {
     const {data} = await Promise.race([
       _supabase.from('user_data').select('data').eq('user_id',userId).single(),
@@ -937,9 +939,14 @@ async function _syncUserData(userId) {
         try { localStorage.setItem('jomaxpath_tasks', JSON.stringify(d['jomaxpath_tasks'])); } catch{}
         _injectFlatTasksIntoLists(d['jomaxpath_tasks']);
       }
-      showToast('â˜ï¸ Dades sincronitzades!');
+      showToast('Dades sincronitzades!');
     }
-  } catch{} // Silently ignore â€” tables may not exist yet
+  } catch{} // Silently ignore
+  finally {
+    _listsLoading = false;
+    if (typeof renderListsCollection === 'function' && _currentPage === 'tasques') renderListsCollection();
+  }
+}ist yet
 }
 
 async function _saveUserDataToCloud(userId) {
@@ -1917,6 +1924,7 @@ let _editingBoardId=null, _boardMembers=[];
 const LISTS_KEY = 'jomaxpath_lists_v3';
 let _listsMode = 'personal';
 let _openListId = null;
+let _listsLoading = false;
 let _listView = 'list';
 
 function getLists() { return get(LISTS_KEY, null); }
@@ -1996,9 +2004,22 @@ function setListsMode(mode) {
   renderListsCollection();
 }
 
+function _skeletonListCards(n=4) {
+  return Array.from({length:n}, ()=>`
+    <div class="skeleton-card">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="skeleton skeleton-icon"></div>
+        <div class="skeleton skeleton-line title"></div>
+      </div>
+      <div class="skeleton skeleton-line medium"></div>
+      <div class="skeleton skeleton-bar"></div>
+    </div>`).join('');
+}
+
 function renderListsCollection() {
   const grid = document.getElementById('lists-grid');
   if (!grid) return;
+  if (_listsLoading) { grid.innerHTML = _skeletonListCards(4); return; }
   _migrateLists();
   const lists = (getLists()||[]).filter(l => _listsMode==='shared' ? l.shared : !l.shared);
   if (lists.length===0) {
@@ -2068,14 +2089,22 @@ async function openList(id) {
   document.getElementById('list-detail-view').style.display = 'block';
   setListView('list');
   _subscribeListRealtime(list);
-  // Refresca des del nÃºvol en segon pla (best-effort, amb timeout de 4s)
+  // Refresca des del núvol en segon pla (best-effort, amb timeout de 4s)
   if (list.shared && list.shareCode && _supabase) {
+    // Mostra indicador de "refrescant" mentre carrega del núvol
+    const refreshBadge = document.createElement(‘div’);
+    refreshBadge.id = ‘_list-refresh-badge’;
+    refreshBadge.style.cssText = ‘position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--accent2);padding:5px 14px;border-radius:20px;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:1px;z-index:9000;’;
+    refreshBadge.textContent = ‘↻ Refrescant...’;
+    document.getElementById(‘_list-refresh-badge’)?.remove();
+    document.body.appendChild(refreshBadge);
     try {
       const {data} = await Promise.race([
-        _supabase.from('shared_boards').select('board_data').eq('code', list.shareCode).maybeSingle(),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),4000))
+        _supabase.from(‘shared_boards’).select(‘board_data’).eq(‘code’, list.shareCode).maybeSingle(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error(‘t/o’)),4000))
       ]);
-      // NomÃ©s aplica si encara tenim aquesta llista oberta
+      refreshBadge.remove();
+      // Només aplica si encara tenim aquesta llista oberta
       if (data?.board_data?.tasks && _openListId===id) {
         const lists = getLists();
         const idx = lists.findIndex(l=>l.id===id);
@@ -2085,7 +2114,7 @@ async function openList(id) {
           renderListDetail();
         }
       }
-    } catch {} // timeout o error â†’ ens quedem amb les dades locals
+    } catch { refreshBadge.remove(); } // timeout o error → ens quedem amb les dades locals
   }
 }
 
