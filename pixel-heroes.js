@@ -504,141 +504,220 @@ function drawGuerrer(ctx, state, t, level, particles) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── EL MAG (Heroi 2) ─────────────────────────────────────────────────────────
-// Túnica morada, bastó màgic, cabell llarg punxegut
+// Túnica índigo, bastó cristall, cabell espigat fosc, ulls violetes
 // ═══════════════════════════════════════════════════════════════════════════════
 function drawMag(ctx, state, t, level, particles) {
   const cx = 24;
-  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.6, 1) : 0;
-  const bodyOff = breatheY;
-  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' : state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.7, 1) : 0;
+  const walkBob  = state === 'walk' ? Math.abs(wave(t, 2, 2)) - 1 : 0;
+  const bodyOff  = breatheY + walkBob;
+  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' :
+               state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const isAttack = state === 'attack';
 
-  drawShadow(ctx, cx, 1);
+  ellipse(ctx, cx, 46.5, 11, 2.5, 'rgba(0,0,30,0.4)');
 
-  // ── ROBE (long, purple)
-  const ry = Math.round(20 + bodyOff);
-  B(ctx, 10, ry,    28, 24, '#2D1B69');
-  B(ctx, 12, ry+1,  24, 22, '#4C1D95');
-  B(ctx, 14, ry+2,  20, 20, '#6D28D9');
-  B(ctx, 16, ry+3,  16, 18, '#7C3AED');
-  // robe shading edges
-  B(ctx, 12, ry+1,   2, 22, '#2D1B69');
-  B(ctx, 34, ry+1,   2, 22, '#2D1B69');
-  // robe gold trim
-  B(ctx, 10, ry,    28,  1, '#C8960C');
-  B(ctx, 10, ry+23, 28,  1, '#C8960C');
-  // robe hem runes
-  B(ctx, 12, ry+21,  2, 2, '#A78BFA');
-  B(ctx, 16, ry+21,  2, 2, '#A78BFA');
-  B(ctx, 20, ry+21,  2, 2, '#A78BFA');
-  B(ctx, 24, ry+21,  2, 2, '#A78BFA');
-  B(ctx, 28, ry+21,  2, 2, '#A78BFA');
-  B(ctx, 32, ry+21,  2, 2, '#A78BFA');
-
-  // ── LEFT ARM
-  B(ctx, 7, Math.round(22+bodyOff), 6, 12, '#4C1D95');
-  B(ctx, 8, Math.round(23+bodyOff), 4, 10, '#6D28D9');
-
-  // ── STAFF (left side)
-  const staffGlow = 0.5 + 0.5 * Math.sin(t * Math.PI * 2);
-  B(ctx, 3, Math.round(6+bodyOff), 2, 36, '#5C3010');
-  B(ctx, 4, Math.round(6+bodyOff), 1, 36, '#92400E');
-  // crystal orb
-  B(ctx, 0, Math.round(2+bodyOff), 8, 8, '#1E1B4B');
-  B(ctx, 1, Math.round(2+bodyOff), 6, 6, '#4C1D95');
-  B(ctx, 2, Math.round(3+bodyOff), 4, 4, '#7C3AED');
-  B(ctx, 3, Math.round(3+bodyOff), 2, 2, '#A78BFA');
-  B(ctx, 1, Math.round(2+bodyOff), 2, 2, '#C4B5FD');
-  // orb glow
-  ctx.save();
-  ctx.globalAlpha = staffGlow * 0.4;
-  circle(ctx, 4, Math.round(6+bodyOff), 6, '#7C3AED');
+  // STAFF (tall, drawn first so arms overlap)
+  const staffGlow = 0.5 + 0.5 * Math.sin(t * Math.PI * 3);
+  const staffY = Math.round(bodyOff);
+  B(ctx, 3, staffY + 2, 3, 40, '#2E1503');
+  B(ctx, 4, staffY + 2, 2, 40, '#5C3010');
+  B(ctx, 5, staffY + 2, 1, 40, '#7A4015');
+  // Crystal orb (5 levels)
+  B(ctx, 1, staffY,     7, 7, '#1E1B4B');
+  B(ctx, 2, staffY,     5, 6, '#312E81');
+  B(ctx, 3, staffY + 1, 3, 4, '#4C1D95');
+  B(ctx, 3, staffY + 1, 2, 2, '#A78BFA');
+  B(ctx, 2, staffY,     2, 2, '#C4B5FD');
+  ctx.save(); ctx.globalAlpha = staffGlow * 0.5;
+  circle(ctx, 4.5, staffY + 3, 5, '#7C3AED');
   ctx.restore();
-  if (particles && (state === 'attack' || state === 'levelup') && Math.random() < 0.3) {
-    particles.emit('sparkle', 4, Math.round(6+bodyOff), '#A78BFA');
-  }
+  if (particles && (isAttack || state === 'levelup') && Math.random() < 0.3)
+    particles.emit('sparkle', 4, staffY + 3, '#A78BFA');
 
-  // ── RIGHT ARM
-  const armR = state === 'attack' ? wave(t, 4, 1) : 0;
-  B(ctx, 35, Math.round(22+bodyOff-armR), 6, 12, '#4C1D95');
-  B(ctx, 36, Math.round(23+bodyOff-armR), 4, 10, '#6D28D9');
-  // spell casting hand effect
-  if (state === 'attack') {
-    ctx.save();
-    ctx.globalAlpha = 0.5 + 0.4 * Math.sin(t * Math.PI * 4);
-    circle(ctx, 42, Math.round(22+bodyOff-armR), 5, '#7C3AED');
-    circle(ctx, 42, Math.round(22+bodyOff-armR), 3, '#A78BFA');
+  // LEFT ARM (purple robe sleeve)
+  B(ctx, 7, Math.round(22 + bodyOff), 6, 13, '#2D1B69');
+  B(ctx, 8, Math.round(23 + bodyOff), 5, 11, '#4C1D95');
+  B(ctx, 9, Math.round(24 + bodyOff), 4,  9, '#6D28D9');
+
+  // RIGHT ARM (casting, raises when attack)
+  const armRaise = isAttack ? Math.abs(wave(t, 5, 1)) : 0;
+  B(ctx, 35, Math.round(22 + bodyOff - armRaise), 6, 13, '#2D1B69');
+  B(ctx, 36, Math.round(23 + bodyOff - armRaise), 5, 11, '#4C1D95');
+  B(ctx, 37, Math.round(24 + bodyOff - armRaise), 4,  9, '#6D28D9');
+  if (isAttack) {
+    ctx.save(); ctx.globalAlpha = 0.6 + 0.3 * Math.sin(t * Math.PI * 4);
+    circle(ctx, 44, Math.round(22 + bodyOff - armRaise), 6, '#7C3AED');
+    circle(ctx, 44, Math.round(22 + bodyOff - armRaise), 4, '#C4B5FD');
     ctx.restore();
   }
 
-  // ── NECK
-  B(ctx, 20, Math.round(18+bodyOff), 8, 4, '#D4A574');
-  B(ctx, 21, Math.round(18+bodyOff), 6, 3, '#FDDBB4');
+  // ROBE (5 levels, wide bell shape)
+  const ry = Math.round(22 + bodyOff);
+  B(ctx, 9,  ry,     30, 24, '#1E1B4B');
+  B(ctx, 10, ry + 1, 28, 22, '#2D1B69');
+  B(ctx, 12, ry + 2, 24, 20, '#4C1D95');
+  B(ctx, 14, ry + 3, 20, 18, '#6D28D9');
+  B(ctx, 16, ry + 4, 16, 14, '#7C3AED');
+  B(ctx, 18, ry + 5, 12,  8, '#8B4CF7');
+  // Edge shadows
+  B(ctx, 10, ry + 1, 2, 22, '#1E1B4B');
+  B(ctx, 36, ry + 1, 2, 22, '#1E1B4B');
+  // Gold trim top
+  B(ctx, 9,  ry,     30, 1, '#F0C840');
+  // Hem flare
+  B(ctx, 6,  ry + 22, 36, 2, '#1E1B4B');
+  B(ctx, 8,  ry + 22, 32, 2, '#2D1B69');
+  B(ctx, 10, ry + 23, 28, 2, '#4C1D95');
+  B(ctx, 8,  ry + 24,  1,  1, '#C8960C'); // gold hem edge
+  B(ctx, 39, ry + 24,  1,  1, '#C8960C');
+  // Rune accents
+  for (let i = 0; i < 3; i++) {
+    const rx2 = 16 + i * 6;
+    B(ctx, rx2,     ry + 10, 2, 3, '#A78BFA');
+    B(ctx, rx2 + 1, ry + 8,  1, 1, '#C4B5FD');
+  }
+  // Belt sash
+  B(ctx, 11, ry + 13, 26, 3, '#3A2804');
+  B(ctx, 12, ry + 13, 24, 2, '#7A5A08');
+  B(ctx, 21, ry + 13,  6, 2, '#C8960C');
+  B(ctx, 22, ry + 13,  4, 1, '#F0C840');
+  // Collar
+  B(ctx, 18, ry, 12, 4, '#1E1B4B');
+  B(ctx, 19, ry, 10, 3, '#2D1B69');
+  B(ctx, 20, ry,  8, 2, '#4C1D95');
 
-  // ── HEAD
+  // NECK
+  B(ctx, 19, Math.round(18 + bodyOff), 10, 5, '#C49060');
+  B(ctx, 20, Math.round(18 + bodyOff),  8, 4, '#D4A574');
+  B(ctx, 21, Math.round(18 + bodyOff),  6, 3, '#FDDBB4');
+
+  // HEAD
   const hy = Math.round(2 + bodyOff);
-  // Long spiky hair
-  B(ctx, 11, hy,    26, 8, '#1E1B4B');
-  B(ctx, 13, hy,    22, 6, '#312E81');
-  // spikes
-  B(ctx, 11, hy-2,   3, 4, '#1E1B4B');
-  B(ctx, 16, hy-3,   3, 5, '#312E81');
-  B(ctx, 20, hy-4,   4, 6, '#4338CA');
-  B(ctx, 25, hy-3,   3, 5, '#312E81');
-  B(ctx, 30, hy-2,   3, 4, '#1E1B4B');
-  B(ctx, 34, hy-1,   2, 3, '#1E1B4B');
-  // hair tips highlight
-  B(ctx, 21, hy-4,   2, 2, '#6366F1');
-  // long side strands
-  B(ctx, 11, hy+4,   3, 14, '#1E1B4B'); // left
-  B(ctx, 34, hy+4,   3, 14, '#1E1B4B'); // right
-  B(ctx, 12, hy+5,   2, 12, '#312E81');
-  B(ctx, 34, hy+5,   2, 12, '#312E81');
-  // Head skin
-  B(ctx, 14, hy+5, 20, 14, '#FDDBB4');
-  B(ctx, 14, hy+5,  2, 14, '#D4A574');
-  B(ctx, 32, hy+5,  2, 14, '#D4A574');
-  B(ctx, 14, hy+17, 20, 2, '#C49060');
-  // Head outline
-  B(ctx, 13, hy+5,  1, 14, '#1A0810');
-  B(ctx, 33, hy+5,  1, 14, '#1A0810');
 
-  // eyebrows
-  B(ctx, 15, hy+7, 5, 1, '#1E1B4B');
-  B(ctx, 28, hy+7, 5, 1, '#1E1B4B');
+  // HAIR (dark indigo, very tall spiky)
+  B(ctx, 11, hy - 2, 26, 10, '#0F0A2E');
+  B(ctx, 12, hy - 2, 24,  9, '#1E1B4B');
+  B(ctx, 13, hy - 2, 22,  8, '#312E81');
+  B(ctx, 15, hy - 3, 18,  6, '#3730A3');
+  B(ctx, 17, hy - 4, 14,  6, '#4338CA');
+  // Spikes
+  B(ctx, 19, hy - 6, 10, 5, '#4338CA');
+  B(ctx, 21, hy - 8,  6, 4, '#4F46E5');
+  B(ctx, 22, hy - 9,  4, 3, '#6366F1');
+  B(ctx, 23, hy -10,  2, 2, '#818CF8');
+  // Spike shine
+  B(ctx, 22, hy - 6,  4, 1, '#A5B4FC');
+  B(ctx, 23, hy - 7,  2, 1, '#C7D2FE');
+  // Long side strands
+  B(ctx, 11, hy + 4, 3, 18, '#0F0A2E');
+  B(ctx, 12, hy + 4, 2, 17, '#1E1B4B');
+  B(ctx, 35, hy + 4, 3, 18, '#0F0A2E');
+  B(ctx, 35, hy + 4, 2, 17, '#1E1B4B');
 
-  // Eyes (purple)
-  if (state === 'sleep' || state === 'rest') {
-    drawEyeClosed(ctx, 15, hy+10, '#1E1B4B');
-    drawEyeClosed(ctx, 28, hy+10, '#1E1B4B');
+  // FACE (22px wide, 19px tall)
+  B(ctx, 12, hy + 4, 24, 20, '#C49060');
+  B(ctx, 13, hy + 4, 22, 19, '#FDDBB4');
+  B(ctx, 13, hy + 4,  2, 19, '#D4A574');
+  B(ctx, 33, hy + 4,  2, 19, '#D4A574');
+  B(ctx, 13, hy + 10, 1,  9, '#C49060');
+  B(ctx, 34, hy + 10, 1,  9, '#C49060');
+  B(ctx, 16, hy + 4, 16,  6, '#FFE8C8');
+  B(ctx, 18, hy + 4, 12,  4, '#FFFCF0');
+  B(ctx, 14, hy + 19, 20, 3, '#D4A574');
+  B(ctx, 16, hy + 20, 16, 2, '#C49060');
+  B(ctx, 13, hy + 13,  3, 6, '#D4A574');
+  B(ctx, 32, hy + 13,  3, 6, '#D4A574');
+  ellipse(ctx, 15.5, hy + 16.5, 2.5, 2, 'rgba(255,120,100,0.3)');
+  ellipse(ctx, 32.5, hy + 16.5, 2.5, 2, 'rgba(255,120,100,0.3)');
+
+  // EYEBROWS (arched, thin — mage style)
+  if (expr === 'hurt' || isAttack) {
+    B(ctx, 15, hy + 9, 6, 1, '#1E1B4B'); B(ctx, 20, hy + 8, 2, 2, '#1E1B4B');
+    B(ctx, 27, hy + 9, 6, 1, '#1E1B4B'); B(ctx, 26, hy + 8, 2, 2, '#1E1B4B');
   } else {
-    drawEye(ctx, 15, hy+9, '#6D28D9', 1);
-    drawEye(ctx, 28, hy+9, '#6D28D9', 1);
-    // glow pupils
-    ctx.save();
-    ctx.globalAlpha = 0.4 + 0.2 * Math.sin(t*Math.PI*2);
-    B(ctx, 17, hy+10, 1, 1, '#A78BFA');
-    B(ctx, 30, hy+10, 1, 1, '#A78BFA');
-    ctx.restore();
+    B(ctx, 15, hy + 9, 6, 1, '#1E1B4B');
+    B(ctx, 27, hy + 9, 6, 1, '#1E1B4B');
   }
 
-  B(ctx, 22, hy+14, 2, 2, '#D4A574');
-  drawMouth(ctx, 19, hy+17, expr);
-  if (state === 'celebrate') drawCheeks(ctx, 16, 32, hy+14);
+  // EYES (8×5px, purple glowing)
+  if (expr === 'sleep') {
+    B(ctx, 14, hy + 13, 8, 2, '#1E1B4B'); B(ctx, 15, hy + 12, 6, 1, '#312E81');
+    B(ctx, 26, hy + 13, 8, 2, '#1E1B4B'); B(ctx, 27, hy + 12, 6, 1, '#312E81');
+  } else {
+    // Left eye
+    B(ctx, 13, hy + 12, 10, 2, '#1E1B4B');
+    B(ctx, 12, hy + 13,  1, 1, '#1E1B4B');
+    B(ctx, 14, hy + 13,  8, 5, '#FFFFFF');
+    B(ctx, 13, hy + 17,  9, 1, '#D4A574');
+    B(ctx, 15, hy + 13,  6, 4, '#4C1D95');
+    B(ctx, 16, hy + 13,  4, 3, '#6D28D9');
+    B(ctx, 17, hy + 14,  3, 2, '#7C3AED');
+    B(ctx, 15, hy + 15,  6, 2, '#2D1B69');
+    B(ctx, 17, hy + 14,  2, 2, '#1E1B4B');
+    B(ctx, 15, hy + 13,  2, 2, '#FFFFFF');
+    B(ctx, 20, hy + 16,  1, 1, '#FFFFFF');
+    B(ctx, 16, hy + 13,  3, 1, '#C4B5FD');
+    ctx.save(); ctx.globalAlpha = 0.35 + 0.2 * Math.sin(t * Math.PI * 2);
+    B(ctx, 16, hy + 14, 2, 1, '#A78BFA'); ctx.restore();
+    // Right eye
+    B(ctx, 25, hy + 12, 10, 2, '#1E1B4B');
+    B(ctx, 35, hy + 13,  1, 1, '#1E1B4B');
+    B(ctx, 26, hy + 13,  8, 5, '#FFFFFF');
+    B(ctx, 25, hy + 17,  9, 1, '#D4A574');
+    B(ctx, 27, hy + 13,  6, 4, '#4C1D95');
+    B(ctx, 28, hy + 13,  4, 3, '#6D28D9');
+    B(ctx, 29, hy + 14,  3, 2, '#7C3AED');
+    B(ctx, 27, hy + 15,  6, 2, '#2D1B69');
+    B(ctx, 29, hy + 14,  2, 2, '#1E1B4B');
+    B(ctx, 27, hy + 13,  2, 2, '#FFFFFF');
+    B(ctx, 32, hy + 16,  1, 1, '#FFFFFF');
+    B(ctx, 28, hy + 13,  3, 1, '#C4B5FD');
+    ctx.save(); ctx.globalAlpha = 0.35 + 0.2 * Math.sin(t * Math.PI * 2);
+    B(ctx, 28, hy + 14, 2, 1, '#A78BFA'); ctx.restore();
+  }
 
-  // hat / hood top
-  B(ctx, 12, hy, 24, 4, '#1E1B4B');
+  // Nose
+  B(ctx, 21, hy + 19, 2, 1, '#C49060');
+  B(ctx, 22, hy + 20, 4, 1, '#D4A574');
 
-  // level fx
+  // Mouth
+  if (expr === 'happy') {
+    B(ctx, 18, hy + 22, 12, 1, '#1E1B4B');
+    B(ctx, 17, hy + 21,  2, 2, '#1E1B4B');
+    B(ctx, 29, hy + 21,  2, 2, '#1E1B4B');
+    B(ctx, 18, hy + 22, 12, 1, '#FFFFFF');
+    B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  } else if (expr === 'hurt') {
+    B(ctx, 18, hy + 22, 12, 1, '#1E1B4B');
+    B(ctx, 17, hy + 21,  2, 3, '#1E1B4B');
+    B(ctx, 29, hy + 21,  2, 3, '#1E1B4B');
+  } else {
+    B(ctx, 19, hy + 22, 10, 1, '#1E1B4B');
+    B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  }
+
+  // Gold circlet with gem
+  B(ctx, 14, hy + 4, 4, 2, '#3A2804'); B(ctx, 15, hy + 4, 3, 1, '#F0C840');
+  B(ctx, 30, hy + 4, 4, 2, '#3A2804'); B(ctx, 31, hy + 4, 3, 1, '#F0C840');
+  B(ctx, 22, hy + 3, 4, 3, '#3A2804');
+  B(ctx, 23, hy + 3, 2, 2, '#C4B5FD');
+  B(ctx, 23, hy + 3, 2, 1, '#FFFFFF');
+
+  // Front hair wisps
+  B(ctx, 13, hy + 4, 3, 6, '#1E1B4B');
+  B(ctx, 14, hy + 5, 2, 5, '#312E81');
+  B(ctx, 32, hy + 4, 3, 6, '#1E1B4B');
+  B(ctx, 32, hy + 5, 2, 5, '#312E81');
+
   if (level >= 6) {
-    ctx.save();
-    ctx.globalAlpha = 0.2 + 0.1 * Math.sin(t * Math.PI * 2);
-    circle(ctx, cx, Math.round(30+bodyOff), 18, '#7C3AED');
-    ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.2 + 0.1 * Math.sin(t * Math.PI * 2);
+    circle(ctx, cx, Math.round(34 + bodyOff), 20, '#7C3AED'); ctx.restore();
   }
-
-  if (state === 'celebrate' && particles && Math.random() < 0.2) {
-    particles.emit('sparkle', cx + wave(t, 8, 1), 15, '#A78BFA');
-  }
+  if (state === 'celebrate' && particles && Math.random() < 0.2)
+    particles.emit('sparkle', cx + wave(t, 8, 1), 8, '#A78BFA');
+  if (state === 'levelup' && particles && Math.random() < 0.4)
+    particles.emit('sparkle', cx + wave(t, 10, 1), 12, '#C4B5FD');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -647,125 +726,179 @@ function drawMag(ctx, state, t, level, particles) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function drawRanger(ctx, state, t, level, particles) {
   const cx = 24;
-  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.6, 1) : 0;
+  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.7, 1) : 0;
   const walkBob  = state === 'walk' ? Math.abs(wave(t, 2, 2)) - 1 : 0;
   const legSwing = state === 'walk' ? wave(t, 4, 2) : 0;
   const bodyOff  = breatheY + walkBob;
-  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' : state === 'rest' || state === 'sleep' ? 'sleep' : 'neutral';
+  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' :
+               state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const isAttack = state === 'attack';
 
-  drawShadow(ctx, cx, 1);
+  ellipse(ctx, cx, 46.5, 12, 2.8, 'rgba(0,0,30,0.4)');
 
-  // ── QUIVER (behind right shoulder)
-  B(ctx, 35, Math.round(16+bodyOff), 5, 18, '#5C3010');
-  B(ctx, 36, Math.round(17+bodyOff), 3, 16, '#78350F');
-  B(ctx, 36, Math.round(15+bodyOff), 3, 3,  '#065F46'); // feathers
-  B(ctx, 37, Math.round(14+bodyOff), 1, 2,  '#A7F3D0');
+  // QUIVER (right back)
+  B(ctx, 35, Math.round(14 + bodyOff), 6, 20, '#2E1503');
+  B(ctx, 36, Math.round(15 + bodyOff), 4, 18, '#5C3010');
+  B(ctx, 36, Math.round(13 + bodyOff), 4, 4,  '#065F46');
+  B(ctx, 37, Math.round(12 + bodyOff), 2, 3,  '#10B981');
 
-  // ── CHEST / LEATHER ARMOR
+  // BOW (left, curved with elven leaf tips)
+  const bowPull = isAttack ? Math.abs(wave(t, 4, 1)) : 0;
+  B(ctx, 1, Math.round( 8 + bodyOff), 3, 5,  '#78350F');
+  B(ctx, 1, Math.round(32 + bodyOff), 3, 5,  '#78350F');
+  B(ctx, 1, Math.round(13 + bodyOff), 3, 19, '#B45309');
+  B(ctx, 2, Math.round( 9 + bodyOff), 1, 30, '#FDE68A');
+  B(ctx, 0, Math.round( 5 + bodyOff), 4, 4,  '#064E3B');
+  B(ctx, 0, Math.round(34 + bodyOff), 4, 4,  '#064E3B');
+  B(ctx, 1, Math.round( 6 + bodyOff), 2, 2,  '#10B981');
+  B(ctx, 1, Math.round(35 + bodyOff), 2, 2,  '#10B981');
+  if (isAttack) {
+    const arrowY = Math.round(22 + bodyOff - bowPull * 0.5);
+    B(ctx, 2, arrowY, 16, 1, '#78350F');
+    B(ctx, 2, arrowY, 1,  1, '#F59E0B');
+    B(ctx, 14, arrowY - 1, 4, 3, '#065F46');
+    if (particles && Math.random() < 0.3) particles.emit('star', 2, arrowY, '#10B981');
+  }
+
+  // LEFT ARM
+  B(ctx, 7, Math.round(22 + bodyOff), 7, 13, '#064E3B');
+  B(ctx, 8, Math.round(23 + bodyOff), 5, 11, '#065F46');
+  B(ctx, 9, Math.round(24 + bodyOff), 4,  9, '#10B981');
+
+  // RIGHT ARM
+  B(ctx, 34, Math.round(22 + bodyOff), 7, 13, '#064E3B');
+  B(ctx, 35, Math.round(23 + bodyOff), 5, 11, '#065F46');
+  B(ctx, 36, Math.round(24 + bodyOff), 4,  9, '#10B981');
+
+  // LEATHER CHEST ARMOR (5-level shading)
   const by = Math.round(20 + bodyOff);
-  B(ctx, 12, by,   24, 15, '#064E3B');
-  B(ctx, 13, by+1, 22, 13, '#065F46');
-  B(ctx, 15, by+2, 18, 11, '#10B981');
-  // leather stitching
-  B(ctx, 15, by+4,  1, 8,  '#047857');
-  B(ctx, 32, by+4,  1, 8,  '#047857');
-  B(ctx, 18, by+2, 12, 1,  '#047857');
-  // belt
-  B(ctx, 12, by+14, 24, 3, '#78350F');
-  B(ctx, 22, by+14,  4, 3, '#A16207');
+  // Green shoulder pads
+  B(ctx, 9,  by,     8, 6, '#064E3B'); B(ctx, 10, by + 1, 6, 5, '#065F46');
+  B(ctx, 11, by + 1, 5, 4, '#10B981'); B(ctx, 9,  by,     8, 1, '#34D399');
+  B(ctx, 31, by,     8, 6, '#064E3B'); B(ctx, 32, by + 1, 6, 5, '#065F46');
+  B(ctx, 33, by + 1, 5, 4, '#10B981'); B(ctx, 31, by,     8, 1, '#34D399');
+  // Main vest (brown + green panel)
+  B(ctx, 12, by + 1, 24, 14, '#3D1F08');
+  B(ctx, 13, by + 2, 22, 12, '#5C3010');
+  B(ctx, 14, by + 2, 20, 11, '#78350F');
+  B(ctx, 16, by + 3, 16,  9, '#065F46');
+  B(ctx, 18, by + 4, 12,  7, '#10B981');
+  B(ctx, 13, by + 2, 1, 12, '#2E1503');
+  B(ctx, 34, by + 2, 1, 12, '#2E1503');
+  // Strap details
+  B(ctx, 18, by + 2, 12, 1, '#064E3B');
+  B(ctx, 20, by + 2,  2, 10, '#3D1F08');
+  B(ctx, 26, by + 2,  2, 10, '#3D1F08');
+  // Belt
+  B(ctx, 12, by + 14, 24, 3, '#3D1F08');
+  B(ctx, 13, by + 14, 22, 2, '#5C3010');
+  B(ctx, 20, by + 14,  8, 2, '#78350F');
+  B(ctx, 22, by + 14,  4, 1, '#B45309');
 
-  // ── LEFT ARM
-  B(ctx, 6, Math.round(22+bodyOff), 7, 12, '#065F46');
-  B(ctx, 7, Math.round(23+bodyOff), 5, 10, '#10B981');
+  // LEGS (green with brown boots)
+  const lly = Math.round(35 + bodyOff);
+  const lleg = Math.round(legSwing * 0.5);
+  B(ctx, 12, lly - lleg,     11, 9, '#064E3B'); B(ctx, 13, lly - lleg + 1, 9, 7, '#065F46');
+  B(ctx, 14, lly - lleg + 1,  7, 6, '#10B981'); B(ctx, 15, lly - lleg + 2, 5, 4, '#34D399');
+  B(ctx, 11, lly - lleg + 8, 12, 4, '#3D1F08'); B(ctx, 12, lly - lleg + 9, 10, 3, '#5C3010');
+  B(ctx, 25, lly + lleg,     11, 9, '#064E3B'); B(ctx, 26, lly + lleg + 1, 9, 7, '#065F46');
+  B(ctx, 27, lly + lleg + 1,  7, 6, '#10B981'); B(ctx, 28, lly + lleg + 2, 5, 4, '#34D399');
+  B(ctx, 24, lly + lleg + 8, 12, 4, '#3D1F08'); B(ctx, 25, lly + lleg + 9, 10, 3, '#5C3010');
 
-  // ── BOW (left, always present)
-  const bowDraw = state === 'attack' ? wave(t, 4, 1) : 0;
-  // bow limbs
-  B(ctx, 1, Math.round(8+bodyOff),  2, 6,  '#92400E');
-  B(ctx, 1, Math.round(32+bodyOff), 2, 6,  '#92400E');
-  // bow grip
-  B(ctx, 1, Math.round(14+bodyOff), 2, 18, '#B45309');
-  // bowstring
-  B(ctx, 2, Math.round(8+bodyOff),  1, 30, '#FDE68A');
-  // arrow (drawn if attacking)
-  if (state === 'attack') {
-    B(ctx, 2, Math.round(22+bodyOff-bowDraw*0.5), 14, 1, '#92400E');
-    B(ctx, 14, Math.round(21+bodyOff-bowDraw*0.5), 2, 3,  '#065F46'); // feathers
-    B(ctx, 2,  Math.round(22+bodyOff-bowDraw*0.5), 1, 1,  '#D97706'); // tip
-    // string pulled back
-    B(ctx, 2, Math.round(8+bodyOff),  1, Math.round(14-bowDraw*0.3), '#FDE68A');
-    B(ctx, 2, Math.round(22+bodyOff+bowDraw*0.3), 1, Math.round(16-bowDraw*0.3), '#FDE68A');
-  }
+  // NECK
+  B(ctx, 19, Math.round(18 + bodyOff), 10, 5, '#C49060');
+  B(ctx, 20, Math.round(18 + bodyOff),  8, 4, '#D4A574');
+  B(ctx, 21, Math.round(18 + bodyOff),  6, 3, '#FDDBB4');
 
-  // ── RIGHT ARM
-  B(ctx, 35, Math.round(22+bodyOff), 7, 12, '#065F46');
-  B(ctx, 36, Math.round(23+bodyOff), 5, 10, '#10B981');
+  // HEAD
+  const hy = Math.round(2 + bodyOff);
 
-  // ── LEGS (greens with brown boots)
-  const lly = Math.round(35+bodyOff);
-  const ll = Math.round(legSwing * 0.5);
-  B(ctx, 13, lly-ll, 10, 10, '#064E3B');
-  B(ctx, 14, lly-ll+1, 8, 8, '#065F46');
-  B(ctx, 15, lly-ll+1, 6, 7, '#10B981');
-  B(ctx, 13, lly-ll+9, 10, 4, '#78350F');
-  B(ctx, 25, lly+ll, 10, 10, '#064E3B');
-  B(ctx, 26, lly+ll+1, 8, 8, '#065F46');
-  B(ctx, 27, lly+ll+1, 6, 7, '#10B981');
-  B(ctx, 25, lly+ll+9, 10, 4, '#78350F');
+  // HAIR (messy dark brown, 5-level)
+  B(ctx, 11, hy - 2, 26, 9, '#1A0800'); B(ctx, 12, hy - 2, 24, 8, '#2E1503');
+  B(ctx, 13, hy - 2, 22, 7, '#3D1F08'); B(ctx, 15, hy - 3, 18, 5, '#5C3010');
+  B(ctx, 17, hy - 3, 14, 4, '#7C4020');
+  // Messy tufts
+  B(ctx, 18, hy - 4, 5, 3, '#8B5020'); B(ctx, 25, hy - 3, 4, 3, '#8B5020');
+  B(ctx, 22, hy - 5, 4, 2, '#C07030');
+  B(ctx, 21, hy - 3, 6, 1, '#C07030'); // highlight
+  // Side strands
+  B(ctx, 11, hy + 4, 3, 14, '#1A0800'); B(ctx, 12, hy + 4, 2, 13, '#2E1503');
+  B(ctx, 35, hy + 4, 3, 14, '#1A0800'); B(ctx, 35, hy + 4, 2, 13, '#2E1503');
+  // GREEN BANDANA
+  B(ctx, 12, hy + 4, 24, 4, '#064E3B'); B(ctx, 13, hy + 4, 22, 3, '#065F46');
+  B(ctx, 14, hy + 4, 20, 2, '#10B981'); B(ctx, 14, hy + 4,  4, 2, '#34D399');
+  // Bandana knot right
+  B(ctx, 34, hy + 3, 5, 4, '#064E3B'); B(ctx, 35, hy + 3, 4, 3, '#065F46');
+  B(ctx, 35, hy + 3, 2, 2, '#10B981');
 
-  // ── NECK
-  B(ctx, 20, Math.round(18+bodyOff), 8, 4, '#D4A574');
-  B(ctx, 21, Math.round(18+bodyOff), 6, 3, '#FDDBB4');
+  // FACE (22px wide, 17px tall — bandana takes 2px at top)
+  B(ctx, 12, hy + 6, 24, 18, '#C49060');
+  B(ctx, 13, hy + 6, 22, 17, '#FDDBB4');
+  B(ctx, 13, hy + 6,  2, 17, '#D4A574');
+  B(ctx, 33, hy + 6,  2, 17, '#D4A574');
+  B(ctx, 13, hy + 12, 1,  7, '#C49060'); B(ctx, 34, hy + 12, 1, 7, '#C49060');
+  B(ctx, 16, hy + 6, 16,  5, '#FFE8C8'); B(ctx, 18, hy + 6, 12, 3, '#FFFCF0');
+  B(ctx, 14, hy + 19, 20, 3, '#D4A574'); B(ctx, 16, hy + 20, 16, 2, '#C49060');
+  B(ctx, 13, hy + 13, 3,  5, '#D4A574'); B(ctx, 32, hy + 13, 3, 5, '#D4A574');
+  ellipse(ctx, 15.5, hy + 15.5, 2.5, 2, 'rgba(255,120,100,0.3)');
+  ellipse(ctx, 32.5, hy + 15.5, 2.5, 2, 'rgba(255,120,100,0.3)');
 
-  // ── HEAD
-  const hy = Math.round(4+bodyOff);
-  // Hair (messy dark brown)
-  B(ctx, 13, hy,   22, 7, '#3D1F08');
-  B(ctx, 15, hy-1, 18, 3, '#5C3010');
-  B(ctx, 18, hy-2, 12, 3, '#5C3010');
-  B(ctx, 13, hy+3,  2, 8, '#3D1F08');
-  B(ctx, 33, hy+3,  2, 8, '#3D1F08');
-  // messy tufts
-  B(ctx, 18, hy-1,  3, 2, '#8B5020');
-  B(ctx, 27, hy-1,  3, 2, '#8B5020');
-  // bandana (green)
-  B(ctx, 13, hy+4, 22, 3, '#064E3B');
-  B(ctx, 14, hy+4, 20, 2, '#10B981');
-  B(ctx, 14, hy+4,  2, 2, '#A7F3D0'); // bandana highlight
-  // bandana knot back
-  B(ctx, 33, hy+4,  4, 3, '#064E3B');
-  B(ctx, 34, hy+4,  3, 2, '#10B981');
-
-  // Head skin
-  B(ctx, 14, hy+6, 20, 13, '#FDDBB4');
-  B(ctx, 14, hy+6,  2, 13, '#D4A574');
-  B(ctx, 32, hy+6,  2, 13, '#D4A574');
-  B(ctx, 14, hy+17, 20, 2, '#C49060');
-  B(ctx, 13, hy+6,   1, 13, '#1A0810');
-  B(ctx, 33, hy+6,   1, 13, '#1A0810');
-
-  B(ctx, 15, hy+8, 5, 1, '#3D1F08');
-  B(ctx, 28, hy+8, 5, 1, '#3D1F08');
-
-  if (state === 'sleep' || state === 'rest') {
-    drawEyeClosed(ctx, 15, hy+10, '#3D1F08');
-    drawEyeClosed(ctx, 28, hy+10, '#3D1F08');
+  // EYEBROWS
+  if (expr === 'hurt' || isAttack) {
+    B(ctx, 15, hy + 9, 6, 1, '#2E1503'); B(ctx, 14, hy + 10, 2, 1, '#2E1503');
+    B(ctx, 27, hy + 9, 6, 1, '#2E1503'); B(ctx, 32, hy + 10, 2, 1, '#2E1503');
+    B(ctx, 20, hy + 8, 2, 2, '#2E1503'); B(ctx, 26, hy + 8, 2, 2, '#2E1503');
   } else {
-    drawEye(ctx, 15, hy+9, '#065F46', 1);
-    drawEye(ctx, 28, hy+9, '#065F46', 1);
+    B(ctx, 14, hy + 9, 7, 2, '#2E1503');
+    B(ctx, 27, hy + 9, 7, 2, '#2E1503');
   }
 
-  B(ctx, 22, hy+14, 2, 2, '#D4A574');
-  drawMouth(ctx, 19, hy+16, expr);
-  if (state === 'celebrate') drawCheeks(ctx, 16, 32, hy+13);
-
-  if (state === 'celebrate' && particles && Math.random() < 0.2) {
-    particles.emit('star', cx + wave(t, 8, 1), 12, '#10B981');
+  // EYES (8×5px, green)
+  if (expr === 'sleep') {
+    B(ctx, 14, hy + 13, 8, 2, '#064E3B'); B(ctx, 15, hy + 12, 6, 1, '#065F46');
+    B(ctx, 26, hy + 13, 8, 2, '#064E3B'); B(ctx, 27, hy + 12, 6, 1, '#065F46');
+  } else {
+    // Left eye
+    B(ctx, 13, hy + 12, 10, 2, '#1A0800'); B(ctx, 12, hy + 13, 1, 1, '#1A0800');
+    B(ctx, 14, hy + 13,  8, 5, '#FFFFFF'); B(ctx, 13, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 15, hy + 13,  6, 4, '#064E3B'); B(ctx, 16, hy + 13, 4, 3, '#065F46');
+    B(ctx, 17, hy + 14,  3, 2, '#10B981'); B(ctx, 15, hy + 15, 6, 2, '#022C22');
+    B(ctx, 17, hy + 14,  2, 2, '#011811'); B(ctx, 15, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 20, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 16, hy + 13, 3, 1, '#6EE7B7');
+    // Right eye
+    B(ctx, 25, hy + 12, 10, 2, '#1A0800'); B(ctx, 35, hy + 13, 1, 1, '#1A0800');
+    B(ctx, 26, hy + 13,  8, 5, '#FFFFFF'); B(ctx, 25, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 27, hy + 13,  6, 4, '#064E3B'); B(ctx, 28, hy + 13, 4, 3, '#065F46');
+    B(ctx, 29, hy + 14,  3, 2, '#10B981'); B(ctx, 27, hy + 15, 6, 2, '#022C22');
+    B(ctx, 29, hy + 14,  2, 2, '#011811'); B(ctx, 27, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 32, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 28, hy + 13, 3, 1, '#6EE7B7');
   }
+
+  // Nose + mouth
+  B(ctx, 21, hy + 19, 2, 1, '#C49060'); B(ctx, 22, hy + 20, 4, 1, '#D4A574');
+  if (expr === 'happy') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0800'); B(ctx, 17, hy + 21, 2, 2, '#1A0800');
+    B(ctx, 29, hy + 21,  2, 2, '#1A0800'); B(ctx, 18, hy + 22, 12, 1, '#FFFFFF');
+    B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  } else if (expr === 'hurt') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0800');
+    B(ctx, 17, hy + 21, 2, 3, '#1A0800'); B(ctx, 29, hy + 21, 2, 3, '#1A0800');
+  } else {
+    B(ctx, 19, hy + 22, 10, 1, '#1A0800'); B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  }
+
+  // Front hair wisps
+  B(ctx, 13, hy + 4, 3, 6, '#2E1503'); B(ctx, 14, hy + 5, 2, 5, '#5C3010');
+  B(ctx, 32, hy + 4, 3, 6, '#2E1503'); B(ctx, 32, hy + 5, 2, 5, '#5C3010');
+
   if (level >= 6) {
-    ctx.save(); ctx.globalAlpha = 0.15 + 0.08*Math.sin(t*Math.PI*2);
-    B(ctx, 14, hy, 20, 14, '#34D399'); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.15 + 0.1 * Math.sin(t * Math.PI * 2);
+    B(ctx, 13, hy, 22, 19, '#34D399'); ctx.restore();
   }
+  if (state === 'celebrate' && particles && Math.random() < 0.2)
+    particles.emit('star', cx + wave(t, 8, 1), 8, '#10B981');
+  if (state === 'levelup' && particles && Math.random() < 0.4)
+    particles.emit('sparkle', cx + wave(t, 10, 1), 12, '#6EE7B7');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -774,142 +907,207 @@ function drawRanger(ctx, state, t, level, particles) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function drawPaladina(ctx, state, t, level, particles) {
   const cx = 24;
-  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.6, 1) : 0;
+  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.7, 1) : 0;
   const walkBob  = state === 'walk' ? Math.abs(wave(t, 2, 2)) - 1 : 0;
   const legSwing = state === 'walk' ? wave(t, 4, 2) : 0;
   const bodyOff  = breatheY + walkBob;
-  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' : state === 'rest' || state === 'sleep' ? 'sleep' : 'neutral';
+  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' :
+               state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const isAttack = state === 'attack';
+  const isDefend = state === 'defend';
 
-  drawShadow(ctx, cx, 1);
+  ellipse(ctx, cx, 46.5, 12, 2.8, 'rgba(0,0,30,0.4)');
 
-  // ── BRAIDS (golden, behind body)
-  const braidSway = wave(t, 1, 1);
-  B(ctx, 9+Math.round(braidSway), Math.round(14+bodyOff), 3, 22, '#A07020');
-  B(ctx, 10+Math.round(braidSway), Math.round(14+bodyOff), 2, 22, '#C8960C');
-  B(ctx, 9+Math.round(braidSway), Math.round(14+bodyOff), 2, 22, '#F0C040');
-  B(ctx, 36-Math.round(braidSway), Math.round(14+bodyOff), 3, 22, '#A07020');
-  B(ctx, 36-Math.round(braidSway), Math.round(14+bodyOff), 2, 22, '#C8960C');
-  // braid details
-  for (let i = 0; i < 6; i++) {
-    B(ctx, 9+Math.round(braidSway), Math.round(14+bodyOff+i*3), 2, 1, '#F0D060');
-    B(ctx, 37-Math.round(braidSway), Math.round(14+bodyOff+i*3), 2, 1, '#F0D060');
+  // GOLDEN BRAIDS (behind body, animated sway)
+  const bs = Math.round(wave(t, 1.2, 1) * 0.5);
+  B(ctx, 9 + bs,  Math.round(14 + bodyOff), 4, 24, '#7A5A08');
+  B(ctx, 10 + bs, Math.round(14 + bodyOff), 3, 23, '#C8960C');
+  B(ctx, 10 + bs, Math.round(14 + bodyOff), 2, 23, '#F0C840');
+  for (let i = 0; i < 7; i++) {
+    B(ctx, 9 + bs, Math.round(14 + bodyOff + i * 3), 3, 1, '#FDE68A');
+    B(ctx, 10 + bs, Math.round(15 + bodyOff + i * 3), 2, 1, '#A07020');
+  }
+  B(ctx, 35 - bs, Math.round(14 + bodyOff), 4, 24, '#7A5A08');
+  B(ctx, 35 - bs, Math.round(14 + bodyOff), 3, 23, '#C8960C');
+  B(ctx, 36 - bs, Math.round(14 + bodyOff), 2, 23, '#F0C840');
+  for (let i = 0; i < 7; i++) {
+    B(ctx, 35 - bs, Math.round(14 + bodyOff + i * 3), 3, 1, '#FDE68A');
+    B(ctx, 36 - bs, Math.round(15 + bodyOff + i * 3), 2, 1, '#A07020');
   }
 
-  // ── SILVER ARMOR CHEST
+  // ROUND SHIELD (left)
+  const shieldY = isDefend ? Math.round(14 + bodyOff) : Math.round(24 + bodyOff);
+  B(ctx, 1, shieldY,      12, 19, '#374151');
+  B(ctx, 2, shieldY + 1,  10, 17, '#4B5563');
+  B(ctx, 3, shieldY + 1,   8, 15, '#6B7280');
+  B(ctx, 4, shieldY + 2,   6, 13, '#9CA3AF');
+  B(ctx, 5, shieldY + 3,   4,  4, '#D1D5DB');
+  // Gold cross
+  B(ctx, 2, shieldY + 8,   10, 2, '#F0C840'); B(ctx, 6, shieldY + 2, 2, 14, '#F0C840');
+  B(ctx, 6, shieldY + 8,    2, 2, '#FFFFC0');
+  // Rim
+  B(ctx, 2, shieldY + 1,    9, 1, '#F0C840'); B(ctx, 2, shieldY + 16, 9, 1, '#C8960C');
+  B(ctx, 2, shieldY + 1,    1, 16, '#F0C840'); B(ctx, 11, shieldY + 1, 1, 16, '#C8960C');
+
+  // LIGHT BLUE CAPE SIDES
+  const capeY = Math.round(20 + bodyOff);
+  B(ctx, 6,  capeY, 5, 22, '#374151'); B(ctx, 37, capeY, 5, 22, '#374151');
+  B(ctx, 7,  capeY + 1, 4, 20, '#E0F2FE'); B(ctx, 37, capeY + 1, 4, 20, '#E0F2FE');
+  B(ctx, 8,  capeY + 2, 3, 17, '#BAE6FD'); B(ctx, 38, capeY + 2, 3, 17, '#BAE6FD');
+
+  // LEFT ARM (silver plate)
+  B(ctx, 7,  Math.round(22 + bodyOff), 7, 13, '#4B5563');
+  B(ctx, 8,  Math.round(23 + bodyOff), 5, 11, '#6B7280');
+  B(ctx, 9,  Math.round(23 + bodyOff), 4, 10, '#9CA3AF');
+  B(ctx, 10, Math.round(24 + bodyOff), 3,  8, '#D1D5DB');
+
+  // RIGHT ARM + SWORD
+  const swordRaise = isAttack ? Math.abs(wave(t, 7, 1)) : 0;
+  B(ctx, 34, Math.round(22 + bodyOff), 7, 13, '#4B5563');
+  B(ctx, 35, Math.round(23 + bodyOff), 5, 11, '#6B7280');
+  B(ctx, 36, Math.round(23 + bodyOff), 4, 10, '#9CA3AF');
+  // Slim elegant sword
+  const swOff = Math.round(-swordRaise);
+  B(ctx, 42, 6 + swOff,  2, 30, '#4B5563');
+  B(ctx, 42, 7 + swOff,  2, 28, '#9CA3AF');
+  B(ctx, 43, 7 + swOff,  1, 28, '#F3F4F6');
+  B(ctx, 43, 7 + swOff,  1, 6,  '#FFFFFF');
+  // Gold crossguard
+  B(ctx, 37, Math.round(24 + bodyOff + swOff * 0.4), 12, 2, '#4B5563');
+  B(ctx, 38, Math.round(24 + bodyOff + swOff * 0.4), 10, 1, '#F0C840');
+  // Grip
+  B(ctx, 42, Math.round(26 + bodyOff + swOff * 0.2), 2, 6, '#2E1503');
+  // Pommel
+  B(ctx, 41, Math.round(31 + bodyOff), 4, 4, '#4B5563');
+  B(ctx, 42, Math.round(32 + bodyOff), 2, 2, '#D1D5DB');
+
+  // SILVER CHEST ARMOR (5-level)
   const by = Math.round(20 + bodyOff);
-  B(ctx, 9, by, 30, 5, '#6B7280'); // shoulder broad
-  B(ctx, 10, by+1, 28, 4, '#9CA3AF');
-  B(ctx, 11, by, 26, 15, '#6B7280');
-  B(ctx, 12, by+1, 24, 13, '#9CA3AF');
-  B(ctx, 14, by+2, 20, 11, '#D1D5DB');
-  B(ctx, 16, by+3, 16, 8, '#F3F4F6');
-  // silver trim gold
-  B(ctx, 11, by, 26, 1, '#F0C040');
-  B(ctx, 11, by+14, 26, 1, '#F0C040');
-  // cross emblem
-  B(ctx, 22, by+4, 4, 8, '#F0C040');
-  B(ctx, 18, by+7, 12, 2, '#F0C040');
-  // shading
-  B(ctx, 12, by+1, 2, 13, '#6B7280');
-  B(ctx, 34, by+1, 2, 13, '#6B7280');
-  // skirt/tassets
-  B(ctx, 11, by+14, 26, 6, '#4B5563');
-  B(ctx, 12, by+14, 24, 5, '#6B7280');
-  B(ctx, 14, by+14, 20, 4, '#9CA3AF');
+  // Shoulders
+  B(ctx, 9,  by,     8, 6, '#374151'); B(ctx, 10, by + 1, 6, 5, '#4B5563');
+  B(ctx, 11, by + 1, 5, 4, '#6B7280'); B(ctx, 12, by + 2, 3, 3, '#9CA3AF');
+  B(ctx, 9,  by,     8, 1, '#F0C840');
+  B(ctx, 31, by,     8, 6, '#374151'); B(ctx, 32, by + 1, 6, 5, '#4B5563');
+  B(ctx, 33, by + 1, 5, 4, '#6B7280'); B(ctx, 34, by + 2, 3, 3, '#9CA3AF');
+  B(ctx, 31, by,     8, 1, '#F0C840');
+  // Main chest
+  B(ctx, 12, by + 1, 24, 14, '#374151');
+  B(ctx, 13, by + 2, 22, 12, '#4B5563');
+  B(ctx, 14, by + 2, 20, 11, '#6B7280');
+  B(ctx, 16, by + 3, 16,  9, '#9CA3AF');
+  B(ctx, 18, by + 4, 12,  7, '#D1D5DB');
+  B(ctx, 20, by + 5,  8,  4, '#F3F4F6');
+  B(ctx, 13, by + 2,  1, 12, '#374151'); B(ctx, 34, by + 2, 1, 12, '#374151');
+  // Gold cross emblem
+  B(ctx, 23, by + 3, 2, 8, '#3A2804'); B(ctx, 20, by + 7, 8, 2, '#3A2804');
+  B(ctx, 23, by + 3, 2, 7, '#F0C840'); B(ctx, 20, by + 7, 8, 1, '#F0C840');
+  B(ctx, 23, by + 3, 2, 1, '#FFFFC0');
+  // Gold trim lines
+  B(ctx, 12, by + 1,  24, 1, '#F0C840'); B(ctx, 12, by + 14, 24, 1, '#C8960C');
+  // Tasset/skirt
+  B(ctx, 11, by + 14, 26, 6, '#374151'); B(ctx, 12, by + 14, 24, 5, '#4B5563');
+  B(ctx, 14, by + 14, 20, 4, '#6B7280'); B(ctx, 16, by + 15, 16, 2, '#9CA3AF');
+  B(ctx, 11, by + 14, 26, 1, '#F0C840');
 
-  // ── LEFT ARM + SHIELD
-  if (state === 'defend') {
-    B(ctx, 4, Math.round(18+bodyOff), 8, 5, '#6B7280');
-    B(ctx, 2, Math.round(15+bodyOff), 10, 18, '#4B5563');
-    B(ctx, 3, Math.round(16+bodyOff), 8, 16, '#6B7280');
-    B(ctx, 4, Math.round(17+bodyOff), 6, 14, '#9CA3AF');
-    B(ctx, 5, Math.round(22+bodyOff), 4, 4, '#F0C040'); // cross
-    B(ctx, 6, Math.round(19+bodyOff), 2, 10, '#F0C040');
+  // LEGS (silver greaves)
+  const lly = Math.round(37 + bodyOff);
+  const lleg = Math.round(legSwing * 0.5);
+  B(ctx, 12, lly - lleg,      11, 9, '#374151'); B(ctx, 13, lly - lleg + 1,  9, 7, '#4B5563');
+  B(ctx, 14, lly - lleg + 1,   7, 6, '#6B7280'); B(ctx, 15, lly - lleg + 2,  5, 4, '#9CA3AF');
+  B(ctx, 13, lly - lleg,       9, 2, '#F0C840'); // gold knee
+  B(ctx, 11, lly - lleg + 8,  12, 4, '#374151'); B(ctx, 12, lly - lleg + 8, 10, 3, '#4B5563');
+  B(ctx, 25, lly + lleg,      11, 9, '#374151'); B(ctx, 26, lly + lleg + 1,  9, 7, '#4B5563');
+  B(ctx, 27, lly + lleg + 1,   7, 6, '#6B7280'); B(ctx, 28, lly + lleg + 2,  5, 4, '#9CA3AF');
+  B(ctx, 26, lly + lleg,       9, 2, '#F0C840');
+  B(ctx, 24, lly + lleg + 8,  12, 4, '#374151'); B(ctx, 25, lly + lleg + 8, 10, 3, '#4B5563');
+
+  // NECK
+  B(ctx, 19, Math.round(18 + bodyOff), 10, 5, '#C49060');
+  B(ctx, 20, Math.round(18 + bodyOff),  8, 4, '#D4A574');
+  B(ctx, 21, Math.round(18 + bodyOff),  6, 3, '#FDDBB4');
+
+  // HEAD
+  const hy = Math.round(2 + bodyOff);
+
+  // GOLDEN HAIR (volumetric, 5-level)
+  B(ctx, 11, hy - 2, 26, 9, '#7A5A08'); B(ctx, 12, hy - 2, 24, 8, '#A07020');
+  B(ctx, 13, hy - 2, 22, 7, '#C8960C'); B(ctx, 15, hy - 3, 18, 5, '#E8A820');
+  B(ctx, 17, hy - 4, 14, 5, '#F0C040'); B(ctx, 19, hy - 5, 10, 4, '#F8D040');
+  B(ctx, 21, hy - 6,  6, 3, '#FDE68A'); B(ctx, 22, hy - 6,  4, 1, '#FFFFC0');
+  B(ctx, 21, hy - 4,  6, 1, '#FFFFC0'); // shine
+  // Side strands
+  B(ctx, 11, hy + 4, 3, 16, '#7A5A08'); B(ctx, 12, hy + 4, 2, 15, '#C8960C');
+  B(ctx, 35, hy + 4, 3, 16, '#7A5A08'); B(ctx, 35, hy + 4, 2, 15, '#C8960C');
+
+  // FACE (22px wide, 19px tall)
+  B(ctx, 12, hy + 4, 24, 20, '#C49060');
+  B(ctx, 13, hy + 4, 22, 19, '#FDDBB4');
+  B(ctx, 13, hy + 4,  2, 19, '#D4A574'); B(ctx, 33, hy + 4, 2, 19, '#D4A574');
+  B(ctx, 13, hy + 10, 1,  9, '#C49060'); B(ctx, 34, hy + 10, 1, 9, '#C49060');
+  B(ctx, 16, hy + 4, 16,  6, '#FFE8C8'); B(ctx, 18, hy + 4, 12, 4, '#FFFCF0');
+  B(ctx, 14, hy + 19, 20, 3, '#D4A574'); B(ctx, 16, hy + 20, 16, 2, '#C49060');
+  B(ctx, 13, hy + 13, 3,  6, '#D4A574'); B(ctx, 32, hy + 13, 3, 6, '#D4A574');
+  ellipse(ctx, 15.5, hy + 16.5, 3, 2.5, 'rgba(255,140,120,0.4)');
+  ellipse(ctx, 32.5, hy + 16.5, 3, 2.5, 'rgba(255,140,120,0.4)');
+
+  // CIRCLET with gem
+  B(ctx, 13, hy + 4, 22, 2, '#4B5563'); B(ctx, 14, hy + 4, 20, 1, '#9CA3AF');
+  B(ctx, 21, hy + 2,  6, 4, '#3A2804'); B(ctx, 22, hy + 2, 4, 3, '#F0C840');
+  B(ctx, 23, hy + 1,  2, 3, '#FFFFFF');
+
+  // EYEBROWS (elegant thin)
+  if (expr === 'hurt') {
+    B(ctx, 15, hy + 9, 6, 1, '#A07020'); B(ctx, 20, hy + 8, 2, 2, '#A07020');
+    B(ctx, 27, hy + 9, 6, 1, '#A07020'); B(ctx, 26, hy + 8, 2, 2, '#A07020');
   } else {
-    B(ctx, 7, Math.round(22+bodyOff), 6, 12, '#6B7280');
-    B(ctx, 8, Math.round(23+bodyOff), 4, 10, '#9CA3AF');
-    // shield at side (oval)
-    B(ctx, 1, Math.round(24+bodyOff), 8, 12, '#4B5563');
-    B(ctx, 2, Math.round(25+bodyOff), 6, 10, '#6B7280');
-    B(ctx, 3, Math.round(26+bodyOff), 4, 8, '#9CA3AF');
-    B(ctx, 4, Math.round(29+bodyOff), 2, 2, '#F0C040');
-    B(ctx, 3, Math.round(27+bodyOff), 1, 6, '#F0C040');
+    B(ctx, 15, hy + 9, 6, 1, '#A07020'); B(ctx, 27, hy + 9, 6, 1, '#A07020');
   }
 
-  // ── RIGHT ARM + SWORD
-  const swordOff = state === 'attack' ? wave(t, 6, 1) : 0;
-  B(ctx, 35, Math.round(22+bodyOff), 6, 12, '#6B7280');
-  B(ctx, 36, Math.round(23+bodyOff), 4, 10, '#9CA3AF');
-  B(ctx, 40, Math.round(10+bodyOff-swordOff), 2, 28, '#D1D5DB');
-  B(ctx, 41, Math.round(10+bodyOff-swordOff), 1, 28, '#FFFFFF');
-  B(ctx, 40, Math.round(10+bodyOff-swordOff), 1, 28, '#9CA3AF');
-  B(ctx, 37, Math.round(23+bodyOff-swordOff*0.5), 8, 2, '#F0C040');
-  B(ctx, 40, Math.round(25+bodyOff), 2, 8, '#6B7280');
-  B(ctx, 39, Math.round(32+bodyOff), 4, 3, '#D1D5DB');
-
-  // ── LEGS
-  const lly = Math.round(38+bodyOff);
-  const ll = Math.round(legSwing * 0.5);
-  B(ctx, 13, lly-ll, 10, 8, '#4B5563');
-  B(ctx, 14, lly-ll, 8, 7, '#6B7280');
-  B(ctx, 15, lly-ll+1, 6, 6, '#9CA3AF');
-  B(ctx, 13, lly-ll+7, 10, 3, '#374151');
-  B(ctx, 25, lly+ll, 10, 8, '#4B5563');
-  B(ctx, 26, lly+ll, 8, 7, '#6B7280');
-  B(ctx, 27, lly+ll+1, 6, 6, '#9CA3AF');
-  B(ctx, 25, lly+ll+7, 10, 3, '#374151');
-
-  // ── NECK
-  B(ctx, 20, Math.round(18+bodyOff), 8, 4, '#D4A574');
-  B(ctx, 21, Math.round(18+bodyOff), 6, 3, '#FDDBB4');
-
-  // ── HEAD
-  const hy = Math.round(3 + bodyOff);
-  // Golden hair
-  B(ctx, 13, hy, 22, 6, '#A07020');
-  B(ctx, 15, hy, 18, 5, '#C8960C');
-  B(ctx, 17, hy, 14, 3, '#F0C040');
-  B(ctx, 19, hy-1, 10, 2, '#F0C040');
-  B(ctx, 22, hy-2, 4, 2, '#FDE68A');
-  B(ctx, 13, hy+4, 2, 8, '#A07020');
-  B(ctx, 33, hy+4, 2, 8, '#A07020');
-
-  // crown/circlet
-  B(ctx, 14, hy+1, 20, 2, '#C8960C');
-  B(ctx, 19, hy-1,  3, 3, '#F0C040');
-  B(ctx, 21, hy-2,  1, 2, '#FFFFFF');
-  B(ctx, 26, hy-1,  3, 3, '#F0C040');
-
-  // Head skin
-  B(ctx, 14, hy+5, 20, 14, '#FDDBB4');
-  B(ctx, 14, hy+5, 2, 14, '#D4A574');
-  B(ctx, 32, hy+5, 2, 14, '#D4A574');
-  B(ctx, 14, hy+17, 20, 2, '#C49060');
-  B(ctx, 13, hy+5, 1, 14, '#1A0810');
-  B(ctx, 33, hy+5, 1, 14, '#1A0810');
-
-  B(ctx, 15, hy+7, 5, 1, '#A07020');
-  B(ctx, 28, hy+7, 5, 1, '#A07020');
-
-  if (state === 'sleep' || state === 'rest') {
-    drawEyeClosed(ctx, 15, hy+9, '#A07020');
-    drawEyeClosed(ctx, 28, hy+9, '#A07020');
+  // EYES (8×5px, warm blue)
+  if (expr === 'sleep') {
+    B(ctx, 14, hy + 13, 8, 2, '#4B5563'); B(ctx, 26, hy + 13, 8, 2, '#4B5563');
   } else {
-    drawEye(ctx, 15, hy+8, '#0EA5E9', 1);
-    drawEye(ctx, 28, hy+8, '#0EA5E9', 1);
+    // Left eye
+    B(ctx, 13, hy + 12, 10, 2, '#1A0810'); B(ctx, 12, hy + 13, 1, 1, '#1A0810');
+    B(ctx, 14, hy + 13,  8, 5, '#FFFFFF'); B(ctx, 13, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 15, hy + 13,  6, 4, '#0369A1'); B(ctx, 16, hy + 13, 4, 3, '#0EA5E9');
+    B(ctx, 17, hy + 14,  3, 2, '#38BDF8'); B(ctx, 15, hy + 15, 6, 2, '#082F49');
+    B(ctx, 17, hy + 14,  2, 2, '#0C1A26'); B(ctx, 15, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 20, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 16, hy + 13, 3, 1, '#BAE6FD');
+    // Right eye
+    B(ctx, 25, hy + 12, 10, 2, '#1A0810'); B(ctx, 35, hy + 13, 1, 1, '#1A0810');
+    B(ctx, 26, hy + 13,  8, 5, '#FFFFFF'); B(ctx, 25, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 27, hy + 13,  6, 4, '#0369A1'); B(ctx, 28, hy + 13, 4, 3, '#0EA5E9');
+    B(ctx, 29, hy + 14,  3, 2, '#38BDF8'); B(ctx, 27, hy + 15, 6, 2, '#082F49');
+    B(ctx, 29, hy + 14,  2, 2, '#0C1A26'); B(ctx, 27, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 32, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 28, hy + 13, 3, 1, '#BAE6FD');
   }
 
-  B(ctx, 22, hy+13, 2, 2, '#D4A574');
-  drawMouth(ctx, 19, hy+16, expr);
-  if (state === 'celebrate') drawCheeks(ctx, 16, 32, hy+13);
-
-  if (state === 'celebrate' && particles && Math.random() < 0.2) {
-    particles.emit('star', cx + wave(t, 8, 1), 12, '#F0C040');
+  // Nose + mouth
+  B(ctx, 21, hy + 19, 2, 1, '#C49060'); B(ctx, 22, hy + 20, 4, 1, '#D4A574');
+  if (expr === 'happy') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0810'); B(ctx, 17, hy + 21, 2, 2, '#1A0810');
+    B(ctx, 29, hy + 21,  2, 2, '#1A0810'); B(ctx, 18, hy + 22, 12, 1, '#FFFFFF');
+    B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  } else if (expr === 'hurt') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0810');
+    B(ctx, 17, hy + 21, 2, 3, '#1A0810'); B(ctx, 29, hy + 21, 2, 3, '#1A0810');
+  } else {
+    B(ctx, 19, hy + 22, 10, 1, '#1A0810'); B(ctx, 18, hy + 23, 12, 1, '#D4A574');
   }
+
+  // Front hair wisps
+  B(ctx, 13, hy + 4, 3, 6, '#A07020'); B(ctx, 14, hy + 5, 2, 5, '#C8960C');
+  B(ctx, 32, hy + 4, 3, 6, '#A07020'); B(ctx, 32, hy + 5, 2, 5, '#C8960C');
+
   if (level >= 6) {
-    ctx.save(); ctx.globalAlpha = 0.2+0.1*Math.sin(t*Math.PI*2);
-    B(ctx, 12, Math.round(20+bodyOff), 24, 15, '#F8FAFC'); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.2 + 0.1 * Math.sin(t * Math.PI * 2);
+    B(ctx, 13, hy, 22, 19, '#F3F4F6'); ctx.restore();
   }
+  if (state === 'celebrate' && particles && Math.random() < 0.2)
+    particles.emit('star', cx + wave(t, 8, 1), 8, '#F0C840');
+  if (state === 'levelup' && particles && Math.random() < 0.4)
+    particles.emit('sparkle', cx + wave(t, 10, 1), 12, '#FFFFC0');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -918,135 +1116,169 @@ function drawPaladina(ctx, state, t, level, particles) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function drawBruixa(ctx, state, t, level, particles) {
   const cx = 24;
-  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.5, 1) : 0;
-  const bodyOff = breatheY;
-  const hatSway = wave(t, 0.8, 1);
-  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' : state === 'rest' || state === 'sleep' ? 'sleep' : 'neutral';
+  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.6, 1) : 0;
+  const bodyOff  = breatheY;
+  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' :
+               state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const isAttack = state === 'attack';
+  const hs = Math.round(wave(t, 0.9, 1) * 0.5);
 
-  drawShadow(ctx, cx, 1);
+  ellipse(ctx, cx, 46.5, 11, 2.5, 'rgba(0,0,30,0.4)');
 
-  // ── HAT (big witch hat)
+  // BIG WITCH HAT (4-level cone + wide brim)
   const hatY = Math.round(-4 + bodyOff);
-  // hat shadow
-  B(ctx, 14, hatY+14, 20, 2, '#0A0A14');
-  // hat brim
-  B(ctx, 8, hatY+13, 32, 4, '#0A0A14');
-  B(ctx, 9, hatY+13, 30, 3, '#1A1A2E');
-  B(ctx, 10, hatY+13, 28, 2, '#2D2D44');
-  // brim band gold
-  B(ctx, 10, hatY+13, 28, 1, '#C8960C');
-  // hat cone
-  B(ctx, 16, hatY+1, 16, 13, '#0A0A14');
-  B(ctx, 18, hatY+1, 12, 12, '#1A1A2E');
-  B(ctx, 20, hatY+2, 8, 10, '#2D1B69');
-  // hat tip
-  B(ctx, 21, hatY-1, 6, 3, '#0A0A14');
-  B(ctx, 22, hatY-2, 4, 2, '#1A1A2E');
-  B(ctx, 23, hatY-3, 2, 2, '#2D1B69');
-  // hat star
-  B(ctx, 22, hatY+6, 2, 4, '#F0C040');
-  B(ctx, 20, hatY+8, 6, 1, '#F0C040');
-  B(ctx, 21, hatY+7, 1, 2, '#F0C040');
-  B(ctx, 25, hatY+7, 1, 2, '#F0C040');
-  // wavy hair under hat
-  B(ctx, 10, hatY+14, 4, 18, '#1C0A2E');
-  B(ctx, 34, hatY+14, 4, 18, '#1C0A2E');
-  B(ctx, 11, hatY+14, 3, 17, '#2D1B69');
-  B(ctx, 34, hatY+14, 3, 17, '#2D1B69');
-  B(ctx, 11, hatY+16, 2, 12, '#3D2280');
-  // hair waves
+  // Hat brim (very wide)
+  B(ctx, 5,  hatY + 14, 38, 5, '#0A0A14');
+  B(ctx, 6,  hatY + 14, 36, 4, '#1A1A2E');
+  B(ctx, 7,  hatY + 14, 34, 3, '#2D2D44');
+  B(ctx, 7,  hatY + 14, 34, 1, '#C8960C'); // gold band
+  // Cone (tapers, sways slightly)
+  B(ctx, 14 + hs, hatY + 1,  20, 14, '#0A0A14');
+  B(ctx, 15 + hs, hatY + 1,  18, 13, '#1A1A2E');
+  B(ctx, 16 + hs, hatY + 2,  16, 11, '#2D1B69');
+  B(ctx, 18 + hs, hatY + 3,  12,  9, '#3B1D8B');
+  B(ctx, 19 + hs, hatY + 4,  10,  7, '#4C1D95');
+  // Hat tip
+  B(ctx, 21 + hs, hatY - 2,   6,  4, '#0A0A14');
+  B(ctx, 22 + hs, hatY - 2,   4,  3, '#1A1A2E');
+  B(ctx, 23 + hs, hatY - 3,   2,  2, '#2D1B69');
+  // Gold star on hat
+  B(ctx, 21 + hs, hatY + 7, 2, 5, '#F0C840');
+  B(ctx, 19 + hs, hatY + 9, 6, 1, '#F0C840');
+  B(ctx, 20 + hs, hatY + 8, 1, 3, '#F0C840'); B(ctx, 24 + hs, hatY + 8, 1, 3, '#F0C840');
+  B(ctx, 21 + hs, hatY + 7, 2, 1, '#FFFFC0');
+
+  // DARK WAVY HAIR (under hat, sides)
+  B(ctx, 8,  Math.round(hatY + 16), 4, 20, '#1C0A2E');
+  B(ctx, 36, Math.round(hatY + 16), 4, 20, '#1C0A2E');
+  B(ctx, 9,  Math.round(hatY + 16), 3, 19, '#2D1B69');
+  B(ctx, 36, Math.round(hatY + 16), 3, 19, '#2D1B69');
+  B(ctx, 9,  Math.round(hatY + 18), 2, 14, '#4C1D95');
   for (let i = 0; i < 5; i++) {
-    const wv = Math.round(Math.sin(i) * 1.5);
-    B(ctx, 10+wv, hatY+16+i*2, 3, 1, '#4C1D95');
-    B(ctx, 35-wv, hatY+16+i*2, 3, 1, '#4C1D95');
+    const wv = Math.round(Math.sin(i * 1.2) * 1.5);
+    B(ctx, 8 + wv,  Math.round(hatY + 18 + i * 3), 3, 2, '#6D28D9');
+    B(ctx, 37 - wv, Math.round(hatY + 18 + i * 3), 3, 2, '#6D28D9');
   }
 
-  // ── DRESS (black/purple flowing)
+  // WAND (right hand, animated wave)
+  const wandBase = Math.round(bodyOff + wave(t, 1, 1) * 1.5);
+  const wandRaise = isAttack ? Math.abs(wave(t, 6, 1)) : 0;
+  const wt = 12 + wandBase - wandRaise;
+  B(ctx, 39, wt, 2, 28, '#2E1503'); B(ctx, 40, wt, 2, 28, '#5C3010');
+  B(ctx, 41, wt, 1, 28, '#7A4015');
+  // Star tip
+  B(ctx, 37, wt - 5, 6, 7, '#3A2804'); B(ctx, 38, wt - 4, 4, 5, '#F0C840');
+  B(ctx, 39, wt - 4, 2, 3, '#FFFFC0'); B(ctx, 39, wt - 5, 2, 1, '#FFFFFF');
+  const wg = 0.4 + 0.3 * Math.sin(t * Math.PI * 3);
+  ctx.save(); ctx.globalAlpha = wg; circle(ctx, 40, wt - 2, 5, '#A78BFA'); ctx.restore();
+  if ((isAttack || state === 'levelup') && particles && Math.random() < 0.3)
+    particles.emit('sparkle', 40, wt - 2, '#C4B5FD');
+
+  // LEFT ARM
+  B(ctx, 7, Math.round(22 + bodyOff), 6, 14, '#1A1A2E');
+  B(ctx, 8, Math.round(23 + bodyOff), 5, 12, '#2D1B69');
+  B(ctx, 9, Math.round(24 + bodyOff), 4, 10, '#4C1D95');
+
+  // RIGHT ARM
+  B(ctx, 35, Math.round(22 + bodyOff), 6, 14, '#1A1A2E');
+  B(ctx, 36, Math.round(23 + bodyOff), 5, 12, '#2D1B69');
+  B(ctx, 37, Math.round(24 + bodyOff), 4, 10, '#4C1D95');
+
+  // FLOWING DRESS (5-level black/purple, wide)
   const dy = Math.round(22 + bodyOff);
-  B(ctx, 10, dy, 28, 22, '#0A0A14');
-  B(ctx, 12, dy+1, 24, 20, '#1A1A2E');
-  B(ctx, 14, dy+2, 20, 18, '#2D1B69');
-  B(ctx, 16, dy+3, 16, 16, '#3B1D8B');
-  // dress details
-  B(ctx, 16, dy+3, 1, 16, '#2D1B69'); // seam
-  B(ctx, 31, dy+3, 1, 16, '#2D1B69');
-  // magical sparkles on dress
-  if (state === 'idle_front' || state === 'celebrate') {
-    const gg = 0.5 + 0.5*Math.sin(t*Math.PI*2);
-    ctx.save(); ctx.globalAlpha = gg * 0.5;
-    B(ctx, 17, dy+5, 2, 2, '#A78BFA');
-    B(ctx, 28, dy+8, 2, 2, '#C4B5FD');
-    B(ctx, 21, dy+14, 2, 2, '#8B5CF6');
-    ctx.restore();
-  }
-  // collar
-  B(ctx, 18, dy, 12, 3, '#0A0A14');
-  B(ctx, 19, dy, 10, 2, '#1A1A2E');
-
-  // ── ARMS
-  B(ctx, 7,  Math.round(22+bodyOff), 6, 14, '#1A1A2E');
-  B(ctx, 8,  Math.round(23+bodyOff), 4, 12, '#2D1B69');
-  B(ctx, 35, Math.round(22+bodyOff), 6, 14, '#1A1A2E');
-  B(ctx, 36, Math.round(23+bodyOff), 4, 12, '#2D1B69');
-
-  // ── WAND (right hand)
-  const wandWave = wave(t, 1, 1);
-  const wandY = state === 'attack' ? wave(t, 5, 1) : 0;
-  B(ctx, 40, Math.round(12+bodyOff+wandWave-wandY), 2, 24, '#5C3010');
-  B(ctx, 41, Math.round(12+bodyOff+wandWave-wandY), 1, 24, '#92400E');
-  // wand star tip
-  B(ctx, 38, Math.round(8+bodyOff+wandWave-wandY), 6, 6, '#F0C040');
-  B(ctx, 39, Math.round(7+bodyOff+wandWave-wandY), 4, 4, '#FDE68A');
-  B(ctx, 40, Math.round(8+bodyOff+wandWave-wandY), 2, 2, '#FFFFFF');
-  // wand glow
-  const wg = 0.3 + 0.3*Math.sin(t*Math.PI*3);
-  ctx.save(); ctx.globalAlpha = wg;
-  circle(ctx, 41, Math.round(10+bodyOff+wandWave-wandY), 5, '#A78BFA');
+  B(ctx, 7,  dy,     34, 24, '#0A0A14');
+  B(ctx, 9,  dy + 1, 30, 22, '#1A1A2E');
+  B(ctx, 11, dy + 2, 26, 20, '#2D1B69');
+  B(ctx, 13, dy + 3, 22, 18, '#3B1D8B');
+  B(ctx, 15, dy + 4, 18, 15, '#4C1D95');
+  B(ctx, 17, dy + 5, 14, 10, '#5E20B0');
+  // Edge shadows
+  B(ctx, 9,  dy + 1, 2, 22, '#0A0A14'); B(ctx, 37, dy + 1, 2, 22, '#0A0A14');
+  // Hem flare
+  B(ctx, 5,  dy + 22, 38, 2, '#0A0A14'); B(ctx, 7, dy + 22, 34, 2, '#1A1A2E');
+  B(ctx, 9,  dy + 23, 30, 1, '#2D1B69');
+  // Gold collar
+  B(ctx, 17, dy, 14, 3, '#3A2804'); B(ctx, 18, dy, 12, 2, '#C8960C');
+  B(ctx, 19, dy, 10, 1, '#F0C840');
+  // Animated sparkles on dress
+  const sg = 0.4 + 0.4 * Math.sin(t * Math.PI * 2);
+  ctx.save(); ctx.globalAlpha = sg;
+  B(ctx, 17, dy + 6,  2, 2, '#A78BFA'); B(ctx, 28, dy + 9,  2, 2, '#C4B5FD');
+  B(ctx, 21, dy + 15, 2, 2, '#8B5CF6'); B(ctx, 32, dy + 14, 2, 2, '#A78BFA');
   ctx.restore();
-  if ((state === 'attack' || state === 'levelup') && particles && Math.random() < 0.3) {
-    particles.emit('sparkle', 41, Math.round(10+bodyOff-wandY), '#C4B5FD');
-  }
 
-  // ── NECK
-  B(ctx, 20, Math.round(20+bodyOff), 8, 4, '#D4A574');
-  B(ctx, 21, Math.round(20+bodyOff), 6, 3, '#FDDBB4');
+  // NECK
+  B(ctx, 19, Math.round(20 + bodyOff), 10, 4, '#C49060');
+  B(ctx, 20, Math.round(20 + bodyOff),  8, 3, '#D4A574');
+  B(ctx, 21, Math.round(20 + bodyOff),  6, 2, '#FDDBB4');
 
-  // ── HEAD
+  // HEAD (shorter visible area — hat takes top)
   const hy = Math.round(10 + bodyOff);
-  B(ctx, 14, hy, 20, 13, '#FDDBB4');
-  B(ctx, 14, hy, 2, 13, '#D4A574');
-  B(ctx, 32, hy, 2, 13, '#D4A574');
-  B(ctx, 14, hy+12, 20, 1, '#C49060');
-  B(ctx, 13, hy, 1, 13, '#1A0810');
-  B(ctx, 33, hy, 1, 13, '#1A0810');
 
-  // eyebrows
-  B(ctx, 15, hy+2, 5, 1, '#1C0A2E');
-  B(ctx, 28, hy+2, 5, 1, '#1C0A2E');
+  // FACE (22px wide, 14px tall)
+  B(ctx, 12, hy, 24, 14, '#C49060');
+  B(ctx, 13, hy, 22, 13, '#FDDBB4');
+  B(ctx, 13, hy,  2, 13, '#D4A574'); B(ctx, 33, hy, 2, 13, '#D4A574');
+  B(ctx, 13, hy + 5, 1,  7, '#C49060'); B(ctx, 34, hy + 5, 1, 7, '#C49060');
+  B(ctx, 16, hy,  16,  4, '#FFE8C8'); B(ctx, 18, hy, 12, 2, '#FFFCF0');
+  B(ctx, 14, hy + 10, 20, 3, '#D4A574'); B(ctx, 16, hy + 11, 16, 2, '#C49060');
+  B(ctx, 13, hy + 7,  3,  5, '#D4A574'); B(ctx, 32, hy + 7, 3, 5, '#D4A574');
+  ellipse(ctx, 15.5, hy + 10.5, 2.5, 2, 'rgba(255,120,100,0.35)');
+  ellipse(ctx, 32.5, hy + 10.5, 2.5, 2, 'rgba(255,120,100,0.35)');
 
-  if (state === 'sleep' || state === 'rest') {
-    drawEyeClosed(ctx, 15, hy+4, '#1C0A2E');
-    drawEyeClosed(ctx, 28, hy+4, '#1C0A2E');
+  // EYEBROWS
+  B(ctx, 15, hy + 3, 6, 1, '#1C0A2E'); B(ctx, 27, hy + 3, 6, 1, '#1C0A2E');
+  if (expr === 'hurt' || isAttack) {
+    B(ctx, 20, hy + 2, 2, 2, '#1C0A2E'); B(ctx, 26, hy + 2, 2, 2, '#1C0A2E');
+  }
+
+  // EYES (8×5px, purple glowing)
+  if (expr === 'sleep') {
+    B(ctx, 14, hy + 6, 8, 2, '#1C0A2E'); B(ctx, 26, hy + 6, 8, 2, '#1C0A2E');
   } else {
-    drawEye(ctx, 15, hy+3, '#7C3AED', 1);
-    drawEye(ctx, 28, hy+3, '#7C3AED', 1);
-    // glowing eyes
-    ctx.save(); ctx.globalAlpha = 0.3+0.2*Math.sin(t*Math.PI*2);
-    B(ctx, 17, hy+4, 1, 1, '#DDD6FE'); B(ctx, 30, hy+4, 1, 1, '#DDD6FE');
-    ctx.restore();
+    // Left eye
+    B(ctx, 13, hy + 5, 10, 2, '#0A0A14'); B(ctx, 12, hy + 6, 1, 1, '#0A0A14');
+    B(ctx, 14, hy + 6,  8, 4, '#FFFFFF'); B(ctx, 13, hy + 9, 9, 1, '#D4A574');
+    B(ctx, 15, hy + 6,  6, 3, '#4C1D95'); B(ctx, 16, hy + 6, 4, 2, '#7C3AED');
+    B(ctx, 17, hy + 7,  2, 2, '#9F5CF6'); B(ctx, 15, hy + 8, 5, 1, '#1E1B4B');
+    B(ctx, 17, hy + 7,  2, 1, '#0A0A14'); B(ctx, 15, hy + 6, 2, 2, '#FFFFFF');
+    B(ctx, 20, hy + 8,  1, 1, '#FFFFFF'); B(ctx, 16, hy + 6, 3, 1, '#DDD6FE');
+    ctx.save(); ctx.globalAlpha = 0.4 + 0.3 * Math.sin(t * Math.PI * 2);
+    B(ctx, 16, hy + 7, 2, 1, '#A78BFA'); ctx.restore();
+    // Right eye
+    B(ctx, 25, hy + 5, 10, 2, '#0A0A14'); B(ctx, 35, hy + 6, 1, 1, '#0A0A14');
+    B(ctx, 26, hy + 6,  8, 4, '#FFFFFF'); B(ctx, 25, hy + 9, 9, 1, '#D4A574');
+    B(ctx, 27, hy + 6,  6, 3, '#4C1D95'); B(ctx, 28, hy + 6, 4, 2, '#7C3AED');
+    B(ctx, 29, hy + 7,  2, 2, '#9F5CF6'); B(ctx, 27, hy + 8, 5, 1, '#1E1B4B');
+    B(ctx, 29, hy + 7,  2, 1, '#0A0A14'); B(ctx, 27, hy + 6, 2, 2, '#FFFFFF');
+    B(ctx, 32, hy + 8,  1, 1, '#FFFFFF'); B(ctx, 28, hy + 6, 3, 1, '#DDD6FE');
+    ctx.save(); ctx.globalAlpha = 0.4 + 0.3 * Math.sin(t * Math.PI * 2);
+    B(ctx, 28, hy + 7, 2, 1, '#A78BFA'); ctx.restore();
   }
 
-  B(ctx, 22, hy+8, 2, 2, '#D4A574');
-  drawMouth(ctx, 19, hy+10, expr);
-  if (state === 'celebrate') drawCheeks(ctx, 16, 32, hy+8);
-
-  if (state === 'celebrate' && particles && Math.random() < 0.2) {
-    particles.emit('sparkle', cx, 20, '#C4B5FD');
+  // Nose + mouth
+  B(ctx, 21, hy + 11, 2, 1, '#C49060'); B(ctx, 22, hy + 12, 4, 1, '#D4A574');
+  if (expr === 'happy') {
+    B(ctx, 18, hy + 14, 12, 1, '#0A0A14'); B(ctx, 17, hy + 13, 2, 2, '#0A0A14');
+    B(ctx, 29, hy + 13,  2, 2, '#0A0A14'); B(ctx, 18, hy + 14, 12, 1, '#FFFFFF');
+  } else if (expr === 'hurt') {
+    B(ctx, 18, hy + 14, 12, 1, '#0A0A14');
+    B(ctx, 17, hy + 13, 2, 3, '#0A0A14'); B(ctx, 29, hy + 13, 2, 3, '#0A0A14');
+  } else {
+    B(ctx, 19, hy + 14, 10, 1, '#0A0A14'); B(ctx, 18, hy + 15, 12, 1, '#D4A574');
   }
+
+  // Hat shadow over forehead
+  B(ctx, 14, hy, 6, 3, '#0A0A14'); B(ctx, 28, hy, 6, 3, '#0A0A14');
+
   if (level >= 6) {
-    ctx.save(); ctx.globalAlpha = 0.15+0.1*Math.sin(t*Math.PI*2);
-    circle(ctx, cx, Math.round(33+bodyOff), 18, '#4C1D95'); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.15 + 0.1 * Math.sin(t * Math.PI * 2);
+    circle(ctx, cx, Math.round(34 + bodyOff), 18, '#4C1D95'); ctx.restore();
   }
+  if (state === 'celebrate' && particles && Math.random() < 0.2)
+    particles.emit('sparkle', cx, 20, '#C4B5FD');
+  if (state === 'levelup' && particles && Math.random() < 0.4)
+    particles.emit('sparkle', cx + wave(t, 10, 1), 15, '#A78BFA');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1055,138 +1287,190 @@ function drawBruixa(ctx, state, t, level, particles) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function drawArquera(ctx, state, t, level, particles) {
   const cx = 24;
-  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.6, 1) : 0;
-  const walkBob = state === 'walk' ? Math.abs(wave(t, 2, 2)) - 1 : 0;
+  const breatheY = (state === 'idle_front' || state === 'idle_back') ? wave(t, 0.7, 1) : 0;
+  const walkBob  = state === 'walk' ? Math.abs(wave(t, 2, 2)) - 1 : 0;
   const legSwing = state === 'walk' ? wave(t, 4, 2) : 0;
-  const bodyOff = breatheY + walkBob;
-  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' : state === 'rest' || state === 'sleep' ? 'sleep' : 'neutral';
+  const bodyOff  = breatheY + walkBob;
+  const expr = state === 'celebrate' ? 'happy' : state === 'hurt' ? 'hurt' :
+               state === 'sleep' || state === 'rest' ? 'sleep' : 'neutral';
+  const isAttack = state === 'attack';
 
-  drawShadow(ctx, cx, 1);
+  ellipse(ctx, cx, 46.5, 12, 2.8, 'rgba(0,0,30,0.4)');
 
-  // ── PONYTAIL (high, behind)
-  const ptSway = wave(t, 1.5, 1);
-  B(ctx, 13+Math.round(ptSway), Math.round(-1+bodyOff), 6, 2, '#5C3010');
-  B(ctx, 14+Math.round(ptSway), Math.round(0+bodyOff),  4, 20, '#5C3010');
-  B(ctx, 15+Math.round(ptSway), Math.round(1+bodyOff),  3, 18, '#7C4020');
-  B(ctx, 15+Math.round(ptSway), Math.round(2+bodyOff),  2, 16, '#8B5020');
-  // hair tie
-  B(ctx, 13+Math.round(ptSway), Math.round(1+bodyOff), 6, 2, '#065F46');
+  // HIGH PONYTAIL (animated sway, behind head)
+  const ps = Math.round(wave(t, 1.5, 1) * 0.8);
+  B(ctx, 22 + ps, Math.round(-1 + bodyOff), 8, 3, '#1A0800');
+  B(ctx, 23 + ps, Math.round( 0 + bodyOff), 6, 2, '#2E1503');
+  B(ctx, 14 + ps, Math.round( 2 + bodyOff), 5, 22, '#1A0800');
+  B(ctx, 15 + ps, Math.round( 2 + bodyOff), 4, 21, '#2E1503');
+  B(ctx, 15 + ps, Math.round( 3 + bodyOff), 3, 19, '#5C3010');
+  B(ctx, 16 + ps, Math.round( 4 + bodyOff), 2, 17, '#7C4020');
+  // Hair tie (green)
+  B(ctx, 14 + ps, Math.round(2 + bodyOff), 6, 2, '#065F46');
+  B(ctx, 15 + ps, Math.round(2 + bodyOff), 4, 1, '#10B981');
 
-  // ── QUIVER
-  B(ctx, 35, Math.round(14+bodyOff), 5, 18, '#5C3010');
-  B(ctx, 36, Math.round(15+bodyOff), 3, 16, '#78350F');
-  B(ctx, 36, Math.round(13+bodyOff), 3, 3, '#065F46');
+  // QUIVER (right back)
+  B(ctx, 35, Math.round(14 + bodyOff), 6, 20, '#2E1503');
+  B(ctx, 36, Math.round(15 + bodyOff), 4, 18, '#5C3010');
+  B(ctx, 36, Math.round(13 + bodyOff), 4, 4,  '#065F46');
+  B(ctx, 37, Math.round(12 + bodyOff), 2, 3,  '#10B981');
 
-  // ── LEATHER ARMOR (green-brown)
+  // ELVEN BOW (left, elegant curved with leaf tips)
+  const bowPull = isAttack ? Math.abs(wave(t, 4, 1)) : 0;
+  B(ctx, 0, Math.round( 8 + bodyOff), 3, 4,  '#5C3010');
+  B(ctx, 0, Math.round(33 + bodyOff), 3, 4,  '#5C3010');
+  B(ctx, 0, Math.round(12 + bodyOff), 3, 21, '#78350F');
+  B(ctx, 1, Math.round( 9 + bodyOff), 1, 28, '#FDE68A');
+  // Elven leaf tips
+  B(ctx, -1, Math.round( 5 + bodyOff), 5, 5,  '#065F46');
+  B(ctx, -1, Math.round(35 + bodyOff), 5, 5,  '#065F46');
+  B(ctx,  0, Math.round( 6 + bodyOff), 3, 3,  '#10B981');
+  B(ctx,  0, Math.round(36 + bodyOff), 3, 3,  '#10B981');
+  B(ctx,  0, Math.round( 7 + bodyOff), 2, 1,  '#34D399');
+  B(ctx,  0, Math.round(37 + bodyOff), 2, 1,  '#34D399');
+  if (isAttack) {
+    const arrowY = Math.round(22 + bodyOff - bowPull * 0.5);
+    B(ctx, 1, arrowY, 16, 1, '#78350F'); B(ctx, 1, arrowY, 1, 1, '#FBBF24');
+    B(ctx, 13, arrowY - 1, 4, 3, '#065F46');
+    if (particles && Math.random() < 0.3) particles.emit('star', 1, arrowY, '#10B981');
+  }
+
+  // LEFT ARM
+  B(ctx, 7, Math.round(22 + bodyOff), 7, 13, '#3D1F08');
+  B(ctx, 8, Math.round(23 + bodyOff), 5, 11, '#5C3010');
+  B(ctx, 9, Math.round(24 + bodyOff), 4,  9, '#78350F');
+
+  // RIGHT ARM
+  B(ctx, 34, Math.round(22 + bodyOff), 7, 13, '#3D1F08');
+  B(ctx, 35, Math.round(23 + bodyOff), 5, 11, '#5C3010');
+  B(ctx, 36, Math.round(24 + bodyOff), 4,  9, '#78350F');
+
+  // LEATHER ARMOR (green-brown, 5-level)
   const by = Math.round(20 + bodyOff);
-  B(ctx, 11, by, 26, 5, '#3D1F08');
-  B(ctx, 12, by+1, 24, 4, '#5C3010');
-  B(ctx, 12, by, 26, 14, '#3D1F08');
-  B(ctx, 13, by+1, 22, 12, '#5C3010');
-  B(ctx, 15, by+2, 18, 10, '#78350F');
-  B(ctx, 17, by+3, 14, 8, '#065F46');
-  // leather vest details
-  B(ctx, 18, by+2, 1, 10, '#3D1F08');
-  B(ctx, 29, by+2, 1, 10, '#3D1F08');
-  B(ctx, 17, by+3, 14, 1, '#10B981'); // trim line
-  // belt
-  B(ctx, 12, by+13, 24, 3, '#3D1F08');
-  B(ctx, 21, by+13, 6, 3, '#5C3010');
-  B(ctx, 22, by+14, 4, 2, '#78350F');
+  // Shoulder guards
+  B(ctx, 9,  by,     8, 6, '#3D1F08'); B(ctx, 10, by + 1, 6, 5, '#5C3010');
+  B(ctx, 11, by + 1, 5, 4, '#78350F'); B(ctx, 9,  by,     8, 1, '#10B981');
+  B(ctx, 31, by,     8, 6, '#3D1F08'); B(ctx, 32, by + 1, 6, 5, '#5C3010');
+  B(ctx, 33, by + 1, 5, 4, '#78350F'); B(ctx, 31, by,     8, 1, '#10B981');
+  // Main vest
+  B(ctx, 12, by + 1, 24, 14, '#3D1F08');
+  B(ctx, 13, by + 2, 22, 12, '#5C3010');
+  B(ctx, 14, by + 2, 20, 11, '#78350F');
+  B(ctx, 16, by + 3, 16,  9, '#065F46');
+  B(ctx, 18, by + 4, 12,  7, '#10B981');
+  B(ctx, 20, by + 5,  8,  4, '#34D399');
+  B(ctx, 13, by + 2,  1, 12, '#2E1503'); B(ctx, 34, by + 2, 1, 12, '#2E1503');
+  // Stitching
+  B(ctx, 18, by + 2, 1, 10, '#3D1F08'); B(ctx, 29, by + 2, 1, 10, '#3D1F08');
+  B(ctx, 17, by + 3, 14, 1, '#10B981');
+  // Belt
+  B(ctx, 12, by + 14, 24, 3, '#3D1F08'); B(ctx, 13, by + 14, 22, 2, '#5C3010');
+  B(ctx, 20, by + 14,  8, 2, '#78350F'); B(ctx, 22, by + 14, 4, 1, '#B45309');
 
-  // ── LEFT ARM + BOW
-  B(ctx, 7, Math.round(22+bodyOff), 6, 12, '#5C3010');
-  B(ctx, 8, Math.round(23+bodyOff), 4, 10, '#78350F');
-  // Elven bow (curved)
-  const bowPull = state === 'attack' ? wave(t, 4, 1) : 0;
-  B(ctx, 1, Math.round(7+bodyOff), 2, 5,  '#B45309');
-  B(ctx, 1, Math.round(30+bodyOff), 2, 5, '#B45309');
-  B(ctx, 1, Math.round(12+bodyOff), 2, 18, '#78350F');
-  B(ctx, 2, Math.round(8+bodyOff), 1, 30, '#FDE68A'); // string
-  // bow leaf tips (elven)
-  B(ctx, 0, Math.round(5+bodyOff), 4, 3, '#065F46');
-  B(ctx, 0, Math.round(33+bodyOff), 4, 3, '#065F46');
-  if (state === 'attack') {
-    B(ctx, 3, Math.round(22+bodyOff-bowPull*0.5), 12, 1, '#B45309');
-    B(ctx, 13, Math.round(21+bodyOff-bowPull*0.5), 2, 3, '#065F46');
-    B(ctx, 3, Math.round(22+bodyOff-bowPull*0.5), 1, 1, '#FCD34D');
-    if (particles && Math.random() < 0.3) {
-      particles.emit('star', 3, Math.round(22+bodyOff-bowPull*0.5), '#10B981');
-    }
-  }
+  // LEGS (brown leather + green knee pads + dark boots)
+  const lly = Math.round(35 + bodyOff);
+  const lleg = Math.round(legSwing * 0.5);
+  B(ctx, 12, lly - lleg,      11, 9, '#3D1F08'); B(ctx, 13, lly - lleg + 1,  9, 7, '#5C3010');
+  B(ctx, 14, lly - lleg + 1,   7, 6, '#78350F'); B(ctx, 15, lly - lleg + 2,  5, 4, '#A16207');
+  B(ctx, 13, lly - lleg,       9, 2, '#065F46'); B(ctx, 14, lly - lleg,     7, 1, '#10B981');
+  B(ctx, 11, lly - lleg + 8,  12, 4, '#1A0800'); B(ctx, 12, lly - lleg + 9, 10, 3, '#2E1503');
+  B(ctx, 25, lly + lleg,      11, 9, '#3D1F08'); B(ctx, 26, lly + lleg + 1,  9, 7, '#5C3010');
+  B(ctx, 27, lly + lleg + 1,   7, 6, '#78350F'); B(ctx, 28, lly + lleg + 2,  5, 4, '#A16207');
+  B(ctx, 26, lly + lleg,       9, 2, '#065F46'); B(ctx, 27, lly + lleg,     7, 1, '#10B981');
+  B(ctx, 24, lly + lleg + 8,  12, 4, '#1A0800'); B(ctx, 25, lly + lleg + 9, 10, 3, '#2E1503');
 
-  // ── RIGHT ARM
-  B(ctx, 35, Math.round(22+bodyOff), 6, 12, '#5C3010');
-  B(ctx, 36, Math.round(23+bodyOff), 4, 10, '#78350F');
+  // NECK
+  B(ctx, 19, Math.round(18 + bodyOff), 10, 5, '#C49060');
+  B(ctx, 20, Math.round(18 + bodyOff),  8, 4, '#D4A574');
+  B(ctx, 21, Math.round(18 + bodyOff),  6, 3, '#FDDBB4');
 
-  // ── LEGS
-  const lly = Math.round(36 + bodyOff);
-  const ll = Math.round(legSwing * 0.5);
-  B(ctx, 13, lly-ll, 10, 10, '#3D1F08');
-  B(ctx, 14, lly-ll+1, 8, 8, '#5C3010');
-  B(ctx, 15, lly-ll+1, 6, 7, '#78350F');
-  B(ctx, 13, lly-ll+9, 10, 4, '#1A0800');
-  B(ctx, 25, lly+ll, 10, 10, '#3D1F08');
-  B(ctx, 26, lly+ll+1, 8, 8, '#5C3010');
-  B(ctx, 27, lly+ll+1, 6, 7, '#78350F');
-  B(ctx, 25, lly+ll+9, 10, 4, '#1A0800');
+  // HEAD
+  const hy = Math.round(2 + bodyOff);
 
-  // ── NECK
-  B(ctx, 20, Math.round(18+bodyOff), 8, 4, '#D4A574');
-  B(ctx, 21, Math.round(18+bodyOff), 6, 3, '#FDDBB4');
+  // HAIR (dark brown, tight — pulled into ponytail, 5-level)
+  B(ctx, 11, hy - 2, 26, 8, '#1A0800'); B(ctx, 12, hy - 2, 24, 7, '#2E1503');
+  B(ctx, 13, hy - 2, 22, 6, '#3D1F08'); B(ctx, 15, hy - 2, 18, 5, '#5C3010');
+  B(ctx, 17, hy - 2, 14, 3, '#7C4020'); B(ctx, 19, hy - 2, 10, 2, '#8B5020');
+  B(ctx, 21, hy - 2,  6, 1, '#C07030'); // shine
+  // Tight side (less volume — hair pulled back)
+  B(ctx, 11, hy + 4, 3, 14, '#1A0800'); B(ctx, 12, hy + 4, 2, 13, '#2E1503');
+  B(ctx, 35, hy + 4, 3, 14, '#1A0800'); B(ctx, 35, hy + 4, 2, 13, '#2E1503');
 
-  // ── HEAD
-  const hy = Math.round(4 + bodyOff);
-  // Hair (dark brown, pulled back)
-  B(ctx, 14, hy, 20, 6, '#3D1F08');
-  B(ctx, 16, hy, 16, 5, '#5C3010');
-  B(ctx, 18, hy, 12, 3, '#7C4020');
-  B(ctx, 14, hy+4, 2, 8, '#3D1F08');
-  B(ctx, 32, hy+4, 2, 8, '#3D1F08');
+  // ELF EARS (long pointed tips)
+  B(ctx, 11, hy + 8, 2, 6, '#FDDBB4'); B(ctx, 10, hy + 6, 2, 4, '#FDDBB4');
+  B(ctx,  9, hy + 5, 2, 2, '#FDDBB4'); B(ctx,  9, hy + 4, 1, 2, '#FFE8C8');
+  B(ctx, 11, hy + 8, 1, 5, '#D4A574'); B(ctx,  9, hy + 5, 1, 1, '#C49060');
+  B(ctx, 35, hy + 8, 2, 6, '#FDDBB4'); B(ctx, 36, hy + 6, 2, 4, '#FDDBB4');
+  B(ctx, 37, hy + 5, 2, 2, '#FDDBB4'); B(ctx, 38, hy + 4, 1, 2, '#FFE8C8');
+  B(ctx, 36, hy + 8, 1, 5, '#D4A574'); B(ctx, 38, hy + 5, 1, 1, '#C49060');
 
-  // Head skin
-  B(ctx, 14, hy+5, 20, 14, '#FDDBB4');
-  B(ctx, 14, hy+5, 2, 14, '#D4A574');
-  B(ctx, 32, hy+5, 2, 14, '#D4A574');
-  B(ctx, 14, hy+17, 20, 2, '#C49060');
-  B(ctx, 13, hy+5, 1, 14, '#1A0810');
-  B(ctx, 33, hy+5, 1, 14, '#1A0810');
+  // FACE (22px wide, 19px tall)
+  B(ctx, 12, hy + 4, 24, 20, '#C49060');
+  B(ctx, 13, hy + 4, 22, 19, '#FDDBB4');
+  B(ctx, 13, hy + 4,  2, 19, '#D4A574'); B(ctx, 33, hy + 4, 2, 19, '#D4A574');
+  B(ctx, 13, hy + 10, 1,  9, '#C49060'); B(ctx, 34, hy + 10, 1, 9, '#C49060');
+  B(ctx, 16, hy + 4, 16,  6, '#FFE8C8'); B(ctx, 18, hy + 4, 12, 4, '#FFFCF0');
+  B(ctx, 14, hy + 19, 20, 3, '#D4A574'); B(ctx, 16, hy + 20, 16, 2, '#C49060');
+  B(ctx, 13, hy + 13, 3,  6, '#D4A574'); B(ctx, 32, hy + 13, 3, 6, '#D4A574');
+  ellipse(ctx, 15.5, hy + 16.5, 2.5, 2, 'rgba(255,120,100,0.3)');
+  ellipse(ctx, 32.5, hy + 16.5, 2.5, 2, 'rgba(255,120,100,0.3)');
 
-  // POINTED EARS (elf!)
-  B(ctx, 12, hy+7, 2, 5, '#FDDBB4');
-  B(ctx, 11, hy+5, 2, 3, '#FDDBB4'); // tip
-  B(ctx, 10, hy+4, 2, 2, '#FDDBB4'); // pointed tip
-  B(ctx, 12, hy+7, 1, 5, '#D4A574'); // ear shadow
-  B(ctx, 34, hy+7, 2, 5, '#FDDBB4');
-  B(ctx, 35, hy+5, 2, 3, '#FDDBB4');
-  B(ctx, 36, hy+4, 2, 2, '#FDDBB4');
-  B(ctx, 35, hy+7, 1, 5, '#D4A574');
-
-  B(ctx, 15, hy+7, 5, 1, '#3D1F08');
-  B(ctx, 28, hy+7, 5, 1, '#3D1F08');
-
-  if (state === 'sleep' || state === 'rest') {
-    drawEyeClosed(ctx, 15, hy+9, '#3D1F08');
-    drawEyeClosed(ctx, 28, hy+9, '#3D1F08');
+  // EYEBROWS (sharp, pointed — elven)
+  if (expr === 'hurt' || isAttack) {
+    B(ctx, 15, hy + 9, 6, 1, '#2E1503'); B(ctx, 20, hy + 8, 2, 2, '#2E1503');
+    B(ctx, 27, hy + 9, 6, 1, '#2E1503'); B(ctx, 26, hy + 8, 2, 2, '#2E1503');
   } else {
-    drawEye(ctx, 15, hy+8, '#047857', 1);
-    drawEye(ctx, 28, hy+8, '#047857', 1);
-    // slightly almond eyes (elf)
-    B(ctx, 15, hy+8, 6, 1, '#1A0810'); // top line slightly longer
-    B(ctx, 28, hy+8, 6, 1, '#1A0810');
+    B(ctx, 15, hy + 9, 6, 1, '#2E1503'); B(ctx, 14, hy + 9, 1, 1, '#2E1503');
+    B(ctx, 27, hy + 9, 6, 1, '#2E1503'); B(ctx, 33, hy + 9, 1, 1, '#2E1503');
   }
 
-  B(ctx, 22, hy+13, 2, 2, '#D4A574');
-  drawMouth(ctx, 19, hy+16, expr);
-  if (state === 'celebrate') drawCheeks(ctx, 16, 32, hy+13);
-
-  if (state === 'celebrate' && particles && Math.random() < 0.2) {
-    particles.emit('star', cx + wave(t, 8, 1), 12, '#10B981');
+  // EYES (8×5px, forest green, slightly almond — elven)
+  if (expr === 'sleep') {
+    B(ctx, 14, hy + 13, 8, 2, '#064E3B'); B(ctx, 26, hy + 13, 8, 2, '#064E3B');
+  } else {
+    // Left eye
+    B(ctx, 13, hy + 12, 10, 2, '#1A0800'); B(ctx, 12, hy + 13, 1, 1, '#1A0800');
+    B(ctx, 23, hy + 12,  1, 1, '#1A0800'); // inner corner — elongated elf eye
+    B(ctx, 14, hy + 13,  9, 5, '#FFFFFF'); B(ctx, 13, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 15, hy + 13,  6, 4, '#047857'); B(ctx, 16, hy + 13, 4, 3, '#065F46');
+    B(ctx, 17, hy + 14,  3, 2, '#10B981'); B(ctx, 15, hy + 15, 6, 2, '#022C22');
+    B(ctx, 17, hy + 14,  2, 2, '#011811'); B(ctx, 15, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 20, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 16, hy + 13, 3, 1, '#6EE7B7');
+    // Right eye
+    B(ctx, 25, hy + 12, 10, 2, '#1A0800'); B(ctx, 24, hy + 13, 1, 1, '#1A0800');
+    B(ctx, 35, hy + 12,  1, 1, '#1A0800');
+    B(ctx, 26, hy + 13,  9, 5, '#FFFFFF'); B(ctx, 25, hy + 17, 9, 1, '#D4A574');
+    B(ctx, 27, hy + 13,  6, 4, '#047857'); B(ctx, 28, hy + 13, 4, 3, '#065F46');
+    B(ctx, 29, hy + 14,  3, 2, '#10B981'); B(ctx, 27, hy + 15, 6, 2, '#022C22');
+    B(ctx, 29, hy + 14,  2, 2, '#011811'); B(ctx, 27, hy + 13, 2, 2, '#FFFFFF');
+    B(ctx, 32, hy + 16,  1, 1, '#FFFFFF'); B(ctx, 28, hy + 13, 3, 1, '#6EE7B7');
   }
+
+  // Nose + mouth
+  B(ctx, 21, hy + 19, 2, 1, '#C49060'); B(ctx, 22, hy + 20, 4, 1, '#D4A574');
+  if (expr === 'happy') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0800'); B(ctx, 17, hy + 21, 2, 2, '#1A0800');
+    B(ctx, 29, hy + 21,  2, 2, '#1A0800'); B(ctx, 18, hy + 22, 12, 1, '#FFFFFF');
+    B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  } else if (expr === 'hurt') {
+    B(ctx, 18, hy + 22, 12, 1, '#1A0800');
+    B(ctx, 17, hy + 21, 2, 3, '#1A0800'); B(ctx, 29, hy + 21, 2, 3, '#1A0800');
+  } else {
+    B(ctx, 19, hy + 22, 10, 1, '#1A0800'); B(ctx, 18, hy + 23, 12, 1, '#D4A574');
+  }
+
+  // Front hair wisps
+  B(ctx, 13, hy + 4, 3, 6, '#2E1503'); B(ctx, 14, hy + 5, 2, 5, '#5C3010');
+  B(ctx, 32, hy + 4, 3, 6, '#2E1503'); B(ctx, 32, hy + 5, 2, 5, '#5C3010');
+
   if (level >= 6) {
-    ctx.save(); ctx.globalAlpha = 0.15+0.1*Math.sin(t*Math.PI*2);
-    B(ctx, 14, hy, 20, 14, '#6EE7B7'); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.15 + 0.1 * Math.sin(t * Math.PI * 2);
+    B(ctx, 13, hy, 22, 19, '#6EE7B7'); ctx.restore();
   }
+  if (state === 'celebrate' && particles && Math.random() < 0.2)
+    particles.emit('star', cx + wave(t, 8, 1), 8, '#10B981');
+  if (state === 'levelup' && particles && Math.random() < 0.4)
+    particles.emit('sparkle', cx + wave(t, 10, 1), 12, '#34D399');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
