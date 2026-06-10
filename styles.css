@@ -7269,3 +7269,66 @@ body.view-pages.sb-collapsed-desktop #bnav {
 .ld-task-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
 .ld-task-edit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;opacity:0.45;transition:opacity .2s;padding:0 2px;}
 .ld-task-edit:hover{opacity:1;color:var(--accent2);}
+
+/* ── MOBILE LAYOUT FIXES ────────────────────────────────────
+   Correccions específiques per a components trencats al mòbil  */
+
+/* Text overflow en noms llargs de tasca/llista */
+.ld-task-name, .ld-task-desc, .ld-name, .list-card-name {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Botons de modal: apilats verticalment en pantalles molt petites */
+@media (max-width: 400px) {
+  .board-modal-btns, .modal-btns { flex-direction: column !important; }
+  .bm-save-btn, .bm-cancel-btn { width: 100% !important; }
+}
+
+/* Fila d'afegir tasca a llista: millor en mòbil */
+@media (max-width: 600px) {
+  .ld-add-row { flex-wrap: wrap !important; }
+  .ld-add-row input[type=text] { min-width: 0 !important; width: 100% !important; }
+  .ld-prio-select { width: auto !important; flex: 0 0 auto !important; }
+  .ld-add-btn { width: 100% !important; }
+
+  /* Kanban llista: targetes amb text complet */
+  .ld-kcard-name { font-size: 13px !important; }
+
+  /* Tasca individual: botons d'acció no s'escapen */
+  .ld-task { flex-wrap: nowrap !important; min-width: 0 !important; }
+
+  /* Progress buttons — wrap en mòbil */
+  .progress-btn-row { flex-wrap: wrap !important; }
+  .progress-btn { flex: 1 1 40% !important; }
+
+  /* Onboarding spotlight tooltip — mai fora de pantalla */
+  .onb-tooltip {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: none !important;
+  }
+
+  /* Modals: no sobrepassen la pantalla */
+  .board-modal { max-height: 95vh !important; padding: 20px 16px !important; }
+
+  /* Auth form: inputs a tota l'amplada */
+  .auth-field input, .auth-field select { font-size: 16px !important; } /* evita zoom iOS */
+
+  /* Page title: text no s'escapa */
+  .page-title-text h2 { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+
+  /* AI sidebar: no solapament */
+  #ai-sidebar { max-width: calc(100vw - 20px) !important; }
+
+  /* Config panel: scroll intern */
+  #config-panel { overflow-y: auto !important; }
+}
+
+/* Safe area iOS: padding inferior en iPhone amb notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #bnav { padding-bottom: max(env(safe-area-inset-bottom), 4px) !important; }
+  .container { padding-bottom: max(calc(env(safe-area-inset-bottom) + 80px), 90px) !important; }
+}
