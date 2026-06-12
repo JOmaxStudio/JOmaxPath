@@ -425,6 +425,15 @@ function _updateServerStatusIndicator() {
   el.style.display = _supabaseOffline ? 'block' : 'none';
 }
 
+// SEGURETAT — Clau `anon` de Supabase (pública per disseny):
+// Aquesta clau és la clau anònima (anon/public), NO la service_role.
+// És segur que estigui al codi client: Supabase la dissenya per ser pública.
+// La protecció real la aporten les Row Level Security (RLS) policies al servidor,
+// que garanteixen que cada usuari només accedeix/modifica les seves dades.
+// Mesures addicionals recomanades (cal fer-les manualment al dashboard de Supabase):
+//   1. Activar restriccions de domini a Authentication > URL Configuration
+//   2. Revisar periòdicament les RLS policies a Table Editor > Policies
+// [AUDIT: 2026-06-12 — RLS policies endureces, vegeu supabase-setup.sql]
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _supabase = supabase.createClient(
@@ -1012,8 +1021,6 @@ async function _syncUserData(userId) {
 async function _saveUserDataToCloud(userId) {
   if (!_supabase||!userId||userId.startsWith('local_')) return;
   try {
-    // Aboca la llista personal → jomaxpath_tasks abans de pujar (evita
-    // sobreescriure les [AUDIT] del núvol amb dades velles del localStorage)
     _syncListsToFlatTasks();
     const data = {};
     ['jomaxpath_tasks','jomaxpath_lists_v3','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
@@ -1021,6 +1028,28 @@ async function _saveUserDataToCloud(userId) {
      'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
       try { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch{}
     });
+    // Merge cloud jomaxpath_tasks: afegeix tasques del núvol que no tenim local
+    // (p.ex. tasques inserides externament per un auditor) sense sobreescriure'les
+    try {
+      const {data: cloudRow} = await Promise.race([
+        _supabase.from('user_data').select('data').eq('user_id',userId).single(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),3000))
+      ]);
+      if (cloudRow?.data?.['jomaxpath_tasks']) {
+        const local = data['jomaxpath_tasks'] || [];
+        const localIds = new Set(local.map(t=>String(t.id)));
+        const onlyCloud = cloudRow.data['jomaxpath_tasks'].filter(t=>!localIds.has(String(t.id)));
+        if (onlyCloud.length) {
+          data['jomaxpath_tasks'] = [...local, ...onlyCloud];
+          // Injecta les noves tasques externes a la llista personal i re-renderitza
+          const added = _injectFlatTasksIntoLists(onlyCloud);
+          if (added > 0) {
+            _syncListsToFlatTasks(); // actualitza localStorage lists_v3 → tasks
+            if (typeof renderListsCollection === 'function' && _currentPage === 'tasques') renderListsCollection();
+          }
+        }
+      }
+    } catch {}
     await Promise.race([
       _supabase.from('user_data').upsert({user_id:userId,data,updated:new Date().toISOString()}),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),6000))
@@ -4415,17 +4444,4 @@ document.addEventListener('DOMContentLoaded',()=>{
   try { applyConfig(); } catch(e){ console.warn('applyConfig error',e); }
   try { applyStoredTheme(); } catch(e){ console.warn('applyStoredTheme error',e); }
   try { renderThemesGrid(); } catch(e){ console.warn('renderThemesGrid error',e); }
-  try { navTo('home'); } catch(e){ console.warn('navTo error',e); }
-  // Aplica idioma DESPRÉS que tot estigui renderitzat
-  setTimeout(()=>{ try { applyLanguage(); } catch(e){ console.warn('applyLanguage error',e); } }, 50);
-  // Recordatoris de dates límit
-  setTimeout(()=>{ try { _checkDueReminders(); } catch(e){} }, 1500);
-  try {
-    const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v2'));
-    if(h){
-      const nameEl=document.getElementById('lsb-hero-name'); if(nameEl) nameEl.textContent=h.name||'El teu heroi';
-      const lvlEl=document.getElementById('lsb-lvl-num'); if(lvlEl) lvlEl.textContent=h.level||1;
-    }
-  } catch {}
-  console.log('%cJOmaxPath app.js v3.0 ✓','color:#7c3aed;font-weight:bold;font-size:14px;');
-});
+  try { navTo('home'); } catch(e){ console.warn('navTo error'

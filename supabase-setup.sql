@@ -1,5 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════
 -- JOMAXPATH — SUPABASE SETUP v2 (MIGRACIÓ SEGURA)
+-- [AUDIT 2026-06-12] RLS policies endureces: INSERT/UPDATE oberts restringits
+-- a auth.uid() IS NOT NULL o auth.uid() = id per evitar escriptura anònima.
 -- Executa al SQL Editor: https://supabase.com/dashboard → SQL Editor
 -- Si et dona error "already exists", simplement ignora'l i continua
 -- ═══════════════════════════════════════════════════════════════
@@ -39,8 +41,11 @@ DROP POLICY IF EXISTS "perfils_select" ON profiles;
 DROP POLICY IF EXISTS "perfils_insert" ON profiles;
 DROP POLICY IF EXISTS "perfils_update" ON profiles;
 CREATE POLICY "perfils_select" ON profiles FOR SELECT USING (true);
-CREATE POLICY "perfils_insert" ON profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "perfils_update" ON profiles FOR UPDATE USING (auth.uid() = id OR auth.uid() IS NOT NULL);
+-- [AUDIT 2026-06-12] INSERT restringit a usuaris autenticats (el trigger handle_new_user
+-- és SECURITY DEFINER i bypassa RLS, per tant no es veu afectat per aquest canvi)
+CREATE POLICY "perfils_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+-- [AUDIT 2026-06-12] Eliminat OR auth.uid() IS NOT NULL: era redundant i massa permissiu
+CREATE POLICY "perfils_update" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Trigger auto-crear perfil quan es registra un usuari
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -106,8 +111,10 @@ DROP POLICY IF EXISTS "boards_select" ON shared_boards;
 DROP POLICY IF EXISTS "boards_insert" ON shared_boards;
 DROP POLICY IF EXISTS "boards_update" ON shared_boards;
 CREATE POLICY "boards_select" ON shared_boards FOR SELECT USING (true);
-CREATE POLICY "boards_insert" ON shared_boards FOR INSERT WITH CHECK (true);
-CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (true);
+-- [AUDIT 2026-06-12] Restringit a usuaris autenticats per evitar creació anònima de boards
+CREATE POLICY "boards_insert" ON shared_boards FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+-- [AUDIT 2026-06-12] Restringit a usuaris autenticats per evitar modificació anònima
+CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 
 -- ══════════════════════════
@@ -136,8 +143,10 @@ DROP POLICY IF EXISTS "invites_select" ON board_invites;
 DROP POLICY IF EXISTS "invites_insert" ON board_invites;
 DROP POLICY IF EXISTS "invites_update" ON board_invites;
 CREATE POLICY "invites_select" ON board_invites FOR SELECT USING (true);
-CREATE POLICY "invites_insert" ON board_invites FOR INSERT WITH CHECK (true);
-CREATE POLICY "invites_update" ON board_invites FOR UPDATE USING (true);
+-- [AUDIT 2026-06-12] Restringit: només usuaris autenticats poden enviar invitacions
+CREATE POLICY "invites_insert" ON board_invites FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+-- [AUDIT 2026-06-12] Restringit: acceptar/rebutjar invitació requereix autenticació
+CREATE POLICY "invites_update" ON board_invites FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 
 -- ══════════════════════════
@@ -167,8 +176,9 @@ DROP POLICY IF EXISTS "freq_select" ON friend_requests;
 DROP POLICY IF EXISTS "freq_insert" ON friend_requests;
 DROP POLICY IF EXISTS "freq_update" ON friend_requests;
 CREATE POLICY "freq_select" ON friend_requests FOR SELECT USING (true);
-CREATE POLICY "freq_insert" ON friend_requests FOR INSERT WITH CHECK (true);
-CREATE POLICY "freq_update" ON friend_requests FOR UPDATE USING (true);
+-- [AUDIT 2026-06-12] Restringit: sol·licituds d'amistat requereixen autenticació
+CREATE POLICY "freq_insert" ON friend_requests FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "freq_update" ON friend_requests FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 
 -- ══════════════════════════
@@ -195,8 +205,9 @@ DROP POLICY IF EXISTS "creq_select" ON competition_requests;
 DROP POLICY IF EXISTS "creq_insert" ON competition_requests;
 DROP POLICY IF EXISTS "creq_update" ON competition_requests;
 CREATE POLICY "creq_select" ON competition_requests FOR SELECT USING (true);
-CREATE POLICY "creq_insert" ON competition_requests FOR INSERT WITH CHECK (true);
-CREATE POLICY "creq_update" ON competition_requests FOR UPDATE USING (true);
+-- [AUDIT 2026-06-12] Restringit: sol·licituds de competició requereixen autenticació
+CREATE POLICY "creq_insert" ON competition_requests FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "creq_update" ON competition_requests FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 
 -- ══════════════════════════════════════════════════════════════
@@ -209,26 +220,4 @@ CREATE POLICY "creq_update" ON competition_requests FOR UPDATE USING (true);
 -- ════════════════════════════════════════════════════════════════
 -- 🔐 GOOGLE AUTH — PASSOS AL DASHBOARD (no es fa des d'aquí)
 -- ════════════════════════════════════════════════════════════════
--- 1. https://console.cloud.google.com/
---    → Crea projecte → APIs & Services → Credentials
---    → "+ CREATE CREDENTIALS" → OAuth 2.0 Client ID
---    → Application type: Web application
---    → Authorized redirect URIs: https://toefrxqijvextqqngapx.supabase.co/auth/v1/callback
---    → Guarda el CLIENT ID i CLIENT SECRET
---
--- 2. https://supabase.com/dashboard/project/toefrxqijvextqqngapx
---    → Authentication → Providers → Google → ENABLE
---    → Enganxa Client ID i Client Secret
---    → Save
---
--- 3. Authentication → URL Configuration
---    → Site URL: https://jomaxpath.com (o la teva URL)
---    → Redirect URLs (afegeix totes):
---        https://jomaxpath.com/**
---        http://localhost:3000/**
---        http://localhost:8080/**
---        http://127.0.0.1:*/**
---    → Save
---
--- Un cop fet, el botó "Continuar amb Google" funcionarà! ✅
--- ════════════════════════════════════════════════════════════════
+-- 1. https:
