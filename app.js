@@ -1223,14 +1223,15 @@ async function loadBoardInvites() {
       .select('*').ilike('to_username', _userProfile.username).eq('status','pending');
     if (!data||data.length===0) { section.style.display='none'; updateSharedTabBadge(); return; }
     section.style.display = 'block';
+    // SECURITY FIX: Escapament XSS — inv.board_name, inv.from_username, inv.board_code inserits via _esc() per evitar injecció HTML
     list.innerHTML = data.map(inv=>`
       <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:700;">${inv.board_name}</div>
-          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">De: ${inv.from_username}</div>
+          <div style="font-size:12px;font-weight:700;">${_esc(inv.board_name)}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">De: ${_esc(inv.from_username)}</div>
         </div>
-        <button onclick="acceptBoardInvite('${inv.id}','${inv.board_code}')" style="padding:7px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;">✓ UNIR-SE</button>
-        <button onclick="rejectBoardInvite('${inv.id}')" style="padding:7px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:10px;cursor:pointer;">✕</button>
+        <button onclick="acceptBoardInvite('${_esc(inv.id)}','${_esc(inv.board_code)}')" style="padding:7px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;">✓ UNIR-SE</button>
+        <button onclick="rejectBoardInvite('${_esc(inv.id)}')" style="padding:7px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:10px;cursor:pointer;">✕</button>
       </div>`).join('');
     updateSharedTabBadge();
   } catch { section.style.display='none'; }
@@ -4444,4 +4445,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   try { applyConfig(); } catch(e){ console.warn('applyConfig error',e); }
   try { applyStoredTheme(); } catch(e){ console.warn('applyStoredTheme error',e); }
   try { renderThemesGrid(); } catch(e){ console.warn('renderThemesGrid error',e); }
-  try { navTo('home'); } catch(e){ console.warn('navTo error'
+  try { navTo('home'); } catch(e){ console.warn('navTo error',e); }
+  // Aplica idioma DESPRÉS que tot estigui renderitzat
+  setTimeout(()=>{ try { applyLanguage(); } catch(e){ console.warn('applyLanguage error',e); } }, 50);
+  // Recordatoris de dates límit
+  setTimeout(()=>{ try { _checkDueReminders(); } catch(e){} }, 1500);
+  try {
+    const h=JSON.parse(localStorage.getItem('jomaxpath_hero_v2'));
+    if(h){
+      const nameEl=document.getElementById('lsb-hero-name'); if(nameEl) nameEl.textContent=h.name||'El teu heroi';
+      const lvlEl=document.getElementById('lsb-lvl-num'); if(lvlEl) lvlEl.textContent=h.level||1;
+    }
+  } catch {}
+  console.log('%cJOmaxPath app.js v3.0 ✓','color:#7c3aed;font-weight:bold;font-size:14px;');
+});
