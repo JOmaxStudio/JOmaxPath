@@ -1523,7 +1523,7 @@ function renderExamCountdown() {
   bar.innerHTML=`<div style="font-size:30px;">🎓</div>
     <div style="flex:1;min-width:0;">
       <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:${urgent?'#fca5a5':'#6ee7b7'};">PRÒXIM EXAMEN</div>
-      <div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(e.name)}</div><!-- fix XSS: e.name escapat per evitar stored XSS via localStorage -->
     </div>
     <div style="text-align:right;flex-shrink:0;">
       <div style="font-size:20px;font-weight:800;color:${urgent?'#fca5a5':'#6ee7b7'};">${diff===0?'AVUI':diff}</div>
