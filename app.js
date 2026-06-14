@@ -1592,9 +1592,10 @@ function renderHabits() {
   if (habits.length===0) { list.innerHTML='<div style="color:var(--muted);font-size:12px;padding:12px 0;">Afegeix el teu primer hàbit! →</div>'; return; }
   list.innerHTML=habits.map((h,i)=>{
     const done=(h.days||[]).includes(today);
+    // FIX XSS: h.icon i h.name s'escapen amb _esc() per evitar injecció HTML/JS (auto: 2026-06-14)
     return `<div class="habit-item ${done?'done':''}" onclick="toggleHabit(${i})">
-      <span class="habit-icon">${h.icon||'⭐'}</span>
-      <span class="habit-name">${h.name||''}</span>
+      <span class="habit-icon">${_esc(h.icon||'⭐')}</span>
+      <span class="habit-name">${_esc(h.name||'')}</span>
       <span class="habit-check">${done?'✓':''}</span>
       <button class="habit-del-btn" onclick="event.stopPropagation();deleteHabit(${i})">✕</button>
     </div>`;
