@@ -2750,7 +2750,8 @@ function addNoteToTask() {
 }
 function renderTdmNotes(notes) {
   const el=document.getElementById('tdm-notes-list'); if (!el) return;
-  el.innerHTML=(notes||[]).map((n,i)=>`<div class="tdm-note-row"><span class="tn-date">${n.date||''}</span> <span>${n.text}</span><button onclick="removeTdmNote(${i})">✕</button></div>`).join('');
+  // [auto] FIX XSS: n.text i n.date escapat amb _esc() per evitar XSS emmagatzemat (audit_tasks)
+  el.innerHTML=(notes||[]).map((n,i)=>`<div class="tdm-note-row"><span class="tn-date">${_esc(n.date||'')}</span> <span>${_esc(n.text)}</span><button onclick="removeTdmNote(${i})">✕</button></div>`).join('');
 }
 function removeTdmNote(idx) {
   const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if(!t||!t.notes) return;
