@@ -1354,6 +1354,7 @@ async function getHeroLeaderboard() {
         if (typeof updateSharedTabBadge === 'function') setTimeout(updateSharedTabBadge, 500);
         if (typeof _subscribeInvitesRealtime === 'function') setTimeout(_subscribeInvitesRealtime, 800);
         showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
+        if (typeof _checkAdaptabilityOnboarding==='function') _checkAdaptabilityOnboarding().catch(()=>{});
       }, 0);
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null; _userProfile = null;
@@ -1504,6 +1505,7 @@ function renderHome() {
   renderExamCountdown();
   renderVictories();
   applyConfig();
+  if (typeof renderTodayScheduleWidget==='function') setTimeout(renderTodayScheduleWidget, 0);
 }
 
 function renderExamCountdown() {
@@ -2923,6 +2925,7 @@ const POMO_LEVELS=[
 ];
 
 function renderFocus() {
+  if (typeof renderPomodoroSuggestion==='function') setTimeout(renderPomodoroSuggestion, 0);
   const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:''});
   const today=new Date().toDateString();
   if (data.todayDate!==today) { data.today=0; data.todayDate=today; set(POMO_KEY,data); }
@@ -3268,7 +3271,8 @@ async function sendAI() {
       const last=aiMessages[aiMessages.length-1];
       if (last && last.role==='user') last.content += `\n\n[Contingut del document "${_attachment.name}"]:\n${_attachment.text.slice(0,40000)}`;
     }
-    const reply=await callJulians(aiMessages, _buildSystemPrompt(), 2048);
+    const sysPrompt = typeof buildAdaptiveSystemPrompt==='function' ? await buildAdaptiveSystemPrompt(_buildSystemPrompt()) : _buildSystemPrompt();
+    const reply=await callJulians(aiMessages, sysPrompt, 2048);
     if(container&&typing.parentNode) container.removeChild(typing);
     _chats=get(CHATS_KEY,[]); chat=_chats.find(c=>c.id===_currentChatId);
     if(chat){chat.messages.push({role:'assistant',content:reply||'(resposta buida)',ts:Date.now()});set(CHATS_KEY,_chats);}
@@ -3855,6 +3859,7 @@ function renderConfigBody() {
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-ia').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🔑 IA</button>
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-temes').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">🎨 Temes</button>
       <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-compte').style.display='block'" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">👤 Compte</button>
+      <button onclick="document.querySelectorAll('.cfg-tab').forEach(b=>b.style.background='transparent');this.style.background='rgba(124,58,237,0.2)';document.querySelectorAll('.cfg-panel').forEach(p=>p.style.display='none');document.getElementById('cfgp-academic').style.display='block';if(typeof renderAcademicProfilePanel==='function')renderAcademicProfilePanel(document.getElementById('cfgp-academic'))" class="cfg-tab" style="flex:1;padding:9px;background:transparent;border:none;color:var(--text);font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;">📚 Acadèmic</button>
     </div>
     <div id="cfgp-general" class="cfg-panel">
       <div class="cfg-section" style="margin-bottom:16px;">
@@ -3928,7 +3933,8 @@ function renderConfigBody() {
         <button onclick="closeConfig();showAuthOverlay()" style="padding:11px 24px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;">CREAR COMPTE / ENTRAR</button>
       </div>
       `}
-    </div>`;
+    </div>
+    <div id="cfgp-academic" class="cfg-panel" style="display:none;"></div>`;
   // Render themes in config panel
   setTimeout(()=>{
     const tg=document.getElementById('cfg-themes-grid'); if(!tg) return;

@@ -1384,6 +1384,7 @@ body.view-pages.sb-collapsed-desktop .container {
       </div>
       <!-- Columna dreta -->
       <div class="home-col-right">
+        <div id="today-schedule-widget" style="display:none;"></div>
         <div class="streak-widget" id="streak-widget">
           <div class="streak-fire">🔥</div>
           <div class="streak-info" style="position:relative;">
@@ -2134,6 +2135,8 @@ body.view-pages.sb-collapsed-desktop .container {
       <button class="info-btn" onclick="showInfo('tips')" title="Com funciona?">i</button>
     </div>
 
+
+    <div id="pomo-adapt-hint" style="display:none;margin:0 0 12px;"></div>
 
     <div class="focus-two-col">
     <div class="focus-col-left">
@@ -3013,6 +3016,8 @@ body.theme-blanc .tasks-mode-btn.active { background: rgba(109,40,217,0.12) !imp
 body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2) !important; }
 </style>
 <script src="pixel-heroes.js"></script>
+<script src="adaptability.js?v=1" defer></script>
+<script src="adaptive-context.js?v=1" defer></script>
 </body>
 </html>
 <!-- ══════════════════════════════════════════

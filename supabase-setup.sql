@@ -220,4 +220,26 @@ CREATE POLICY "creq_update" ON competition_requests FOR UPDATE USING (auth.uid()
 -- ════════════════════════════════════════════════════════════════
 -- 🔐 GOOGLE AUTH — PASSOS AL DASHBOARD (no es fa des d'aquí)
 -- ════════════════════════════════════════════════════════════════
--- 1. https:
+-- 1. https://console.cloud.google.com/
+--    → Crea projecte → APIs & Services → Credentials
+--    → "+ CREATE CREDENTIALS" → OAuth 2.0 Client ID
+--    → Application type: Web application
+--    → Authorized redirect URIs: https://toefrxqijvextqqngapx.supabase.co/auth/v1/callback
+--    → Guarda el CLIENT ID i CLIENT SECRET
+--
+-- 2. https://supabase.com/dashboard/project/toefrxqijvextqqngapx
+--    → Authentication → Providers → Google → ENABLE
+--    → Enganxa Client ID i Client Secret
+--    → Save
+--
+-- 3. Authentication → URL Configuration
+--    → Site URL: https://jomaxpath.com (o la teva URL)
+--    → Redirect URLs (afegeix totes):
+--        https://jomaxpath.com/**
+--        http://localhost:3000/**
+--        http://localhost:8080/**
+--        http://127.0.0.1:*/**
+--    → Save
+--
+-- Un cop fet, el botó "Continuar amb Google" funcionarà! ✅
+-- ════════════════════════════════════════════════════════════════
