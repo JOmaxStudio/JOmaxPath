@@ -1355,6 +1355,8 @@ async function getHeroLeaderboard() {
         if (typeof _subscribeInvitesRealtime === 'function') setTimeout(_subscribeInvitesRealtime, 800);
         showToast('✅ Benvingut/da, ' + (_userProfile?.username || session.user.email?.split('@')[0]) + '!');
         if (typeof _checkAdaptabilityOnboarding==='function') _checkAdaptabilityOnboarding().catch(()=>{});
+        if (typeof rpgInit==='function') rpgInit().catch(()=>{});
+        if (typeof generateDailyMissions==='function') generateDailyMissions(session.user.id).catch(()=>{});
       }, 0);
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null; _userProfile = null;
@@ -1506,6 +1508,7 @@ function renderHome() {
   renderVictories();
   applyConfig();
   if (typeof renderTodayScheduleWidget==='function') setTimeout(renderTodayScheduleWidget, 0);
+  if (typeof renderMissionsWidget==='function') setTimeout(renderMissionsWidget, 0);
 }
 
 function renderExamCountdown() {
@@ -1570,6 +1573,11 @@ function markStreakToday() {
   if (data.days.length>30) data.days.shift();
   set(STREAK_KEY,data); renderStreakWidget();
   showToast('🔥 Ratxa: '+data.count+' dies!');
+  if (window._currentUser?.id) {
+    const uid=window._currentUser.id;
+    if (typeof checkStreakBonus==='function') checkStreakBonus(uid, data.count).catch(()=>{});
+    if (typeof updateMissionProgress==='function') updateMissionProgress('streak').catch(()=>{});
+  }
 }
 function undoStreakToday() {
   const data=get(STREAK_KEY,{count:0,best:0,last:'',label:'dies consecutius',days:[]});
@@ -1623,8 +1631,14 @@ function toggleHabit(idx) {
   const today=new Date().toDateString();
   if (!habits[idx]) return;
   const h=habits[idx]; if (!h.days) h.days=[];
-  if (h.days.includes(today)) h.days=h.days.filter(d=>d!==today); else h.days.push(today);
+  const wasDone = h.days.includes(today);
+  if (wasDone) h.days=h.days.filter(d=>d!==today); else h.days.push(today);
   set(HABITS_KEY,habits); renderHabits();
+  if (!wasDone && window._currentUser?.id) {
+    const uid=window._currentUser.id;
+    if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.habit||8, 'habit').catch(()=>{});
+    if (typeof updateMissionProgress==='function') updateMissionProgress('habit').catch(()=>{});
+  }
 }
 function deleteHabit(idx) {
   showDeleteConfirm(()=>{
@@ -2380,6 +2394,11 @@ async function toggleListTask(taskId) {
   t.done=!t.done; t.status=t.done?'done':'todo';
   await _saveList(list);
   renderListDetail();
+  if(t.done && window._currentUser?.id) {
+    const uid=window._currentUser.id;
+    if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.task_low||10, 'task').catch(()=>{});
+    if (typeof updateMissionProgress==='function') updateMissionProgress('task_done').catch(()=>{});
+  }
 }
 
 async function moveListTask(taskId, status) {
@@ -2577,6 +2596,13 @@ function toggleTaskDone(id) {
   const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===id);
   if(t){t.done=!t.done;t.status=t.done?'done':'todo';}
   set(TASKS_KEY,tasks); renderExamList(); renderPersonalKanban();
+  if(t?.done && window._currentUser?.id) {
+    const uid=window._currentUser.id;
+    const prioKey=t.prio===1?'task_high':t.prio===2?'task_medium':'task_low';
+    if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.[prioKey]||10, 'task').catch(()=>{});
+    const mtype=t.prio===1?'task_high':'task_done';
+    if (typeof updateMissionProgress==='function') updateMissionProgress(mtype).catch(()=>{});
+  }
 }
 function deleteTask(id) {
   showDeleteConfirm(()=>{
@@ -3017,7 +3043,9 @@ function _pomoCompleteFocus() {
   clearInterval(_pomoInterval); _pomoCurrent++;
   const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
   data.xp=(data.xp||0)+5; data.total=(data.total||0)+1; data.today=(data.today||0)+1; data.week=(data.week||0)+1;
-  set(POMO_KEY,data); showToast('🍅 Pomodoro completat! +5 XP');
+  set(POMO_KEY,data); showToast('🍅 Pomodoro completat! +15 XP +5 🪙');
+  if (typeof rpgOnPomodoro==='function') rpgOnPomodoro().catch(()=>{});
+  if (typeof updateMissionProgress==='function') updateMissionProgress('pomodoro').catch(()=>{});
   updatePomoLevel(data); updatePomoStats(data); updatePomoDailyGoal(data);
   if (_pomoCurrent>=_pomoSessions) { showToast('🏆 Sessió completada!'); _pomoCurrent=0; }
   _pomoState='break'; _pomoSeconds=_pomoBreakMin*60;

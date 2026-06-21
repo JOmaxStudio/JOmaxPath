@@ -1028,6 +1028,12 @@ body.view-pages.sb-collapsed-desktop .container {
     <div class="lsb-hero-lvl" id="lsb-hero-lvl">HEROE · NV. <span id="lsb-lvl-num">1</span></div>
     <div class="lsb-hero-name-mini" id="lsb-hero-name">El teu heroi</div>
     <div class="lsb-xpbar"><div class="lsb-xpbar-fill" id="lsb-xp-fill" style="width:0%"></div></div>
+    <div class="rpg-xp-detail" id="rpg-xp-detail"></div>
+  </div>
+  <!-- Gold counter -->
+  <div class="rpg-gold-badge" title="Gold disponible per a la botiga">
+    <span>🪙</span><span id="rpg-gold-count">0</span>
+    <button onclick="openShop()" style="background:none;border:none;color:#fbbf24;cursor:pointer;font-size:10px;margin-left:4px;padding:0;" title="Obre la botiga">🛒</button>
   </div>
 
   <div class="lsb-nav">
@@ -1384,6 +1390,7 @@ body.view-pages.sb-collapsed-desktop .container {
       </div>
       <!-- Columna dreta -->
       <div class="home-col-right">
+        <div id="missions-widget" style="display:none;"></div>
         <div id="today-schedule-widget" style="display:none;"></div>
         <div class="streak-widget" id="streak-widget">
           <div class="streak-fire">🔥</div>
@@ -3016,6 +3023,9 @@ body.theme-blanc .tasks-mode-btn.active { background: rgba(109,40,217,0.12) !imp
 body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2) !important; }
 </style>
 <script src="pixel-heroes.js"></script>
+<script src="rpg.js?v=1" defer></script>
+<script src="missions.js?v=1" defer></script>
+<script src="shop.js?v=1" defer></script>
 <script src="adaptability.js?v=1" defer></script>
 <script src="adaptive-context.js?v=1" defer></script>
 </body>
