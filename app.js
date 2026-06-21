@@ -4162,13 +4162,14 @@ function renderThemesGrid() {
 function setTheme(id) {
   const body=document.body;
   THEMES_DATA.forEach(t=>body.classList.remove('theme-'+t.id));
-  if(id!=='default') body.classList.add('theme-'+id);
+  body.classList.remove('theme-default');
+  body.classList.add('theme-'+(id==='default'?'default':id));
   const cfg=get(CONFIG_KEY,{}); cfg.theme=id; set(CONFIG_KEY,cfg);
   renderThemesGrid(); showToast('🎨 Tema '+THEMES_DATA.find(t=>t.id===id)?.name+' activat!');
 }
 function applyStoredTheme() {
   const cfg=get(CONFIG_KEY,{}); const id=cfg.theme||'default';
-  if(id!=='default') document.body.classList.add('theme-'+id);
+  document.body.classList.add('theme-'+(id==='default'?'default':id));
   // Also restore layout
   const layout=cfg.layout||'compacta';
   _applyLayoutMode(layout);

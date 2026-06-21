@@ -240,6 +240,17 @@ body[class*="theme-"] .ai-mode-btn.active { background: color-mix(in srgb,var(--
 body[class*="theme-"] .ai-suggestion { background: color-mix(in srgb,var(--accent) 8%,transparent) !important; border-color: color-mix(in srgb,var(--accent) 25%,transparent) !important; color: var(--accent2) !important; }
 
 /* ══════════════════════════════════════════════════════════════
+   TEMA DEFAULT (FOSC) — garanteix variables fosques quan body.theme-default
+   Necessari perquè body[class*="theme-"] s'activi en el tema fosc
+══════════════════════════════════════════════════════════════ */
+body.theme-default {
+  --bg:#060610; --card:#0e0e1e; --card2:#14142a;
+  --accent:#7c3aed; --accent2:#a78bfa;
+  --cyan:#00b8d9; --cyan2:#38d9f5;
+  --text:#e2e8f0; --muted:#64748b; --border:rgba(124,58,237,0.18);
+}
+
+/* ══════════════════════════════════════════════════════════════
    TEMA BLANC — Overrides específics
 ══════════════════════════════════════════════════════════════ */
 body.theme-blanc {
