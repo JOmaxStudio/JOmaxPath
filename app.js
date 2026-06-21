@@ -3783,7 +3783,8 @@ function runSearch(q) {
   const tasks=get(TASKS_KEY,[]).filter(t=>t.name?.toLowerCase().includes(q.toLowerCase()));
   const habits=get(HABITS_KEY,[]).filter(h=>h.name?.toLowerCase().includes(q.toLowerCase()));
   const items=[...tasks.map(t=>({icon:'📋',label:t.name,sub:'Tasca',action:"navTo('tasques')"})),...habits.map(h=>({icon:h.icon||'🌱',label:h.name,sub:'Hàbit',action:"navTo('home')"}))];
-  results.innerHTML=items.length===0?`<div class="sr-empty">Sense resultats per "${q}"</div>`:items.map(it=>`<div class="sr-item" onclick="${it.action};closeSearch()"><span class="sr-icon">${it.icon}</span><div><div class="sr-label">${it.label}</div><div class="sr-sub">${it.sub}</div></div></div>`).join('');
+  // FIX XSS (2026-06-21): q, it.label i it.sub s'escapaven a _esc() per evitar injecció HTML en la cerca global
+  results.innerHTML=items.length===0?`<div class="sr-empty">Sense resultats per "${_esc(q)}"</div>`:items.map(it=>`<div class="sr-item" onclick="${it.action};closeSearch()"><span class="sr-icon">${it.icon}</span><div><div class="sr-label">${_esc(it.label)}</div><div class="sr-sub">${_esc(it.sub)}</div></div></div>`).join('');
 }
 
 /* ─────────────────────────────────────────
