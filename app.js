@@ -1830,7 +1830,7 @@ function renderWeekDates() {
     const d=new Date(monday); d.setDate(monday.getDate()+i);
     const isToday=d.toDateString()===today.toDateString();
     const events=Array.isArray(schedule[dn])?schedule[dn]:Object.values(schedule[dn]||{});
-    const evHtml=events.slice(0,4).map(ev=>`<div class="week-event" style="background:${ev.color||'rgba(124,58,237,0.2)'}" onclick="openDayModal('${dn}','${ev.id||''}')"><span class="we-time">${ev.time||''}</span><span class="we-name">${ev.name||ev.text||''}</span></div>`).join('');
+    const evHtml=events.slice(0,4).map(ev=>{const c=ev.color||'#6C63FF';const bg=c.startsWith('#')?c+'26':c;return`<div class="week-event" style="background:${bg};border-left:3px solid ${c}" onclick="openDayModal('${dn}','${ev.id||''}')"><span class="we-time">${ev.emoji||''} ${ev.time||''}</span><span class="we-name">${ev.name||ev.text||''}</span></div>`}).join('');
     return `<div class="week-col ${isToday?'today':''}"><div class="week-day-header ${isToday?'today':''}"><span class="wdh-short">${short[i]}</span><span class="wdh-num">${d.getDate()}</span></div><div class="week-events">${evHtml}<button class="add-day-event-btn" onclick="openDayModal('${dn}',null)">+</button></div></div>`;
   }).join('');
 }
@@ -1848,56 +1848,392 @@ function renderWeekGrid() {
 }
 
 /* Day modal */
+/* ══════════════════════════════════════════════════════
+   DAY EVENT MODAL — versió millorada
+   ══════════════════════════════════════════════════════ */
+
+const DM_COLORS = [
+  // Fila 1 — Morats/Blaus/Cians
+  '#6C63FF','#8B5CF6','#A855F7','#EC4899','#3B82F6','#0EA5E9',
+  '#06B6D4','#14B8A6','#2DD4BF','#38BDF8','#818CF8','#C084FC',
+  // Fila 2 — Verds/Grocs/Taronges
+  '#10B981','#22C55E','#84CC16','#EAB308','#F59E0B','#F97316',
+  '#EF4444','#DC2626','#059669','#16A34A','#65A30D','#CA8A04',
+  // Fila 3 — Roses/Marrons/Grisos
+  '#F43F5E','#FB7185','#FDA4AF','#FBBF24','#D97706','#92400E',
+  '#78716C','#6B7280','#374151','#1E293B','#0F172A','#FFFFFF',
+];
+
+const DM_EMOJI_CATS = [
+  { icon:'📚', emojis:'📚 📖 ✏️ 🖊️ 🖋️ 📝 📓 📔 📒 📕 📗 📘 📙 📃 📄 📑 🔬 🔭 🧪 🧫 🧬 ⚗️ 🧲 💡 🔢 📐 📏 🗂️ 📊 📈 📉 🖥️ 💻 🖨️ ⌨️ 🖱️ 📱 🎓 🏫 🎒 📌 📍 🗒️ 🗓️ ⏰ ⏱️ ⌚ 🔔' },
+  { icon:'⚽', emojis:'⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🏓 🏸 🥊 🥋 🎯 🏹 🎣 🤿 🎽 🎿 🛷 🥌 🏒 🏑 🏏 🪃 🏋️ 🤼 🤸 🤺 ⛹️ 🤾 🏌️ 🏇 🧘 🏄 🏊 🚴 🛹 🛼 🤽 🧗 🏂 ⛷️ 🚣 🪂 🚵 🤹 🎠 🎪 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🪘 🎷 🎺 🎸 🪕 🎻 🪗 🎲 🎮 🕹️ 🎳' },
+  { icon:'🎨', emojis:'🎨 🖼️ 🖌️ ✂️ 🧵 🪡 🧶 🪢 🎭 🎪 🎬 🎥 📷 📸 🎞️ 🎤 🎧 🎼 🎹 🥁 🪘 🎷 🎺 🎸 🪕 🎻 🪗 🎙️ 📻 🎵 🎶 🪩 💃 🕺 🎠 🎡 🎢 🎟️ 🎫 🏆 🥇 🥈 🥉 🎖️ 🏅 🎗️ 🎀' },
+  { icon:'🍎', emojis:'🍎 🥗 🥦 🍳 ☕ 🧃 💊 🩺 🏥 💉 🩹 🧬 🫀 🫁 🧠 🦷 👁️ 👂 💪 🦵 🦶 🧘 🛌 🚿 🧴 🛒 🥣 🍱 🥡 🍽️ 🥄 🍴 🔪 🧂 🫙 🧊 🫖 🍵 🧋 🥤 🧉 🍶 🍕 🍔 🌮 🍜 🍱 🥘 🫕' },
+  { icon:'🚗', emojis:'🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🛻 🚚 🚛 🚜 🏍️ 🛵 🚲 🛴 🚁 🛸 ✈️ 🚀 🛶 ⛵ 🚢 🏠 🏡 🏢 🏣 🏤 🏥 🏦 🏨 🏩 🏪 🏫 🏬 🏭 🏯 🏰 ⛪ 🕌 🛕 🌍 🗺️ 🧭 🏔️ ⛰️ 🌋 🏕️ 🏖️' },
+  { icon:'😊', emojis:'⭐ 🌟 💫 ✨ 🔥 💥 🎯 🏆 🥇 🥈 🥉 🎖️ 🏅 🎗️ 🎀 🎁 🎊 🎉 🎈 🎏 🎐 🧨 🪄 🔮 🪩 💎 👑 🌈 ☀️ 🌙 ⚡ ❄️ 🌊 🌺 🌸 🌼 🌻 🍀 🌿 🍃 🌱 🪴 🌵 🎋 🎍 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 💕 💞 💓 💗 💫 ⚡ 🌀' },
+];
+
+const DM_EMOJI_NAMES = {
+  '⚽':'futbol soccer','🏀':'basquet bàsquet','🎾':'tennis','🏊':'natació nadar',
+  '🏋️':'gimnàs peses fitness','🚴':'ciclisme bici','🧘':'ioga meditació',
+  '📚':'llibres estudi acadèmic','🔬':'ciència biologia','📝':'examen notes',
+  '🎓':'graduació universitat','🏫':'escola col·legi','💻':'ordinador programació tecnologia',
+  '🎵':'música cançó','🎸':'guitarra música','🎹':'piano música','🎤':'micròfon cantant',
+  '🎨':'art dibuix pintura','🖼️':'quadre museu','🎭':'teatre actuació',
+  '🍎':'menjar fruita','☕':'cafè beguda','🏥':'hospital medicina salut',
+  '🚗':'cotxe transport','✈️':'avió viatge','🏠':'casa llar','🌟':'estrella excel·lent',
+  '🔥':'foc important urgent','💡':'idea llum','🎯':'objectiu meta',
+  '🏆':'trofeu guanyar premi','🎉':'festa celebració','❤️':'cor amor',
+  '📌':'pin recordatori','⚠️':'advertència alerta examen important',
+  '🏒':'hoquei esport','⚾':'beisbol','🏈':'futbol americà',
+  '🎲':'joc dau','🎮':'videojoc consola','🧪':'experiment laboratori',
+  '💊':'pastilla medicina','🩺':'metge doctor','🍕':'pizza menjar',
+  '🚀':'coet espai','🌈':'arc iris colors','💎':'diamant valuós',
+};
+
+const DM_QUICK_TEMPLATES = [
+  { label:'📚 Classe',  type:'class',          emoji:'📚', color:'#6C63FF', hi:'08:00', hf:'09:00' },
+  { label:'⚽ Esport',  type:'sport',           emoji:'⚽', color:'#10B981', hi:'17:00', hf:'18:00' },
+  { label:'⚠️ Examen', type:'exam',            emoji:'⚠️', color:'#EF4444', hi:'09:00', hf:'11:00' },
+  { label:'🎵 Música',  type:'extracurricular', emoji:'🎵', color:'#F59E0B', hi:'16:00', hf:'17:00' },
+  { label:'🏋️ Gimnàs', type:'extracurricular', emoji:'🏋️', color:'#3B82F6', hi:'18:00', hf:'19:00' },
+  { label:'📌 Event',   type:'event',           emoji:'📌', color:'#8B5CF6', hi:'10:00', hf:'11:00' },
+];
+
 let _dayModalDay=null, _dayModalEventId=null;
-function openDayModal(day,eventId) {
+let _dmSelectedColor='#6C63FF', _dmSelectedEmoji='📌', _dmLastDuration=60, _dmEmojiTabIdx=0;
+
+function _dmEl(id){ return document.getElementById(id); }
+
+function _dmInitColorGrid() {
+  const grid=_dmEl('dm-color-grid'); if(!grid) return;
+  grid.innerHTML=DM_COLORS.map(c=>
+    `<div class="color-swatch${c===_dmSelectedColor?' selected':''}"
+          style="background:${c}" title="${c}"
+          onclick="dmSelectColor('${c}',this)"></div>`
+  ).join('');
+}
+
+function _dmInitEmojiGrid(tabIdx) {
+  _dmEmojiTabIdx=tabIdx;
+  const grid=_dmEl('dm-emoji-grid'); if(!grid) return;
+  const emojis=DM_EMOJI_CATS[tabIdx].emojis.split(' ').filter(Boolean);
+  grid.innerHTML=emojis.map(e=>
+    `<button class="emoji-btn${e===_dmSelectedEmoji?' selected':''}" onclick="dmSelectEmoji('${e}',this)">${e}</button>`
+  ).join('');
+}
+
+function dmShowEmojiTab(idx, btn) {
+  document.querySelectorAll('.emoji-tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  _dmEl('dm-emoji-search').value='';
+  _dmInitEmojiGrid(idx);
+}
+
+function dmFilterEmojis(q) {
+  if (!q) { _dmInitEmojiGrid(_dmEmojiTabIdx); return; }
+  const all=[];
+  DM_EMOJI_CATS.forEach(cat=>{ cat.emojis.split(' ').filter(Boolean).forEach(e=>{ if(!all.includes(e)) all.push(e); }); });
+  const lower=q.toLowerCase();
+  const matches=all.filter(e=>{
+    const name=DM_EMOJI_NAMES[e]||'';
+    return name.toLowerCase().includes(lower)||e.includes(q);
+  });
+  const grid=_dmEl('dm-emoji-grid'); if(!grid) return;
+  grid.innerHTML=matches.map(e=>
+    `<button class="emoji-btn${e===_dmSelectedEmoji?' selected':''}" onclick="dmSelectEmoji('${e}',this)">${e}</button>`
+  ).join('')||(matches.length===0?'<span style="color:var(--muted);font-size:12px;padding:8px;">Cap resultat</span>':'');
+}
+
+function dmSelectColor(color, el) {
+  _dmSelectedColor=color;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+  _dmEl('dm-custom-color').value=color;
+  dmUpdatePreview();
+}
+
+function dmSelectCustomColor(color) {
+  _dmSelectedColor=color;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  dmUpdatePreview();
+}
+
+function dmSelectEmoji(emoji, el) {
+  _dmSelectedEmoji=emoji;
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+  const disp=_dmEl('dm-selected-emoji-display'); if(disp) disp.textContent=emoji;
+  dmUpdatePreview();
+}
+
+function dmUpdatePreview() {
+  const title=(_dmEl('dm-text')?.value||'').trim()||'Nou event';
+  const ts=_dmEl('dm-time-start')?.value||'';
+  const te=_dmEl('dm-time-end')?.value||'';
+  const timeStr=ts?(te?`${ts} – ${te}`:ts):'';
+  const prev=_dmEl('dm-preview'); if(!prev) return;
+  prev.style.setProperty('--preview-color',_dmSelectedColor);
+  const et=_dmEl('dm-preview-emoji'); if(et) et.textContent=_dmSelectedEmoji;
+  const tt=_dmEl('dm-preview-title'); if(tt) tt.textContent=title;
+  const tm=_dmEl('dm-preview-time'); if(tm) tm.textContent=timeStr;
+}
+
+function dmAutoEndTime() {
+  const ts=_dmEl('dm-time-start')?.value; if(!ts) return;
+  const [h,m]=ts.split(':').map(Number);
+  const fi=h*60+m+_dmLastDuration;
+  const fh=Math.floor(fi/60)%24, fm=fi%60;
+  const te=_dmEl('dm-time-end');
+  if(te) te.value=`${String(fh).padStart(2,'0')}:${String(fm).padStart(2,'0')}`;
+}
+
+function dmSaveDuration() {
+  const ts=_dmEl('dm-time-start')?.value, te=_dmEl('dm-time-end')?.value;
+  if(!ts||!te) return;
+  const [sh,sm]=ts.split(':').map(Number), [eh,em]=te.split(':').map(Number);
+  const diff=(eh*60+em)-(sh*60+sm);
+  if(diff>0) _dmLastDuration=diff;
+}
+
+function dmApplyTemplate(idx) {
+  const t=DM_QUICK_TEMPLATES[idx]; if(!t) return;
+  _dmSelectedColor=t.color; _dmSelectedEmoji=t.emoji;
+  const textEl=_dmEl('dm-text'); if(textEl&&!textEl.value) textEl.value='';
+  const typeEl=_dmEl('dm-type'); if(typeEl) typeEl.value=t.type;
+  const ts=_dmEl('dm-time-start'); if(ts) ts.value=t.hi;
+  const te=_dmEl('dm-time-end'); if(te) te.value=t.hf;
+  _dmInitColorGrid();
+  document.querySelectorAll('.emoji-btn').forEach(b=>{ if(b.textContent.trim()===t.emoji) b.classList.add('selected'); else b.classList.remove('selected'); });
+  const disp=_dmEl('dm-selected-emoji-display'); if(disp) disp.textContent=t.emoji;
+  const customColor=_dmEl('dm-custom-color'); if(customColor) customColor.value=t.color;
+  dmUpdatePreview();
+}
+
+function dmSuggestNames(query) {
+  const dd=_dmEl('dm-suggestions'); if(!dd) return;
+  if(!query||query.length<2) { dd.classList.remove('open'); return; }
+  const schedule=get(SCHEDULE_KEY,{});
+  const seen=new Map();
+  Object.values(schedule).forEach(evs=>{
+    const arr=Array.isArray(evs)?evs:Object.values(evs||{});
+    arr.forEach(ev=>{
+      const n=ev.name||ev.text||''; if(!n) return;
+      if(n.toLowerCase().startsWith(query.toLowerCase())&&!seen.has(n)) seen.set(n,ev);
+    });
+  });
+  const items=[...seen.values()].slice(0,5);
+  if(!items.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML=items.map(ev=>`
+    <button class="dm-suggest-item" onclick="dmPickSuggestion(${JSON.stringify(ev).replace(/"/g,'&quot;')})">
+      <span style="font-size:16px">${ev.emoji||'📌'}</span>
+      <div class="dsi-dot" style="background:${ev.color||'#6C63FF'}"></div>
+      <span>${ev.name||ev.text||''}</span>
+    </button>`).join('');
+  dd.classList.add('open');
+}
+
+function dmPickSuggestion(ev) {
+  const textEl=_dmEl('dm-text'); if(textEl) textEl.value=ev.name||ev.text||'';
+  if(ev.emoji) { _dmSelectedEmoji=ev.emoji; const d=_dmEl('dm-selected-emoji-display'); if(d) d.textContent=ev.emoji; }
+  if(ev.color) { _dmSelectedColor=ev.color; _dmInitColorGrid(); const cc=_dmEl('dm-custom-color'); if(cc) cc.value=ev.color; }
+  if(ev.type) { const t=_dmEl('dm-type'); if(t) t.value=ev.type; }
+  const dd=_dmEl('dm-suggestions'); if(dd) dd.classList.remove('open');
+  dmUpdatePreview();
+}
+
+function dmUpdateRepeatUI() {
+  const val=_dmEl('dm-repeat')?.value;
+  const custDiv=_dmEl('dm-repeat-custom'), untilRow=_dmEl('dm-repeat-until-row');
+  if(custDiv) custDiv.style.display=val==='custom'?'block':'none';
+  if(untilRow) untilRow.style.display=(val&&val!=='none')?'block':'none';
+  const wdRow=_dmEl('dm-weekdays-row');
+  if(wdRow) wdRow.style.display=(val==='custom'&&_dmEl('dm-repeat-unit')?.value==='weeks')?'flex':'none';
+  dmUpdateRepeatSummary();
+}
+
+function dmUpdateRepeatSummary() {
+  const val=_dmEl('dm-repeat')?.value||'none';
+  const summDiv=_dmEl('dm-repeat-summary');
+  if(!summDiv) return;
+  if(val==='none') { summDiv.style.display='none'; return; }
+  const until=_dmEl('dm-repeat-until')?.value;
+  if(!until) { summDiv.style.display='none'; return; }
+  const untilDate=new Date(until+'T00:00:00');
+  const startDate=_dayModalDay?new Date(_dayModalDay+'T00:00:00'):new Date();
+  if(isNaN(untilDate)||untilDate<=startDate) { summDiv.style.display='none'; return; }
+
+  let count=0, label='';
+  const msDay=86400000;
+  if(val==='daily') {
+    count=Math.floor((untilDate-startDate)/msDay)+1; label='cada dia';
+  } else if(val==='workdays') {
+    let d=new Date(startDate);
+    while(d<=untilDate){ const dw=d.getDay(); if(dw>=1&&dw<=5) count++; d=new Date(d.getTime()+msDay); }
+    label='dies laborables';
+  } else if(val==='weekends') {
+    let d=new Date(startDate);
+    while(d<=untilDate){ const dw=d.getDay(); if(dw===0||dw===6) count++; d=new Date(d.getTime()+msDay); }
+    label='caps de setmana';
+  } else if(val==='weekly') {
+    count=Math.floor((untilDate-startDate)/(7*msDay))+1; label='cada setmana';
+  } else if(val==='custom') {
+    const n=parseInt(_dmEl('dm-repeat-n')?.value)||1;
+    const unit=_dmEl('dm-repeat-unit')?.value||'days';
+    if(unit==='days') {
+      count=Math.floor((untilDate-startDate)/(n*msDay))+1; label=`cada ${n} dies`;
+    } else if(unit==='weeks') {
+      const chkd=[...document.querySelectorAll('#dm-weekdays-row input:checked')].map(c=>parseInt(c.value));
+      if(chkd.length) {
+        let d=new Date(startDate);
+        while(d<=untilDate){ if(chkd.includes(d.getDay())) count++; d=new Date(d.getTime()+msDay); }
+        label=`cada ${n} set. dies seleccionats`;
+      } else {
+        count=Math.floor((untilDate-startDate)/(n*7*msDay))+1; label=`cada ${n} setmanes`;
+      }
+    } else {
+      count=Math.floor((untilDate.getFullYear()*12+untilDate.getMonth()-(startDate.getFullYear()*12+startDate.getMonth()))/n)+1;
+      label=`cada ${n} mesos`;
+    }
+  }
+  if(count>0) {
+    const fmt=d=>d.toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    summDiv.style.display='block';
+    summDiv.textContent=`Es repetirà ${label} fins al ${fmt(untilDate)} → ${count} event${count!==1?'s':''} en total`;
+  } else {
+    summDiv.style.display='none';
+  }
+}
+
+function openDayModal(day, eventId) {
   _dayModalDay=day; _dayModalEventId=eventId;
-  const ov=document.getElementById('day-modal-overlay'); if (!ov) { showToast('Modal no disponible'); return; }
+  const ov=_dmEl('day-modal-overlay'); if(!ov){ showToast('Modal no disponible'); return; }
   const schedule=get(SCHEDULE_KEY,{});
   const events=Array.isArray(schedule[day])?schedule[day]:Object.values(schedule[day]||{});
   const ev=eventId?events.find(e=>e.id===eventId):null;
-  const titleEl=document.getElementById('day-modal-title'); if(titleEl) titleEl.textContent=day;
-  const timeEl=document.getElementById('dm-time'); if(timeEl) timeEl.value=ev?.time||'';
-  const textEl=document.getElementById('dm-text'); if(textEl) textEl.value=ev?.name||ev?.text||'';
-  const typeEl=document.getElementById('dm-type'); if(typeEl&&ev?.type) typeEl.value=ev.type;
+
+  // Reset / omple
+  _dmSelectedColor=ev?.color||'#6C63FF';
+  _dmSelectedEmoji=ev?.emoji||'📌';
+  const titleEl=_dmEl('day-modal-title'); if(titleEl) titleEl.textContent=day;
+  const textEl=_dmEl('dm-text'); if(textEl) textEl.value=ev?.name||ev?.text||'';
+  const ts=_dmEl('dm-time-start'); if(ts) ts.value=ev?.time||ev?.timeStart||'';
+  const te=_dmEl('dm-time-end'); if(te) te.value=ev?.timeEnd||'';
+  const typeEl=_dmEl('dm-type'); if(typeEl) typeEl.value=ev?.type||'event';
+  const repEl=_dmEl('dm-repeat'); if(repEl) repEl.value='none';
+  const summDiv=_dmEl('dm-repeat-summary'); if(summDiv) summDiv.style.display='none';
+  const custDiv=_dmEl('dm-repeat-custom'); if(custDiv) custDiv.style.display='none';
+  const untilRow=_dmEl('dm-repeat-until-row'); if(untilRow) untilRow.style.display='none';
+  const dd=_dmEl('dm-suggestions'); if(dd) dd.classList.remove('open');
+  const searchEl=_dmEl('dm-emoji-search'); if(searchEl) searchEl.value='';
+
+  // Botó eliminar
+  const delBtn=_dmEl('dm-delete-btn'); if(delBtn) delBtn.style.display=eventId?'':'none';
+
+  _dmInitColorGrid();
+  _dmInitEmojiGrid(0);
+  // Activa tab 0
+  document.querySelectorAll('.emoji-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  // Mostra emoji seleccionat
+  const disp=_dmEl('dm-selected-emoji-display'); if(disp) disp.textContent=_dmSelectedEmoji;
+  const cc=_dmEl('dm-custom-color'); if(cc) cc.value=_dmSelectedColor;
+
+  dmUpdatePreview();
   ov.style.display='flex';
+  setTimeout(()=>{ _dmEl('dm-text')?.focus(); },80);
 }
+
 function closeDayModal() {
-  const ov=document.getElementById('day-modal-overlay'); if(ov) ov.style.display='none';
+  const ov=_dmEl('day-modal-overlay'); if(ov) ov.style.display='none';
 }
+
 function saveDayEvent() {
-  if (!_dayModalDay) return;
-  const time=(document.getElementById('dm-time')?.value||'');
-  const name=(document.getElementById('dm-text')?.value||'').trim();
-  const type=document.getElementById('dm-type')?.value||'📌 Recordatori';
-  if (!name) { showWarningToast('⚠️ Posa una descripció'); return; }
-  const colors={'📌 Recordatori':'rgba(124,58,237,0.3)','📚 Escolar':'rgba(59,130,246,0.3)','🏒 Esport':'rgba(239,68,68,0.3)','💻 Programació':'rgba(16,185,129,0.3)','🤖 Robotech':'rgba(0,184,217,0.3)','📝 Examen':'rgba(245,158,11,0.3)','📦 Entrega':'rgba(168,85,247,0.3)','🎯 Altres':'rgba(100,116,139,0.3)'};
+  if(!_dayModalDay) return;
+  const name=(_dmEl('dm-text')?.value||'').trim();
+  if(!name){ showWarningToast('⚠️ Posa un títol a l\'event'); return; }
+  const timeStart=_dmEl('dm-time-start')?.value||'';
+  const timeEnd=_dmEl('dm-time-end')?.value||'';
+  const type=_dmEl('dm-type')?.value||'event';
+  const color=_dmSelectedColor;
+  const emoji=_dmSelectedEmoji;
+  // Calcula durada per a futurs events
+  if(timeStart&&timeEnd){
+    const[sh,sm]=timeStart.split(':').map(Number),[eh,em]=timeEnd.split(':').map(Number);
+    const diff=(eh*60+em)-(sh*60+sm); if(diff>0) _dmLastDuration=diff;
+  }
   const schedule=get(SCHEDULE_KEY,{});
-  if (!schedule[_dayModalDay]) schedule[_dayModalDay]=[];
-  if (!Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=Object.values(schedule[_dayModalDay]);
-  if (_dayModalEventId) {
+  if(!schedule[_dayModalDay]) schedule[_dayModalDay]=[];
+  if(!Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=Object.values(schedule[_dayModalDay]);
+  const baseEv={name,text:name,type,color,emoji,time:timeStart,timeStart,timeEnd,created:Date.now()};
+
+  // Repetició
+  const repVal=_dmEl('dm-repeat')?.value||'none';
+  const until=_dmEl('dm-repeat-until')?.value;
+
+  if(repVal!=='none'&&until&&!_dayModalEventId) {
+    const msDay=86400000;
+    const untilDate=new Date(until+'T00:00:00');
+    const startDate=new Date(_dayModalDay+'T00:00:00');
+    let days=[];
+    if(repVal==='daily'){
+      let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+    } else if(repVal==='workdays'){
+      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()>=1&&d.getDay()<=5) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+    } else if(repVal==='weekends'){
+      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()===0||d.getDay()===6) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+    } else if(repVal==='weekly'){
+      let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+7*msDay); }
+    } else if(repVal==='custom'){
+      const n=parseInt(_dmEl('dm-repeat-n')?.value)||1;
+      const unit=_dmEl('dm-repeat-unit')?.value||'days';
+      const chkd=[...document.querySelectorAll('#dm-weekdays-row input:checked')].map(c=>parseInt(c.value));
+      if(unit==='days'){
+        let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+n*msDay); }
+      } else if(unit==='weeks'&&chkd.length){
+        let d=new Date(startDate); while(d<=untilDate){ if(chkd.includes(d.getDay())) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+      } else if(unit==='weeks'){
+        let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+n*7*msDay); }
+      } else {
+        let d=new Date(startDate);
+        while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getFullYear(),d.getMonth()+n,d.getDate()); }
+      }
+    }
+    const gid='rep_'+Date.now();
+    days.forEach(dd=>{
+      const dk=dd.toISOString().slice(0,10);
+      if(!schedule[dk]) schedule[dk]=[];
+      if(!Array.isArray(schedule[dk])) schedule[dk]=Object.values(schedule[dk]);
+      schedule[dk].push({...baseEv,id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),repeatGroupId:gid});
+    });
+    set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel();
+    showToast(`✅ ${days.length} events creats!`); return;
+  }
+
+  if(_dayModalEventId){
     const idx=schedule[_dayModalDay].findIndex(e=>e.id===_dayModalEventId);
-    if (idx!==-1) schedule[_dayModalDay][idx]={...schedule[_dayModalDay][idx],time,name,text:name,type};
+    if(idx!==-1) schedule[_dayModalDay][idx]={...schedule[_dayModalDay][idx],...baseEv};
   } else {
-    schedule[_dayModalDay].push({id:Date.now().toString(),time,name,text:name,type,color:colors[type]||'rgba(124,58,237,0.3)',created:Date.now()});
+    schedule[_dayModalDay].push({...baseEv,id:Date.now().toString()});
   }
   set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel(); showToast('✅ Event guardat!');
 }
+
 function deleteTimedEvent() {
-  if (!_dayModalDay||!_dayModalEventId) return;
+  if(!_dayModalDay||!_dayModalEventId) return;
   showDeleteConfirm(()=>{
     const schedule=get(SCHEDULE_KEY,{});
-    if (Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=schedule[_dayModalDay].filter(e=>e.id!==_dayModalEventId);
+    if(Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=schedule[_dayModalDay].filter(e=>e.id!==_dayModalEventId);
     set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); showToast('🗑️ Event eliminat');
   },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event de l'horari."});
 }
+
 function saveTimedEvent() { saveDayEvent(); }
 function pickTimedColor() {
-  // Retorna color d'accent basat en l'hora del dia
   const h=new Date().getHours();
-  if (h<7)  return '#4f46e5'; // nit — índigo
-  if (h<12) return '#f59e0b'; // matí — groc
-  if (h<18) return '#10b981'; // tarda — verd
-  return '#8b5cf6';           // vespre — porpra
+  if(h<7)  return '#4f46e5';
+  if(h<12) return '#f59e0b';
+  if(h<18) return '#10b981';
+  return '#8b5cf6';
 }
 
 /* Calendar mensual */

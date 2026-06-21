@@ -2373,23 +2373,140 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <!-- Modals -->
 <div id="day-modal-overlay" onclick="if(event.target===this)closeDayModal()">
   <div id="day-modal">
-    <h4 id="day-modal-title">Afegir al dia</h4>
-    <div class="modal-field"><label>DESCRIPCIÓ</label><input type="text" id="dm-text" placeholder="Descripció..." onkeydown="if(event.key==='Enter')saveDayEvent()" /></div>
-    <div class="modal-field"><label>HORA (opcional)</label><input type="time" id="dm-time" /></div>
-    <div class="modal-field"><label>TIPUS</label>
-      <select id="dm-type">
-        <option value="📌 Recordatori">📌 Recordatori</option>
-        <option value="📚 Escolar">📚 Escolar</option>
-        <option value="🏒 Esport">🏒 Esport</option>
-        <option value="💻 Tecnologia">💻 Tecnologia</option>
-        <option value="🎨 Creativitat">🎨 Creativitat</option>
-        <option value="📝 Examen">📝 Examen</option>
-        <option value="📦 Entrega">📦 Entrega</option>
-        <option value="🎯 Altres">🎯 Altres</option>
+    <!-- Header -->
+    <div class="dm-header">
+      <h4 id="day-modal-title">Afegir al dia</h4>
+      <button class="dm-close-btn" onclick="closeDayModal()">✕</button>
+    </div>
+
+    <!-- Previsualització en temps real -->
+    <div class="event-preview" id="dm-preview">
+      <span id="dm-preview-emoji">📌</span>
+      <div class="ep-info">
+        <span id="dm-preview-title" class="ep-title">Nou event</span>
+        <span id="dm-preview-time" class="ep-time"></span>
+      </div>
+    </div>
+
+    <!-- Plantilles ràpides -->
+    <div class="quick-templates">
+      <button class="template-btn" onclick="dmApplyTemplate(0)">📚 Classe</button>
+      <button class="template-btn" onclick="dmApplyTemplate(1)">⚽ Esport</button>
+      <button class="template-btn" onclick="dmApplyTemplate(2)">⚠️ Examen</button>
+      <button class="template-btn" onclick="dmApplyTemplate(3)">🎵 Música</button>
+      <button class="template-btn" onclick="dmApplyTemplate(4)">🏋️ Gimnàs</button>
+      <button class="template-btn" onclick="dmApplyTemplate(5)">📌 Event</button>
+    </div>
+
+    <!-- Títol + autocomplete -->
+    <div class="modal-field dm-title-wrap">
+      <label>TÍTOL</label>
+      <input type="text" id="dm-text" placeholder="Nom de l'event..." autocomplete="off"
+             oninput="dmUpdatePreview();dmSuggestNames(this.value)"
+             onkeydown="if(event.key==='Enter')saveDayEvent()" />
+      <div class="dm-suggest-dropdown" id="dm-suggestions"></div>
+    </div>
+
+    <!-- Hores -->
+    <div class="dm-time-row">
+      <div class="modal-field">
+        <label>HORA INICI</label>
+        <input type="time" id="dm-time-start" onchange="dmAutoEndTime();dmUpdatePreview()" />
+      </div>
+      <div class="modal-field">
+        <label>HORA FI</label>
+        <input type="time" id="dm-time-end" onchange="dmSaveDuration();dmUpdatePreview()" />
+      </div>
+    </div>
+
+    <!-- Tipus -->
+    <div class="modal-field">
+      <label>TIPUS</label>
+      <select id="dm-type" onchange="dmUpdatePreview()">
+        <option value="class">📚 Classe</option>
+        <option value="exam">📝 Examen</option>
+        <option value="extracurricular">🎯 Extraescolar</option>
+        <option value="event">📌 Event</option>
+        <option value="sport">⚽ Esport</option>
+        <option value="other">🔮 Altres</option>
       </select>
     </div>
+
+    <!-- Emoji picker -->
+    <div class="modal-field">
+      <label>EMOJI</label>
+      <div class="emoji-picker">
+        <input class="emoji-search" id="dm-emoji-search" placeholder="🔍 Cerca emoji..."
+               oninput="dmFilterEmojis(this.value)" />
+        <div class="emoji-tabs" id="dm-emoji-tabs">
+          <button class="emoji-tab active" onclick="dmShowEmojiTab(0,this)">📚</button>
+          <button class="emoji-tab" onclick="dmShowEmojiTab(1,this)">⚽</button>
+          <button class="emoji-tab" onclick="dmShowEmojiTab(2,this)">🎨</button>
+          <button class="emoji-tab" onclick="dmShowEmojiTab(3,this)">🍎</button>
+          <button class="emoji-tab" onclick="dmShowEmojiTab(4,this)">🚗</button>
+          <button class="emoji-tab" onclick="dmShowEmojiTab(5,this)">😊</button>
+        </div>
+        <div class="emoji-grid" id="dm-emoji-grid"></div>
+      </div>
+      <div class="dm-selected-emoji-row">
+        <span>Seleccionat:</span>
+        <span id="dm-selected-emoji-display" style="font-size:22px">📌</span>
+      </div>
+    </div>
+
+    <!-- Paleta de colors -->
+    <div class="modal-field">
+      <label>COLOR</label>
+      <div class="color-grid" id="dm-color-grid"></div>
+      <div class="dm-custom-color-row">
+        <input type="color" id="dm-custom-color" value="#6C63FF" oninput="dmSelectCustomColor(this.value)" />
+        <label for="dm-custom-color" class="dm-custom-color-label">Color personalitzat</label>
+      </div>
+    </div>
+
+    <!-- Repetició -->
+    <div class="modal-field">
+      <label>REPETICIÓ</label>
+      <select id="dm-repeat" onchange="dmUpdateRepeatUI()">
+        <option value="none">No repetir</option>
+        <option value="daily">Cada dia</option>
+        <option value="workdays">Dies laborables (Dl–Dv)</option>
+        <option value="weekends">Cap de setmana (Ds–Dg)</option>
+        <option value="weekly">Setmanal</option>
+        <option value="custom">Personalitzat...</option>
+      </select>
+      <div id="dm-repeat-custom" style="display:none;margin-top:10px;">
+        <div class="dm-custom-repeat-row">
+          <span>Cada</span>
+          <input type="number" id="dm-repeat-n" value="1" min="1" max="99" style="width:60px;"
+                 oninput="dmUpdateRepeatSummary()" />
+          <select id="dm-repeat-unit" onchange="dmUpdateRepeatSummary()">
+            <option value="days">dies</option>
+            <option value="weeks">setmanes</option>
+            <option value="months">mesos</option>
+          </select>
+        </div>
+        <div class="dm-weekdays-row" id="dm-weekdays-row" style="display:none;">
+          <label><input type="checkbox" value="1" onchange="dmUpdateRepeatSummary()"> Dl</label>
+          <label><input type="checkbox" value="2" onchange="dmUpdateRepeatSummary()"> Dt</label>
+          <label><input type="checkbox" value="3" onchange="dmUpdateRepeatSummary()"> Dc</label>
+          <label><input type="checkbox" value="4" onchange="dmUpdateRepeatSummary()"> Dj</label>
+          <label><input type="checkbox" value="5" onchange="dmUpdateRepeatSummary()"> Dv</label>
+          <label><input type="checkbox" value="6" onchange="dmUpdateRepeatSummary()"> Ds</label>
+          <label><input type="checkbox" value="0" onchange="dmUpdateRepeatSummary()"> Dg</label>
+        </div>
+      </div>
+      <div id="dm-repeat-until-row" style="display:none;margin-top:10px;">
+        <label style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;margin-bottom:6px;display:block;">FINS AL</label>
+        <input type="date" id="dm-repeat-until" oninput="dmUpdateRepeatSummary()" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:10px 14px;border-radius:10px;outline:none;" />
+      </div>
+      <div class="dm-repeat-summary" id="dm-repeat-summary" style="display:none;"></div>
+    </div>
+
+    <!-- Botons -->
     <div class="modal-btns">
-      <button class="modal-save" onclick="saveDayEvent()">Afegir</button>
+      <button class="modal-save" onclick="saveDayEvent()">💾 Guardar</button>
+      <button id="dm-delete-btn" class="modal-cancel dm-delete" onclick="deleteTimedEvent()" style="display:none;">🗑️ Eliminar</button>
       <button class="modal-cancel" onclick="closeDayModal()">Cancel·lar</button>
     </div>
   </div>
