@@ -1765,12 +1765,34 @@ function renderNextTask() {
   bar.style.display='flex';
 }
 
+function _schedEventsForDay(schedule, dayName, isoDate) {
+  const byName = Array.isArray(schedule[dayName]) ? schedule[dayName] : Object.values(schedule[dayName]||{});
+  const byIso  = isoDate && Array.isArray(schedule[isoDate]) ? schedule[isoDate] : [];
+  // Deduplicació per id
+  const seen = new Set(byName.map(e=>e.id));
+  return [...byName, ...byIso.filter(e=>!seen.has(e.id))];
+}
+
+function _isoLocal(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function _findEventStorageKey(eventId) {
+  const schedule = get(SCHEDULE_KEY, {});
+  for (const [key, evs] of Object.entries(schedule)) {
+    const arr = Array.isArray(evs) ? evs : Object.values(evs||{});
+    if (arr.find(e => e.id === eventId)) return key;
+  }
+  return null;
+}
+
 function renderTodayPanel() {
   const grid=document.getElementById('today-grid'); if (!grid) return;
-  const now=new Date(), days=['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
-  const today=days[now.getDay()];
+  const now=new Date(), dayNames=['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+  const today=dayNames[now.getDay()];
+  const isoToday=_isoLocal(now);
   const schedule=get(SCHEDULE_KEY,{});
-  const events=Array.isArray(schedule[today])?schedule[today]:Object.values(schedule[today]||{});
+  const events=_schedEventsForDay(schedule, today, isoToday);
   const now_min=now.getHours()*60+now.getMinutes();
   if (events.length===0) { grid.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0;">Sense events avui.</div>'; return; }
   const sorted=[...events].sort((a,b)=>{const[ah,am]=(a.time||'00:00').split(':').map(Number);const[bh,bm]=(b.time||'00:00').split(':').map(Number);return(ah*60+am)-(bh*60+bm);});
@@ -1824,14 +1846,26 @@ function renderWeekDates() {
   monday.setDate(today.getDate()-((today.getDay()+6)%7)+weekOffset*7);
   if (label) { const end=new Date(monday);end.setDate(monday.getDate()+6);label.textContent=`${monday.getDate()}/${monday.getMonth()+1} – ${end.getDate()}/${end.getMonth()+1}`; }
   const schedule=get(SCHEDULE_KEY,{});
+  const allLists = (typeof getLists==='function') ? getLists() : [];
   const dayNames=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
   const short=['Dl','Dt','Dc','Dj','Dv','Ds','Dg'];
   grid.innerHTML=dayNames.map((dn,i)=>{
     const d=new Date(monday); d.setDate(monday.getDate()+i);
+    const iso=_isoLocal(d);
     const isToday=d.toDateString()===today.toDateString();
-    const events=Array.isArray(schedule[dn])?schedule[dn]:Object.values(schedule[dn]||{});
-    const evHtml=events.slice(0,4).map(ev=>{const c=ev.color||'#6C63FF';const bg=c.startsWith('#')?c+'26':c;return`<div class="week-event" style="background:${bg};border-left:3px solid ${c}" onclick="openDayModal('${dn}','${ev.id||''}')"><span class="we-time">${ev.emoji||''} ${ev.time||''}</span><span class="we-name">${ev.name||ev.text||''}</span></div>`}).join('');
-    return `<div class="week-col ${isToday?'today':''}"><div class="week-day-header ${isToday?'today':''}"><span class="wdh-short">${short[i]}</span><span class="wdh-num">${d.getDate()}</span></div><div class="week-events">${evHtml}<button class="add-day-event-btn" onclick="openDayModal('${dn}',null)">+</button></div></div>`;
+    const events=_schedEventsForDay(schedule, dn, iso);
+    const evHtml=events.slice(0,4).map(ev=>{
+      const c=ev.color||'#6C63FF';
+      const bg=c.startsWith('#')?c+'26':c;
+      return`<div class="week-event" style="background:${bg};border-left:3px solid ${c}" onclick="openDayModal('${dn}','${ev.id||''}','${iso}')"><span class="we-time">${ev.emoji||''} ${ev.time||''}</span><span class="we-name">${ev.name||ev.text||''}</span></div>`;
+    }).join('');
+    // Task pills: tasques amb date === iso
+    const dayTasks = (allLists||[]).flatMap(l=>(l.tasks||[]).filter(t=>t.date===iso));
+    const taskHtml = dayTasks.slice(0,3).map(t=>{
+      const dot = t.prio<=1?'#ef4444':t.prio===2?'#f59e0b':'#22c55e';
+      return`<div class="task-pill ${t.done?'done':''}" title="${(t.name||'').replace(/"/g,'&quot;')}" onclick="openTaskEditor&&openTaskEditor('${t.id||''}')"><span class="tp-dot" style="background:${dot}"></span><span style="overflow:hidden;text-overflow:ellipsis">${t.name||''}</span></div>`;
+    }).join('');
+    return `<div class="week-col ${isToday?'today':''}"><div class="week-day-header ${isToday?'today':''}"><span class="wdh-short">${short[i]}</span><span class="wdh-num">${d.getDate()}</span></div><div class="week-events">${evHtml}<button class="add-day-event-btn" onclick="openDayModal('${dn}',null,'${iso}')">+</button>${taskHtml?`<div class="week-task-pills">${taskHtml}</div>`:''}</div></div>`;
   }).join('');
 }
 function renderWeekGrid() {
@@ -1900,7 +1934,7 @@ const DM_QUICK_TEMPLATES = [
   { label:'📌 Event',   type:'event',           emoji:'📌', color:'#8B5CF6', hi:'10:00', hf:'11:00' },
 ];
 
-let _dayModalDay=null, _dayModalEventId=null;
+let _dayModalDay=null, _dayModalEventId=null, _dayModalIsoDate=null;
 let _dmSelectedColor='#6C63FF', _dmSelectedEmoji='📌', _dmLastDuration=60, _dmEmojiTabIdx=0;
 
 function _dmEl(id){ return document.getElementById(id); }
@@ -2042,13 +2076,31 @@ function dmPickSuggestion(ev) {
   dmUpdatePreview();
 }
 
+function dmToggleDayPill(btn) {
+  btn.classList.toggle('selected');
+  dmUpdateRepeatSummary();
+}
+
+function dmGetSelectedDayPills() {
+  return [...document.querySelectorAll('#dm-specific-day-pills .day-pill.selected')].map(b=>parseInt(b.dataset.dow));
+}
+
 function dmUpdateRepeatUI() {
   const val=_dmEl('dm-repeat')?.value;
   const custDiv=_dmEl('dm-repeat-custom'), untilRow=_dmEl('dm-repeat-until-row');
+  const specPills=_dmEl('dm-specific-day-pills');
   if(custDiv) custDiv.style.display=val==='custom'?'block':'none';
+  if(specPills) specPills.style.display=val==='specific_days'?'flex':'none';
   if(untilRow) untilRow.style.display=(val&&val!=='none')?'block':'none';
   const wdRow=_dmEl('dm-weekdays-row');
   if(wdRow) wdRow.style.display=(val==='custom'&&_dmEl('dm-repeat-unit')?.value==='weeks')?'flex':'none';
+  // Pre-selecciona el dia de la data actual per a "dies específics"
+  if(val==='specific_days'&&specPills&&_dayModalIsoDate) {
+    const dow=new Date(_dayModalIsoDate+'T00:00:00').getDay();
+    specPills.querySelectorAll('.day-pill').forEach(p=>{
+      if(parseInt(p.dataset.dow)===dow) p.classList.add('selected');
+    });
+  }
   dmUpdateRepeatSummary();
 }
 
@@ -2060,8 +2112,9 @@ function dmUpdateRepeatSummary() {
   const until=_dmEl('dm-repeat-until')?.value;
   if(!until) { summDiv.style.display='none'; return; }
   const untilDate=new Date(until+'T00:00:00');
-  const startDate=_dayModalDay?new Date(_dayModalDay+'T00:00:00'):new Date();
-  if(isNaN(untilDate)||untilDate<=startDate) { summDiv.style.display='none'; return; }
+  const isoStart=_dayModalIsoDate||_isoLocal(new Date());
+  const startDate=new Date(isoStart+'T00:00:00');
+  if(isNaN(untilDate)||untilDate<startDate) { summDiv.style.display='none'; return; }
 
   let count=0, label='';
   const msDay=86400000;
@@ -2077,6 +2130,13 @@ function dmUpdateRepeatSummary() {
     label='caps de setmana';
   } else if(val==='weekly') {
     count=Math.floor((untilDate-startDate)/(7*msDay))+1; label='cada setmana';
+  } else if(val==='specific_days') {
+    const selDow=dmGetSelectedDayPills();
+    if(selDow.length===0){ summDiv.style.display='none'; return; }
+    let d=new Date(startDate);
+    while(d<=untilDate){ if(selDow.includes(d.getDay())) count++; d=new Date(d.getTime()+msDay); }
+    const nameMap={0:'dg',1:'dl',2:'dm',3:'dc',4:'dj',5:'dv',6:'ds'};
+    label=`cada ${selDow.map(d=>nameMap[d]).join('+')}`;
   } else if(val==='custom') {
     const n=parseInt(_dmEl('dm-repeat-n')?.value)||1;
     const unit=_dmEl('dm-repeat-unit')?.value||'days';
@@ -2105,12 +2165,20 @@ function dmUpdateRepeatSummary() {
   }
 }
 
-function openDayModal(day, eventId) {
+function openDayModal(day, eventId, isoDate) {
   _dayModalDay=day; _dayModalEventId=eventId;
+  _dayModalIsoDate=isoDate||null;
   const ov=_dmEl('day-modal-overlay'); if(!ov){ showToast('Modal no disponible'); return; }
   const schedule=get(SCHEDULE_KEY,{});
-  const events=Array.isArray(schedule[day])?schedule[day]:Object.values(schedule[day]||{});
-  const ev=eventId?events.find(e=>e.id===eventId):null;
+  // Cerca l'event per ID a qualsevol clau (dia o ISO date)
+  let ev=null;
+  if(eventId){
+    const key=_findEventStorageKey(eventId);
+    if(key){
+      const arr=Array.isArray(schedule[key])?schedule[key]:Object.values(schedule[key]||{});
+      ev=arr.find(e=>e.id===eventId)||null;
+    }
+  }
 
   // Reset / omple
   _dmSelectedColor=ev?.color||'#6C63FF';
@@ -2156,74 +2224,88 @@ function saveDayEvent() {
   const type=_dmEl('dm-type')?.value||'event';
   const color=_dmSelectedColor;
   const emoji=_dmSelectedEmoji;
-  // Calcula durada per a futurs events
   if(timeStart&&timeEnd){
     const[sh,sm]=timeStart.split(':').map(Number),[eh,em]=timeEnd.split(':').map(Number);
     const diff=(eh*60+em)-(sh*60+sm); if(diff>0) _dmLastDuration=diff;
   }
   const schedule=get(SCHEDULE_KEY,{});
-  if(!schedule[_dayModalDay]) schedule[_dayModalDay]=[];
-  if(!Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=Object.values(schedule[_dayModalDay]);
   const baseEv={name,text:name,type,color,emoji,time:timeStart,timeStart,timeEnd,created:Date.now()};
 
-  // Repetició
   const repVal=_dmEl('dm-repeat')?.value||'none';
   const until=_dmEl('dm-repeat-until')?.value;
 
+  // ── RECURRÈNCIA ──
   if(repVal!=='none'&&until&&!_dayModalEventId) {
+    const isoStart=_dayModalIsoDate||_isoLocal(new Date());
     const msDay=86400000;
     const untilDate=new Date(until+'T00:00:00');
-    const startDate=new Date(_dayModalDay+'T00:00:00');
-    let days=[];
+    const startDate=new Date(isoStart+'T00:00:00');
+    if(isNaN(startDate)||isNaN(untilDate)){ showWarningToast('⚠️ Data d\'inici no vàlida'); return; }
+    let isoDays=[];
     if(repVal==='daily'){
-      let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+      let d=new Date(startDate); while(d<=untilDate){ isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+msDay); }
     } else if(repVal==='workdays'){
-      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()>=1&&d.getDay()<=5) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()>=1&&d.getDay()<=5) isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+msDay); }
     } else if(repVal==='weekends'){
-      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()===0||d.getDay()===6) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+      let d=new Date(startDate); while(d<=untilDate){ if(d.getDay()===0||d.getDay()===6) isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+msDay); }
     } else if(repVal==='weekly'){
-      let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+7*msDay); }
+      let d=new Date(startDate); while(d<=untilDate){ isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+7*msDay); }
+    } else if(repVal==='specific_days'){
+      const selDow=dmGetSelectedDayPills();
+      if(!selDow.length){ showWarningToast('⚠️ Selecciona algun dia'); return; }
+      let d=new Date(startDate); while(d<=untilDate){ if(selDow.includes(d.getDay())) isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+msDay); }
     } else if(repVal==='custom'){
       const n=parseInt(_dmEl('dm-repeat-n')?.value)||1;
       const unit=_dmEl('dm-repeat-unit')?.value||'days';
       const chkd=[...document.querySelectorAll('#dm-weekdays-row input:checked')].map(c=>parseInt(c.value));
       if(unit==='days'){
-        let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+n*msDay); }
+        let d=new Date(startDate); while(d<=untilDate){ isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+n*msDay); }
       } else if(unit==='weeks'&&chkd.length){
-        let d=new Date(startDate); while(d<=untilDate){ if(chkd.includes(d.getDay())) days.push(new Date(d)); d=new Date(d.getTime()+msDay); }
+        let d=new Date(startDate); while(d<=untilDate){ if(chkd.includes(d.getDay())) isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+msDay); }
       } else if(unit==='weeks'){
-        let d=new Date(startDate); while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getTime()+n*7*msDay); }
+        let d=new Date(startDate); while(d<=untilDate){ isoDays.push(_isoLocal(d)); d=new Date(d.getTime()+n*7*msDay); }
       } else {
         let d=new Date(startDate);
-        while(d<=untilDate){ days.push(new Date(d)); d=new Date(d.getFullYear(),d.getMonth()+n,d.getDate()); }
+        while(d<=untilDate){ isoDays.push(_isoLocal(d)); d=new Date(d.getFullYear(),d.getMonth()+n,d.getDate()); }
       }
     }
+    if(!isoDays.length){ showWarningToast('⚠️ Cap event generat amb aquesta configuració'); return; }
     const gid='rep_'+Date.now();
-    days.forEach(dd=>{
-      const dk=dd.toISOString().slice(0,10);
+    isoDays.forEach(dk=>{
       if(!schedule[dk]) schedule[dk]=[];
       if(!Array.isArray(schedule[dk])) schedule[dk]=Object.values(schedule[dk]);
       schedule[dk].push({...baseEv,id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),repeatGroupId:gid});
     });
     set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel();
-    showToast(`✅ ${days.length} events creats!`); return;
+    showToast(`✅ ${isoDays.length} events creats!`); return;
   }
 
+  // ── EVENT ÚNIC ──
+  // Usa la data ISO si disponible, sinó dia de la setmana (compatibilitat)
+  const storageKey=_dayModalIsoDate||_dayModalDay;
+  if(!schedule[storageKey]) schedule[storageKey]=[];
+  if(!Array.isArray(schedule[storageKey])) schedule[storageKey]=Object.values(schedule[storageKey]);
   if(_dayModalEventId){
-    const idx=schedule[_dayModalDay].findIndex(e=>e.id===_dayModalEventId);
-    if(idx!==-1) schedule[_dayModalDay][idx]={...schedule[_dayModalDay][idx],...baseEv};
+    const foundKey=_findEventStorageKey(_dayModalEventId)||storageKey;
+    if(!schedule[foundKey]) schedule[foundKey]=[];
+    const idx=schedule[foundKey].findIndex(e=>e.id===_dayModalEventId);
+    if(idx!==-1) schedule[foundKey][idx]={...schedule[foundKey][idx],...baseEv};
+    else schedule[storageKey].push({...baseEv,id:_dayModalEventId});
   } else {
-    schedule[_dayModalDay].push({...baseEv,id:Date.now().toString()});
+    schedule[storageKey].push({...baseEv,id:Date.now().toString()});
   }
   set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel(); showToast('✅ Event guardat!');
 }
 
 function deleteTimedEvent() {
-  if(!_dayModalDay||!_dayModalEventId) return;
+  if(!_dayModalEventId) return;
   showDeleteConfirm(()=>{
     const schedule=get(SCHEDULE_KEY,{});
-    if(Array.isArray(schedule[_dayModalDay])) schedule[_dayModalDay]=schedule[_dayModalDay].filter(e=>e.id!==_dayModalEventId);
-    set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); showToast('🗑️ Event eliminat');
+    const key=_findEventStorageKey(_dayModalEventId);
+    if(key&&Array.isArray(schedule[key])){
+      schedule[key]=schedule[key].filter(e=>e.id!==_dayModalEventId);
+    }
+    set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel(); showToast('🗑️ Event eliminat');
   },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event de l'horari."});
 }
 

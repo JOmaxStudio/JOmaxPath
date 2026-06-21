@@ -2473,8 +2473,18 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <option value="workdays">Dies laborables (Dl–Dv)</option>
         <option value="weekends">Cap de setmana (Ds–Dg)</option>
         <option value="weekly">Setmanal</option>
+        <option value="specific_days">Dies específics de la setmana</option>
         <option value="custom">Personalitzat...</option>
       </select>
+      <div class="day-pills" id="dm-specific-day-pills" style="display:none;">
+        <button class="day-pill" data-dow="1" onclick="dmToggleDayPill(this)">Dl</button>
+        <button class="day-pill" data-dow="2" onclick="dmToggleDayPill(this)">Dm</button>
+        <button class="day-pill" data-dow="3" onclick="dmToggleDayPill(this)">Dc</button>
+        <button class="day-pill" data-dow="4" onclick="dmToggleDayPill(this)">Dj</button>
+        <button class="day-pill" data-dow="5" onclick="dmToggleDayPill(this)">Dv</button>
+        <button class="day-pill" data-dow="6" onclick="dmToggleDayPill(this)">Ds</button>
+        <button class="day-pill" data-dow="0" onclick="dmToggleDayPill(this)">Dg</button>
+      </div>
       <div id="dm-repeat-custom" style="display:none;margin-top:10px;">
         <div class="dm-custom-repeat-row">
           <span>Cada</span>
@@ -2778,7 +2788,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';}</script>
-<script src="app.js?v=20260610-audit10" defer></script>
+<script src="app.js?v=20260621-bugfix" defer></script>
 
 <script>
 /* ═══════════════════════════════════════════════════
