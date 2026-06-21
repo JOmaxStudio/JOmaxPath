@@ -58,10 +58,11 @@
    JOMAXPATH — LAYOUT + TOTS ELS TEMES + BARRA INFERIOR v5
 ══════════════════════════════════════════════════════════════ */
 
-/* ── Container sempre 100% ── */
+/* ── Container: width sincronitzada amb la sidebar ── */
 .container {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: calc(100% - var(--sb-wc));
+  max-width: none !important;
+  min-width: 0;
   padding: 28px 32px 80px 32px !important;
   box-sizing: border-box !important;
 }
@@ -550,6 +551,7 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
 #left-sidebar{
   position:fixed;top:0;left:0;bottom:0;
   width:var(--sb-w);
+  transition:width 0.3s cubic-bezier(0.4,0,0.2,1);
   background:rgba(5,5,13,0.98);
   border-right:1px solid rgba(124,58,237,0.14);
   backdrop-filter:blur(24px);
@@ -688,13 +690,23 @@ body.theme-blanc, body.theme-blanc html { background: #f0f2f8 !important; }
 #left-sidebar.sb-collapsed .lsb-bot-item span:last-child{display:none;}
 
 /* Shift content when sidebar is visible */
-body.view-pages.sb-open-desktop #bnav,
 body.view-pages.sb-open-desktop .container{
+  margin-left:var(--sb-w);
+  width:calc(100% - var(--sb-w));
+  transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1),
+             width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+body.view-pages.sb-collapsed-desktop .container{
+  margin-left:var(--sb-wc);
+  width:calc(100% - var(--sb-wc));
+  transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1),
+             width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+body.view-pages.sb-open-desktop #bnav{
   margin-left:var(--sb-w);
   transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
 }
-body.view-pages.sb-collapsed-desktop #bnav,
-body.view-pages.sb-collapsed-desktop .container{
+body.view-pages.sb-collapsed-desktop #bnav{
   margin-left:var(--sb-wc);
   transition:margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
 }
@@ -710,7 +722,10 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   body.view-pages.sb-open-desktop .container,
   body.view-pages.sb-collapsed-desktop .container,
   body.view-pages.sb-open-desktop #bnav,
-  body.view-pages.sb-collapsed-desktop #bnav{margin-left:0!important;}
+  body.view-pages.sb-collapsed-desktop #bnav{
+    margin-left:0!important;
+    width:100%!important;
+  }
   #lsb-mobile-btn{display:flex!important;}
 }
 
@@ -824,11 +839,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   overflow: hidden !important;
 }
 
-/* ── Scroll suau al contingut quan sidebar s'obre ── */
-body.view-pages.sb-open-desktop .container,
-body.view-pages.sb-collapsed-desktop .container {
-  transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1) !important;
-}
+/* ── Transició sincronitzada sidebar↔container (no sobreescriure) ── */
 
 /* ── ELIMINAR premium-fab completament ── */
 #premium-fab { display: none !important; }
