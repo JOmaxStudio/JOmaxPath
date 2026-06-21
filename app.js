@@ -2299,14 +2299,110 @@ function saveDayEvent() {
 
 function deleteTimedEvent() {
   if(!_dayModalEventId) return;
-  showDeleteConfirm(()=>{
-    const schedule=get(SCHEDULE_KEY,{});
-    const key=_findEventStorageKey(_dayModalEventId);
-    if(key&&Array.isArray(schedule[key])){
-      schedule[key]=schedule[key].filter(e=>e.id!==_dayModalEventId);
+  const schedule=get(SCHEDULE_KEY,{});
+  const key=_findEventStorageKey(_dayModalEventId);
+  if(!key) return;
+  const arr=Array.isArray(schedule[key])?schedule[key]:Object.values(schedule[key]||{});
+  const ev=arr.find(e=>e.id===_dayModalEventId);
+  if(ev&&ev.repeatGroupId){
+    showDeleteRecurringModal(ev);
+  } else {
+    showDeleteConfirm(()=>{
+      const sch=get(SCHEDULE_KEY,{});
+      const k=_findEventStorageKey(_dayModalEventId);
+      if(k&&Array.isArray(sch[k])) sch[k]=sch[k].filter(e=>e.id!==_dayModalEventId);
+      set(SCHEDULE_KEY,sch); closeDayModal(); renderWeekDates(); renderTodayPanel(); showToast('🗑️ Event eliminat');
+    },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event de l'horari."});
+  }
+}
+
+function showDeleteRecurringModal(ev) {
+  const existing=document.getElementById('drm-backdrop');
+  if(existing) existing.remove();
+  const eventDate=ev.date||_dayModalIsoDate||'';
+  const backdrop=document.createElement('div');
+  backdrop.id='drm-backdrop';
+  backdrop.className='drm-backdrop';
+  backdrop.innerHTML=`
+    <div class="drm-dialog">
+      <h3>🗑️ ELIMINAR EVENT RECURRENT</h3>
+      <p class="drm-subtitle">Com vols eliminar "<strong>${ev.name||ev.text||''}</strong>"?</p>
+      <div class="drm-options">
+        <label class="drm-option">
+          <input type="radio" name="drm-scope" value="single" checked />
+          <div class="drm-option-texts">
+            <span class="drm-option-label">Només aquest</span>
+            <span class="drm-option-desc">S'elimina únicament l'event del ${formatDateReadable(eventDate)}</span>
+          </div>
+        </label>
+        <label class="drm-option">
+          <input type="radio" name="drm-scope" value="future" />
+          <div class="drm-option-texts">
+            <span class="drm-option-label">Aquest i els futurs</span>
+            <span class="drm-option-desc">S'eliminen aquest i tots els events de la sèrie a partir d'avui</span>
+          </div>
+        </label>
+        <label class="drm-option">
+          <input type="radio" name="drm-scope" value="all" />
+          <div class="drm-option-texts">
+            <span class="drm-option-label">Tots els events de la sèrie</span>
+            <span class="drm-option-desc">S'eliminen tots els events repetits d'aquesta sèrie</span>
+          </div>
+        </label>
+      </div>
+      <div class="drm-actions">
+        <button class="drm-btn-cancel" id="drm-cancel">✕ Cancel·lar</button>
+        <button class="drm-btn-confirm" id="drm-confirm">✓ Eliminar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  document.getElementById('drm-cancel').onclick=()=>backdrop.remove();
+  backdrop.onclick=(e)=>{if(e.target===backdrop)backdrop.remove();};
+  document.getElementById('drm-confirm').onclick=()=>{
+    const scope=backdrop.querySelector('input[name="drm-scope"]:checked').value;
+    backdrop.remove();
+    executeDeleteRecurring(ev, scope);
+  };
+}
+
+function executeDeleteRecurring(ev, scope) {
+  const schedule=get(SCHEDULE_KEY,{});
+  const gid=ev.repeatGroupId;
+  const eventDate=ev.date||_dayModalIsoDate||'';
+
+  if(scope==='single'){
+    const k=_findEventStorageKey(ev.id);
+    if(k&&Array.isArray(schedule[k])) schedule[k]=schedule[k].filter(e=>e.id!==ev.id);
+  } else if(scope==='future'){
+    for(const [k,evs] of Object.entries(schedule)){
+      if(!Array.isArray(evs)) continue;
+      schedule[k]=evs.filter(e=>{
+        if(e.repeatGroupId!==gid) return true;
+        const eDate=e.date||k;
+        return eDate<eventDate;
+      });
     }
-    set(SCHEDULE_KEY,schedule); closeDayModal(); renderWeekDates(); renderTodayPanel(); showToast('🗑️ Event eliminat');
-  },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event de l'horari."});
+  } else {
+    for(const [k,evs] of Object.entries(schedule)){
+      if(!Array.isArray(evs)) continue;
+      schedule[k]=evs.filter(e=>e.repeatGroupId!==gid);
+    }
+  }
+
+  set(SCHEDULE_KEY,schedule);
+  closeDayModal();
+  renderWeekDates();
+  renderTodayPanel();
+  const msgs={single:'🗑️ Event eliminat',future:'🗑️ Aquest i futurs eliminats',all:'🗑️ Tota la sèrie eliminada'};
+  showToast(msgs[scope]||'🗑️ Eliminat');
+}
+
+function formatDateReadable(isoDate) {
+  if(!isoDate) return '—';
+  const [y,m,d]=isoDate.split('-');
+  if(!y||!m||!d) return isoDate;
+  const months=['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
 }
 
 function saveTimedEvent() { saveDayEvent(); }

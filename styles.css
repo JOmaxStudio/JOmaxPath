@@ -7525,3 +7525,52 @@ body.view-pages.sb-collapsed-desktop #bnav {
     min-height: 48px !important;
   }
 }
+
+/* ── Modal eliminació recurrent (drm) ── */
+.drm-backdrop {
+  position: fixed; inset: 0; z-index: 100000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(10px);
+}
+.drm-dialog {
+  background: var(--card); border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 20px; padding: 28px 28px 22px;
+  max-width: 360px; width: 92%; box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+.drm-dialog h3 {
+  font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 1px;
+  color: var(--text); margin: 0 0 6px; text-align: center;
+}
+.drm-dialog .drm-subtitle {
+  font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 18px;
+}
+.drm-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.drm-option {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--card2);
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.drm-option:hover { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+.drm-option input[type=radio] { margin-top: 2px; accent-color: #ef4444; flex-shrink: 0; }
+.drm-option-texts { display: flex; flex-direction: column; }
+.drm-option-label { font-size: 12px; color: var(--text); font-weight: 600; }
+.drm-option-desc  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.drm-actions { display: flex; gap: 10px; }
+.drm-btn-cancel {
+  flex: 1; padding: 11px; background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 12px; font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: 1px; cursor: pointer;
+}
+.drm-btn-confirm {
+  flex: 1; padding: 11px; background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4); color: #fca5a5;
+  border-radius: 12px; font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: 1px; cursor: pointer; transition: background 0.2s;
+}
+.drm-btn-confirm:hover { background: rgba(239,68,68,0.3); }
+
+body.theme-blanc .drm-dialog { background: #fff; }
+body.theme-blanc .drm-option { background: #f8f8f8; border-color: #ddd; }
+body.theme-blanc .drm-option:hover { background: #fee2e2; border-color: #fca5a5; }
+body.theme-blanc .drm-btn-cancel { background: #f3f3f3; }
