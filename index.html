@@ -1315,6 +1315,10 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <div class="bnav-icon">🎯</div>
     <div class="bnav-lbl">FOCUS</div>
   </div>
+  <div class="bnav-item bnav-item-mes" role="button" aria-label="Més opcions" onclick="showMobileMenu()">
+    <div class="bnav-icon">☰</div>
+    <div class="bnav-lbl">MÉS</div>
+  </div>
 </nav>
 
 <div class="container" role="main">
@@ -3177,6 +3181,417 @@ body.theme-blanc ::-webkit-scrollbar-thumb { background: rgba(109,40,217,0.2) !i
 <script src="shop.js?v=1" defer></script>
 <script src="adaptability.js?v=1" defer></script>
 <script src="adaptive-context.js?v=1" defer></script>
+
+<!-- ══════════════════════════════════════════════════════
+     MILLORA 16 — RESPONSIVE MOBILE-FIRST
+══════════════════════════════════════════════════════ -->
+<style id="responsive-m16">
+
+/* ── Variables globals ── */
+:root {
+  --bottom-nav-height: 58px;
+  --header-mobile-height: 52px;
+}
+
+/* ══ FASE 2: MOSTRAR BNAV EN MÒBIL ══ */
+@media (max-width: 768px) {
+  /* Sobreescriu el display:none del bnav en mòbil */
+  #bnav,
+  body.view-pages.sb-open-desktop #bnav,
+  body.view-pages.sb-collapsed-desktop #bnav {
+    display: flex !important;
+    z-index: 1000 !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  /* Padding inferior del contenidor per no quedar sota la bnav */
+  .container {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px) !important;
+  }
+
+  /* Amaga el botó hamburger mòbil (bnav el substitueix) */
+  #lsb-mobile-btn { display: none !important; }
+
+  /* Padding superior per evitar solapament amb elements fixos */
+  .container { padding-top: 16px !important; }
+  .page-title-bar { padding-left: 0 !important; margin-top: 8px !important; }
+}
+
+/* ══ FASE 2: TABLET (768px - 1024px) — Sidebar col·lapsada ══ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #left-sidebar:not(.sb-collapsed):not(.lsb-mobile-open) {
+    width: var(--sb-wc) !important;
+  }
+  #left-sidebar:not(.sb-collapsed) .lsb-brand,
+  #left-sidebar:not(.sb-collapsed) .lsb-sec,
+  #left-sidebar:not(.sb-collapsed) .lsb-lbl,
+  #left-sidebar:not(.sb-collapsed) .lsb-pill,
+  #left-sidebar:not(.sb-collapsed) .lsb-hero-lvl,
+  #left-sidebar:not(.sb-collapsed) .lsb-hero-name-mini,
+  #left-sidebar:not(.sb-collapsed) .lsb-xpbar,
+  #left-sidebar:not(.sb-collapsed) .lsb-toggle-btn {
+    display: none !important;
+  }
+  #left-sidebar:not(.sb-collapsed) .lsb-item {
+    justify-content: center !important;
+    padding: 9px !important;
+    margin: 1px 6px !important;
+  }
+  #left-sidebar:not(.sb-collapsed) .lsb-ico { margin: 0 !important; }
+  #left-sidebar:not(.sb-collapsed) .lsb-top { justify-content: center !important; padding: 14px 0 !important; }
+  #left-sidebar:not(.sb-collapsed) .lsb-hero-mini { padding: 6px !important; justify-content: center !important; }
+  #left-sidebar:not(.sb-collapsed) .lsb-bot-item { justify-content: center !important; }
+  #left-sidebar:not(.sb-collapsed) .lsb-bot-item span:last-child { display: none !important; }
+}
+
+/* ══ FASE 3: ESTIL BOTÓ "MÉS" A LA BNAV ══ */
+.bnav-item-mes { display: none; }
+
+@media (max-width: 768px) {
+  .bnav-item-mes { display: flex !important; }
+}
+
+/* ══ FASE 4: DRAWER MÒBIL ══ */
+#mobile-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+}
+#mobile-drawer.open { pointer-events: auto; }
+
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#mobile-drawer.open .mobile-drawer-backdrop { opacity: 1; }
+
+.mobile-drawer-content {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card, #0e0e1e);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border, rgba(124,58,237,0.18));
+  padding: 12px 16px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  z-index: 10001;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+}
+#mobile-drawer.open .mobile-drawer-content { transform: translateY(0); }
+
+.mobile-drawer-handle {
+  width: 36px; height: 4px;
+  background: var(--border, rgba(124,58,237,0.3));
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.mobile-drawer-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted, #64748b);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.mobile-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mobile-drawer-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border: 1px solid var(--border, rgba(124,58,237,0.18));
+  border-radius: 14px;
+  background: var(--card2, #14142a);
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--text, #e2e8f0);
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 80px;
+}
+
+.mobile-drawer-grid button span:first-child { font-size: 26px; line-height: 1; }
+
+.mobile-drawer-grid button:active {
+  background: rgba(124,58,237,0.15);
+  border-color: rgba(124,58,237,0.4);
+}
+
+/* Tema blanc: ajust del drawer */
+body.theme-blanc .mobile-drawer-content { background: #f0f2f8; border-top-color: rgba(109,40,217,0.18); }
+body.theme-blanc .mobile-drawer-grid button { background: #fff; border-color: rgba(109,40,217,0.12); color: #1a1a2e; }
+body.theme-blanc .mobile-drawer-grid button:active { background: rgba(109,40,217,0.06); }
+
+/* ══ FASE 5: CALENDARI SETMANAL EN MÒBIL ══ */
+@media (max-width: 768px) {
+  .week-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 10px !important;
+    padding: 0 4px 8px !important;
+    grid-template-columns: none !important;
+  }
+  .week-grid::-webkit-scrollbar { display: none !important; }
+
+  .week-grid > div,
+  .week-grid .day-card,
+  .week-grid .week-col {
+    flex: 0 0 calc(100vw - 60px) !important;
+    min-width: calc(100vw - 60px) !important;
+    scroll-snap-align: start !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* ══ FASE 6: MODALS PANTALLA COMPLETA EN MÒBIL ══ */
+@media (max-width: 768px) {
+  .modal-overlay,
+  #event-modal,
+  #month-modal,
+  #task-modal,
+  #habit-modal,
+  #recurrence-modal {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-overlay > div:not(.mobile-drawer-backdrop),
+  #event-modal > div,
+  #month-modal > div,
+  #task-modal > div,
+  #habit-modal > div,
+  #recurrence-modal > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+  }
+}
+
+/* ══ FASE 7: ELEMENTS TÀCTILS ══ */
+@media (max-width: 768px) {
+  /* Touch targets mínims */
+  button,
+  [role="button"],
+  .bnav-item,
+  .lsb-item {
+    min-height: 44px;
+  }
+
+  /* Inputs sense zoom automàtic en iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="time"],
+  input[type="date"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+
+  /* Cards de tasques */
+  .exam-item,
+  .board-card {
+    min-height: 52px;
+    padding: 12px 14px !important;
+  }
+
+  /* Botó afegir tasca: més gran */
+  .add-btn, [class*="add-btn"] {
+    min-height: 48px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ══ FASE 8: POSICIONAMENT SWIPE ACTIONS ══ */
+.task-swipe-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+.swipe-action {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+.swipe-action:active { transform: scale(0.92); }
+.swipe-action.complete { background: #10b981; color: white; }
+.swipe-action.delete-sw { background: #ef4444; color: white; }
+
+</style>
+
+<script id="responsive-m16-js">
+/* ══════════════════════════════════════
+   MILLORA 16 — JS RESPONSIVE
+══════════════════════════════════════ */
+
+/* ── Drawer mòbil "Més" ── */
+function showMobileMenu() {
+  if (document.getElementById('mobile-drawer')) return;
+
+  const drawer = document.createElement('div');
+  drawer.id = 'mobile-drawer';
+  drawer.innerHTML = `
+    <div class="mobile-drawer-backdrop"></div>
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-handle"></div>
+      <div class="mobile-drawer-title">MÉS SECCIONS</div>
+      <div class="mobile-drawer-grid">
+        <button onclick="navTo('examenia');closeMobileMenu()">
+          <span>📚</span><span>EXÀMENS</span>
+        </button>
+        <button onclick="navTo('notes');closeMobileMenu()">
+          <span>📝</span><span>NOTES</span>
+        </button>
+        <button onclick="openSearch&&openSearch();closeMobileMenu()">
+          <span>🔍</span><span>CERCA</span>
+        </button>
+        <button onclick="openQuickCapture&&openQuickCapture();closeMobileMenu()">
+          <span>⚡</span><span>RÀPID</span>
+        </button>
+        <button onclick="navTo('home');closeMobileMenu()">
+          <span>📊</span><span>STATS</span>
+        </button>
+        <button onclick="document.querySelector('.lsb-bot-item[onclick*=\"config\"]')?.click();closeMobileMenu()">
+          <span>⚙️</span><span>CONFIG</span>
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(drawer);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => drawer.classList.add('open'));
+  });
+  drawer.querySelector('.mobile-drawer-backdrop').onclick = closeMobileMenu;
+}
+
+function closeMobileMenu() {
+  const drawer = document.getElementById('mobile-drawer');
+  if (!drawer) return;
+  drawer.classList.remove('open');
+  setTimeout(() => drawer.remove(), 300);
+}
+
+/* ── Scroll al dia actual en mòbil ── */
+function scrollToToday() {
+  if (window.innerWidth > 768) return;
+  const today = document.querySelector('.week-grid .day-card.today, .week-grid .day-card[data-today]');
+  if (today) {
+    setTimeout(() => {
+      today.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    }, 100);
+  }
+}
+
+/* ── Crida scrollToToday quan es navega a horari ── */
+(function() {
+  const _origNavTo = window.navTo;
+  if (typeof _origNavTo === 'function') {
+    window.navTo = function(page) {
+      _origNavTo.apply(this, arguments);
+      if (page === 'horari') scrollToToday();
+    };
+  }
+})();
+
+/* ── Swipe en tasques (opcional, s'activa si hi ha .exam-item) ── */
+function addSwipeToTask(taskElement, taskId) {
+  if (window.innerWidth > 768) return;
+  let startX = 0, currentX = 0, isDragging = false;
+
+  taskElement.style.transition = '';
+  taskElement.style.position = 'relative';
+
+  taskElement.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+    taskElement.style.transition = '';
+  }, { passive: true });
+
+  taskElement.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX - startX;
+    if (currentX < 0 && currentX > -120) {
+      taskElement.style.transform = `translateX(${currentX}px)`;
+    }
+  }, { passive: true });
+
+  taskElement.addEventListener('touchend', () => {
+    isDragging = false;
+    if (currentX < -80) {
+      taskElement.style.transition = 'transform 0.2s ease';
+      taskElement.style.transform = 'translateX(-100px)';
+      showTaskSwipeActions(taskElement, taskId);
+    } else {
+      taskElement.style.transition = 'transform 0.2s ease';
+      taskElement.style.transform = 'translateX(0)';
+    }
+    currentX = 0;
+  });
+}
+
+function showTaskSwipeActions(taskElement, taskId) {
+  taskElement.parentElement?.querySelector('.swipe-actions')?.remove();
+  const actions = document.createElement('div');
+  actions.className = 'swipe-actions';
+  actions.innerHTML = `
+    <button class="swipe-action complete" onclick="if(typeof toggleTask==='function')toggleTask('${taskId}');this.closest('.swipe-actions').remove();this.closest('.exam-item, .task-item').style.transform='translateX(0)';" aria-label="Completar">✓</button>
+    <button class="swipe-action delete-sw" onclick="if(typeof deleteTask==='function')deleteTask('${taskId}');" aria-label="Eliminar">🗑</button>
+  `;
+  taskElement.parentElement.style.position = 'relative';
+  taskElement.parentElement.appendChild(actions);
+}
+
+/* ── Tanca drawer amb tecla Escape ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMobileMenu();
+});
+</script>
 </body>
 </html>
 <!-- ══════════════════════════════════════════
@@ -3347,24 +3762,18 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
 /* MÒBIL: contingut a TOTA AMPLADA, amb espai a dalt per la barra fixa (rellotge+menús)
    i a baix per la barra de navegació. Així res queda comprimit ni tapat. */
 @media(max-width: 768px) {
-  /* Sense barra inferior: marge inferior petit. Navegació via hamburguer ☰ */
-  .container { padding: 72px 14px 28px !important; }
-  /* El títol de pàgina ja no queda sota l'hamburguer (el contingut comença sota la barra) */
+  /* Contingut: espai dalt i baix (bnav fixa a baix) */
+  .container { padding: 16px 14px calc(58px + env(safe-area-inset-bottom) + 16px) !important; }
   .page-title-bar { padding-left: 0 !important; }
-  /* Amaga decoracions laterals que poden semblar barres */
   .side-deco-left, .side-deco-right { display: none !important; }
-  /* AMAGA la barra de navegació inferior (redundant amb el menú ☰) */
-  #bnav { display: none !important; }
+  /* MOSTRA la barra de navegació inferior en mòbil (Millora 16) */
+  #bnav { display: flex !important; }
   body.view-pages.sb-open-desktop #bnav,
-  body.view-pages.sb-collapsed-desktop #bnav { display: none !important; }
-  /* Barra superior una mica més compacta a mòbil */
-  #nav-clock { top: 14px !important; }
-  #lsb-mobile-btn { top: 14px !important; }
-  /* UN SOL HAMBURGUER: amaga el dret (drawer); tot és accessible des del menú ☰ esquerre */
+  body.view-pages.sb-collapsed-desktop #bnav { display: flex !important; }
+  /* Amaga el botó hamburger: la bnav substitueix la navegació */
+  #lsb-mobile-btn { display: none !important; }
   #nav-hamburger { display: none !important; }
-  #nav-clock { right: 16px !important; }
-  /* Hamburguer esquerre més visible (és la navegació principal al mòbil) */
-  #lsb-mobile-btn { background: rgba(124,58,237,0.18) !important; border-color: rgba(124,58,237,0.4) !important; }
+  #nav-clock { top: 14px !important; right: 16px !important; }
 
   /* ═══ JULIANS AI: apilat vertical al mòbil (llista a dalt, xat + input a sota) ═══ */
   #ai-layout { display: flex !important; flex-direction: column !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
