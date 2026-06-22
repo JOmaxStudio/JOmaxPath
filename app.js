@@ -2867,15 +2867,22 @@ function renderListKanban(list) {
     <div class="ld-kcol" ondragover="event.preventDefault()" ondrop="dropListTask(event,'${c.k}')">
       <div class="ld-kcol-head">${c.t} <span>${tasks.filter(t=>(t.status||'todo')===c.k).length}</span></div>
       <div class="ld-kcol-body">
-        ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>`
-          <div class="ld-kcard" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
+        ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>{
+            const subs=t.subtasks||[];
+            const sDone=subs.filter(s=>s.completed).length;
+            const sTotal=subs.length;
+            const sPct=sTotal>0?Math.round((sDone/sTotal)*100):0;
+            return `
+          <div class="ld-kcard" data-task-id="${t.id}" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
             <div class="ld-kcard-name">${_esc(t.name)}</div>
             ${(t.date||t.assignee)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
+            ${sTotal>0?`<div class="kanban-card-progress"><div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${sPct}%"></div></div><span class="kanban-card-progress-text">${sDone}/${sTotal}</span></div>`:''}
             <div class="ld-kcard-foot">
               ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
+              <button onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
               <button onclick="deleteListTask('${t.id}')" title="Eliminar">✕</button>
             </div>
-          </div>`).join('')||'<div class="ld-kcol-empty">—</div>'}
+          </div>`;}).join('')||'<div class="ld-kcol-empty">—</div>'}
       </div>
     </div>`).join('')}</div>`;
 }
@@ -3045,6 +3052,9 @@ function openNewTaskEditor(){
   if(titleEl) titleEl.textContent='✎ Nova tasca';
   const saveBtn=document.getElementById('te-save-btn');
   if(saveBtn) saveBtn.textContent='💾 Crear';
+  // Amaga subtasques en mode creació
+  const stc = document.getElementById('te-subtasks-container');
+  if(stc) stc.innerHTML='';
   document.getElementById('task-editor-overlay').style.display='flex';
 }
 
@@ -3074,6 +3084,8 @@ function openTaskEditor(taskId){
   if(titleEl) titleEl.textContent='✎ Editar tasca';
   const saveBtn=document.getElementById('te-save-btn');
   if(saveBtn) saveBtn.textContent='💾 Desar';
+  // Subtasques (mode edició)
+  renderSubtasksSection(taskId);
   document.getElementById('task-editor-overlay').style.display='flex';
 }
 function teRenderLinks(links){
@@ -3461,12 +3473,23 @@ function renderPersonalKanban() {
   board.innerHTML=cols.map((col,ci)=>{
     const colTasks=tasks.filter(t=>(t.status||'todo')===col.id);
     const urgColors={green:'#6ee7b7',yellow:'#fcd34d',red:'#f87171'};
-    const cards=colTasks.map(t=>`
-      <div onclick="openTaskDetail('${t.id}')" style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${urgColors[t.urgency||'green']};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
+    const cards=colTasks.map(t=>{
+      const subs=(t.subtasks||[]);
+      const subDone=subs.filter(s=>s.completed).length;
+      const subTotal=subs.length;
+      const subPct=subTotal>0?Math.round((subDone/subTotal)*100):0;
+      const progressHtml=subTotal>0?`
+        <div class="kanban-card-progress">
+          <div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${subPct}%"></div></div>
+          <span class="kanban-card-progress-text">${subDone}/${subTotal}</span>
+        </div>`:'';
+      return `
+      <div class="kanban-task-card" data-task-id="${t.id}" onclick="openTaskDetail('${t.id}')" style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${urgColors[t.urgency||'green']};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">${t.name}</div>
         ${t.date?`<div style="font-size:10px;color:var(--muted);">📅 ${t.date}</div>`:''}
+        ${progressHtml}
         <button onclick="event.stopPropagation();deleteTask('${t.id}')" style="position:absolute;top:6px;right:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:0;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">✕</button>
-      </div>`).join('');
+      </div>`;}).join('');
     return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid ${col.color}20;">
@@ -3535,6 +3558,7 @@ function openTaskDetail(id) {
   renderTdmChips('tdm-assignees-chips',t.assignees||[]);
   renderTdmLinks(t.links||[]);
   renderTdmNotes(t.notes||[]);
+  renderSubtasksSection(id);
   document.getElementById('tdm-save-btn').style.display='none';
   ov.style.display='flex';
 }
@@ -3616,6 +3640,211 @@ function tdmSaveChanges() {
   renderExamList(); renderPersonalKanban(); showToast('✅ Tasca guardada!');
 }
 function updateTaskStatusFromDetail(status) { tdmSetStatus(status,null); }
+
+/* ── SUBTASQUES (Millora 6) ── */
+function _getSubtasks(parentId) {
+  const list = _getList(_openListId);
+  if (!list) return [];
+  const t = (list.tasks||[]).find(t => t.id === parentId);
+  return t ? [...(t.subtasks||[])].sort((a,b) => a.order_index - b.order_index) : [];
+}
+async function _saveSubtasks(parentId, subtasks) {
+  const list = _getList(_openListId);
+  if (!list) return;
+  const t = (list.tasks||[]).find(t => t.id === parentId);
+  if (!t) return;
+  t.subtasks = subtasks;
+  await _saveList(list);
+}
+
+function renderSubtasksSection(parentId) {
+  const subtasks = _getSubtasks(parentId);
+  const total = subtasks.length;
+  const done = subtasks.filter(s => s.completed).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const container = document.getElementById('te-subtasks-container') ||
+                    document.getElementById('tdm-subtasks-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="subtasks-section">
+      <div class="subtasks-header">
+        <span class="subtasks-title">
+          ✅ Subtasques
+          ${total > 0 ? `<span class="subtasks-count">${done}/${total}</span>` : ''}
+        </span>
+      </div>
+      ${total > 0 ? `
+        <div class="subtasks-progress">
+          <div class="subtasks-progress-bar">
+            <div class="subtasks-progress-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="subtasks-pct">${pct}%</span>
+        </div>` : ''}
+      <div class="subtasks-list" id="subtasks-list-${parentId}">
+        ${subtasks.map(s => _renderSubtaskItem(s, parentId)).join('')}
+      </div>
+      <div class="subtask-add-row">
+        <input type="text" class="subtask-input" id="new-subtask-${parentId}"
+               placeholder="+ Afegeix subtasca..."
+               onkeydown="if(event.key==='Enter') addSubtask('${parentId}', this)">
+      </div>
+    </div>`;
+  initSubtasksDragDrop(parentId);
+}
+
+function _renderSubtaskItem(subtask, parentId) {
+  return `
+    <div class="subtask-item" data-id="${subtask.id}" draggable="true">
+      <input type="checkbox" class="subtask-checkbox" ${subtask.completed ? 'checked' : ''}
+             onchange="toggleSubtask('${subtask.id}', this.checked, '${parentId}')">
+      <span class="subtask-title ${subtask.completed ? 'completed' : ''}">${_esc(subtask.title)}</span>
+      <button class="subtask-delete" onclick="deleteSubtask('${subtask.id}', '${parentId}')" title="Eliminar">✕</button>
+    </div>`;
+}
+
+async function addSubtask(parentId, inputEl) {
+  const title = (inputEl.value || '').trim();
+  if (!title) return;
+  const subtasks = _getSubtasks(parentId);
+  const maxIndex = subtasks.length > 0 ? Math.max(...subtasks.map(s => s.order_index)) : -1;
+  const newItem = {
+    id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+    title,
+    completed: false,
+    order_index: maxIndex + 1
+  };
+  subtasks.push(newItem);
+  await _saveSubtasks(parentId, subtasks);
+  inputEl.value = '';
+  const list = document.getElementById(`subtasks-list-${parentId}`);
+  if (list) list.insertAdjacentHTML('beforeend', _renderSubtaskItem(newItem, parentId));
+  _refreshSubtasksProgress(parentId);
+  initSubtasksDragDrop(parentId);
+}
+
+async function toggleSubtask(subtaskId, completed, parentId) {
+  const subtasks = _getSubtasks(parentId);
+  const s = subtasks.find(s => s.id === subtaskId);
+  if (s) { s.completed = completed; await _saveSubtasks(parentId, subtasks); }
+  // Actualitza visual del títol
+  const item = document.querySelector(`[data-id="${subtaskId}"] .subtask-title`);
+  if (item) item.classList.toggle('completed', completed);
+  _refreshSubtasksProgress(parentId);
+  // Toast si totes completades
+  const all = _getSubtasks(parentId);
+  if (all.length > 0 && all.every(s => s.completed)) {
+    showToast('Totes les subtasques fetes! Vols completar la tasca principal?');
+  }
+}
+
+async function deleteSubtask(subtaskId, parentId) {
+  let subtasks = _getSubtasks(parentId).filter(s => s.id !== subtaskId);
+  await _saveSubtasks(parentId, subtasks);
+  document.querySelector(`.subtask-item[data-id="${subtaskId}"]`)?.remove();
+  _refreshSubtasksProgress(parentId);
+}
+
+function _refreshSubtasksProgress(parentId) {
+  const subtasks = _getSubtasks(parentId);
+  const total = subtasks.length;
+  const done = subtasks.filter(s => s.completed).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const section = document.getElementById(`subtasks-list-${parentId}`)?.closest('.subtasks-section');
+  if (section) {
+    const fill = section.querySelector('.subtasks-progress-fill');
+    const pctEl = section.querySelector('.subtasks-pct');
+    const countEl = section.querySelector('.subtasks-count');
+    if (fill) fill.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    if (countEl) {
+      countEl.textContent = `${done}/${total}`;
+    } else if (total > 0) {
+      // Afegeix el comptador si no existia (primera subtasca)
+      const titleEl = section.querySelector('.subtasks-title');
+      if (titleEl && !titleEl.querySelector('.subtasks-count')) {
+        titleEl.insertAdjacentHTML('beforeend', `<span class="subtasks-count">${done}/${total}</span>`);
+      }
+      // Afegeix barra si no existia
+      if (!section.querySelector('.subtasks-progress')) {
+        const list = section.querySelector('.subtasks-list');
+        list.insertAdjacentHTML('beforebegin', `
+          <div class="subtasks-progress">
+            <div class="subtasks-progress-bar">
+              <div class="subtasks-progress-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="subtasks-pct">${pct}%</span>
+          </div>`);
+      }
+    }
+  }
+  _updateKanbanCardProgress(parentId, done, total);
+}
+
+function _updateKanbanCardProgress(taskId, done, total) {
+  const card = document.querySelector(`.kanban-task-card[data-task-id="${taskId}"], .ld-kcard[data-task-id="${taskId}"]`);
+  if (!card) return;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  let prog = card.querySelector('.kanban-card-progress');
+  if (!prog && total > 0) {
+    prog = document.createElement('div');
+    prog.className = 'kanban-card-progress';
+    prog.innerHTML = `<div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${pct}%"></div></div><span class="kanban-card-progress-text">${done}/${total}</span>`;
+    card.appendChild(prog);
+  } else if (prog) {
+    if (total === 0) { prog.remove(); return; }
+    const fill = prog.querySelector('.kanban-card-progress-fill');
+    const text = prog.querySelector('.kanban-card-progress-text');
+    if (fill) fill.style.width = `${pct}%`;
+    if (text) text.textContent = `${done}/${total}`;
+  }
+}
+
+function initSubtasksDragDrop(parentId) {
+  const list = document.getElementById(`subtasks-list-${parentId}`);
+  if (!list || list._ddInit) return;
+  list._ddInit = true;
+  let dragItem = null;
+
+  list.addEventListener('dragstart', e => {
+    dragItem = e.target.closest('.subtask-item');
+    if (dragItem) dragItem.classList.add('dragging');
+  });
+  list.addEventListener('dragend', () => {
+    dragItem?.classList.remove('dragging');
+    dragItem = null;
+    _saveSubtaskOrder(parentId);
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const after = _getSubtaskAfterElement(list, e.clientY);
+    if (dragItem) {
+      if (after) list.insertBefore(dragItem, after);
+      else list.appendChild(dragItem);
+    }
+  });
+}
+
+function _getSubtaskAfterElement(container, y) {
+  const items = [...container.querySelectorAll('.subtask-item:not(.dragging)')];
+  return items.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: child };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+async function _saveSubtaskOrder(parentId) {
+  const items = document.querySelectorAll(`#subtasks-list-${parentId} .subtask-item`);
+  const subtasks = _getSubtasks(parentId);
+  [...items].forEach((item, index) => {
+    const s = subtasks.find(s => s.id === item.dataset.id);
+    if (s) s.order_index = index;
+  });
+  await _saveSubtasks(parentId, subtasks);
+}
 
 /* Shared boards */
 function renderSharedBoards() {

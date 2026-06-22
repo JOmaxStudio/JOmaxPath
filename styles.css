@@ -7918,3 +7918,139 @@ body.theme-blanc .notes-sidebar { background: #f9f9f9; }
 body.theme-blanc .notes-editor-panel { background: #fff; }
 body.theme-blanc .note-item:hover, body.theme-blanc .note-item.active { background: #f0f0f0; }
 body.theme-blanc .note-content-textarea { color: #1a1a2e; }
+
+/* ── SUBTASQUES (Millora 6) ── */
+.subtasks-section {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.subtasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.subtasks-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.subtasks-count {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 6px;
+  opacity: 0.7;
+}
+.subtasks-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.subtasks-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--card2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.subtasks-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.subtasks-pct {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 28px;
+  text-align: right;
+}
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  transition: background 0.1s;
+  cursor: grab;
+}
+.subtask-item:hover {
+  background: var(--card2);
+}
+.subtask-item:hover .subtask-delete {
+  opacity: 1;
+}
+.subtask-item.dragging {
+  opacity: 0.5;
+  background: var(--card);
+}
+.subtask-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+.subtask-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+}
+.subtask-title.completed {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.subtask-delete {
+  opacity: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: opacity 0.15s, color 0.15s;
+}
+.subtask-delete:hover { color: #EF4444; }
+.subtask-input {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  padding: 8px 4px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  margin-top: 4px;
+}
+.subtask-input::placeholder { color: var(--muted); }
+.kanban-card-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.kanban-card-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--card);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.kanban-card-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.kanban-card-progress-text {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
