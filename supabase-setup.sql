@@ -113,8 +113,9 @@ DROP POLICY IF EXISTS "boards_update" ON shared_boards;
 CREATE POLICY "boards_select" ON shared_boards FOR SELECT USING (true);
 -- [AUDIT 2026-06-12] Restringit a usuaris autenticats per evitar creació anònima de boards
 CREATE POLICY "boards_insert" ON shared_boards FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
--- [AUDIT 2026-06-12] Restringit a usuaris autenticats per evitar modificació anònima
-CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (auth.uid() IS NOT NULL);
+-- [AUDIT 2026-06-22] FIX SEGURETAT: restringit a propietari del board (auth.uid() IS NOT NULL
+-- permetia que QUALSEVOL autenticat modifiqués taulers d'altri). Ara: owner_id::uuid = auth.uid()
+CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (owner_id::uuid = auth.uid());
 
 
 -- ══════════════════════════
