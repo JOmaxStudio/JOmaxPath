@@ -7574,3 +7574,32 @@ body.theme-blanc .drm-dialog { background: #fff; }
 body.theme-blanc .drm-option { background: #f8f8f8; border-color: #ddd; }
 body.theme-blanc .drm-option:hover { background: #fee2e2; border-color: #fca5a5; }
 body.theme-blanc .drm-btn-cancel { background: #f3f3f3; }
+
+/* ── Tasques recurrents ── */
+.ld-recur-btn { padding: 10px 13px; font-size: 15px; }
+.task-recurrent-badge { font-size: 10px; color: var(--muted); margin-left: 4px; opacity: 0.8; }
+
+/* Secció de repetició al task editor */
+.recurrence-section {
+  border: 1px solid rgba(124,58,237,0.25);
+  border-radius: 12px; overflow: hidden;
+}
+.recurrence-toggle {
+  list-style: none; padding: 10px 14px;
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  letter-spacing: 1px; color: var(--accent2);
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.recurrence-toggle::-webkit-details-marker { display: none; }
+.recurrence-toggle::after { content: '▸'; margin-left: auto; transition: transform 0.2s; }
+details[open] .recurrence-toggle::after { transform: rotate(90deg); }
+.recurrence-body {
+  padding: 12px 14px 14px; border-top: 1px solid rgba(124,58,237,0.15);
+  background: rgba(124,58,237,0.04);
+}
+.recurrence-summary {
+  font-size: 11px; color: var(--accent2);
+  font-style: italic; margin: 6px 0 0; min-height: 16px;
+}
+.day-pill.selected { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }

@@ -2848,7 +2848,7 @@ function renderListTasks(list) {
       <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
       <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
       <div class="ld-task-body" onclick="openTaskEditor('${t.id}')" style="cursor:pointer;">
-        <div class="ld-task-name">${_esc(t.name)}</div>
+        <div class="ld-task-name">${_esc(t.name)}${t.recurrence_group_id?'<span class="task-recurrent-badge">🔄</span>':''}</div>
         ${t.desc?`<div class="ld-task-desc">${_esc((t.desc||'').slice(0,80))}${t.desc.length>80?'…':''}</div>`:''}
         ${(t.date||t.assignee||nLinks)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}</div>`:''}
       </div>
@@ -2933,6 +2933,11 @@ async function moveListTask(taskId, status) {
 
 async function deleteListTask(taskId) {
   const list = _getList(_openListId); if(!list) return;
+  const task=(list.tasks||[]).find(x=>x.id===taskId); if(!task) return;
+  if(task.recurrence_group_id){
+    showDeleteRecurringTaskModal(task);
+    return;
+  }
   showDeleteConfirm(async ()=>{
     list.tasks = list.tasks.filter(x=>x.id!==taskId);
     await _saveList(list);
@@ -2940,8 +2945,109 @@ async function deleteListTask(taskId) {
   },{title:'ELIMINAR TASCA',msg:"Esborraràs aquesta tasca de la llista."});
 }
 
+function showDeleteRecurringTaskModal(task){
+  document.getElementById('delete-task-modal-wrap')?.remove();
+  const wrap=document.createElement('div');
+  wrap.id='delete-task-modal-wrap';
+  wrap.innerHTML=`
+    <div class="drm-backdrop">
+      <div class="drm-dialog">
+        <h3>Eliminar tasca recurrent</h3>
+        <p class="drm-subtitle">Quines tasques "<strong>${_esc(task.name)}</strong>" vols eliminar?</p>
+        <div class="drm-options">
+          <label class="drm-option">
+            <input type="radio" name="drt-scope" value="single" checked>
+            <div class="drm-option-texts">
+              <span class="drm-option-label">Només aquesta</span>
+              <span class="drm-option-desc">Elimina únicament aquesta tasca</span>
+            </div>
+          </label>
+          <label class="drm-option">
+            <input type="radio" name="drt-scope" value="future">
+            <div class="drm-option-texts">
+              <span class="drm-option-label">Aquesta i les futures</span>
+              <span class="drm-option-desc">Elimina des d'aquesta data en endavant</span>
+            </div>
+          </label>
+          <label class="drm-option">
+            <input type="radio" name="drt-scope" value="all">
+            <div class="drm-option-texts">
+              <span class="drm-option-label">Totes de la sèrie</span>
+              <span class="drm-option-desc">Elimina totes les repeticions</span>
+            </div>
+          </label>
+        </div>
+        <div class="drm-actions">
+          <button class="drm-btn-cancel" id="drt-cancel">Cancel·lar</button>
+          <button class="drm-btn-confirm" id="drt-confirm">Eliminar</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const backdrop=wrap.querySelector('.drm-backdrop');
+  backdrop.addEventListener('click', e=>{ if(e.target===backdrop) wrap.remove(); });
+  wrap.querySelector('#drt-cancel').onclick=()=>wrap.remove();
+  wrap.querySelector('#drt-confirm').onclick=async ()=>{
+    const scope=wrap.querySelector('input[name="drt-scope"]:checked').value;
+    wrap.remove();
+    await _executeDeleteRecurringTask(task, scope);
+  };
+}
+
+async function _executeDeleteRecurringTask(task, scope){
+  const list=_getList(_openListId); if(!list) return;
+  if(scope==='single'){
+    list.tasks=list.tasks.filter(x=>x.id!==task.id);
+  } else if(scope==='future'){
+    list.tasks=list.tasks.filter(x=>
+      !(x.recurrence_group_id===task.recurrence_group_id && (x.date||'')>=(task.date||''))
+    );
+  } else {
+    list.tasks=list.tasks.filter(x=>x.recurrence_group_id!==task.recurrence_group_id);
+  }
+  await _saveList(list);
+  renderListDetail();
+  showToast('✓ Tasca/ques eliminada/es');
+}
+
 /* ── Editor de tasca (descripció, enllaços, data, prioritat) ── */
 let _editingTaskId=null;
+
+function openNewTaskEditor(){
+  const list=_getList(_openListId); if(!list) return;
+  _editingTaskId='__new__';
+  // Copia el nom del camp ràpid si n'hi ha
+  const quickInp=document.getElementById('ld-new-task');
+  const quickDate=document.getElementById('ld-new-date');
+  const quickPrio=document.getElementById('ld-new-prio');
+  document.getElementById('te-name').value=quickInp?.value||'';
+  document.getElementById('te-desc').value='';
+  document.getElementById('te-date').value=quickDate?.value||'';
+  document.getElementById('te-prio').value=quickPrio?.value||'3';
+  const reminderEl=document.getElementById('te-reminder');
+  if(reminderEl) reminderEl.value='';
+  teRenderLinks([]);
+  // Assignats
+  const wrap=document.getElementById('te-assignee-wrap');
+  const sel=document.getElementById('te-assignee');
+  if(list.shared && (list.members||[]).length){
+    wrap.style.display='block';
+    sel.innerHTML='<option value="">👥 Ningú</option>'+(list.members||[]).map(m=>`<option value="${m}">${m===(_userProfile?.username)?'🙋 Jo':'👤 '+m}</option>`).join('');
+  } else { wrap.style.display='none'; }
+  // Mostra secció recurrència i reseteja UI
+  const recSec=document.getElementById('te-recurrence-section');
+  if(recSec) recSec.style.display='block';
+  const recType=document.getElementById('task-recurrence-type');
+  if(recType) recType.value='none';
+  updateRecurrenceUI();
+  // Canvia títol i botó
+  const titleEl=document.querySelector('#task-editor-overlay h3');
+  if(titleEl) titleEl.textContent='✎ Nova tasca';
+  const saveBtn=document.getElementById('te-save-btn');
+  if(saveBtn) saveBtn.textContent='💾 Crear';
+  document.getElementById('task-editor-overlay').style.display='flex';
+}
+
 function openTaskEditor(taskId){
   const list=_getList(_openListId); if(!list) return;
   const t=(list.tasks||[]).find(x=>x.id===taskId); if(!t) return;
@@ -2960,6 +3066,14 @@ function openTaskEditor(taskId){
     wrap.style.display='block';
     sel.innerHTML='<option value="">👥 Ningú</option>'+(list.members||[]).map(m=>`<option value="${m}" ${t.assignee===m?'selected':''}>${m===(_userProfile?.username)?'🙋 Jo':'👤 '+m}</option>`).join('');
   } else { wrap.style.display='none'; }
+  // Oculta secció recurrència en mode edició
+  const recSec=document.getElementById('te-recurrence-section');
+  if(recSec) recSec.style.display='none';
+  // Restaura títol i botó
+  const titleEl=document.querySelector('#task-editor-overlay h3');
+  if(titleEl) titleEl.textContent='✎ Editar tasca';
+  const saveBtn=document.getElementById('te-save-btn');
+  if(saveBtn) saveBtn.textContent='💾 Desar';
   document.getElementById('task-editor-overlay').style.display='flex';
 }
 function teRenderLinks(links){
@@ -2984,27 +3098,203 @@ function teRemoveLink(i){
 }
 async function saveTaskEditor(){
   const list=_getList(_openListId); if(!list){ closeTaskEditor(); return; }
-  const t=(list.tasks||[]).find(x=>x.id===_editingTaskId); if(!t){ closeTaskEditor(); return; }
   const name=(document.getElementById('te-name').value||'').trim();
   if(!name){ showWarningToast('⚠️ La tasca necessita un nom'); return; }
-  t.name=name;
-  t.desc=(document.getElementById('te-desc').value||'').trim();
-  t.date=document.getElementById('te-date').value||'';
-  t.prio=parseInt(document.getElementById('te-prio').value||'3');
-  t.links=_teCurrentLinks().map(u=>/^https?:\/\//i.test(u)?u:'https://'+u);
+
+  if(_editingTaskId==='__new__'){
+    // ── MODE CREACIÓ ──
+    await _createTasksFromEditor(list, name);
+    return;
+  }
+
+  // ── MODE EDICIÓ ──
+  const tk=(list.tasks||[]).find(x=>x.id===_editingTaskId); if(!tk){ closeTaskEditor(); return; }
+  tk.name=name;
+  tk.desc=(document.getElementById('te-desc').value||'').trim();
+  tk.date=document.getElementById('te-date').value||'';
+  tk.prio=parseInt(document.getElementById('te-prio').value||'3');
+  tk.links=_teCurrentLinks().map(u=>/^https?:\/\//i.test(u)?u:'https://'+u);
   const reminderInp=document.getElementById('te-reminder');
   const reminderVal=reminderInp?.value||'';
-  t.reminder_at = reminderVal ? new Date(reminderVal).toISOString() : null;
+  tk.reminder_at = reminderVal ? new Date(reminderVal).toISOString() : null;
   const sel=document.getElementById('te-assignee');
-  if(list.shared && sel) t.assignee=sel.value||'';
+  if(list.shared && sel) tk.assignee=sel.value||'';
   await _saveList(list);
   closeTaskEditor();
   renderListDetail();
-  showToast(t('tt_task_updated'));
+  showToast('✓ Tasca actualitzada');
+}
+
+async function _createTasksFromEditor(list, name){
+  const desc=(document.getElementById('te-desc').value||'').trim();
+  const date=document.getElementById('te-date').value||'';
+  const prio=parseInt(document.getElementById('te-prio').value||'3');
+  const links=_teCurrentLinks().map(u=>/^https?:\/\//i.test(u)?u:'https://'+u);
+  const reminderInp=document.getElementById('te-reminder');
+  const reminderVal=reminderInp?.value||'';
+  const reminder_at=reminderVal ? new Date(reminderVal).toISOString() : null;
+  const sel=document.getElementById('te-assignee');
+  const assignee=(list.shared && sel)?sel.value||'':'';
+  const by=_userProfile?.username||'jo';
+
+  const recType=(document.getElementById('task-recurrence-type')?.value)||'none';
+
+  if(recType==='none' || !date){
+    // Tasca simple
+    if(!list.tasks) list.tasks=[];
+    list.tasks.push({
+      id: Date.now().toString()+Math.random().toString(36).slice(2,6),
+      name, desc, date, prio, links, reminder_at, assignee, by,
+      done:false, status:'todo'
+    });
+    await _saveList(list);
+    // Neteja camp ràpid
+    const qi=document.getElementById('ld-new-task'); if(qi) qi.value='';
+    closeTaskEditor();
+    renderListDetail();
+    showToast('✓ Tasca creada');
+    return;
+  }
+
+  // Tasca recurrent
+  const tasks=_generateRecurrentTasks({name, desc, date, prio, links, reminder_at, assignee, by}, recType);
+  if(tasks.length===0){ showWarningToast('⚠️ No s\'han generat tasques'); return; }
+  if(!list.tasks) list.tasks=[];
+  list.tasks.push(...tasks);
+  await _saveList(list);
+  const qi=document.getElementById('ld-new-task'); if(qi) qi.value='';
+  closeTaskEditor();
+  renderListDetail();
+  showToast(`✓ ${tasks.length} tasca${tasks.length>1?'ques':''} creada${tasks.length>1?'es':''}`);
+}
+
+function _localDateStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function _generateRecurrentTasks(base, recType){
+  const startDate=new Date(base.date+'T00:00:00');
+  const endDateRaw=document.getElementById('task-recurrence-end')?.value;
+  const endDate=endDateRaw
+    ? new Date(endDateRaw+'T23:59:59')
+    : new Date(startDate.getTime()+30*24*60*60*1000);
+
+  let targetDays=[];
+  let customIntervalDays=1;
+
+  switch(recType){
+    case 'daily':    targetDays=[0,1,2,3,4,5,6]; break;
+    case 'weekdays': targetDays=[1,2,3,4,5]; break;
+    case 'weekend':  targetDays=[0,6]; break;
+    case 'specific_days':{
+      const pills=document.querySelectorAll('#task-day-pills .day-pill.selected');
+      targetDays=[...pills].map(b=>parseInt(b.dataset.day));
+      if(!targetDays.length) targetDays=[startDate.getDay()];
+      break;
+    }
+    case 'custom':{
+      const n=parseInt(document.getElementById('task-interval')?.value||'1')||1;
+      const unit=document.getElementById('task-interval-unit')?.value||'days';
+      customIntervalDays= unit==='weeks' ? n*7 : n;
+      targetDays=null; // indica interval fix
+      break;
+    }
+    default: targetDays=[startDate.getDay()];
+  }
+
+  const groupId=crypto.randomUUID();
+  const tasks=[];
+  const current=new Date(startDate);
+  let iterations=0;
+
+  if(targetDays===null){
+    // Interval fix (custom)
+    while(current<=endDate && iterations<500){
+      iterations++;
+      tasks.push({
+        ...base,
+        id: Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'_'+iterations,
+        date: _localDateStr(current),
+        recurrence_group_id: groupId,
+        done:false, status:'todo'
+      });
+      current.setDate(current.getDate()+customIntervalDays);
+    }
+  } else {
+    while(current<=endDate && iterations<500){
+      iterations++;
+      if(targetDays.includes(current.getDay())){
+        tasks.push({
+          ...base,
+          id: Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'_'+iterations,
+          date: _localDateStr(current),
+          recurrence_group_id: groupId,
+          done:false, status:'todo'
+        });
+      }
+      current.setDate(current.getDate()+1);
+    }
+  }
+  return tasks;
 }
 function closeTaskEditor(){
   _editingTaskId=null;
   document.getElementById('task-editor-overlay').style.display='none';
+}
+
+/* ── Recurrència: funcions UI ── */
+function updateRecurrenceUI(){
+  const type=document.getElementById('task-recurrence-type')?.value||'none';
+  const isRecurrent=type!=='none';
+  const pills=document.getElementById('task-day-pills');
+  const custom=document.getElementById('task-custom-interval');
+  const endSec=document.getElementById('task-end-date-section');
+  if(pills) pills.style.display=(type==='specific_days')?'block':'none';
+  if(custom) custom.style.display=(type==='custom')?'block':'none';
+  if(endSec) endSec.style.display=isRecurrent?'block':'none';
+  updateTaskRecurrenceSummary();
+}
+
+function toggleDayPill(btn){
+  btn.classList.toggle('selected');
+  updateTaskRecurrenceSummary();
+}
+
+function setEndOfCourse(){
+  const year=new Date().getMonth()>=8
+    ? new Date().getFullYear()+1
+    : new Date().getFullYear();
+  const inp=document.getElementById('task-recurrence-end');
+  if(inp) inp.value=`${year}-06-30`;
+  updateTaskRecurrenceSummary();
+}
+
+function updateTaskRecurrenceSummary(){
+  const type=document.getElementById('task-recurrence-type')?.value||'none';
+  const endDate=document.getElementById('task-recurrence-end')?.value||'';
+  const summary=document.getElementById('task-recurrence-summary');
+  if(!summary) return;
+  if(type==='none'){ summary.textContent=''; return; }
+  const dayNames={0:'diumenge',1:'dilluns',2:'dimarts',3:'dimecres',4:'dijous',5:'divendres',6:'dissabte'};
+  let text='';
+  if(type==='daily') text='Cada dia';
+  else if(type==='weekdays') text='Cada dia laborable (dl–dv)';
+  else if(type==='weekend') text='Cada cap de setmana';
+  else if(type==='specific_days'){
+    const sel=[...document.querySelectorAll('#task-day-pills .day-pill.selected')]
+      .map(b=>dayNames[parseInt(b.dataset.day)]);
+    text=sel.length ? `Cada ${sel.join(', ')}` : 'Selecciona almenys un dia';
+  } else if(type==='custom'){
+    const n=document.getElementById('task-interval')?.value||'1';
+    const unit=document.getElementById('task-interval-unit')?.value||'days';
+    const units={days:'dies',weeks:'setmanes'};
+    text=`Cada ${n} ${units[unit]||'dies'}`;
+  }
+  if(endDate){
+    const d=new Date(endDate+'T00:00:00').toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+    text+=` fins al ${d}`;
+  }
+  summary.textContent=text;
 }
 
 function deleteList(id) {

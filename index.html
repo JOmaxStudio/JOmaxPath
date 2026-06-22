@@ -1731,6 +1731,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         </select>
         <select id="ld-new-assignee" class="ld-prio-select" style="display:none;" title="Assignar a un membre"></select>
         <button class="ld-add-btn" onclick="addListTask()" data-i18n="lst_add">+ Afegir</button>
+        <button class="ld-add-btn ld-recur-btn" onclick="openNewTaskEditor()" title="Crear tasca amb repetició o opcions avançades">🔄</button>
       </div>
 
       <div id="ld-list-view"></div>
@@ -1925,8 +1926,61 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <select id="te-assignee" class="te-input"></select>
       </div>
 
+      <!-- RECURRÈNCIA (només visible en mode creació) -->
+      <div id="te-recurrence-section" style="display:none;margin-top:10px;">
+        <details class="recurrence-section" id="te-recurrence-details">
+          <summary class="recurrence-toggle">🔄 Repetició</summary>
+          <div class="recurrence-body">
+            <select id="task-recurrence-type" class="te-input" onchange="updateRecurrenceUI()" style="margin-bottom:10px;">
+              <option value="none">No es repeteix</option>
+              <option value="daily">Cada dia</option>
+              <option value="weekdays">Dies laborals (Dl–Dv)</option>
+              <option value="weekend">Cap de setmana (Ds–Dg)</option>
+              <option value="specific_days">Dies específics</option>
+              <option value="custom">Personalitzat</option>
+            </select>
+
+            <div id="task-day-pills" style="display:none;margin-bottom:10px;">
+              <div class="day-pills">
+                <button type="button" class="day-pill" data-day="1" onclick="toggleDayPill(this)">Dl</button>
+                <button type="button" class="day-pill" data-day="2" onclick="toggleDayPill(this)">Dm</button>
+                <button type="button" class="day-pill" data-day="3" onclick="toggleDayPill(this)">Dc</button>
+                <button type="button" class="day-pill" data-day="4" onclick="toggleDayPill(this)">Dj</button>
+                <button type="button" class="day-pill" data-day="5" onclick="toggleDayPill(this)">Dv</button>
+                <button type="button" class="day-pill" data-day="6" onclick="toggleDayPill(this)">Ds</button>
+                <button type="button" class="day-pill" data-day="0" onclick="toggleDayPill(this)">Dg</button>
+              </div>
+            </div>
+
+            <div id="task-custom-interval" style="display:none;margin-bottom:10px;">
+              <label class="te-label">Cada
+                <input type="number" id="task-interval" min="1" max="30" value="1"
+                       class="te-input" style="width:60px;display:inline;margin:0 6px;" oninput="updateTaskRecurrenceSummary()">
+                <select id="task-interval-unit" class="te-input" style="width:auto;display:inline;margin:0;" onchange="updateTaskRecurrenceSummary()">
+                  <option value="days">dies</option>
+                  <option value="weeks">setmanes</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="task-end-date-section" style="display:none;margin-bottom:8px;">
+              <label class="te-label">Fins al
+                <input type="date" id="task-recurrence-end" class="te-input"
+                       style="display:inline;width:auto;margin-left:6px;" onchange="updateTaskRecurrenceSummary()">
+              </label>
+              <button type="button" onclick="setEndOfCourse()"
+                style="margin-top:6px;padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:8px;color:var(--accent);font-size:11px;cursor:pointer;">
+                Fi de curs (juny)
+              </button>
+            </div>
+
+            <p id="task-recurrence-summary" class="recurrence-summary"></p>
+          </div>
+        </details>
+      </div>
+
       <div class="board-modal-btns" style="margin-top:18px;">
-        <button class="bm-save-btn" onclick="saveTaskEditor()" data-i18n="te_save">💾 Desar</button>
+        <button class="bm-save-btn" id="te-save-btn" onclick="saveTaskEditor()">💾 Desar</button>
         <button class="bm-cancel-btn" onclick="closeTaskEditor()" data-i18n="te_cancel">Cancel·lar</button>
       </div>
     </div>
