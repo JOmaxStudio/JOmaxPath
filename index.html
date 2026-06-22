@@ -2356,6 +2356,68 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   </div><!-- /focus-two-col -->
   </div>
 
+  <!-- ═══ PAGE: ESTADÍSTIQUES ═══ -->
+  <div class="app-page" id="page-stats">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(108,99,255,0.2);">📊</div>
+      <div class="page-title-text">
+        <h2>Estadístiques</h2>
+        <p>Productivitat · Tendències · Hàbits</p>
+      </div>
+      <select id="analytics-period" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-family:'Space Mono',monospace;">
+        <option value="7">7 dies</option>
+        <option value="30" selected>30 dies</option>
+        <option value="90">90 dies</option>
+      </select>
+    </div>
+
+    <!-- Stat cards -->
+    <div id="stats-cards" class="stats-cards-grid"></div>
+
+    <!-- Heatmap -->
+    <div class="analytics-card" style="margin-bottom:16px;">
+      <div class="analytics-card-title">Activitat dels últims 90 dies</div>
+      <div style="display:flex;align-items:flex-start;gap:6px;overflow-x:auto;padding-bottom:4px;">
+        <div class="heatmap-labels-days">
+          <span>Dl</span><span>Dm</span><span>Dc</span>
+          <span>Dj</span><span>Dv</span><span>Ds</span><span>Dg</span>
+        </div>
+        <div id="heatmap-container" class="heatmap-grid"></div>
+      </div>
+      <div class="heatmap-legend">
+        <span>Menys</span>
+        <div id="heatmap-legend-cells" class="heatmap-legend-cells"></div>
+        <span>Més</span>
+      </div>
+    </div>
+
+    <!-- Gràfics 2 columnes -->
+    <div class="analytics-charts-grid">
+      <div class="analytics-card">
+        <div class="analytics-card-title">Tasques per setmana</div>
+        <div style="position:relative;height:200px;">
+          <canvas id="weekly-tasks-chart" role="img" aria-label="Tasques per setmana"></canvas>
+        </div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-title">Hora del dia més productiva</div>
+        <div style="position:relative;height:200px;">
+          <canvas id="hours-chart" role="img" aria-label="Hores productives"></canvas>
+        </div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-title">Pomodoros completats</div>
+        <div style="position:relative;height:200px;">
+          <canvas id="pomo-chart" role="img" aria-label="Pomodoros"></canvas>
+        </div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-title">Rachas d'hàbits</div>
+        <div id="habits-stats"></div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /container -->
 
 <!-- Timed Event Modal -->
@@ -2657,69 +2719,6 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <div class="color-pick-btn" style="background:#ddd6fe" onclick="createNote('purple')"></div>
     <div class="color-pick-btn" style="background:#fed7aa" onclick="createNote('orange')"></div>
   </div>
-
-  <!-- ═══ PAGE: ESTADÍSTIQUES ═══ -->
-  <div class="app-page" id="page-stats">
-    <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(108,99,255,0.2);">📊</div>
-      <div class="page-title-text">
-        <h2>Estadístiques</h2>
-        <p>Productivitat · Tendències · Hàbits</p>
-      </div>
-      <select id="analytics-period" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-family:'Space Mono',monospace;">
-        <option value="7">7 dies</option>
-        <option value="30" selected>30 dies</option>
-        <option value="90">90 dies</option>
-      </select>
-    </div>
-
-    <!-- Stat cards -->
-    <div id="stats-cards" class="stats-cards-grid"></div>
-
-    <!-- Heatmap -->
-    <div class="analytics-card" style="margin-bottom:16px;">
-      <div class="analytics-card-title">Activitat dels últims 90 dies</div>
-      <div style="display:flex;align-items:flex-start;gap:6px;overflow-x:auto;padding-bottom:4px;">
-        <div class="heatmap-labels-days">
-          <span>Dl</span><span>Dm</span><span>Dc</span>
-          <span>Dj</span><span>Dv</span><span>Ds</span><span>Dg</span>
-        </div>
-        <div id="heatmap-container" class="heatmap-grid"></div>
-      </div>
-      <div class="heatmap-legend">
-        <span>Menys</span>
-        <div id="heatmap-legend-cells" class="heatmap-legend-cells"></div>
-        <span>Més</span>
-      </div>
-    </div>
-
-    <!-- Gràfics 2 columnes -->
-    <div class="analytics-charts-grid">
-      <div class="analytics-card">
-        <div class="analytics-card-title">Tasques per setmana</div>
-        <div style="position:relative;height:200px;">
-          <canvas id="weekly-tasks-chart" role="img" aria-label="Tasques per setmana"></canvas>
-        </div>
-      </div>
-      <div class="analytics-card">
-        <div class="analytics-card-title">Hora del dia més productiva</div>
-        <div style="position:relative;height:200px;">
-          <canvas id="hours-chart" role="img" aria-label="Hores productives"></canvas>
-        </div>
-      </div>
-      <div class="analytics-card">
-        <div class="analytics-card-title">Pomodoros completats</div>
-        <div style="position:relative;height:200px;">
-          <canvas id="pomo-chart" role="img" aria-label="Pomodoros"></canvas>
-        </div>
-      </div>
-      <div class="analytics-card">
-        <div class="analytics-card-title">Rachas d'hàbits</div>
-        <div id="habits-stats"></div>
-      </div>
-    </div>
-  </div>
-
 </div>
 <button id="add-note-fab" onclick="toggleNotePicker()" title="Afegir nota" aria-label="Afegir nota">📝</button>
 
