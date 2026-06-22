@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js" defer></script>
 <link rel="apple-touch-icon" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1835,15 +1836,31 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
   <!-- ═══ PAGE: NOTES ═══ -->
   <div class="app-page" id="page-notes">
-    <div class="page-title-bar">
-      <div class="page-title-icon" style="background:rgba(245,158,11,0.15);">📝</div>
-      <div class="page-title-text">
-        <h2 data-i18n="pt_notes">NOTES</h2>
-        <p data-i18n="sub_notes">Les teves apunts i recordatoris</p>
+    <div class="notes-layout">
+
+      <!-- Panell esquerre: llista -->
+      <div class="notes-sidebar" id="notes-sidebar">
+        <div class="notes-sidebar-header">
+          <input type="text" id="notes-search" class="notes-search-input"
+                 placeholder="🔍 Cerca notes..."
+                 oninput="searchNotes(this.value)">
+          <button onclick="createNoteV2()" class="btn-new-note">+ Nova nota</button>
+        </div>
+        <div id="notes-color-filter" class="notes-color-filter"></div>
+        <div id="notes-list" class="notes-list"></div>
       </div>
-      <button onclick="addNewNote()" style="padding:8px 16px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.4);color:#fcd34d;border-radius:12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(245,158,11,0.7)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.4)'">+ NOVA NOTA</button>
+
+      <!-- Panell dret: editor -->
+      <div class="notes-editor-panel" id="notes-editor-panel">
+        <div id="notes-empty-state" class="notes-empty-state">
+          <span style="font-size:48px;">📝</span>
+          <p>Selecciona una nota o crea'n una de nova</p>
+          <button onclick="createNoteV2()" class="btn-new-note">+ Crea la teva primera nota</button>
+        </div>
+        <div id="notes-editor" style="display:none;flex-direction:column;height:100%;"></div>
+      </div>
+
     </div>
-    <div id="notes-page-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-top:8px;"></div>
   </div>
 
   <!-- Modal: Compartir llista -->

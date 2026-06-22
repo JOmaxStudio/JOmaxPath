@@ -4631,7 +4631,13 @@ function runSearch(q) {
   if(!q.trim()){results.innerHTML='';return;}
   const tasks=get(TASKS_KEY,[]).filter(t=>t.name?.toLowerCase().includes(q.toLowerCase()));
   const habits=get(HABITS_KEY,[]).filter(h=>h.name?.toLowerCase().includes(q.toLowerCase()));
-  const items=[...tasks.map(t=>({icon:'📋',label:t.name,sub:'Tasca',action:"navTo('tasques')"})),...habits.map(h=>({icon:h.icon||'🌱',label:h.name,sub:'Hàbit',action:"navTo('home')"}))];
+  const ql=q.toLowerCase();
+  const notesRes=_getNotes().filter(n=>(n.title||'').toLowerCase().includes(ql)||(n.content||'').toLowerCase().includes(ql)).slice(0,4);
+  const items=[
+    ...tasks.map(t=>({icon:'📋',label:t.name,sub:'Tasca',action:"navTo('tasques')"})),
+    ...habits.map(h=>({icon:h.icon||'🌱',label:h.name,sub:'Hàbit',action:"navTo('home')"})),
+    ...notesRes.map(n=>({icon:'📝',label:n.title||'Nota',sub:'Nota',action:`navTo('notes');setTimeout(()=>openNote('${n.id}'),150)`}))
+  ];
   // FIX XSS (2026-06-21): q, it.label i it.sub s'escapaven a _esc() per evitar injecció HTML en la cerca global
   results.innerHTML=items.length===0?`<div class="sr-empty">Sense resultats per "${_esc(q)}"</div>`:items.map(it=>`<div class="sr-item" onclick="${it.action};closeSearch()"><span class="sr-icon">${it.icon}</span><div><div class="sr-label">${_esc(it.label)}</div><div class="sr-sub">${_esc(it.sub)}</div></div></div>`).join('');
 }
@@ -4858,62 +4864,264 @@ function saveQuickCapture() {
   document.getElementById('qc-input').value=''; closeQuickCapture(); renderHome(); renderTasques();
 }
 function toggleNotePicker() { navTo('notes'); lsbMobileClose(); }
-function createNote() { openQuickCapture(); setQCType('nota'); }
+
+/* ══════════════════════════════════════
+   NOTES V2 — Sistema integrat
+══════════════════════════════════════ */
+const NOTES_KEY_V2 = 'jomaxpath_notes_v2';
 const NOTE_COLORS = [
-  {key:'purple', bg:'rgba(124,58,237,0.12)', border:'rgba(124,58,237,0.35)', dot:'#a78bfa'},
-  {key:'blue',   bg:'rgba(59,130,246,0.10)', border:'rgba(59,130,246,0.30)', dot:'#93c5fd'},
-  {key:'cyan',   bg:'rgba(0,180,216,0.10)',  border:'rgba(0,180,216,0.30)',  dot:'#67e8f9'},
-  {key:'green',  bg:'rgba(16,185,129,0.10)', border:'rgba(16,185,129,0.30)', dot:'#6ee7b7'},
-  {key:'amber',  bg:'rgba(245,158,11,0.10)', border:'rgba(245,158,11,0.30)', dot:'#fcd34d'},
-  {key:'rose',   bg:'rgba(239,68,68,0.09)',  border:'rgba(239,68,68,0.28)',  dot:'#fca5a5'},
+  {key:'purple', dot:'#a78bfa', label:'Violeta'},
+  {key:'blue',   dot:'#93c5fd', label:'Blau'},
+  {key:'cyan',   dot:'#67e8f9', label:'Cian'},
+  {key:'green',  dot:'#6ee7b7', label:'Verd'},
+  {key:'amber',  dot:'#fcd34d', label:'Ambre'},
+  {key:'rose',   dot:'#fca5a5', label:'Rosa'},
 ];
 function getNoteColor(key) { return NOTE_COLORS.find(c=>c.key===key) || NOTE_COLORS[0]; }
-function setNoteColor(idx, key) {
-  const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
-  notes[idx].color=key; set(NOTES_KEY,notes); renderNotes();
+
+let _currentNoteId  = null;
+let _noteSaveTimer  = null;
+let _noteViewMode   = false;
+let _notesSearch    = '';
+let _notesColorFilter = null;
+
+/* ── Migració v1 → v2 ── */
+function _migrateNotesV1(){
+  if(get(NOTES_KEY_V2, null) !== null) return; // ja migrat
+  const old=get(NOTES_KEY,[]);
+  const migrated=old.map(n=>({
+    id: n.id||Date.now().toString()+Math.random().toString(36).slice(2,5),
+    title: (n.text||'Nova nota').split('\n')[0].slice(0,60)||'Nova nota',
+    content: n.text||'',
+    color: n.color||'purple',
+    is_pinned: false,
+    created_at: new Date(n.created||Date.now()).toISOString(),
+    updated_at: new Date(n.updatedAt||n.created||Date.now()).toISOString()
+  }));
+  set(NOTES_KEY_V2, migrated);
 }
-function renderNotes() {
-  const list=document.getElementById('notes-page-list'); if(!list) return;
-  const notes=get(NOTES_KEY,[]);
-  if(notes.length===0){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:48px 0;"><div style="font-size:40px;margin-bottom:12px;">📝</div><div style="font-size:14px;">Sense notes. Afegeix-ne una!</div></div>';return;}
-  list.innerHTML=notes.map((n,i)=>{
-    const c=getNoteColor(n.color);
-    const swatches=NOTE_COLORS.map(col=>`<span class="ncp-swatch${col.key===(n.color||'purple')?' sel':''}" style="background:${col.dot};opacity:${col.key===(n.color||'purple')?1:0.4};" onclick="setNoteColor(${i},'${col.key}')" title="${col.key}"></span>`).join('');
-    const dateStr=new Date(n.created||Date.now()).toLocaleDateString('ca',{day:'2-digit',month:'short',year:'numeric'});
-    return `<div class="note-card note-card-colored" style="background:${c.bg};border:1px solid ${c.border};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:${c.dot};flex-shrink:0;box-shadow:0 0 6px ${c.dot}55;"></span>
-          <span style="font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;">${dateStr}</span>
-        </div>
-        <button onclick="deleteNote(${i})" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);color:#fca5a5;border-radius:7px;padding:2px 8px;font-size:10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;">✕</button>
+
+function _getNotes(){ _migrateNotesV1(); return get(NOTES_KEY_V2,[]); }
+function _setNotes(n){ set(NOTES_KEY_V2,n); }
+
+/* ── Càrrega i render de la llista ── */
+function renderNotes(){
+  _migrateNotesV1();
+  _renderNoteColorFilter();
+  _renderNotesList();
+}
+
+function _renderNoteColorFilter(){
+  const c=document.getElementById('notes-color-filter'); if(!c) return;
+  const pills=[{key:null,label:'Totes',dot:null},...NOTE_COLORS].map(col=>`
+    <button class="notes-cpill${_notesColorFilter===col.key?' active':''}"
+            style="${col.dot?`color:${col.dot};`:''}"
+            onclick="_filterNotesByColor(${col.key?`'${col.key}'`:'null'})">
+      ${col.dot?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col.dot};margin-right:4px;vertical-align:middle;"></span>`:''}${col.label}
+    </button>`).join('');
+  c.innerHTML=`<div class="notes-color-pills">${pills}</div>`;
+}
+
+function _filterNotesByColor(key){
+  _notesColorFilter=key;
+  _renderNoteColorFilter();
+  _renderNotesList();
+}
+
+function searchNotes(q){
+  _notesSearch=q;
+  _renderNotesList();
+}
+
+function _renderNotesList(){
+  const el=document.getElementById('notes-list'); if(!el) return;
+  let notes=_getNotes();
+
+  // Filtre color
+  if(_notesColorFilter) notes=notes.filter(n=>n.color===_notesColorFilter);
+
+  // Cerca
+  if(_notesSearch.trim()){
+    const q=_notesSearch.toLowerCase();
+    notes=notes.filter(n=>(n.title||'').toLowerCase().includes(q)||(n.content||'').toLowerCase().includes(q));
+  }
+
+  // Ordre: fixades primer, depois per updated_at desc
+  notes.sort((a,b)=>{ if(b.is_pinned!==a.is_pinned) return b.is_pinned?1:-1; return new Date(b.updated_at)-new Date(a.updated_at); });
+
+  if(!notes.length){
+    el.innerHTML=`<div class="notes-list-empty">Cap nota trobada</div>`;
+    return;
+  }
+  el.innerHTML=notes.map(n=>{
+    const dot=getNoteColor(n.color).dot;
+    const preview=(n.content||'').replace(/[#*_`>]/g,'').replace(/\n+/g,' ').substring(0,70);
+    const date=new Date(n.updated_at).toLocaleDateString('ca-ES',{day:'numeric',month:'short'});
+    return `<div class="note-item${_currentNoteId===n.id?' active':''}" onclick="openNote('${n.id}')">
+      <div class="note-item-header">
+        <span class="note-item-dot" style="background:${dot};box-shadow:0 0 5px ${dot}55;"></span>
+        <span class="note-item-title">${n.is_pinned?'📌 ':''}${_esc(n.title||'Sense títol')}</span>
+        <span class="note-item-date">${date}</span>
       </div>
-      <div class="note-text-edit" contenteditable="true" style="font-size:14px;color:var(--text);line-height:1.65;outline:none;min-height:28px;" onblur="saveNoteEdit(${i},this.textContent)">${n.text||''}</div>
-      <div class="note-color-picker" style="display:flex;gap:6px;align-items:center;">${swatches}</div>
+      <p class="note-item-preview">${_esc(preview)||'Nota buida'}</p>
     </div>`;
   }).join('');
 }
-function saveNoteEdit(idx,text) {
-  const notes=get(NOTES_KEY,[]); if(!notes[idx]) return;
-  const trimmed=(text||'').trim();
-  if (trimmed==='') {
-    // Text buit: no esborra en silenci, restaura el contingut anterior
-    // (l'usuari ha d'usar el botó ✕ per esborrar explícitament)
-    const cards=document.querySelectorAll('.note-text-edit');
-    if (cards[idx]) cards[idx].textContent=notes[idx].text||'';
-    return;
+
+/* ── Obrir nota ── */
+function openNote(noteId){
+  const notes=_getNotes();
+  const note=notes.find(n=>n.id===noteId); if(!note) return;
+  _currentNoteId=noteId;
+  _noteViewMode=false;
+
+  const emptyState=document.getElementById('notes-empty-state');
+  const editorEl=document.getElementById('notes-editor');
+  if(emptyState) emptyState.style.display='none';
+  if(editorEl) editorEl.style.display='flex';
+
+  const dot=getNoteColor(note.color).dot;
+  const colorDots=NOTE_COLORS.map(c=>`
+    <span class="note-color-dot${note.color===c.key?' sel':''}"
+          style="background:${c.dot};"
+          title="${c.label}"
+          onclick="_setNoteColorLive('${noteId}','${c.key}')"></span>`).join('');
+
+  editorEl.innerHTML=`
+    <div class="note-editor-header">
+      <input type="text" id="note-title-input" class="note-title-input"
+             value="${_esc(note.title)}"
+             placeholder="Títol de la nota..."
+             oninput="_scheduleNoteSave()">
+      <div class="note-color-dots">${colorDots}</div>
+      <div class="note-editor-actions">
+        <button onclick="_toggleNoteView()" id="note-view-toggle" title="Vista / Edició">👁</button>
+        <button onclick="_toggleNotePin('${noteId}')" title="${note.is_pinned?'Desancorar':'Ancorar'}">${note.is_pinned?'📌':'📍'}</button>
+        <button onclick="_deleteNoteV2('${noteId}')" title="Eliminar nota" style="color:#fca5a5;">🗑</button>
+      </div>
+    </div>
+    <div id="note-edit-mode" class="note-edit-mode">
+      <textarea id="note-content-input" class="note-content-textarea"
+                placeholder="Escriu en Markdown...&#10;&#10;# Títol&#10;**negreta**, *cursiva*, \`codi\`&#10;- Llista"
+                oninput="_scheduleNoteSave();_updateMarkdownPreview()">${_esc(note.content)}</textarea>
+    </div>
+    <div id="note-view-mode" class="note-view-mode" style="display:none;"></div>
+    <div class="note-footer">
+      <span id="note-save-status" class="note-save-status">✓ Tots els canvis desats</span>
+      <span id="note-char-count">${(note.content||'').length} car.</span>
+    </div>`;
+
+  // Actualitza llista per reflectir nota activa
+  _renderNotesList();
+}
+
+function _toggleNoteView(){
+  _noteViewMode=!_noteViewMode;
+  const editEl=document.getElementById('note-edit-mode');
+  const viewEl=document.getElementById('note-view-mode');
+  const toggleBtn=document.getElementById('note-view-toggle');
+  if(editEl) editEl.style.display=_noteViewMode?'none':'flex';
+  if(viewEl) viewEl.style.display=_noteViewMode?'block':'none';
+  if(toggleBtn) toggleBtn.textContent=_noteViewMode?'✏️':'👁';
+  if(_noteViewMode) _updateMarkdownPreview();
+}
+
+function _updateMarkdownPreview(){
+  const content=document.getElementById('note-content-input')?.value||'';
+  const viewEl=document.getElementById('note-view-mode');
+  if(viewEl && typeof marked!=='undefined'){
+    viewEl.innerHTML=marked.parse(content);
   }
-  notes[idx].text=trimmed;
-  notes[idx].updatedAt=Date.now();
-  set(NOTES_KEY,notes);
+  const counter=document.getElementById('note-char-count');
+  if(counter) counter.textContent=`${content.length} car.`;
 }
-function deleteNote(idx) {
-  const notes=get(NOTES_KEY,[]); notes.splice(idx,1); set(NOTES_KEY,notes); renderNotes(); showToast('🗑️ Nota eliminada');
+
+function _scheduleNoteSave(){
+  const status=document.getElementById('note-save-status');
+  if(status){ status.textContent='Desant...'; status.classList.add('saving'); }
+  clearTimeout(_noteSaveTimer);
+  _noteSaveTimer=setTimeout(_saveCurrentNote, 1200);
 }
-function addNewNote() {
-  const notes=get(NOTES_KEY,[]); notes.unshift({id:Date.now().toString(),text:'Nova nota...',created:Date.now()}); set(NOTES_KEY,notes); renderNotes();
-  setTimeout(()=>{ const cards=document.querySelectorAll('.note-text-edit'); if(cards[0]){cards[0].focus();const r=document.createRange();r.selectNodeContents(cards[0]);r.collapse(false);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);} },100);
+
+function _saveCurrentNote(){
+  if(!_currentNoteId) return;
+  const notes=_getNotes();
+  const idx=notes.findIndex(n=>n.id===_currentNoteId); if(idx<0) return;
+  const title=(document.getElementById('note-title-input')?.value||'').trim()||'Sense títol';
+  const content=document.getElementById('note-content-input')?.value||'';
+  notes[idx].title=title;
+  notes[idx].content=content;
+  notes[idx].updated_at=new Date().toISOString();
+  _setNotes(notes);
+  const status=document.getElementById('note-save-status');
+  if(status){ status.textContent='✓ Tots els canvis desats'; status.classList.remove('saving'); }
+  // Actualitza previsualització a la llista
+  _renderNotesList();
 }
+
+function _setNoteColorLive(noteId, colorKey){
+  const notes=_getNotes();
+  const idx=notes.findIndex(n=>n.id===noteId); if(idx<0) return;
+  notes[idx].color=colorKey;
+  notes[idx].updated_at=new Date().toISOString();
+  _setNotes(notes);
+  openNote(noteId); // re-renderitza editor amb nou color
+  _renderNotesList();
+}
+
+function _toggleNotePin(noteId){
+  const notes=_getNotes();
+  const idx=notes.findIndex(n=>n.id===noteId); if(idx<0) return;
+  notes[idx].is_pinned=!notes[idx].is_pinned;
+  notes[idx].updated_at=new Date().toISOString();
+  _setNotes(notes);
+  openNote(noteId);
+  _renderNotesList();
+}
+
+function _deleteNoteV2(noteId){
+  showDeleteConfirm(()=>{
+    const notes=_getNotes().filter(n=>n.id!==noteId);
+    _setNotes(notes);
+    _currentNoteId=null;
+    const editorEl=document.getElementById('notes-editor');
+    const emptyState=document.getElementById('notes-empty-state');
+    if(editorEl) editorEl.style.display='none';
+    if(emptyState) emptyState.style.display='flex';
+    _renderNotesList();
+    showToast('🗑️ Nota eliminada');
+  },{title:'ELIMINAR NOTA',msg:'Eliminaràs aquesta nota permanentment.'});
+}
+
+function createNoteV2(){
+  const now=new Date().toISOString();
+  const newNote={
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    title: 'Nova nota',
+    content: '',
+    color: 'purple',
+    is_pinned: false,
+    created_at: now,
+    updated_at: now
+  };
+  const notes=_getNotes();
+  notes.unshift(newNote);
+  _setNotes(notes);
+  _renderNotesList();
+  openNote(newNote.id);
+  // Focus al títol
+  setTimeout(()=>{ const inp=document.getElementById('note-title-input'); if(inp){inp.focus();inp.select();} },80);
+}
+
+// Retrocompatibilitat (Quick Capture usa createNote)
+function createNote(){ createNoteV2(); navTo('notes'); }
+function addNewNote(){ createNoteV2(); }
+function deleteNote(idx){
+  // Suport crida antiga per índex (per si de cas)
+  const notes=_getNotes(); if(!notes[idx]) return;
+  _deleteNoteV2(notes[idx].id);
+}
+function renderNotes(){ _migrateNotesV1(); _renderNoteColorFilter(); _renderNotesList(); }
 
 /* ─────────────────────────────────────────
    SHORTCUTS / DEV
