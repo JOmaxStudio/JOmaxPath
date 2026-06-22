@@ -1573,6 +1573,11 @@ function markStreakToday() {
   if (data.days.length>30) data.days.shift();
   set(STREAK_KEY,data); renderStreakWidget();
   showToast('🔥 Ratxa: '+data.count+' dies!');
+  if (typeof showNotif==='function') {
+    const msg = data.count>=7 ? '🏆 '+data.count+' dies seguits! Increïble!' : data.count+' dies seguits!';
+    showNotif(msg,'success',{title:'🔥 Nova ratxa!'});
+    _nativeNotif('🔥 Ratxa aconseguida!', data.count+' dies consecutius!','streak');
+  }
   if (window._currentUser?.id) {
     const uid=window._currentUser.id;
     if (typeof checkStreakBonus==='function') checkStreakBonus(uid, data.count).catch(()=>{});
@@ -2942,6 +2947,8 @@ function openTaskEditor(taskId){
   document.getElementById('te-desc').value=t.desc||'';
   document.getElementById('te-date').value=t.date||'';
   document.getElementById('te-prio').value=String(t.prio||3);
+  const reminderEl=document.getElementById('te-reminder');
+  if(reminderEl) reminderEl.value=t.reminder_at ? t.reminder_at.slice(0,16) : '';
   teRenderLinks(t.links||[]);
   // Assignat (només compartides)
   const wrap=document.getElementById('te-assignee-wrap');
@@ -2982,6 +2989,9 @@ async function saveTaskEditor(){
   t.date=document.getElementById('te-date').value||'';
   t.prio=parseInt(document.getElementById('te-prio').value||'3');
   t.links=_teCurrentLinks().map(u=>/^https?:\/\//i.test(u)?u:'https://'+u);
+  const reminderInp=document.getElementById('te-reminder');
+  const reminderVal=reminderInp?.value||'';
+  t.reminder_at = reminderVal ? new Date(reminderVal).toISOString() : null;
   const sel=document.getElementById('te-assignee');
   if(list.shared && sel) t.assignee=sel.value||'';
   await _saveList(list);
@@ -5010,4 +5020,276 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   } catch {}
   console.log('%cJOmaxPath app.js v3.0 ✓','color:#7c3aed;font-weight:bold;font-size:14px;');
+
+  // Registre Service Worker + inicialitza notificacions
+  _initNotifications();
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   SISTEMA DE NOTIFICACIONS — Millora 17
+   - showNotif(msg, type, opts): toasts bottom-right amb variants
+   - _initNotifications(): SW + permís + recordatoris
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Contenidor de toasts (bottom-right, stacking) ── */
+function _getToastContainer() {
+  let c = document.getElementById('notif-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'notif-container';
+    c.style.cssText = [
+      'position:fixed', 'bottom:24px', 'right:24px',
+      'z-index:999999', 'display:flex', 'flex-direction:column-reverse',
+      'gap:10px', 'pointer-events:none',
+      'max-width:min(360px, calc(100vw - 32px))',
+    ].join(';');
+    document.body.appendChild(c);
+  }
+  return c;
+}
+
+const _NOTIF_STYLES = {
+  success: { border: '#10b981', icon: '✅', bg: 'rgba(6,78,59,0.97)'  },
+  info:    { border: '#3b82f6', icon: 'ℹ️', bg: 'rgba(23,37,84,0.97)'  },
+  warning: { border: '#f59e0b', icon: '⚠️', bg: 'rgba(69,39,1,0.97)'  },
+  error:   { border: '#ef4444', icon: '❌', bg: 'rgba(69,10,10,0.97)'  },
+};
+
+/**
+ * Mostra un toast bottom-right.
+ * @param {string} msg
+ * @param {'success'|'info'|'warning'|'error'} type
+ * @param {{duration?: number, title?: string}} opts
+ */
+function showNotif(msg, type = 'success', opts = {}) {
+  const duration = opts.duration ?? 4000;
+  const s = _NOTIF_STYLES[type] || _NOTIF_STYLES.info;
+  const container = _getToastContainer();
+
+  const toast = document.createElement('div');
+  toast.style.cssText = [
+    `background:${s.bg}`,
+    `border:1px solid ${s.border}`,
+    'color:#f1f5f9',
+    'border-radius:12px',
+    'padding:12px 14px',
+    'font-family:"Space Mono",monospace',
+    'font-size:11px',
+    'line-height:1.5',
+    'display:flex',
+    'align-items:flex-start',
+    'gap:10px',
+    'pointer-events:auto',
+    'cursor:default',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.6)',
+    'transform:translateX(calc(100% + 32px))',
+    'opacity:0',
+    'transition:transform 0.3s ease-out, opacity 0.3s ease-out',
+    'will-change:transform,opacity',
+    'max-width:100%',
+    'word-break:break-word',
+  ].join(';');
+
+  const iconEl = document.createElement('span');
+  iconEl.style.cssText = 'flex-shrink:0;font-size:16px;line-height:1.2;';
+  iconEl.textContent = s.icon;
+
+  const body = document.createElement('div');
+  body.style.cssText = 'flex:1;min-width:0;';
+  if (opts.title) {
+    const titleEl = document.createElement('div');
+    titleEl.style.cssText = 'font-weight:700;margin-bottom:2px;';
+    titleEl.textContent = opts.title;
+    body.appendChild(titleEl);
+  }
+  const msgEl = document.createElement('div');
+  msgEl.style.opacity = '0.9';
+  msgEl.textContent = msg;
+  body.appendChild(msgEl);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.style.cssText = [
+    'flex-shrink:0', 'background:none', 'border:none',
+    'color:rgba(241,245,249,0.5)', 'cursor:pointer',
+    'font-size:14px', 'line-height:1', 'padding:0',
+    'transition:color 0.15s',
+  ].join(';');
+  closeBtn.textContent = '✕';
+  closeBtn.setAttribute('aria-label', 'Tancar');
+  closeBtn.onmouseenter = () => closeBtn.style.color = '#f1f5f9';
+  closeBtn.onmouseleave = () => closeBtn.style.color = 'rgba(241,245,249,0.5)';
+  closeBtn.onclick = () => _dismissToast(toast);
+
+  toast.appendChild(iconEl);
+  toast.appendChild(body);
+  toast.appendChild(closeBtn);
+  container.appendChild(toast);
+
+  // Slide in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      toast.style.transform = 'translateX(0)';
+      toast.style.opacity = '1';
+    });
+  });
+
+  // Auto-dismiss
+  const timer = setTimeout(() => _dismissToast(toast), duration);
+  toast._dismissTimer = timer;
+}
+
+function _dismissToast(toast) {
+  clearTimeout(toast._dismissTimer);
+  toast.style.transform = 'translateX(calc(100% + 32px))';
+  toast.style.opacity = '0';
+  setTimeout(() => toast.remove(), 320);
+}
+
+/* ── Registre Service Worker ── */
+let _swReg = null;
+async function _registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    _swReg = await navigator.serviceWorker.register('/sw.js');
+  } catch (e) {
+    console.warn('[SW] Error registrant:', e);
+  }
+}
+
+/* ── Mostra notificació nativa (o via SW si pàgina en segon pla) ── */
+function _nativeNotif(title, body, tag = 'jomaxpath') {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (document.visibilityState === 'visible') {
+    new Notification(title, { body, icon: '/favicon.png', tag });
+  } else if (_swReg) {
+    _swReg.showNotification(title, { body, icon: '/favicon.png', badge: '/favicon.png', tag });
+  }
+}
+
+/* ── Modal d'explicació abans de demanar permís ── */
+function showNotifPermissionModal() {
+  if (!('Notification' in window)) {
+    showNotif('El teu navegador no suporta notificacions', 'warning');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    showNotif('Les notificacions ja estan activades ✓', 'success');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    showNotif('Has blocat les notificacions. Activa-les des de la configuració del navegador.', 'warning', { duration: 6000 });
+    return;
+  }
+
+  const ov = document.createElement('div');
+  ov.id = 'notif-perm-modal';
+  ov.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:100000',
+    'background:rgba(0,0,0,0.65)', 'backdrop-filter:blur(6px)',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'padding:20px',
+  ].join(';');
+  ov.innerHTML = `
+    <div style="
+      background:#0e0e1e;border:1px solid rgba(124,58,237,0.35);
+      border-radius:18px;padding:28px 24px;max-width:380px;width:100%;
+      font-family:'Space Mono',monospace;box-shadow:0 20px 60px rgba(0,0,0,0.7);
+    ">
+      <div style="font-size:36px;text-align:center;margin-bottom:12px;">🔔</div>
+      <h3 style="margin:0 0 10px;color:#e2e8f0;font-size:14px;text-align:center;letter-spacing:1px;">
+        ACTIVA LES NOTIFICACIONS
+      </h3>
+      <p style="color:#94a3b8;font-size:10px;line-height:1.7;margin:0 0 20px;text-align:center;">
+        JOmaxPath t'avisarà quan:<br>
+        🍅 <b style="color:#e2e8f0;">Un Pomodoro acabi</b><br>
+        ⏰ <b style="color:#e2e8f0;">Tinguis un recordatori de tasca</b><br>
+        🔥 <b style="color:#e2e8f0;">Aconsegueixis una ratxa nova</b>
+      </p>
+      <div style="display:flex;gap:10px;flex-direction:column;">
+        <button id="notif-perm-accept" style="
+          background:linear-gradient(135deg,#7c3aed,#6d28d9);
+          color:#fff;border:none;border-radius:10px;
+          padding:12px;cursor:pointer;font-family:'Space Mono',monospace;
+          font-size:11px;font-weight:700;letter-spacing:1px;
+          transition:opacity 0.2s;
+        ">✓ ACTIVAR NOTIFICACIONS</button>
+        <button id="notif-perm-cancel" style="
+          background:none;border:1px solid rgba(255,255,255,0.1);
+          color:#64748b;border-radius:10px;padding:10px;
+          cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;
+          transition:border-color 0.2s;
+        ">Ara no</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(ov);
+
+  document.getElementById('notif-perm-accept').onclick = async () => {
+    ov.remove();
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      showNotif('Notificacions activades! 🔔', 'success');
+      localStorage.setItem('jomaxpath_notif_perm', '1');
+    } else {
+      showNotif('No s\'han pogut activar les notificacions', 'warning');
+    }
+  };
+  document.getElementById('notif-perm-cancel').onclick = () => ov.remove();
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+}
+
+/* ── Comprovació de recordatoris de tasques ── */
+function _checkTaskReminders() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = Date.now();
+  const fired = JSON.parse(localStorage.getItem('jomaxpath_notif_fired') || '{}');
+
+  try {
+    const lists = JSON.parse(localStorage.getItem('jomaxpath_lists_v3') || '[]');
+    lists.forEach(list => {
+      (list.tasks || []).forEach(task => {
+        if (!task.reminder_at || task.done) return;
+        const remTs = new Date(task.reminder_at).getTime();
+        if (remTs <= now && !fired[task.id]) {
+          fired[task.id] = now;
+          _nativeNotif(
+            '⏰ Recordatori: ' + (task.name || 'Tasca'),
+            task.desc || list.name || 'Tens una tasca pendent',
+            'reminder-' + task.id
+          );
+          showNotif((task.name || 'Tasca'), 'warning', {
+            title: '⏰ Recordatori',
+            duration: 8000,
+          });
+        }
+      });
+    });
+    localStorage.setItem('jomaxpath_notif_fired', JSON.stringify(fired));
+  } catch {}
+}
+
+/* ── Inicialització global ── */
+async function _initNotifications() {
+  await _registerSW();
+
+  // Comprova recordatoris cada 5 minuts
+  _checkTaskReminders();
+  setInterval(_checkTaskReminders, 5 * 60 * 1000);
+
+  // Si ja tenia permís concedit, no tornar a preguntar
+  // El botó per activar notificacions es pot afegir a Config
+}
+
+/* ── Hook Pomodoro: afegir notificació nativa ── */
+const _origPomoCompleteFocus = typeof _pomoCompleteFocus === 'function' ? _pomoCompleteFocus : null;
+// Patch aplicat directament als punts de crida via wrapper a les funcions existents.
+// Com que _pomoCompleteFocus ja crida showToast, afegim la notificació nativa aquí:
+(function _patchPomo() {
+  const orig = window._pomoCompleteFocus;
+  if (typeof orig !== 'function') return;
+  window._pomoCompleteFocus = function() {
+    orig.apply(this, arguments);
+    showNotif('Tens 5 minuts de descans 🧘', 'success', { title: '🍅 Pomodoro completat!' });
+    _nativeNotif('Pomodoro completat! 🍅', 'Tens 5 minuts de descans', 'pomo-focus');
+  };
+})();

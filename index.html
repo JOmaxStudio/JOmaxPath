@@ -1095,6 +1095,9 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <div class="lsb-bot-item" onclick="openConfig()">
       <span style="font-size:15px">⚙️</span><span>Configuració</span>
     </div>
+    <div class="lsb-bot-item" onclick="showNotifPermissionModal()" title="Notificacions">
+      <span style="font-size:15px">🔔</span><span>Notificacions</span>
+    </div>
     <div class="lsb-bot-item" onclick="toggleDrawer()">
       <span style="font-size:15px">☰</span><span>Menú complet</span>
     </div>
@@ -1907,6 +1910,12 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
           </select>
         </div>
       </div>
+      <div style="margin-top:6px;">
+        <label class="te-label">🔔 Recordatori (opcional)</label>
+        <input type="datetime-local" id="te-reminder" class="te-input"
+               title="Rebràs una notificació a l'hora indicada"/>
+      </div>
+
       <div id="te-assignee-wrap" style="display:none;">
         <label class="te-label" data-i18n="te_assignee">👤 Assignat a</label>
         <select id="te-assignee" class="te-input"></select>
