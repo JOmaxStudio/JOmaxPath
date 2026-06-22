@@ -181,6 +181,7 @@ function navTo(page) {
   if (page === 'julians') initJulians();
   if (page === 'examenia') renderExamenia();
   if (page === 'notes')   renderNotes();
+  if (page === 'stats')   { if (typeof renderAnalytics === 'function') renderAnalytics(); }
 
   // Aplica traduccions al contingut de la nova pàgina
   setTimeout(()=>{ try { if(typeof applyLanguage==='function') applyLanguage(); } catch(e){} }, 30);
@@ -2911,6 +2912,8 @@ async function toggleListTask(taskId) {
   const list = _getList(_openListId); if(!list) return;
   const t = list.tasks.find(x=>x.id===taskId); if(!t) return;
   t.done=!t.done; t.status=t.done?'done':'todo';
+  if (t.done) t.completed_at = new Date().toISOString();
+  else delete t.completed_at;
   await _saveList(list);
   renderListDetail();
   if(t.done && window._currentUser?.id) {
