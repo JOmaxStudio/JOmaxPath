@@ -2645,30 +2645,29 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 </div>
 
 
-<!-- Quick Capture -->
+<!-- Quick Capture NLP -->
 <button id="quick-capture-btn" onclick="openQuickCapture()" title="Captura ràpida (Q)" aria-label="Captura ràpida">⚡</button>
 <div id="quick-capture-overlay" onclick="if(event.target===this)closeQuickCapture()">
   <div id="quick-capture-box">
-    <h4 id="qc-title">⚡ Captura ràpida</h4>
-    <input type="text" id="qc-input" placeholder="Escriu qualsevol cosa... tasca, event, nota..." />
-    <div class="qc-types">
-      <button class="qc-type-btn active" id="qct-tasca" onclick="setQCType('tasca')" data-i18n-qc="qct_task">📋 Tasca</button>
-      <button class="qc-type-btn" id="qct-event" onclick="setQCType('event')" data-i18n-qc="qct_event">📅 Event</button>
-      <button class="qc-type-btn" id="qct-nota"  onclick="setQCType('nota')" data-i18n-qc="qct_note">📝 Nota</button>
+    <div class="qc-input-row">
+      <span class="qc-icon">⚡</span>
+      <input type="text" id="qc-input" class="qc-input-nlp"
+        placeholder="'estudiar mates demà' · 'reunió dijous 16h' · 'nota: ...'"
+        autocomplete="off"
+        oninput="parseAndPreview(this.value)"
+        onkeydown="handleQCKeydown(event)">
+      <button class="qc-submit-btn" onclick="submitQuickCapture()">Afegir ↵</button>
     </div>
-    <div class="qc-row" id="qc-extra-row" style="margin-bottom:12px;">
-      <input type="date" id="qc-date" />
-      <select id="qc-subtype">
-        <option value="tasca">🗂️ Tasca</option>
-        <option value="deures">📚 Deures</option>
-        <option value="treball">📄 Treball</option>
-        <option value="personal">🙋 Personal</option>
-      </select>
+    <div class="qc-preview" id="qc-preview">
+      <div class="qc-preview-empty">Escriu en català per veure la previsualització...</div>
     </div>
-    <div class="qc-row">
-      <button class="qc-add-btn" id="qc-add-btn" onclick="saveQuickCapture()">Afegir ↵</button>
+    <div class="qc-examples">
+      <span class="qc-examples-label">Exemples:</span>
+      <button class="qc-example" onclick="setQCExample('estudiar mates demà')">estudiar mates demà</button>
+      <button class="qc-example" onclick="setQCExample('reunió dijous a les 16h')">reunió dijous a les 16h</button>
+      <button class="qc-example" onclick="setQCExample('urgent entregar redacció divendres')">urgent entregar redacció divendres</button>
+      <button class="qc-example" onclick="setQCExample('nota: recordar portar el llibre')">nota: recordar portar el llibre</button>
     </div>
-    <button class="qc-close-btn" id="qc-close-btn" onclick="closeQuickCapture()">Tancar</button>
   </div>
 </div>
 
@@ -2886,6 +2885,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';}</script>
+<script src="nlp-parser.js" defer></script>
 <script src="app.js?v=20260621-recurr" defer></script>
 
 <script>

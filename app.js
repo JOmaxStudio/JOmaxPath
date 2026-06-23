@@ -5370,28 +5370,140 @@ function showInfo(page) {
 function closeInfo() { const ov=document.getElementById('info-tooltip-overlay'); if(ov) ov.style.display='none'; }
 
 /* ─────────────────────────────────────────
-   QUICK CAPTURE
+   QUICK CAPTURE NLP
 ───────────────────────────────────────── */
-let _qcType='tasca';
 function openQuickCapture() {
-  const ov=document.getElementById('quick-capture-overlay'); if(ov) ov.style.display='flex';
-  document.getElementById('qc-input')?.focus();
+  const ov = document.getElementById('quick-capture-overlay');
+  if (ov) ov.style.display = 'flex';
+  const inp = document.getElementById('qc-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  parseAndPreview('');
 }
-function closeQuickCapture() { const ov=document.getElementById('quick-capture-overlay'); if(ov) ov.style.display='none'; }
-function setQCType(type) {
-  _qcType=type;
-  document.querySelectorAll('.qc-type-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('qct-'+type)?.classList.add('active');
+function closeQuickCapture() {
+  const ov = document.getElementById('quick-capture-overlay');
+  if (ov) ov.style.display = 'none';
 }
-function saveQuickCapture() {
-  const text=(document.getElementById('qc-input')?.value||'').trim();
-  if(!text){showWarningToast('⚠️ Escriu algo!');return;}
-  if (_qcType==='tasca'){const tasks=get(TASKS_KEY,[]);tasks.push({id:Date.now().toString(),name:text,status:'todo',done:false,prio:3,created:Date.now()});set(TASKS_KEY,tasks);showToast('✅ Tasca capturada!');}
-  else if(_qcType==='nota'){const notes=get(NOTES_KEY,[]);notes.unshift({id:Date.now().toString(),text,created:Date.now()});set(NOTES_KEY,notes);showToast('📝 Nota guardada!');}
-  else if(_qcType==='habit'){const habits=get(HABITS_KEY,[]);habits.push({name:text,icon:'⭐',days:[],created:Date.now()});set(HABITS_KEY,habits);showToast('🌱 Hàbit afegit!');}
-  document.getElementById('qc-input').value=''; closeQuickCapture(); renderHome(); renderTasques();
+function handleQCKeydown(e) {
+  if (e.key === 'Enter') { e.preventDefault(); submitQuickCapture(); }
+  if (e.key === 'Escape') { closeQuickCapture(); }
 }
+function setQCExample(text) {
+  const inp = document.getElementById('qc-input');
+  if (!inp) return;
+  inp.value = text;
+  parseAndPreview(text);
+  inp.focus();
+}
+// Compatibilitat backward (per si algun altre codi crida saveQuickCapture)
+function saveQuickCapture() { submitQuickCapture(); }
+function setQCType() {}
 function toggleNotePicker() { navTo('notes'); lsbMobileClose(); }
+
+function formatDateReadable(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrowStr = (() => { const t = new Date(); t.setDate(t.getDate()+1); return t.toISOString().split('T')[0]; })();
+  if (dateStr === todayStr) return 'Avui';
+  if (dateStr === tomorrowStr) return 'Demà';
+  return d.toLocaleDateString('ca-ES', { weekday:'short', day:'numeric', month:'short' });
+}
+
+function parseAndPreview(input) {
+  const preview = document.getElementById('qc-preview');
+  if (!preview) return;
+  if (!input.trim()) {
+    preview.innerHTML = '<div class="qc-preview-empty">Escriu en català per veure la previsualització...</div>';
+    return;
+  }
+  const parsed = (typeof parseNaturalLanguage === 'function')
+    ? parseNaturalLanguage(input)
+    : { title: input, type: 'task', date: null, hora_inici: null, hora_fi: null, priority: 'normal' };
+
+  const typeLabels = { task:'📋 Tasca', event:'📅 Event', note:'📝 Nota' };
+  const typeColors = { task:'#6C63FF', event:'#10B981', note:'#F59E0B' };
+  const priorityLabels = { urgent:'🔴 Urgent', important:'🟡 Important', normal:'', low:'⚪ Baix' };
+  const dateLabel = parsed.date ? formatDateReadable(parsed.date) : null;
+
+  const metaItems = [];
+  if (dateLabel) metaItems.push(`<span class="qc-meta-item">📅 ${dateLabel}</span>`);
+  if (parsed.hora_inici) {
+    const horaText = parsed.hora_fi ? `${parsed.hora_inici} — ${parsed.hora_fi}` : parsed.hora_inici;
+    metaItems.push(`<span class="qc-meta-item">🕐 ${horaText}</span>`);
+  }
+  if (parsed.type === 'task' && parsed.priority !== 'normal') {
+    metaItems.push(`<span class="qc-meta-item">${priorityLabels[parsed.priority]}</span>`);
+  }
+
+  preview.innerHTML = `
+    <div class="qc-preview-result" style="--type-color:${typeColors[parsed.type]||'#6C63FF'}">
+      <div class="qc-preview-type">${typeLabels[parsed.type]||'📋 Tasca'}</div>
+      <div class="qc-preview-title">${parsed.title || '<em style="opacity:.5">sense títol</em>'}</div>
+      ${metaItems.length ? `<div class="qc-preview-meta">${metaItems.join('')}</div>` : ''}
+      ${!parsed.title ? '<div class="qc-preview-warning">⚠️ No s\'ha detectat cap títol</div>' : ''}
+    </div>
+  `;
+}
+
+function submitQuickCapture() {
+  const inp = document.getElementById('qc-input');
+  const text = (inp?.value || '').trim();
+  if (!text) { if (typeof showWarningToast === 'function') showWarningToast('⚠️ Escriu algo!'); return; }
+
+  const parsed = (typeof parseNaturalLanguage === 'function')
+    ? parseNaturalLanguage(text)
+    : { title: text, type: 'task', date: null, hora_inici: null, hora_fi: null, priority: 'normal' };
+
+  if (!parsed.title) { if (typeof showWarningToast === 'function') showWarningToast('⚠️ No s\'ha detectat cap títol'); return; }
+
+  const prioMap = { urgent: 1, important: 2, normal: 3, low: 4 };
+
+  if (parsed.type === 'note') {
+    const notes = get(NOTES_KEY, []);
+    notes.unshift({ id: Date.now().toString(), text: parsed.title, created: Date.now() });
+    set(NOTES_KEY, notes);
+    showToast(`📝 Nota "${parsed.title}" guardada!`);
+    if (typeof renderNotes === 'function') renderNotes();
+
+  } else if (parsed.type === 'event') {
+    const schedule = get(SCHEDULE_KEY, {});
+    const dateKey = parsed.date || new Date().toISOString().split('T')[0];
+    if (!schedule[dateKey]) schedule[dateKey] = [];
+    schedule[dateKey].push({
+      id: Date.now().toString(),
+      name: parsed.title,
+      text: parsed.title,
+      type: 'event',
+      color: '#6C63FF',
+      emoji: '📌',
+      timeStart: parsed.hora_inici || '09:00',
+      timeEnd: parsed.hora_fi || '10:00',
+      time: parsed.hora_inici || '09:00',
+      created: Date.now()
+    });
+    set(SCHEDULE_KEY, schedule);
+    showToast(`📅 Event "${parsed.title}" creat!`);
+    if (typeof renderHorari === 'function') renderHorari();
+
+  } else {
+    const tasks = get(TASKS_KEY, []);
+    tasks.push({
+      id: Date.now().toString(),
+      name: parsed.title,
+      status: 'todo',
+      done: false,
+      prio: prioMap[parsed.priority] || 3,
+      date: parsed.date || null,
+      created: Date.now()
+    });
+    set(TASKS_KEY, tasks);
+    showToast(`✅ Tasca "${parsed.title}" capturada!`);
+    if (typeof renderTasques === 'function') renderTasques();
+  }
+
+  if (inp) inp.value = '';
+  closeQuickCapture();
+  renderHome();
+}
 
 /* ══════════════════════════════════════
    NOTES V2 — Sistema integrat
