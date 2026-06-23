@@ -1071,14 +1071,8 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <div class="lsb-item" data-tip="Tasques" onclick="navTo('tasques');lsbMobileClose()">
       <div class="lsb-ico">📋</div><span class="lsb-lbl" data-i18n="nav_tasks">Tasques</span>
     </div>
-    <div class="lsb-item" data-tip="Focus" onclick="navTo('focus');lsbMobileClose()">
-      <div class="lsb-ico">🎯</div><span class="lsb-lbl" data-i18n="nav_focus">Focus</span>
-    </div>
-    <div class="lsb-item" data-tip="Julians AI" onclick="navTo('julians');lsbMobileClose()">
-      <div class="lsb-ico">🧠</div><span class="lsb-lbl">Julians AI</span>
-    </div>
-    <div class="lsb-item" data-tip="Preparar exàmens" onclick="navTo('examenia');lsbMobileClose()">
-      <div class="lsb-ico">🎓</div><span class="lsb-lbl">Preparar exàmens</span>
+    <div class="lsb-item lsb-item-study" data-tip="Estudi" onclick="navTo('study');lsbMobileClose()">
+      <div class="lsb-ico">📚</div><span class="lsb-lbl">Estudi</span>
     </div>
     <div class="lsb-item" data-tip="Estadístiques" onclick="navTo('stats');lsbMobileClose()">
       <div class="lsb-ico">📊</div><span class="lsb-lbl">Estadístiques</span>
@@ -1174,11 +1168,17 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   /* Update active item on nav */
   window.lsbSetActive=function(page){
     document.querySelectorAll('.lsb-item').forEach(el=>el.classList.remove('lsb-active'));
-    const map={home:0,horari:1,tasques:2,focus:3,julians:4};
-    const idx=map[page];
-    if(idx!==undefined){
-      const items=document.querySelectorAll('#left-sidebar .lsb-item');
-      if(items[idx])items[idx].classList.add('lsb-active');
+    const studyPages=['study','focus','julians','examenia'];
+    const map={home:0,horari:1,tasques:2,stats:3};
+    if(studyPages.includes(page)){
+      const studyItem=document.querySelector('.lsb-item-study');
+      if(studyItem)studyItem.classList.add('lsb-active');
+    } else {
+      const idx=map[page];
+      if(idx!==undefined){
+        const items=document.querySelectorAll('#left-sidebar .lsb-item');
+        if(items[idx])items[idx].classList.add('lsb-active');
+      }
     }
   };
 })();
@@ -1315,13 +1315,9 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <div class="bnav-icon">📋</div>
     <div class="bnav-lbl">TASQUES</div>
   </div>
-  <div class="bnav-item" role="button" aria-label="Julians AI" onclick="navTo('julians');lsbMobileClose()">
-    <img id="julians-bnav-logo" src="julians-ai.png" style="width:22px;height:22px;object-fit:cover;border-radius:50%;opacity:0.45;" alt="J"/>
-    <div class="bnav-lbl">JULIANS</div>
-  </div>
-  <div class="bnav-item" role="button" aria-label="Focus" onclick="navTo('focus');lsbMobileClose()">
-    <div class="bnav-icon">🎯</div>
-    <div class="bnav-lbl">FOCUS</div>
+  <div class="bnav-item" role="button" aria-label="Estudi" onclick="navTo('study');lsbMobileClose()">
+    <div class="bnav-icon">📚</div>
+    <div class="bnav-lbl">ESTUDI</div>
   </div>
   <div class="bnav-item bnav-item-mes" role="button" aria-label="Més opcions" onclick="showMobileMenu()">
     <div class="bnav-icon">☰</div>
@@ -1330,6 +1326,18 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 </nav>
 
 <div class="container" role="main">
+
+  <!-- ═══ PAGE: STUDY ═══ -->
+  <div class="app-page" id="page-study">
+    <div class="page-title-bar">
+      <div class="page-title-icon" style="background:rgba(108,99,255,0.2);">📚</div>
+      <div class="page-title-text">
+        <h2>Estudi</h2>
+        <p>Focus · Julians AI · Exàmens</p>
+      </div>
+    </div>
+    <div class="study-hub-content"></div>
+  </div>
 
   <!-- ═══ PAGE: HOME ═══ -->
   <div class="app-page page-active" id="page-home">
@@ -4590,5 +4598,88 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
 .db-stat-lbl { font-size: 10px; color: var(--muted); }
 .db-missions-outer { padding: 0; overflow: hidden; }
 .db-missions-outer .mw-card { margin-bottom: 0; border: none; background: transparent; }
+
+/* ─── STUDY HUB ─── */
+.study-hub { max-width: 900px; margin: 0 auto; padding: 0 0 32px; }
+.study-hub-header { margin-bottom: 28px; }
+.study-hub-title { font-size: 24px; font-weight: 600; color: var(--text, #fff); margin: 0 0 6px; }
+.study-hub-subtitle { font-size: 14px; color: var(--muted, #888); margin: 0; }
+.study-cards-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
+.study-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  gap: 12px; padding: 24px; border-radius: 16px; border: 1px solid var(--border, rgba(255,255,255,.1));
+  background: var(--card, rgba(255,255,255,.05)); cursor: pointer; text-align: left;
+  overflow: hidden; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  -webkit-tap-highlight-color: transparent; min-height: 220px; width: 100%;
+}
+.study-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.12); }
+.study-card:active { transform: translateY(-1px); }
+.study-card-glow {
+  position: absolute; top: -40px; right: -40px; width: 140px; height: 140px;
+  border-radius: 50%; opacity: .08; transition: opacity .2s; pointer-events: none;
+}
+.study-card:hover .study-card-glow { opacity: .15; }
+.study-card--focus { border-color: rgba(239,68,68,.2); }
+.study-card--focus .study-card-glow { background: #EF4444; }
+.study-card--focus:hover { border-color: rgba(239,68,68,.4); box-shadow: 0 12px 32px rgba(239,68,68,.1); }
+.study-card--focus .study-card-icon { background: rgba(239,68,68,.1); color: #EF4444; }
+.study-card--ai { border-color: rgba(108,99,255,.2); }
+.study-card--ai .study-card-glow { background: #6C63FF; }
+.study-card--ai:hover { border-color: rgba(108,99,255,.4); box-shadow: 0 12px 32px rgba(108,99,255,.1); }
+.study-card--ai .study-card-icon { background: rgba(108,99,255,.1); }
+.study-card--exams { border-color: rgba(16,185,129,.2); }
+.study-card--exams .study-card-glow { background: #10B981; }
+.study-card--exams:hover { border-color: rgba(16,185,129,.4); box-shadow: 0 12px 32px rgba(16,185,129,.1); }
+.study-card--exams .study-card-icon { background: rgba(16,185,129,.1); color: #10B981; }
+.study-card-icon {
+  width: 52px; height: 52px; border-radius: 14px; display: flex;
+  align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+}
+.study-card-ai-img { width: 32px; height: 32px; object-fit: contain; }
+.study-card-body { flex: 1; }
+.study-card-title { font-size: 17px; font-weight: 600; color: var(--text, #fff); margin: 0 0 6px; }
+.study-card-desc { font-size: 13px; color: var(--muted, #888); margin: 0; line-height: 1.5; }
+.study-card-stats { margin-top: auto; }
+.study-card-stat {
+  font-size: 12px; color: var(--muted, #888);
+  background: var(--bg2, rgba(255,255,255,.07));
+  padding: 3px 10px; border-radius: 10px; display: inline-block;
+}
+.study-card-arrow {
+  position: absolute; bottom: 20px; right: 20px; font-size: 16px;
+  color: var(--muted, #888); opacity: 0; transform: translateX(-4px);
+  transition: opacity .2s, transform .2s;
+}
+.study-card:hover .study-card-arrow { opacity: 1; transform: translateX(0); }
+.study-stats-row {
+  display: flex; align-items: center; background: var(--card, rgba(255,255,255,.05));
+  border: 1px solid var(--border, rgba(255,255,255,.1));
+  border-radius: 12px; padding: 16px 24px; gap: 0;
+}
+.study-stat-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.study-stat-value { font-size: 18px; font-weight: 500; color: var(--text, #fff); }
+.study-stat-label { font-size: 11px; color: var(--muted, #888); text-transform: uppercase; letter-spacing: .06em; }
+.study-stat-divider { width: 1px; height: 32px; background: var(--border, rgba(255,255,255,.1)); flex-shrink: 0; }
+.study-breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 13px; }
+.study-breadcrumb-btn { border: none; background: none; color: var(--muted, #888); cursor: pointer; padding: 4px 0; font-size: 13px; transition: color .15s; }
+.study-breadcrumb-btn:hover { color: var(--accent, #6C63FF); }
+.study-breadcrumb-sep { color: var(--border, rgba(255,255,255,.2)); }
+.study-breadcrumb-current { color: var(--text, #fff); font-weight: 500; }
+@media (max-width: 767px) {
+  .study-cards-grid { grid-template-columns: 1fr; gap: 12px; }
+  .study-card { flex-direction: row; align-items: center; min-height: auto; padding: 16px; gap: 14px; }
+  .study-card-icon { width: 44px; height: 44px; font-size: 22px; flex-shrink: 0; border-radius: 12px; }
+  .study-card-body { flex: 1; min-width: 0; }
+  .study-card-title { font-size: 15px; margin-bottom: 3px; }
+  .study-card-desc { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .study-card-stats { margin-top: 0; flex-shrink: 0; }
+  .study-card-arrow { position: static; opacity: .4; transform: none; font-size: 14px; flex-shrink: 0; }
+  .study-card:hover .study-card-arrow { opacity: 1; transform: none; }
+  .study-card-glow { top: -20px; right: -20px; width: 80px; height: 80px; }
+  .study-hub-title { font-size: 20px; }
+  .study-hub-header { margin-bottom: 20px; }
+  .study-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+  .study-stat-divider { display: none; }
+}
 
 </style>

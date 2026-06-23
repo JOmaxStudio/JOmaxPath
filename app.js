@@ -167,7 +167,7 @@ function navTo(page) {
   _currentPage = page;
 
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  const bnavMap = {home:0, horari:1, tasques:2, julians:3, focus:4, notes:-1};
+  const bnavMap = {home:0, horari:1, tasques:2, study:3, focus:3, julians:3, examenia:3, notes:-1};
   const bnavItems = document.querySelectorAll('.bnav-item');
   if (bnavMap[page] !== undefined && bnavItems[bnavMap[page]])
     bnavItems[bnavMap[page]].classList.add('active');
@@ -182,6 +182,11 @@ function navTo(page) {
   if (page === 'examenia') renderExamenia();
   if (page === 'notes')   renderNotes();
   if (page === 'stats')   { if (typeof renderAnalytics === 'function') renderAnalytics(); }
+  if (page === 'study')   renderStudyHub();
+  if (['focus','julians','examenia'].includes(page)) {
+    const names = {focus:'Focus', julians:'Julians AI', examenia:'Exàmens'};
+    addStudyBreadcrumb(names[page]);
+  }
 
   // Aplica traduccions al contingut de la nova pàgina
   setTimeout(()=>{ try { if(typeof applyLanguage==='function') applyLanguage(); } catch(e){} }, 30);
@@ -6317,3 +6322,121 @@ const _origPomoCompleteFocus = typeof _pomoCompleteFocus === 'function' ? _pomoC
     _nativeNotif('Pomodoro completat! 🍅', 'Tens 5 minuts de descans', 'pomo-focus');
   };
 })();
+
+/* ─────────────────────────────────────────
+   STUDY HUB
+───────────────────────────────────────── */
+function renderStudyHub() {
+  const container = document.getElementById('page-study');
+  if (!container) return;
+  const content = container.querySelector('.study-hub-content') || container;
+  content.innerHTML = `
+    <div class="study-hub">
+      <div class="study-hub-header">
+        <h2 class="study-hub-title">📚 Estudi</h2>
+        <p class="study-hub-subtitle">Les teves eines per aprendre i créixer</p>
+      </div>
+      <div class="study-cards-grid">
+        <button class="study-card study-card--focus" onclick="navTo('focus')" aria-label="Anar a Focus Pomodoro">
+          <div class="study-card-glow"></div>
+          <div class="study-card-icon">🎯</div>
+          <div class="study-card-body">
+            <h3 class="study-card-title">Focus</h3>
+            <p class="study-card-desc">Timer Pomodoro, nivells RPG i control de pantalles</p>
+          </div>
+          <div class="study-card-stats"><span class="study-card-stat"><span id="pomo-today">—</span> avui</span></div>
+          <div class="study-card-arrow">→</div>
+        </button>
+        <button class="study-card study-card--ai" onclick="navTo('julians')" aria-label="Anar a Julians AI">
+          <div class="study-card-glow"></div>
+          <div class="study-card-icon"><img src="julians-ai.png" alt="Julians AI" class="study-card-ai-img"></div>
+          <div class="study-card-body">
+            <h3 class="study-card-title">Julians AI</h3>
+            <p class="study-card-desc">Assistent intel·ligent, resums i documents</p>
+          </div>
+          <div class="study-card-stats"><span class="study-card-stat"><span id="ai-chats">—</span> xats</span></div>
+          <div class="study-card-arrow">→</div>
+        </button>
+        <button class="study-card study-card--exams" onclick="navTo('examenia')" aria-label="Anar a Preparar Exàmens">
+          <div class="study-card-glow"></div>
+          <div class="study-card-icon">🎓</div>
+          <div class="study-card-body">
+            <h3 class="study-card-title">Exàmens</h3>
+            <p class="study-card-desc">Tutor IA, flashcards, quiz i plans d'estudi</p>
+          </div>
+          <div class="study-card-stats"><span class="study-card-stat"><span id="exams-count">—</span> exàmens</span></div>
+          <div class="study-card-arrow">→</div>
+        </button>
+      </div>
+      <div class="study-stats-row" id="study-stats-row"></div>
+    </div>
+  `;
+  loadStudyHubStats();
+}
+
+async function loadStudyHubStats() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const [pomodorosToday, pomodorosWeek, pomodorosTotal, examsData] = await Promise.all([
+      supabase.from('pomodoro_sessions').select('id', { count: 'exact' }).eq('user_id', user.id).eq('completed', true).gte('started_at', todayStr),
+      supabase.from('pomodoro_sessions').select('id', { count: 'exact' }).eq('user_id', user.id).eq('completed', true).gte('started_at', weekAgo),
+      supabase.from('pomodoro_sessions').select('id', { count: 'exact' }).eq('user_id', user.id).eq('completed', true),
+      supabase.from('exams').select('id', { count: 'exact' }).eq('user_id', user.id)
+    ]);
+
+    const pomToday = pomodorosToday.count || 0;
+    const pomWeek = pomodorosWeek.count || 0;
+    const pomTotal = pomodorosTotal.count || 0;
+
+    const el = (id) => document.getElementById(id);
+    if (el('pomo-today')) el('pomo-today').textContent = `${pomToday} 🍅`;
+    if (el('exams-count')) el('exams-count').textContent = examsData.count || 0;
+
+    const statsRow = document.getElementById('study-stats-row');
+    if (!statsRow) return;
+
+    const objectiuDiari = 4;
+    statsRow.innerHTML = `
+      <div class="study-stat-item">
+        <span class="study-stat-value">🍅 ${pomToday}</span>
+        <span class="study-stat-label">Avui</span>
+      </div>
+      <div class="study-stat-divider"></div>
+      <div class="study-stat-item">
+        <span class="study-stat-value">📅 ${pomWeek}</span>
+        <span class="study-stat-label">Aquesta setmana</span>
+      </div>
+      <div class="study-stat-divider"></div>
+      <div class="study-stat-item">
+        <span class="study-stat-value">🏆 ${pomTotal}</span>
+        <span class="study-stat-label">Total</span>
+      </div>
+      <div class="study-stat-divider"></div>
+      <div class="study-stat-item">
+        <span class="study-stat-value">🎯 ${pomToday}/${objectiuDiari}</span>
+        <span class="study-stat-label">Objectiu diari</span>
+      </div>
+    `;
+  } catch(e) { console.warn('loadStudyHubStats:', e); }
+}
+
+function addStudyBreadcrumb(sectionName) {
+  document.getElementById('study-breadcrumb')?.remove();
+  const breadcrumb = document.createElement('div');
+  breadcrumb.id = 'study-breadcrumb';
+  breadcrumb.className = 'study-breadcrumb';
+  breadcrumb.innerHTML = `
+    <button onclick="navTo('study')" class="study-breadcrumb-btn">← Estudi</button>
+    <span class="study-breadcrumb-sep">/</span>
+    <span class="study-breadcrumb-current">${sectionName}</span>
+  `;
+  const sectionHeader = document.querySelector('.app-page.page-active .page-title-bar');
+  if (sectionHeader) {
+    sectionHeader.parentElement.insertBefore(breadcrumb, sectionHeader.nextSibling);
+  }
+}
