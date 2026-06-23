@@ -5120,21 +5120,19 @@ body.theme-rose    #notif-pill { color: rgba(244,114,182,0.65); border-color: rg
 }
 .subtask-inp:focus { border-color: rgba(124,58,237,0.4); }
 .subtask-add-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: rgba(124,58,237,0.2);
-  border: 1px solid rgba(124,58,237,0.35);
-  color: var(--accent2);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid var(--accent, #7c3aed) !important;
+  background: var(--accent, #7c3aed) !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  transition: opacity 0.15s !important;
 }
-.subtask-add-btn:hover { background: rgba(124,58,237,0.35); }
+.subtask-add-btn:hover { opacity: 0.85 !important; }
 
 .subtask-toggle {
   color: var(--muted);
@@ -7808,6 +7806,10 @@ details[open] .recurrence-toggle::after { transform: rotate(90deg); }
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg, var(--card));
 }
 .note-title-input {
   flex: 1;
@@ -8039,18 +8041,25 @@ body.theme-blanc .note-content-textarea { color: #1a1a2e; }
   transition: opacity 0.15s, color 0.15s;
 }
 .subtask-delete:hover { color: #EF4444; }
-.subtask-input {
-  width: 100%;
-  border: none;
-  border-top: 1px solid var(--border);
-  background: none;
-  padding: 8px 4px;
-  font-size: 13px;
-  color: var(--text);
-  outline: none;
-  margin-top: 4px;
+.subtask-add-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
 }
-.subtask-input::placeholder { color: var(--muted); }
+.subtask-input {
+  flex: 1;
+  background: var(--card2) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  color: var(--text) !important;
+  outline: none !important;
+  transition: border-color 0.15s !important;
+}
+.subtask-input:focus { border-color: var(--accent, #7c3aed) !important; }
+.subtask-input::placeholder { color: var(--muted) !important; }
 .kanban-card-progress {
   display: flex;
   align-items: center;
@@ -8077,3 +8086,44 @@ body.theme-blanc .note-content-textarea { color: #1a1a2e; }
   color: var(--muted);
   white-space: nowrap;
 }
+
+/* ── CERCA GLOBAL: resultats agrupats (Fix 4) ── */
+.search-group { margin-bottom: 8px; }
+.search-group-label {
+  font-size: 10px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 12px 4px;
+}
+.search-result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; cursor: pointer; border-radius: 8px;
+  margin: 2px 6px; transition: background 0.1s;
+}
+.search-result-item:hover { background: var(--card2); }
+.search-result-item .search-result-icon {
+  font-size: 18px; flex-shrink: 0; width: 28px; text-align: center;
+}
+.search-result-info { flex: 1; min-width: 0; }
+.search-result-info .search-result-title {
+  display: block; font-size: 14px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-result-subtitle {
+  display: block; font-size: 12px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-result-arrow {
+  font-size: 14px; color: var(--muted); opacity: 0;
+  transition: opacity 0.1s; flex-shrink: 0;
+}
+.search-result-item:hover .search-result-arrow { opacity: 1; }
+.search-highlight {
+  background: rgba(124,58,237,0.22); color: var(--accent2, #a78bfa);
+  border-radius: 2px; font-style: normal; padding: 0 1px;
+}
+.search-empty {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 16px; gap: 8px; text-align: center;
+}
+.search-empty-icon { font-size: 32px; }
+.search-empty p { font-size: 14px; color: var(--text); margin: 0; }
+.search-empty-hint { font-size: 12px; color: var(--muted); }

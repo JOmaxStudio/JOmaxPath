@@ -4389,9 +4389,9 @@ function _pomoCompleteFocus() {
   const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
   data.xp=(data.xp||0)+5; data.total=(data.total||0)+1; data.today=(data.today||0)+1; data.week=(data.week||0)+1;
   set(POMO_KEY,data); showToast('🍅 Pomodoro completat! +15 XP +5 🪙');
-  if (typeof rpgOnPomodoro==='function') rpgOnPomodoro().catch(()=>{});
+  if (typeof rpgOnPomodoro==='function') rpgOnPomodoro().then(()=>updatePomoLevel()).catch(()=>{});
   if (typeof updateMissionProgress==='function') updateMissionProgress('pomodoro').catch(()=>{});
-  updatePomoLevel(data); updatePomoStats(data); updatePomoDailyGoal(data);
+  updatePomoLevel(); updatePomoStats(data); updatePomoDailyGoal(data);
   if (_pomoCurrent>=_pomoSessions) { showToast('🏆 Sessió completada!'); _pomoCurrent=0; }
   _pomoState='break'; _pomoSeconds=_pomoBreakMin*60;
   const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='⏭ SALTAR DESCANS';
@@ -4449,16 +4449,28 @@ function updatePomoStats(data) {
   const t=document.getElementById('pomo-today'),w=document.getElementById('pomo-week'),tot=document.getElementById('pomo-total');
   if(t) t.textContent=data.today||0; if(w) w.textContent=data.week||0; if(tot) tot.textContent=data.total||0;
 }
-function updatePomoLevel(data) {
-  const xp=data.xp||0; let lvlData=POMO_LEVELS[0];
-  for (const l of POMO_LEVELS) { if(xp>=l.xpNeeded) lvlData=l; else break; }
-  const next=POMO_LEVELS.find(l=>l.lvl>lvlData.lvl);
-  const xpIn=xp-lvlData.xpNeeded, xpNeed=next?next.xpNeeded-lvlData.xpNeeded:1;
+// Fix 5: el widget del Pomodoro reflecteix el sistema RPG GLOBAL (profiles)
+// en lloc d'un XP propi duplicat. Les dades vénen de _getProfile() (les mateixes
+// que actualitza rpgOnPomodoro: xp, level, gold).
+const POMO_LEVEL_TITLES = {1:'APRENENT',3:'CONSTANT',5:'ENFOCANT',7:'EXPERT',9:'LLEGENDA',10:'TRANSCENDENT'};
+async function updatePomoLevel() {
+  let profile = null;
+  try { profile = (typeof _getProfile==='function') ? await _getProfile() : null; } catch(_) {}
+  const level = profile?.level || 1;
+  const xp    = profile?.xp || 0;
+  const gold  = profile?.gold || 0;
+  const xpInLevel = xp % 100;
+  const thresholds = Object.keys(POMO_LEVEL_TITLES).map(Number).sort((a,b)=>b-a);
+  const title = POMO_LEVEL_TITLES[thresholds.find(t=>level>=t)] || 'APRENENT';
+
   const numEl=document.getElementById('pomo-level-num'),nameEl=document.getElementById('pomo-level-name');
   const barEl=document.getElementById('pomo-xp-bar'),txtEl=document.getElementById('pomo-xp-txt');
-  if(numEl) numEl.textContent=lvlData.lvl; if(nameEl) nameEl.textContent=lvlData.name;
-  if(barEl) barEl.style.width=Math.min(100,Math.round((xpIn/xpNeed)*100))+'%';
-  if(txtEl) txtEl.textContent=`${xp} / ${next?next.xpNeeded:'MAX'} XP`;
+  const subEl=document.getElementById('pomo-xp-sub');
+  if(numEl) numEl.textContent=level;
+  if(nameEl) nameEl.textContent=title;
+  if(barEl) barEl.style.width=xpInLevel+'%';
+  if(txtEl) txtEl.textContent=`${xpInLevel}/100 XP`;
+  if(subEl) subEl.textContent=`🪙 ${gold} · Nivell del teu heroi (sistema únic)`;
 }
 function openPomoFullscreen() {
   const ov=document.getElementById('pomo-fullscreen');
@@ -5154,20 +5166,94 @@ function closeSearch() {
   if(bar){bar.style.display='none';bar.classList.remove('open');}
   const res=document.getElementById('search-results'); if(res) res.innerHTML='';
 }
+function _searchHighlight(text, q) {
+  const safe = _esc(text);
+  if (!q) return safe;
+  // Escapa caràcters especials de regex de la query
+  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try {
+    return safe.replace(new RegExp(`(${esc})`, 'gi'), '<mark class="search-highlight">$1</mark>');
+  } catch { return safe; }
+}
+
 function runSearch(q) {
   const results=document.getElementById('search-results'); if(!results) return;
   if(!q.trim()){results.innerHTML='';return;}
-  const tasks=get(TASKS_KEY,[]).filter(t=>t.name?.toLowerCase().includes(q.toLowerCase()));
-  const habits=get(HABITS_KEY,[]).filter(h=>h.name?.toLowerCase().includes(q.toLowerCase()));
   const ql=q.toLowerCase();
-  const notesRes=_getNotes().filter(n=>(n.title||'').toLowerCase().includes(ql)||(n.content||'').toLowerCase().includes(ql)).slice(0,4);
-  const items=[
-    ...tasks.map(t=>({icon:'📋',label:t.name,sub:'Tasca',action:"navTo('tasques')"})),
-    ...habits.map(h=>({icon:h.icon||'🌱',label:h.name,sub:'Hàbit',action:"navTo('home')"})),
-    ...notesRes.map(n=>({icon:'📝',label:n.title||'Nota',sub:'Nota',action:`navTo('notes');setTimeout(()=>openNote('${n.id}'),150)`}))
-  ];
-  // FIX XSS (2026-06-21): q, it.label i it.sub s'escapaven a _esc() per evitar injecció HTML en la cerca global
-  results.innerHTML=items.length===0?`<div class="sr-empty">Sense resultats per "${_esc(q)}"</div>`:items.map(it=>`<div class="sr-item" onclick="${it.action};closeSearch()"><span class="sr-icon">${it.icon}</span><div><div class="sr-label">${_esc(it.label)}</div><div class="sr-sub">${_esc(it.sub)}</div></div></div>`).join('');
+
+  // TASQUES — de totes les llistes (lists_v3) i del fallback TASKS_KEY
+  const taskItems=[];
+  const lists=(typeof getLists==='function')?getLists():null;
+  if (lists) {
+    lists.forEach(l=>(l.tasks||[]).forEach(t=>{
+      if((t.name||'').toLowerCase().includes(ql))
+        taskItems.push({type:'task',icon:t.done?'✅':'📋',label:t.name,sub:t.date?('📅 '+t.date):'Tasca',action:"navTo('tasques')"});
+    }));
+  } else {
+    get(TASKS_KEY,[]).filter(t=>t.name?.toLowerCase().includes(ql))
+      .forEach(t=>taskItems.push({type:'task',icon:t.done?'✅':'📋',label:t.name,sub:'Tasca',action:"navTo('tasques')"}));
+  }
+
+  // EVENTS DEL CALENDARI — de SCHEDULE_KEY (per data ISO i per dia de la setmana)
+  const schedule=get(SCHEDULE_KEY,{});
+  const eventItems=[];
+  const seenEv=new Set();
+  Object.values(schedule).forEach(bucket=>{
+    const arr=Array.isArray(bucket)?bucket:Object.values(bucket||{});
+    arr.forEach(e=>{
+      const nm=e.name||e.text||'';
+      if(nm.toLowerCase().includes(ql) && !seenEv.has(e.id)){
+        seenEv.add(e.id);
+        const t=e.timeStart||e.time;
+        eventItems.push({type:'event',icon:e.emoji||'📅',color:e.color,label:nm,sub:t?('🕐 '+t):'Event',action:"navTo('horari')"});
+      }
+    });
+  });
+
+  // NOTES
+  const noteItems=_getNotes()
+    .filter(n=>(n.title||'').toLowerCase().includes(ql)||(n.content||'').toLowerCase().includes(ql))
+    .slice(0,5)
+    .map(n=>({type:'note',icon:'📝',label:n.title||'Sense títol',
+      sub:(n.content?n.content.replace(/[#*_`]/g,'').slice(0,50):'Nota buida'),
+      action:`navTo('notes');setTimeout(()=>openNote('${n.id}'),150)`}));
+
+  // HÀBITS
+  const habitItems=get(HABITS_KEY,[])
+    .filter(h=>h.name?.toLowerCase().includes(ql))
+    .map(h=>({type:'habit',icon:h.icon||'🌱',label:h.name,sub:'Hàbit diari',action:"navTo('home')"}));
+
+  // EXÀMENS
+  const examItems=(typeof getExams==='function'?getExams():[])
+    .filter(e=>(e.name||'').toLowerCase().includes(ql)||(e.subject||'').toLowerCase().includes(ql))
+    .map(e=>({type:'exam',icon:'🎓',label:e.name||'Examen',sub:e.subject||(e.date?('📅 '+e.date):'Examen'),action:"navTo('study');setTimeout(()=>navTo('examenia'),50)"}));
+
+  const groups=[
+    {label:'Tasques', items:taskItems},
+    {label:'Events',  items:eventItems},
+    {label:'Notes',   items:noteItems},
+    {label:'Hàbits',  items:habitItems},
+    {label:'Exàmens', items:examItems},
+  ].filter(g=>g.items.length>0);
+
+  if(!groups.length){
+    results.innerHTML=`<div class="search-empty"><span class="search-empty-icon">🔍</span><p>Cap resultat per "<strong>${_esc(q)}</strong>"</p><span class="search-empty-hint">Prova amb una paraula diferent</span></div>`;
+    return;
+  }
+
+  results.innerHTML=groups.map(g=>`
+    <div class="search-group">
+      <div class="search-group-label">${g.label}</div>
+      ${g.items.map(it=>`
+        <div class="search-result-item" onclick="${it.action};closeSearch()">
+          <span class="search-result-icon"${it.color?` style="color:${_esc(it.color)}"`:''}>${it.icon}</span>
+          <div class="search-result-info">
+            <span class="search-result-title">${_searchHighlight(it.label,q)}</span>
+            <span class="search-result-subtitle">${_esc(it.sub)}</span>
+          </div>
+          <span class="search-result-arrow">→</span>
+        </div>`).join('')}
+    </div>`).join('');
 }
 
 /* ─────────────────────────────────────────
