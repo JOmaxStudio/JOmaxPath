@@ -1342,121 +1342,55 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       <button class="info-btn" onclick="showInfo('home')" title="Com funciona?">i</button>
     </div>
 
-    <!-- ── HOME HERO HEADER ── -->
-    <div class="home-hero-header">
-      <div class="hhh-top-row">
-        <div class="hhh-brand">
-          <span class="hhh-brand-dot"></span>
-          <span class="hhh-brand-name">JOmaxPath</span>
-        </div>
-        <div class="hhh-date-chip" id="home-date-display"></div>
-      </div>
-      <div class="hhh-greeting-line" id="home-greeting">Bon dia 👋</div>
-      <div class="hhh-sub">
-        <span id="home-pomo-quick">0 pomodoros avui</span>
-      </div>
-    </div>
-
-    <!-- ── COMPTE ENRERE EXAMEN ── -->
+    <!-- ── COMPTE ENRERE EXAMEN (kept for renderExamCountdown) ── -->
     <div id="exam-countdown-bar" style="display:none;" onclick="navTo('examenia')"></div>
 
-    <!-- ── STATS ROW RÀPID ── -->
-    <div class="home-stats-row" id="home-stats-row">
-      <div class="hsr-card" id="hsr-streak">
-        <div class="hsr-icon">🔥</div>
-        <div class="hsr-val" id="hsr-streak-val">0</div>
-        <div class="hsr-lbl" id="hsr-streak-lbl" data-i18n="stat_streak_lbl">dies ratxa</div>
-      </div>
-      <div class="hsr-card" id="hsr-habits">
-        <div class="hsr-icon">✅</div>
-        <div class="hsr-val" id="hsr-habits-val">0/0</div>
-        <div class="hsr-lbl" id="hsr-habits-lbl" data-i18n="stat_habits_lbl">hàbits avui</div>
-      </div>
-      <div class="hsr-card" id="hsr-tasks">
-        <div class="hsr-icon">📋</div>
-        <div class="hsr-val" id="hsr-tasks-val">0</div>
-        <div class="hsr-lbl" id="hsr-tasks-lbl" data-i18n="stat_tasks_lbl">tasques pend.</div>
-      </div>
-      <div class="hsr-card" id="hsr-pomo" onclick="navTo('focus')" style="cursor:pointer;">
-        <div class="hsr-icon">⏱</div>
-        <div class="hsr-val" id="hsr-pomo-val">0</div>
-        <div class="hsr-lbl" id="hsr-pomo-lbl" data-i18n="stat_pomo_lbl">pomodoros</div>
-      </div>
-    </div>
+    <!-- ── NOU DASHBOARD TODAY VIEW ── -->
+    <div id="dashboard-content"></div>
 
-    <div class="home-two-col">
-      <!-- Columna esquerra -->
-      <div class="home-col-left">
-        <div class="goal-banner" id="goal-banner">
-          <div class="icon" id="goal-icon">🚀</div>
-          <div>
-            <h3 id="goal-title">Objectiu principal</h3>
-            <p id="goal-desc">Defineix el teu gran objectiu aquí. Ves a Configuració → General per personalitzar-lo.</p>
-          </div>
-        </div>
-        <div class="daily-quote" id="daily-quote">
-          <div class="dq-text" id="dq-text">Carregant...</div>
-          <div class="dq-author" id="dq-author"></div>
-          <button class="dq-refresh" onclick="refreshQuote()" title="Nova frase">↻</button>
-        </div>
-        <div class="today-panel">
-          <div class="section-title" style="margin:0 0 4px;" data-i18n="sec_ara_mateix">📍 ara mateix</div>
-          <div class="today-grid" id="today-grid"></div>
-          <div class="today-now" id="today-now" style="display:none;">
-            <div class="today-now-dot"></div>
-            <span id="today-now-txt"></span>
-          </div>
-        </div>
-        <div class="progress-section">
-          <div class="progress-header">
-            <h3 id="prog-title">🎯 El meu objectiu</h3>
-            <span id="prog-fraction" style="font-size:11px;color:var(--accent2);font-weight:700;">0% completat</span>
-          </div>
-          <div class="progress-bar" style="margin:10px 0 6px;"><div class="progress-fill" id="prog-fill"></div></div>
-          <div class="progress-chapters" id="prog-chapters"></div>
-          <div class="progress-btn-row" style="margin-top:12px;">
-            <button class="progress-btn" onclick="changeChapter(-1)" title="Pas anterior">← Enrere</button>
-            <button class="progress-btn primary-prog-btn" onclick="changeChapter(1)">✓ Pas completat</button>
-            <button class="progress-btn minus" onclick="resetProgress()" title="Reiniciar">↺</button>
-          </div>
-          <div class="progress-congrats" id="prog-congrats"></div>
-        </div>
+    <!-- ── ELEMENTS LEGACY OCULTS (necessaris per funcions existents) ── -->
+    <div style="display:none" aria-hidden="true" id="legacy-home-hidden">
+      <span id="home-greeting"></span>
+      <span id="home-date-display"></span>
+      <span id="home-pomo-quick"></span>
+      <span id="hsr-streak-val"></span>
+      <span id="hsr-habits-val"></span>
+      <span id="hsr-tasks-val"></span>
+      <span id="hsr-pomo-val"></span>
+      <div id="streak-widget">
+        <span id="streak-num"></span>
+        <span id="streak-label-txt"></span>
+        <span id="streak-best"></span>
+        <div id="streak-days"></div>
+        <button id="streak-btn" onclick="markStreakToday()"></button>
       </div>
-      <!-- Columna dreta -->
-      <div class="home-col-right">
-        <div id="missions-widget" style="display:none;"></div>
-        <div id="today-schedule-widget" style="display:none;"></div>
-        <div class="streak-widget" id="streak-widget">
-          <div class="streak-fire">🔥</div>
-          <div class="streak-info" style="position:relative;">
-            <button class="info-btn" onclick="showInfo('streak')" title="Com funciona?" style="position:absolute;top:0;right:0;">i</button>
-            <div class="streak-number" id="streak-num">0</div>
-            <div class="streak-label" id="streak-label-txt" onclick="editStreakLabel()" title="Clica per editar" style="cursor:pointer;">dies consecutius</div>
-            <div class="streak-best" id="streak-best">Millor ratxa: 0</div>
-            <div class="streak-days" id="streak-days"></div>
-          </div>
-          <div class="streak-actions">
-            <button class="streak-btn" id="streak-btn" onclick="markStreakToday()">✓ SESSIÓ FETA</button>
-            <button class="streak-btn minus" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#fca5a5;font-size:9px;" onclick="undoStreakToday()" title="Desfer d'avui">↺ Desfer</button>
-          </div>
-        </div>
-        <div class="habits-section">
-          <div class="habits-header">
-            <div class="section-title" style="margin:0;" data-i18n="sec_habits">🌱 hàbits diaris <button class="info-btn" onclick="showInfo('habits')" title="Com funciona?">i</button></div>
-            <button class="add-habit-btn" onclick="toggleHabitForm()" data-i18n="btn_add">+ AFEGIR</button>
-          </div>
-          <div id="habits-list"></div>
-          <div class="habit-add-form" id="habit-add-form">
-            <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." maxlength="60" />
-            <input type="text" id="habit-icon-inp" value="⭐" style="width:60px;flex:none;" placeholder="🎯" />
-            <button class="habit-save-btn" onclick="addHabit()">Afegir</button>
-          </div>
-        </div>
-        <div class="moto" id="moto-section">
-          <div class="moto-text" id="moto-text">No t'esperis a tenir ganes.<br>Fes-ho i les ganes vindran.</div>
-          <div class="moto-sub" id="moto-sub">CAPÍTOL 4 → 5 · EMPRESA PRÒPIA</div>
-        </div>
+      <div id="habits-list"></div>
+      <div class="habit-add-form" id="habit-add-form">
+        <input type="text" id="habit-name-inp" placeholder="Nom del hàbit..." maxlength="60" />
+        <input type="text" id="habit-icon-inp" value="⭐" />
       </div>
+      <div id="today-schedule-widget"></div>
+      <div id="today-grid"></div>
+      <div id="today-now"><span id="today-now-txt"></span></div>
+      <div id="next-up-bar">
+        <div id="next-up-text"></div>
+        <div id="next-up-when"></div>
+        <div id="next-up-cd"></div>
+      </div>
+      <div id="dq-text"></div>
+      <div id="dq-author"></div>
+      <div id="moto-text"></div>
+      <div id="moto-sub"></div>
+      <div id="goal-banner">
+        <span id="goal-icon"></span>
+        <h3 id="goal-title"></h3>
+        <p id="goal-desc"></p>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+      <div id="prog-chapters"></div>
+      <span id="prog-fraction"></span>
+      <span id="prog-title"></span>
+      <div id="prog-congrats"></div>
     </div>
   </div>
 
@@ -4361,5 +4295,156 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
 }
 #left-sidebar.sb-collapsed .lsb-hero-ico { margin-bottom: 0; font-size: 22px; }
 #left-sidebar.sb-collapsed .lsb-hero-mini { flex-direction: column; }
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD TODAY VIEW
+══════════════════════════════════════════════════════════════ */
+
+/* Skeleton */
+.db-skeleton-wrap { display: flex; flex-direction: column; gap: 0; }
+.db-skel {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: dbSkelShimmer 1.4s infinite;
+}
+@keyframes dbSkelShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Header */
+.db-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.db-greeting { font-size: 21px; font-weight: 500; margin: 0 0 4px; color: var(--text); }
+.db-date { font-size: 12px; color: var(--muted); text-transform: capitalize; }
+.db-xp-bar { min-width: 180px; flex: 1; max-width: 260px; }
+.db-xp-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.db-xp-level { font-weight: 500; }
+.db-xp-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.db-xp-fill { height: 100%; background: linear-gradient(90deg, #6C63FF, var(--accent2)); border-radius: 3px; transition: width 0.8s ease; }
+
+/* Now Widget */
+.db-now {
+  --now-color: #6C63FF;
+  background: color-mix(in srgb, var(--now-color) 10%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--now-color) 25%, transparent);
+  border-left: 4px solid var(--now-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.db-now-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.db-now-content { display: flex; align-items: center; gap: 12px; }
+.db-now-emoji { font-size: 26px; flex-shrink: 0; }
+.db-now-info { flex: 1; }
+.db-now-title { font-size: 15px; font-weight: 500; color: var(--text); margin: 0 0 3px; }
+.db-now-sub { font-size: 12px; color: var(--muted); margin: 0; }
+.db-now-action {
+  padding: 7px 12px; border-radius: 8px;
+  border: 1px solid var(--now-color); background: none;
+  color: var(--now-color); font-size: 11px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.db-now-action:hover { background: var(--now-color); color: white; }
+.db-now-empty { display: flex; align-items: center; gap: 12px; --now-color: #10B981; }
+.db-now-empty-icon { font-size: 22px; }
+
+/* Today Timeline */
+.db-today-view {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.db-today-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.db-today-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
+.db-today-link { font-size: 11px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.15s; }
+.db-today-link:hover { color: var(--accent2); }
+.db-timeline { display: flex; flex-direction: column; gap: 2px; }
+.db-timeline-item {
+  display: grid; grid-template-columns: 52px 10px 1fr;
+  align-items: center; gap: 8px; padding: 7px 4px;
+  border-radius: 8px; transition: background 0.15s;
+}
+.db-timeline-item:hover { background: var(--card2); }
+.db-timeline-item.past { opacity: 0.4; }
+.db-timeline-item.current { background: color-mix(in srgb, var(--item-color,#6C63FF) 8%, var(--card)); }
+.db-tl-time { display: flex; flex-direction: column; align-items: flex-end; }
+.db-tl-hour { font-size: 12px; font-weight: 500; color: var(--text); }
+.db-tl-end { font-size: 10px; color: var(--muted); }
+.db-tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--item-color,#6C63FF); flex-shrink: 0; }
+.db-timeline-item.current .db-tl-dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--item-color,#6C63FF) 30%, transparent); }
+.db-tl-content { display: flex; align-items: center; gap: 7px; overflow: hidden; }
+.db-tl-emoji { font-size: 15px; flex-shrink: 0; }
+.db-tl-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.db-tl-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--item-color,#6C63FF); color: white; flex-shrink: 0; }
+.db-tasks-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.db-tasks-label { font-size: 9px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 6px; }
+.db-task-item { display: flex; align-items: center; gap: 7px; padding: 5px 4px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.1s; }
+.db-task-item:hover { background: var(--card2); }
+.db-task-name { color: var(--text); flex: 1; }
+.db-task-list { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.db-add-task-btn { margin-top: 8px; font-size: 12px; color: var(--accent2); background: none; border: 1px dashed var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; width: 100%; transition: all 0.15s; }
+.db-add-task-btn:hover { background: rgba(124,58,237,0.08); }
+
+/* Habits */
+.db-habits {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.db-habits-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.db-habits-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.db-habits-grid { display: flex; gap: 7px; flex-wrap: wrap; }
+.db-habit-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--card2); cursor: pointer;
+  font-size: 12px; color: var(--text);
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.db-habit-btn:hover { border-color: var(--hc,#10B981); background: color-mix(in srgb, var(--hc,#10B981) 10%, var(--card2)); }
+.db-habit-btn.done { border-color: var(--hc,#10B981); background: color-mix(in srgb, var(--hc,#10B981) 15%, var(--card2)); color: var(--hc,#10B981); }
+.db-habit-emoji { font-size: 14px; }
+.db-habit-name { font-size: 11px; }
+.db-habit-check { font-size: 11px; font-weight: 700; }
+
+/* Bottom row */
+.db-bottom-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+@media (max-width: 700px) { .db-bottom-row { grid-template-columns: 1fr; } }
+@media (max-width: 900px) and (min-width: 701px) { .db-bottom-row { grid-template-columns: 1fr 1fr; } }
+.db-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.db-card-header { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.db-streak-main { display: flex; align-items: baseline; gap: 5px; margin-bottom: 10px; }
+.db-streak-num { font-size: 36px; font-weight: 700; color: var(--text); line-height: 1; }
+.db-streak-lbl { font-size: 12px; color: var(--muted); }
+.db-streak-btn {
+  width: 100%; padding: 8px; border-radius: 8px;
+  border: 1px solid var(--border); background: none;
+  color: var(--muted); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+}
+.db-streak-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+.db-streak-btn.done { border-color: #10B981; color: #10B981; background: rgba(16,185,129,0.08); }
+.db-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.db-stat { display: flex; flex-direction: column; gap: 2px; }
+.db-stat-val { font-size: 20px; font-weight: 600; color: var(--text); }
+.db-stat-lbl { font-size: 10px; color: var(--muted); }
+.db-missions-outer { padding: 0; overflow: hidden; }
+.db-missions-outer .mw-card { margin-bottom: 0; border: none; background: transparent; }
 
 </style>

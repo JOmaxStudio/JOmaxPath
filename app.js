@@ -1465,51 +1465,326 @@ function refreshQuote() {
 }
 
 function renderHomeHeader() {
-  const h = new Date().getHours();
-  const greetingBase = h < 12 ? t('greeting_morning') : h < 18 ? t('greeting_afternoon') : t('greeting_night');
-  const emoji = h < 12 ? t('greeting_emoji_m') : h < 18 ? t('greeting_emoji_a') : t('greeting_emoji_n');
-  const username = _userProfile?.username || '';
-  // Salutació amb nom d'usuari
-  const grEl = document.getElementById('home-greeting');
-  if(grEl) grEl.textContent = username
-    ? `${greetingBase}, ${username.charAt(0).toUpperCase()+username.slice(1)} ${emoji}`
-    : `${greetingBase} ${emoji}`;
-  // Data en chip
-  const dateEl = document.getElementById('home-date-display');
-  if(dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString('ca-ES', {weekday:'short', day:'numeric', month:'short'});
-  }
-  // Stats
-  const today = new Date().toISOString().slice(0,10);
-  const streak = get('jomaxpath_streak_v1',{count:0});
-  const habits = get(HABITS_KEY,[]);
-  const doneH = habits.filter(h=>(h.days||[]).includes(today)).length;
-  const _lists = (typeof getLists==='function' ? getLists() : null);
-  const tasks = _lists
-    ? _lists.reduce((n,l)=>n+(l.tasks||[]).filter(t=>!t.done).length, 0)
-    : get(TASKS_KEY,[]).filter(t=>!t.done).length;
-  const pomoData = get('jomaxpath_pomo_v1',{today:0});
-  const sv = document.getElementById('hsr-streak-val'); if(sv) sv.textContent = streak.count||0;
-  const hv = document.getElementById('hsr-habits-val'); if(hv) hv.textContent = doneH+'/'+habits.length;
-  const tv = document.getElementById('hsr-tasks-val'); if(tv) tv.textContent = tasks;
-  const pv = document.getElementById('hsr-pomo-val'); if(pv) pv.textContent = pomoData.today||0;
-  const pq = document.getElementById('home-pomo-quick'); if(pq) pq.textContent = (pomoData.today||0)+' pomodoros avui';
+  // No-op: substituït per renderHome() async
 }
 
-function renderHome() {
-  renderHomeHeader();
-  refreshQuote();
-  renderStreakWidget();
-  renderHabits();
-  renderProgress();
-  renderTodayPanel();
-  renderNextTask();
-  renderExamCountdown();
-  renderVictories();
-  applyConfig();
-  if (typeof renderTodayScheduleWidget==='function') setTimeout(renderTodayScheduleWidget, 0);
-  if (typeof renderMissionsWidget==='function') setTimeout(renderMissionsWidget, 0);
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD TODAY VIEW — funcions helpers (prefixades _db)
+══════════════════════════════════════════════════════════════ */
+
+function _dbGreeting(profile) {
+  const h = new Date().getHours();
+  const base = h < 12 ? 'Bon dia' : h < 19 ? 'Bona tarda' : 'Bona nit';
+  const emoji = h < 12 ? '☀️' : h < 19 ? '👋' : '🌙';
+  const name = profile?.username || profile?.display_name || '';
+  const nameStr = name ? `, ${name.charAt(0).toUpperCase() + name.slice(1)}` : '';
+  return `${base}${nameStr} ${emoji}`;
+}
+
+function _dbDateStr() {
+  const now = new Date();
+  const days = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+  const months = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+  return `${days[now.getDay()]} ${now.getDate()} de ${months[now.getMonth()]}`;
+}
+
+function _dbRenderHeader(profile, rpg) {
+  const xp    = rpg?.xp    ?? 0;
+  const level = rpg?.level ?? 1;
+  const xpIn  = typeof _xpInLevel === 'function' ? _xpInLevel(xp, level) : (xp % 100);
+  const xpNeed= typeof _xpForNextLevel === 'function' ? _xpForNextLevel(level) : 100;
+  const xpPct = Math.min(100, Math.round(xpIn / Math.max(1, xpNeed) * 100));
+  const title = typeof getLevelTitle === 'function' ? getLevelTitle(level) : 'Aprenent 🌱';
+  return `
+    <div class="db-header">
+      <div class="db-greeting-block">
+        <h1 class="db-greeting">${_dbGreeting(profile)}</h1>
+        <span class="db-date">${_dbDateStr()}</span>
+      </div>
+      <div class="db-xp-bar">
+        <div class="db-xp-info">
+          <span class="db-xp-level">Nv.${level} · ${title}</span>
+          <span class="db-xp-count">${xpIn}/${xpNeed} XP</span>
+        </div>
+        <div class="db-xp-track">
+          <div class="db-xp-fill" style="width:${xpPct}%"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _dbRenderNow(schedEvents, todayTasks) {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const todayStr = now.toISOString().slice(0, 10);
+
+  // Proper event no passat (time és HH:MM)
+  const upcomingEvent = schedEvents.find(ev => {
+    const [h, m] = (ev.time || '00:00').split(':').map(Number);
+    const endMin = h * 60 + m + (ev.duration || 60);
+    return endMin > nowMin;
+  });
+
+  // Tasca urgent d'avui (prio 1 o 2)
+  const urgentTask = todayTasks.find(t => (t.prio || 3) <= 2);
+
+  if (!upcomingEvent && !urgentTask) {
+    return `
+      <div class="db-now db-now-empty">
+        <span class="db-now-empty-icon">✨</span>
+        <div>
+          <p class="db-now-title">Tot al dia!</p>
+          <p class="db-now-sub">No tens res urgent ara mateix.</p>
+        </div>
+      </div>`;
+  }
+
+  if (upcomingEvent) {
+    const [h, m] = (upcomingEvent.time || '00:00').split(':').map(Number);
+    const startMin = h * 60 + m;
+    const diff = startMin - nowMin;
+    const color = upcomingEvent.color || '#6C63FF';
+    let timeLabel;
+    if (diff <= 0) timeLabel = 'En curs ara';
+    else if (diff < 60) timeLabel = `D'aquí ${diff} min`;
+    else timeLabel = `A les ${upcomingEvent.time}`;
+    const isCurrent = diff <= 0;
+    return `
+      <div class="db-now" style="--now-color:${color}">
+        <div class="db-now-label">📍 ARA MATEIX</div>
+        <div class="db-now-content">
+          <span class="db-now-emoji">${_esc(upcomingEvent.emoji || upcomingEvent.icon || '📅')}</span>
+          <div class="db-now-info">
+            <p class="db-now-title">${_esc(upcomingEvent.name || upcomingEvent.text || '')}</p>
+            <p class="db-now-sub">${upcomingEvent.time}${upcomingEvent.endTime ? ' — ' + upcomingEvent.endTime : ''} · <strong>${timeLabel}</strong></p>
+          </div>
+          ${isCurrent ? `<button class="db-now-action" onclick="navTo('focus')">🍅 Pomodoro</button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  const prioColor = (urgentTask.prio || 3) === 1 ? '#ef4444' : '#f59e0b';
+  return `
+    <div class="db-now db-now-task" style="--now-color:${prioColor}">
+      <div class="db-now-label">🎯 TASCA URGENT D'AVUI</div>
+      <div class="db-now-content">
+        <span class="db-now-emoji">🔴</span>
+        <div class="db-now-info">
+          <p class="db-now-title">${_esc(urgentTask.name || '')}</p>
+          <p class="db-now-sub">Prioritat alta · Vence avui</p>
+        </div>
+        <button class="db-now-action" onclick="navTo('tasques')">Veure →</button>
+      </div>
+    </div>`;
+}
+
+function _dbRenderTimeline(schedEvents, todayTasks) {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const prioColors = {1:'#ef4444', 2:'#f59e0b', 3:'#3b82f6', 4:'#64748b'};
+
+  const eventItems = schedEvents.map(ev => {
+    const [h, m] = (ev.time || '00:00').split(':').map(Number);
+    const startMin = h * 60 + m;
+    const endMin = startMin + (ev.duration || 60);
+    const isPast = endMin < nowMin;
+    const isCurrent = startMin <= nowMin && nowMin < endMin;
+    const color = ev.color || '#6C63FF';
+    const endTime = ev.endTime || (
+      `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`
+    );
+    return `
+      <div class="db-timeline-item${isPast ? ' past' : ''}${isCurrent ? ' current' : ''}" style="--item-color:${color}">
+        <div class="db-tl-time">
+          <span class="db-tl-hour">${ev.time || ''}</span>
+          <span class="db-tl-end">${endTime}</span>
+        </div>
+        <div class="db-tl-dot"></div>
+        <div class="db-tl-content">
+          <span class="db-tl-emoji">${_esc(ev.emoji || ev.icon || '📅')}</span>
+          <span class="db-tl-name">${_esc(ev.name || ev.text || '')}</span>
+          ${isCurrent ? '<span class="db-tl-badge">Ara</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  const taskItems = todayTasks.length > 0 ? `
+    <div class="db-tasks-section">
+      <div class="db-tasks-label">✅ TASQUES D'AVUI</div>
+      ${todayTasks.slice(0, 5).map(t => `
+        <div class="db-task-item" onclick="navTo('tasques')">
+          <span style="color:${prioColors[t.prio||3]}">●</span>
+          <span class="db-task-name">${_esc(t.name || '')}</span>
+          ${t.listName ? `<span class="db-task-list">${_esc(t.listName)}</span>` : ''}
+        </div>`).join('')}
+    </div>` : '';
+
+  const hasContent = schedEvents.length > 0 || todayTasks.length > 0;
+  if (!hasContent) {
+    return `
+      <div class="db-today-view">
+        <div class="db-today-header">
+          <h3 class="db-today-title">📅 Avui</h3>
+          <button class="db-today-link" onclick="navTo('horari')">Veure horari →</button>
+        </div>
+        <p style="color:var(--muted);font-size:13px;padding:8px 0;">Cap event ni tasca per avui.</p>
+        <button class="db-add-task-btn" onclick="navTo('tasques')">+ Afegir tasca per avui</button>
+      </div>`;
+  }
+
+  return `
+    <div class="db-today-view">
+      <div class="db-today-header">
+        <h3 class="db-today-title">📅 Avui</h3>
+        <button class="db-today-link" onclick="navTo('horari')">Veure horari →</button>
+      </div>
+      <div class="db-timeline">${eventItems}</div>
+      ${taskItems}
+    </div>`;
+}
+
+function _dbRenderHabits(habits, todayDateStr) {
+  if (!habits?.length) return '';
+  const doneCount = habits.filter(h => (h.days || []).includes(todayDateStr)).length;
+  return `
+    <div class="db-habits">
+      <div class="db-habits-header">
+        <span class="db-habits-title">🌱 Hàbits d'avui · ${doneCount}/${habits.length}</span>
+        <button class="db-today-link" onclick="navTo('horari')">Gestionar →</button>
+      </div>
+      <div class="db-habits-grid">
+        ${habits.slice(0, 8).map((h, i) => {
+          const done = (h.days || []).includes(todayDateStr);
+          const color = h.color || '#10B981';
+          return `<button class="db-habit-btn${done ? ' done' : ''}"
+            data-habit-idx="${i}"
+            style="--hc:${color}"
+            onclick="toggleHabit(${i})"
+            title="${_esc(h.name || '')}">
+            <span class="db-habit-emoji">${_esc(h.icon || '🌱')}</span>
+            <span class="db-habit-name">${_esc(h.name || '')}</span>
+            ${done ? '<span class="db-habit-check">✓</span>' : ''}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function _dbRenderBottom(streakData, todayTasksDone, pomoData, totalPending) {
+  const streak = streakData?.count || 0;
+  const pomos  = pomoData?.today || 0;
+  const doneToday = new Date().toDateString() === streakData?.last;
+  return `
+    <div class="db-bottom-row">
+      <div class="db-card db-streak-card">
+        <div class="db-card-header">🔥 Ratxa</div>
+        <div class="db-streak-main">
+          <span class="db-streak-num">${streak}</span>
+          <span class="db-streak-lbl">dies</span>
+        </div>
+        <button class="db-streak-btn${doneToday ? ' done' : ''}"
+                onclick="markStreakToday()">
+          ${doneToday ? '✓ Sessió marcada' : '✓ Marcar sessió'}
+        </button>
+      </div>
+      <div class="db-card">
+        <div class="db-card-header">📊 Estadístiques</div>
+        <div class="db-stats-grid">
+          <div class="db-stat">
+            <span class="db-stat-val">${todayTasksDone}</span>
+            <span class="db-stat-lbl">✅ fetes avui</span>
+          </div>
+          <div class="db-stat">
+            <span class="db-stat-val">${totalPending}</span>
+            <span class="db-stat-lbl">📋 pendents</span>
+          </div>
+          <div class="db-stat">
+            <span class="db-stat-val">${pomos}</span>
+            <span class="db-stat-lbl">🍅 pomodoros</span>
+          </div>
+          <div class="db-stat">
+            <span class="db-stat-val">${streak}</span>
+            <span class="db-stat-lbl">🔥 ratxa</span>
+          </div>
+        </div>
+      </div>
+      <div class="db-card db-missions-outer">
+        <div id="missions-widget"></div>
+      </div>
+    </div>`;
+}
+
+async function renderHome() {
+  const container = document.getElementById('dashboard-content');
+  if (!container) return;
+
+  // Skeleton
+  container.innerHTML = `
+    <div class="db-skeleton-wrap">
+      <div class="db-skel" style="height:72px;border-radius:12px;margin-bottom:16px"></div>
+      <div class="db-skel" style="height:76px;border-radius:12px;margin-bottom:16px"></div>
+      <div class="db-skel" style="height:200px;border-radius:12px;margin-bottom:16px"></div>
+      <div class="db-skel" style="height:72px;border-radius:12px;margin-bottom:16px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="db-skel" style="height:130px;border-radius:12px"></div>
+        <div class="db-skel" style="height:130px;border-radius:12px"></div>
+        <div class="db-skel" style="height:130px;border-radius:12px"></div>
+      </div>
+    </div>`;
+
+  // Dades sync (localStorage)
+  const now      = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayDateStr = now.toDateString();
+
+  const habits     = get(HABITS_KEY, []);
+  const streakData = get(STREAK_KEY, { count: 0, best: 0, last: '' });
+  const pomoData   = get(POMO_KEY, { today: 0 });
+  const schedule   = get(SCHEDULE_KEY, {});
+  const dayNames   = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+  const todayDay   = dayNames[now.getDay()];
+
+  const schedEvents = (typeof _schedEventsForDay === 'function')
+    ? _schedEventsForDay(schedule, todayDay, todayStr)
+    : [];
+  schedEvents.sort((a, b) => {
+    const [ah, am] = (a.time || '00:00').split(':').map(Number);
+    const [bh, bm] = (b.time || '00:00').split(':').map(Number);
+    return (ah * 60 + am) - (bh * 60 + bm);
+  });
+
+  const lists       = (typeof getLists === 'function') ? getLists() : null;
+  const todayTasks  = [];
+  let totalPending  = 0;
+  if (lists) {
+    lists.forEach(l => (l.tasks || []).forEach(t => {
+      if (!t.done) {
+        totalPending++;
+        if (t.date === todayStr) todayTasks.push({ ...t, listName: l.name });
+      }
+    }));
+  }
+  todayTasks.sort((a, b) => (a.prio || 3) - (b.prio || 3));
+
+  // Dades async (Supabase — cached)
+  let rpg = null;
+  try { rpg = await _getProfile(); } catch (_) {}
+
+  const profile = _userProfile || {};
+
+  // Render
+  container.innerHTML = [
+    _dbRenderHeader(profile, rpg),
+    _dbRenderNow(schedEvents, todayTasks),
+    _dbRenderTimeline(schedEvents, todayTasks),
+    _dbRenderHabits(habits, todayDateStr),
+    _dbRenderBottom(streakData, 0, pomoData, totalPending),
+  ].join('');
+
+  // Exam countdown (separat, és un element fill del page-home)
+  if (typeof renderExamCountdown === 'function') renderExamCountdown();
+  // Missions widget (async, dins #missions-widget del bottom row)
+  if (typeof renderMissionsWidget === 'function') setTimeout(renderMissionsWidget, 0);
 }
 
 function renderExamCountdown() {
