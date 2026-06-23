@@ -3918,18 +3918,33 @@ function updateTaskStatusFromDetail(status) { tdmSetStatus(status,null); }
 
 /* ── SUBTASQUES (Millora 6) ── */
 function _getSubtasks(parentId) {
-  const list = _getList(_openListId);
-  if (!list) return [];
-  const t = (list.tasks||[]).find(t => t.id === parentId);
-  return t ? [...(t.subtasks||[])].sort((a,b) => a.order_index - b.order_index) : [];
+  // Prova primer al sistema de llistes
+  if (_openListId) {
+    const list = _getList(_openListId);
+    if (list) {
+      const t = (list.tasks||[]).find(t => t.id === parentId);
+      if (t) return [...(t.subtasks||[])].sort((a,b) => (a.order_index||0) - (b.order_index||0));
+    }
+  }
+  // Fallback: sistema de tasques kanban (TASKS_KEY)
+  const tasks = get(TASKS_KEY, []);
+  const t = tasks.find(t => t.id === parentId);
+  return t ? [...(t.subtasks||[])].sort((a,b) => (a.order_index||0) - (b.order_index||0)) : [];
 }
+
 async function _saveSubtasks(parentId, subtasks) {
-  const list = _getList(_openListId);
-  if (!list) return;
-  const t = (list.tasks||[]).find(t => t.id === parentId);
-  if (!t) return;
-  t.subtasks = subtasks;
-  await _saveList(list);
+  // Prova primer al sistema de llistes
+  if (_openListId) {
+    const list = _getList(_openListId);
+    if (list) {
+      const t = (list.tasks||[]).find(t => t.id === parentId);
+      if (t) { t.subtasks = subtasks; await _saveList(list); return; }
+    }
+  }
+  // Fallback: sistema kanban
+  const tasks = get(TASKS_KEY, []);
+  const t = tasks.find(t => t.id === parentId);
+  if (t) { t.subtasks = subtasks; set(TASKS_KEY, tasks); }
 }
 
 function renderSubtasksSection(parentId) {
@@ -3941,13 +3956,11 @@ function renderSubtasksSection(parentId) {
   const container = document.getElementById('te-subtasks-container') ||
                     document.getElementById('tdm-subtasks-container');
   if (!container) return;
+
   container.innerHTML = `
-    <div class="subtasks-section">
+    <div class="subtasks-section" id="subtasks-section-${parentId}">
       <div class="subtasks-header">
-        <span class="subtasks-title">
-          ✅ Subtasques
-          ${total > 0 ? `<span class="subtasks-count">${done}/${total}</span>` : ''}
-        </span>
+        <span class="subtasks-title">✅ Subtasques${total > 0 ? ` <span class="subtasks-count">${done}/${total}</span>` : ''}</span>
       </div>
       ${total > 0 ? `
         <div class="subtasks-progress">
@@ -3957,12 +3970,18 @@ function renderSubtasksSection(parentId) {
           <span class="subtasks-pct">${pct}%</span>
         </div>` : ''}
       <div class="subtasks-list" id="subtasks-list-${parentId}">
-        ${subtasks.map(s => _renderSubtaskItem(s, parentId)).join('')}
+        ${subtasks.length > 0
+          ? subtasks.map(s => _renderSubtaskItem(s, parentId)).join('')
+          : '<p class="subtasks-empty">Cap subtasca encara</p>'}
       </div>
       <div class="subtask-add-row">
         <input type="text" class="subtask-input" id="new-subtask-${parentId}"
                placeholder="+ Afegeix subtasca..."
-               onkeydown="if(event.key==='Enter') addSubtask('${parentId}', this)">
+               onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask('${parentId}',this);}">
+        <button type="button" class="subtask-add-btn"
+                onclick="addSubtask('${parentId}',document.getElementById('new-subtask-${parentId}'))">
+          Afegir
+        </button>
       </div>
     </div>`;
   initSubtasksDragDrop(parentId);
