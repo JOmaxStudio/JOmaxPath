@@ -1493,28 +1493,43 @@ function _dbDateStr() {
   return `${days[now.getDay()]} ${now.getDate()} de ${months[now.getMonth()]}`;
 }
 
-function _dbRenderHeader(profile, rpg) {
+function _dbRenderHeader(profile, rpg, streakData, pomoData, todayTasksDone, totalPending) {
   const xp    = rpg?.xp    ?? 0;
   const level = rpg?.level ?? 1;
   const xpIn  = typeof _xpInLevel === 'function' ? _xpInLevel(xp, level) : (xp % 100);
   const xpNeed= typeof _xpForNextLevel === 'function' ? _xpForNextLevel(level) : 100;
   const xpPct = Math.min(100, Math.round(xpIn / Math.max(1, xpNeed) * 100));
   const title = typeof getLevelTitle === 'function' ? getLevelTitle(level) : 'Aprenent 🌱';
+  const streak = streakData?.count || 0;
+  const pomos  = pomoData?.today || 0;
+  const chips = [
+    streak > 0 ? `<span class="db-hchip db-hchip-fire">🔥 ${streak} dies de ratxa</span>` : '',
+    `<span class="db-hchip db-hchip-done">✅ ${todayTasksDone || 0} fetes avui</span>`,
+    pomos > 0 ? `<span class="db-hchip db-hchip-pomo">🍅 ${pomos} pomodoros</span>` : '',
+    totalPending > 0 ? `<span class="db-hchip db-hchip-pending">📋 ${totalPending} pendents</span>` : '',
+  ].filter(Boolean).join('');
   return `
-    <div class="db-header">
-      <div class="db-greeting-block">
-        <h1 class="db-greeting">${_dbGreeting(profile)}</h1>
-        <span class="db-date">${_dbDateStr()}</span>
-      </div>
-      <div class="db-xp-bar">
-        <div class="db-xp-info">
-          <span class="db-xp-level">Nv.${level} · ${title}</span>
-          <span class="db-xp-count">${xpIn}/${xpNeed} XP</span>
+    <div class="db-hero">
+      <div class="db-hero-top">
+        <div class="db-hero-text">
+          <h1 class="db-greeting">${_dbGreeting(profile)}</h1>
+          <span class="db-date">${_dbDateStr()}</span>
         </div>
+        <div class="db-level-chip">
+          <span class="db-level-icon">⚔️</span>
+          <div>
+            <div class="db-level-num">Nv.${level}</div>
+            <div class="db-level-title">${title}</div>
+          </div>
+        </div>
+      </div>
+      <div class="db-xp-row">
         <div class="db-xp-track">
           <div class="db-xp-fill" style="width:${xpPct}%"></div>
         </div>
+        <span class="db-xp-txt">${xpIn}/${xpNeed} XP</span>
       </div>
+      ${chips ? `<div class="db-hero-chips">${chips}</div>` : ''}
     </div>`;
 }
 
@@ -1677,39 +1692,41 @@ function _dbRenderHabits(habits, todayDateStr) {
 
 function _dbRenderBottom(streakData, todayTasksDone, pomoData, totalPending) {
   const streak = streakData?.count || 0;
+  const best   = streakData?.best  || 0;
   const pomos  = pomoData?.today || 0;
   const doneToday = new Date().toDateString() === streakData?.last;
   return `
     <div class="db-bottom-row">
       <div class="db-card db-streak-card">
-        <div class="db-card-header">🔥 Ratxa</div>
+        <div class="db-card-header">🔥 Ratxa actual</div>
         <div class="db-streak-main">
-          <span class="db-streak-num">${streak}</span>
+          <span class="db-streak-num${streak > 0 ? ' active' : ''}">${streak}</span>
           <span class="db-streak-lbl">dies</span>
         </div>
+        ${best > 0 ? `<div class="db-streak-best">Millor: ${best} dies</div>` : ''}
         <button class="db-streak-btn${doneToday ? ' done' : ''}"
                 onclick="markStreakToday()">
-          ${doneToday ? '✓ Sessió marcada' : '✓ Marcar sessió'}
+          ${doneToday ? '✅ Sessió marcada' : '☐ Marcar sessió d\'avui'}
         </button>
       </div>
-      <div class="db-card">
-        <div class="db-card-header">📊 Estadístiques</div>
+      <div class="db-card db-stats-card">
+        <div class="db-card-header">📊 Avui en xifres</div>
         <div class="db-stats-grid">
-          <div class="db-stat">
+          <div class="db-stat db-stat-green">
             <span class="db-stat-val">${todayTasksDone}</span>
-            <span class="db-stat-lbl">✅ fetes avui</span>
+            <span class="db-stat-lbl">fetes avui</span>
           </div>
-          <div class="db-stat">
+          <div class="db-stat db-stat-purple">
             <span class="db-stat-val">${totalPending}</span>
-            <span class="db-stat-lbl">📋 pendents</span>
+            <span class="db-stat-lbl">pendents</span>
           </div>
-          <div class="db-stat">
+          <div class="db-stat db-stat-red">
             <span class="db-stat-val">${pomos}</span>
-            <span class="db-stat-lbl">🍅 pomodoros</span>
+            <span class="db-stat-lbl">pomodoros</span>
           </div>
-          <div class="db-stat">
+          <div class="db-stat db-stat-orange">
             <span class="db-stat-val">${streak}</span>
-            <span class="db-stat-lbl">🔥 ratxa</span>
+            <span class="db-stat-lbl">dies ratxa</span>
           </div>
         </div>
       </div>
@@ -1779,7 +1796,7 @@ async function renderHome() {
 
   // Render
   container.innerHTML = [
-    _dbRenderHeader(profile, rpg),
+    _dbRenderHeader(profile, rpg, streakData, pomoData, 0, totalPending),
     _dbRenderNow(schedEvents, todayTasks),
     _dbRenderTimeline(schedEvents, todayTasks),
     _dbRenderHabits(habits, todayDateStr),
