@@ -1666,16 +1666,18 @@ function _dbRenderTimeline(schedEvents, todayTasks) {
 function _dbRenderHabits(habits, todayDateStr) {
   if (!habits?.length) return '';
   const doneCount = habits.filter(h => (h.days || []).includes(todayDateStr)).length;
+  const allDone = doneCount === habits.length;
   return `
     <div class="db-habits">
       <div class="db-habits-header">
-        <span class="db-habits-title">🌱 Hàbits d'avui · ${doneCount}/${habits.length}</span>
-        <button class="db-today-link" onclick="navTo('horari')">Gestionar →</button>
+        <span class="db-habits-title">${allDone ? '🏆' : '🌱'} Hàbits · <span style="color:${allDone?'#fcd34d':'inherit'}">${doneCount}/${habits.length}</span></span>
+        <button class="db-today-link" onclick="navTo('horari');setTimeout(()=>switchHorariTab('habits'),150)">Veure tots →</button>
       </div>
       <div class="db-habits-grid">
         ${habits.slice(0, 8).map((h, i) => {
           const done = (h.days || []).includes(todayDateStr);
           const color = h.color || '#10B981';
+          const streak = _habitStreak(h);
           return `<button class="db-habit-btn${done ? ' done' : ''}"
             data-habit-idx="${i}"
             style="--hc:${color}"
@@ -1683,6 +1685,7 @@ function _dbRenderHabits(habits, todayDateStr) {
             title="${_esc(h.name || '')}">
             <span class="db-habit-emoji">${_esc(h.icon || '🌱')}</span>
             <span class="db-habit-name">${_esc(h.name || '')}</span>
+            ${streak > 1 ? `<span class="db-habit-streak">${streak}</span>` : ''}
             ${done ? '<span class="db-habit-check">✓</span>' : ''}
           </button>`;
         }).join('')}
@@ -1898,45 +1901,25 @@ function editStreakLabel() {
 
 /* ── Habits ── */
 function renderHabits() {
-  const habits=get(HABITS_KEY,[]);
-  const list=document.getElementById('habits-list');
-  if (!list) return;
-  const today=new Date().toDateString();
-  if (habits.length===0) { list.innerHTML='<div style="color:var(--muted);font-size:12px;padding:12px 0;">Afegeix el teu primer hàbit! →</div>'; return; }
-  list.innerHTML=habits.map((h,i)=>{
-    const done=(h.days||[]).includes(today);
-    // FIX XSS: h.icon i h.name s'escapen amb _esc() per evitar injecció HTML/JS (auto: 2026-06-14)
-    return `<div class="habit-item ${done?'done':''}" onclick="toggleHabit(${i})">
-      <span class="habit-icon">${_esc(h.icon||'⭐')}</span>
-      <span class="habit-name">${_esc(h.name||'')}</span>
-      <span class="habit-check">${done?'✓':''}</span>
-      <button class="habit-del-btn" onclick="event.stopPropagation();deleteHabit(${i})">✕</button>
-    </div>`;
-  }).join('');
+  /* legacy: #habits-list is hidden in #legacy-home-hidden, no-op */
 }
 function toggleHabitForm() {
   const f=document.getElementById('habit-add-form');
   if (f) f.style.display=f.style.display==='flex'?'none':'flex';
 }
 function addHabit() {
-  const name=(document.getElementById('habit-name-inp')?.value||'').trim();
-  const icon=(document.getElementById('habit-icon-inp')?.value||'⭐').trim();
-  if (!name) { showWarningToast('⚠️ Escriu un nom'); return; }
-  const habits=get(HABITS_KEY,[]);
-  habits.push({name,icon,days:[],created:Date.now()});
-  set(HABITS_KEY,habits);
-  document.getElementById('habit-name-inp').value='';
-  document.getElementById('habit-icon-inp').value='⭐';
-  toggleHabitForm(); renderHabits(); showToast('✅ Hàbit afegit!');
+  /* legacy – nou sistema usa addHabitKit() */
 }
 function toggleHabit(idx) {
   const habits=get(HABITS_KEY,[]);
   const today=new Date().toDateString();
   if (!habits[idx]) return;
   const h=habits[idx]; if (!h.days) h.days=[];
-  const wasDone = h.days.includes(today);
+  const wasDone=h.days.includes(today);
   if (wasDone) h.days=h.days.filter(d=>d!==today); else h.days.push(today);
-  set(HABITS_KEY,habits); renderHabits();
+  set(HABITS_KEY,habits);
+  renderHabitKit();
+  renderHome();
   if (!wasDone && window._currentUser?.id) {
     const uid=window._currentUser.id;
     if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.habit||8, 'habit').catch(()=>{});
@@ -1946,13 +1929,113 @@ function toggleHabit(idx) {
 function deleteHabit(idx) {
   showDeleteConfirm(()=>{
     const habits=get(HABITS_KEY,[]); habits.splice(idx,1);
-    set(HABITS_KEY,habits); renderHabits(); showToast('🗑️ Hàbit eliminat');
+    set(HABITS_KEY,habits); renderHabitKit(); renderHome(); showToast('🗑️ Hàbit eliminat');
   },{title:'ELIMINAR HÀBIT',msg:"Esborraràs aquest hàbit i tot el seu historial."});
 }
-function selectHabitEmoji() {
-  const emojis=['⭐','🏃','📚','💧','🧘','💪','🎯','🍎','😴','🔥','✏️','🎵'];
-  const sel=prompt('Escull un emoji: '+emojis.join(' '));
-  if (sel) { const el=document.getElementById('habit-icon-inp'); if(el) el.value=sel.trim()[0]; }
+function selectHabitEmoji(btn) {
+  if (!btn) return;
+  document.querySelectorAll('.hk-emoji-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const emoji=btn.dataset.emoji||'⭐';
+  const prev=document.getElementById('hk-emoji-preview');
+  const inp=document.getElementById('hk-icon');
+  if (prev) prev.textContent=emoji;
+  if (inp) inp.value=emoji;
+}
+function onCustomEmojiInput(inp) {
+  const val=(inp.value||'').trim();
+  const prev=document.getElementById('hk-emoji-preview');
+  if (prev&&val) prev.textContent=val;
+}
+function toggleHabitKitForm() {
+  const f=document.getElementById('habitkit-form');
+  if (!f) return;
+  const hidden=f.style.display==='none'||!f.style.display;
+  f.style.display=hidden?'block':'none';
+  if (hidden) setTimeout(()=>document.getElementById('hk-name')?.focus(),50);
+}
+function addHabitKit() {
+  const name=(document.getElementById('hk-name')?.value||'').trim();
+  const icon=(document.getElementById('hk-icon')?.value||'⭐').trim();
+  const desc=(document.getElementById('hk-desc')?.value||'').trim();
+  const color=document.getElementById('hk-color')?.value||'#10b981';
+  if (!name) { showWarningToast('⚠️ Escriu un nom'); return; }
+  const habits=get(HABITS_KEY,[]);
+  habits.push({name,icon,desc,color,days:[],created:Date.now()});
+  set(HABITS_KEY,habits);
+  const ni=document.getElementById('hk-name'); if(ni) ni.value='';
+  const di=document.getElementById('hk-desc'); if(di) di.value='';
+  toggleHabitKitForm(); renderHabitKit(); renderHome();
+  showToast('✅ Hàbit creat!');
+}
+function _habitBestStreak(h) {
+  const days=(h.days||[]).map(d=>new Date(d).getTime()).sort((a,b)=>a-b);
+  let best=0,cur=0,prev=null;
+  const DAY=86400000;
+  for (const d of days) {
+    if (prev!==null&&d-prev<=DAY+3600000) { cur++; } else { cur=1; }
+    if (cur>best) best=cur;
+    prev=d;
+  }
+  return best;
+}
+function _hexToRgb(hex) {
+  hex=hex.replace('#','');
+  if (hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  return `${parseInt(hex.slice(0,2),16)},${parseInt(hex.slice(2,4),16)},${parseInt(hex.slice(4,6),16)}`;
+}
+function renderHabitKit() {
+  const list=document.getElementById('habitkit-list');
+  const empty=document.getElementById('habitkit-empty');
+  if (!list) return;
+  const habits=get(HABITS_KEY,[]);
+  if (!habits.length) {
+    list.innerHTML='';
+    if (empty) empty.style.display='block';
+    return;
+  }
+  if (empty) empty.style.display='none';
+  const todayStr=new Date().toDateString();
+  list.innerHTML=habits.map((h,i)=>{
+    const color=h.color||'#10b981';
+    const rgb=_hexToRgb(color);
+    const done=(h.days||[]).includes(todayStr);
+    const streak=_habitStreak(h);
+    const best=_habitBestStreak(h);
+    const total=(h.days||[]).length;
+    const dots=[];
+    for (let j=90;j>=0;j--) {
+      const d=new Date(); d.setDate(d.getDate()-j);
+      const ds=d.toDateString();
+      const isDone=(h.days||[]).includes(ds);
+      const isToday=j===0;
+      const dayAbbr=['Du','Dl','Dt','Dc','Dj','Dv','Ds'][d.getDay()];
+      const lbl=`${dayAbbr} ${d.getDate()}/${d.getMonth()+1}${isDone?' ✓':''}`;
+      dots.push(`<div class="habitkit-dot${isDone?' done':''}${isToday?' today':''}" title="${lbl}"></div>`);
+    }
+    return `<div class="habitkit-item" style="--habit-color:${color};--habit-color-rgb:${rgb};">
+      <div class="habitkit-item-header">
+        <div class="habitkit-icon">${_esc(h.icon||'⭐')}</div>
+        <div class="habitkit-info">
+          <div class="habitkit-name">${_esc(h.name||'')}</div>
+          ${h.desc?`<div class="habitkit-desc">${_esc(h.desc)}</div>`:''}
+        </div>
+        <button class="habitkit-check-btn${done?' done':''}"
+          onclick="toggleHabit(${i})"
+          style="border-color:${color};color:${done?'white':color};"
+          title="${done?'Fet avui! Clic per desfer':'Marcar com fet avui'}">
+          ${done?'✓':'○'}
+        </button>
+      </div>
+      <div class="habitkit-grid">${dots.join('')}</div>
+      <div class="habitkit-stats">
+        <div class="habitkit-stat"><span>🔥</span><span class="habitkit-stat-value" style="color:${color}">${streak}</span><span>ratxa</span></div>
+        <div class="habitkit-stat"><span>⚡</span><span class="habitkit-stat-value">${best}</span><span>millor</span></div>
+        <div class="habitkit-stat"><span>✅</span><span class="habitkit-stat-value">${total}</span><span>total</span></div>
+      </div>
+      <button class="habitkit-delete-btn" onclick="deleteHabit(${i})">ELIMINAR</button>
+    </div>`;
+  }).join('');
 }
 
 /* ── Progress ── */
@@ -2781,17 +2864,7 @@ function deleteMonthEvent(day,idx) {
 }
 
 function renderHorariHabits() {
-  const list=document.getElementById('htab-content-habits'); if (!list) return;
-  const habits=get(HABITS_KEY,[]);
-  const today=new Date().toDateString();
-  const html=habits.length===0?'<p style="color:var(--muted);">Afegeix hàbits des d\'Inici.</p>':habits.map((h,i)=>{
-    const done=(h.days||[]).includes(today);
-    const streak=_habitStreak(h);
-    return `<div class="habit-row-horari ${done?'done':''}"><span>${h.icon||'⭐'}</span><span style="flex:1">${h.name}</span><span style="color:var(--orange);font-size:11px;">🔥 ${streak}</span><button onclick="toggleHabit(${i});renderHorariHabits()">${done?'✓':''}</button></div>`;
-  }).join('');
-  let inner=list.querySelector('.horari-habits-inner');
-  if (!inner) { inner=document.createElement('div'); inner.className='horari-habits-inner'; list.appendChild(inner); }
-  inner.innerHTML=html;
+  renderHabitKit();
 }
 function _habitStreak(h) {
   let s=0; const d=new Date();
