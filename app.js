@@ -3148,7 +3148,7 @@ function renderListKanban(list) {
       <div class="ld-kcol-head">${c.t} <span>${tasks.filter(t=>(t.status||'todo')===c.k).length}</span></div>
       <div class="ld-kcol-body">
         ${tasks.filter(t=>(t.status||'todo')===c.k).map(t=>{
-            const subs=t.subtasks||[];
+            const subs=_validSubtasks(t.subtasks);
             const sDone=subs.filter(s=>s.completed).length;
             const sTotal=subs.length;
             const sPct=sTotal>0?Math.round((sDone/sTotal)*100):0;
@@ -3754,7 +3754,7 @@ function renderPersonalKanban() {
     const colTasks=tasks.filter(t=>(t.status||'todo')===col.id);
     const urgColors={green:'#6ee7b7',yellow:'#fcd34d',red:'#f87171'};
     const cards=colTasks.map(t=>{
-      const subs=(t.subtasks||[]);
+      const subs=_validSubtasks(t.subtasks);
       const subDone=subs.filter(s=>s.completed).length;
       const subTotal=subs.length;
       const subPct=subTotal>0?Math.round((subDone/subTotal)*100):0;
@@ -3967,7 +3967,26 @@ async function _saveSubtasks(parentId, subtasks) {
   if (t) { t.subtasks = subtasks; set(TASKS_KEY, tasks); }
 }
 
+// Neteja subtasques invàlides (sense títol) de l'emmagatzematge, així les
+// dades antigues que provocaven "0/1" + checkbox flotant desapareixen per sempre.
+function _purgeInvalidSubtasks(parentId) {
+  let raw = null;
+  if (_openListId) {
+    const list = _getList(_openListId);
+    const t = list && (list.tasks||[]).find(t => t.id === parentId);
+    if (t) raw = t.subtasks;
+  }
+  if (raw == null) {
+    const t = get(TASKS_KEY, []).find(t => t.id === parentId);
+    if (t) raw = t.subtasks;
+  }
+  if (!Array.isArray(raw) || !raw.length) return;
+  const valid = _validSubtasks(raw);
+  if (valid.length !== raw.length) _saveSubtasks(parentId, valid);
+}
+
 function renderSubtasksSection(parentId) {
+  _purgeInvalidSubtasks(parentId);
   const subtasks = _getSubtasks(parentId);
   const total = subtasks.length;
   const done = subtasks.filter(s => s.completed).length;
