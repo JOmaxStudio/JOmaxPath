@@ -3123,6 +3123,9 @@ function renderListTasks(list) {
   const prioColors={1:'#ef4444',2:'#f59e0b',3:'#3b82f6',4:'#64748b'};
   el.innerHTML = [...tasks].sort((a,b)=>(a.done-b.done)||((a.prio||3)-(b.prio||3))).map(t=>{
     const nLinks=(t.links||[]).length;
+    const subs=_validSubtasks(t.subtasks);
+    const sDone=subs.filter(s=>s.completed).length;
+    const sTotal=subs.length;
     return `
     <div class="ld-task ${t.done?'done':''}">
       <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
@@ -3130,7 +3133,7 @@ function renderListTasks(list) {
       <div class="ld-task-body" onclick="openTaskEditor('${t.id}')" style="cursor:pointer;">
         <div class="ld-task-name">${_esc(t.name)}${t.recurrence_group_id?'<span class="task-recurrent-badge">🔄</span>':''}</div>
         ${t.desc?`<div class="ld-task-desc">${_esc((t.desc||'').slice(0,80))}${t.desc.length>80?'…':''}</div>`:''}
-        ${(t.date||t.assignee||nLinks)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}</div>`:''}
+        ${(t.date||t.assignee||nLinks||sTotal>0)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}${_subtaskBadge(sDone,sTotal)}</div>`:''}
       </div>
       <button class="ld-task-edit" onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
       <button class="ld-task-del" onclick="deleteListTask('${t.id}')">✕</button>

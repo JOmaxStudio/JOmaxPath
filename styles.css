@@ -8026,11 +8026,38 @@ body.theme-blanc .note-content-textarea { color: #1a1a2e; }
   transform: scale(0.99);
 }
 .subtask-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
   width: 18px;
   height: 18px;
   flex-shrink: 0;
   cursor: pointer;
-  accent-color: var(--accent);
+  border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.05);
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+.subtask-checkbox:checked {
+  background: var(--accent, #7c3aed);
+  border-color: var(--accent, #7c3aed);
+}
+.subtask-checkbox:checked::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 8px;
+  border: 2px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-50%, -50%);
+  position: absolute;
+  top: 42%;
+  left: 50%;
+}
+.subtask-checkbox:hover:not(:checked) {
+  border-color: var(--accent, #7c3aed);
+  background: rgba(124,58,237,0.12);
 }
 .subtask-title {
   flex: 1;
