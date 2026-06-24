@@ -3922,19 +3922,26 @@ function tdmSaveChanges() {
 function updateTaskStatusFromDetail(status) { tdmSetStatus(status,null); }
 
 /* ── SUBTASQUES (Millora 6) ── */
+// Filtra subtasques invàlides (sense id o sense títol) que poden haver
+// quedat guardades a localStorage i provoquen checkboxs flotants buits.
+function _validSubtasks(arr) {
+  return (arr || [])
+    .filter(s => s && s.id && typeof s.title === 'string' && s.title.trim() !== '')
+    .sort((a,b) => (a.order_index||0) - (b.order_index||0));
+}
 function _getSubtasks(parentId) {
   // Prova primer al sistema de llistes
   if (_openListId) {
     const list = _getList(_openListId);
     if (list) {
       const t = (list.tasks||[]).find(t => t.id === parentId);
-      if (t) return [...(t.subtasks||[])].sort((a,b) => (a.order_index||0) - (b.order_index||0));
+      if (t) return _validSubtasks(t.subtasks);
     }
   }
   // Fallback: sistema de tasques kanban (TASKS_KEY)
   const tasks = get(TASKS_KEY, []);
   const t = tasks.find(t => t.id === parentId);
-  return t ? [...(t.subtasks||[])].sort((a,b) => (a.order_index||0) - (b.order_index||0)) : [];
+  return t ? _validSubtasks(t.subtasks) : [];
 }
 
 async function _saveSubtasks(parentId, subtasks) {
@@ -3993,6 +4000,8 @@ function renderSubtasksSection(parentId) {
 }
 
 function _renderSubtaskItem(subtask, parentId) {
+  // Validació defensiva: no renderitzis subtasques sense id o títol
+  if (!subtask || !subtask.id || !subtask.title || !subtask.title.trim()) return '';
   return `
     <div class="subtask-item" data-id="${subtask.id}" draggable="true">
       <input type="checkbox" class="subtask-checkbox" ${subtask.completed ? 'checked' : ''}
