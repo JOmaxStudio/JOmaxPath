@@ -1920,11 +1920,29 @@ function toggleHabit(idx) {
   set(HABITS_KEY,habits);
   renderHabitKit();
   renderHome();
-  if (!wasDone && window._currentUser?.id) {
-    const uid=window._currentUser.id;
-    if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.habit||8, 'habit').catch(()=>{});
-    if (typeof updateMissionProgress==='function') updateMissionProgress('habit').catch(()=>{});
+  if (!wasDone) {
+    _checkHabitsStreakLink(habits, today);
+    if (window._currentUser?.id) {
+      const uid=window._currentUser.id;
+      if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.habit||8, 'habit').catch(()=>{});
+      if (typeof updateMissionProgress==='function') updateMissionProgress('habit').catch(()=>{});
+    }
   }
+}
+function _checkHabitsStreakLink(habits, today) {
+  if (!habits?.length) return;
+  const allDone=habits.every(h=>(h.days||[]).includes(today));
+  if (!allDone) return;
+  const streakData=get(STREAK_KEY,{count:0,best:0,last:''});
+  if (streakData.last===today) return; // ja comptada
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const wasYesterday=streakData.last===yesterday.toDateString();
+  streakData.count = wasYesterday ? (streakData.count||0)+1 : 1;
+  streakData.best  = Math.max(streakData.best||0, streakData.count);
+  streakData.last  = today;
+  set(STREAK_KEY, streakData);
+  showToast('🔥 Tots els hàbits completats! Ratxa +1!');
+  renderHome();
 }
 function deleteHabit(idx) {
   showDeleteConfirm(()=>{
@@ -1952,7 +1970,12 @@ function toggleHabitKitForm() {
   if (!f) return;
   const hidden=f.style.display==='none'||!f.style.display;
   f.style.display=hidden?'block':'none';
-  if (hidden) setTimeout(()=>document.getElementById('hk-name')?.focus(),50);
+  if (hidden) {
+    setTimeout(()=>{
+      f.scrollIntoView({behavior:'smooth', block:'start'});
+      document.getElementById('hk-name')?.focus();
+    }, 50);
+  }
 }
 function addHabitKit() {
   const name=(document.getElementById('hk-name')?.value||'').trim();
