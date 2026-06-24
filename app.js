@@ -3155,8 +3155,8 @@ function renderListKanban(list) {
             return `
           <div class="ld-kcard" data-task-id="${t.id}" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
             <div class="ld-kcard-name">${_esc(t.name)}</div>
-            ${(t.date||t.assignee)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}</div>`:''}
-            ${sTotal>0?`<div class="kanban-card-progress"><div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${sPct}%"></div></div><span class="kanban-card-progress-text">${sDone}/${sTotal}</span></div>`:''}
+            ${(t.date||t.assignee||sTotal>0)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${_subtaskBadge(sDone,sTotal)}</div>`:''}
+            ${sTotal>0?`<div class="kanban-card-progress"><div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${sPct}%"></div></div></div>`:''}
             <div class="ld-kcard-foot">
               ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
               <button onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
@@ -3759,9 +3759,9 @@ function renderPersonalKanban() {
       const subTotal=subs.length;
       const subPct=subTotal>0?Math.round((subDone/subTotal)*100):0;
       const progressHtml=subTotal>0?`
-        <div class="kanban-card-progress">
-          <div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${subPct}%"></div></div>
-          <span class="kanban-card-progress-text">${subDone}/${subTotal}</span>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          ${_subtaskBadge(subDone,subTotal)}
+          <div class="kanban-card-progress-bar" style="flex:1;margin:0;"><div class="kanban-card-progress-fill" style="width:${subPct}%"></div></div>
         </div>`:'';
       return `
       <div class="kanban-task-card" data-task-id="${t.id}" onclick="openTaskDetail('${t.id}')" style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${urgColors[t.urgency||'green']};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
@@ -3942,6 +3942,14 @@ function _getSubtasks(parentId) {
   const tasks = get(TASKS_KEY, []);
   const t = tasks.find(t => t.id === parentId);
   return t ? _validSubtasks(t.subtasks) : [];
+}
+
+// Badge compacte per a la llista de tasques: només apareix si la tasca TÉ
+// subtasques. Mostra el progrés (fetes/total) per poder-se fixar ràpid.
+function _subtaskBadge(done, total) {
+  if (!total || total < 1) return '';
+  const allDone = done >= total;
+  return `<span class="task-subtask-badge${allDone ? ' all-done' : ''}" title="${done} de ${total} subtasques fetes">${allDone ? '✅' : '☑️'} ${done}/${total}</span>`;
 }
 
 async function _saveSubtasks(parentId, subtasks) {
