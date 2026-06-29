@@ -5251,13 +5251,6 @@ body.theme-rose    #notif-pill { color: rgba(244,114,182,0.65); border-color: rg
 }
 
 
-/* Match add button hover effect */
-#match-add-btn:hover {
-  background: rgba(239,68,68,0.2);
-  border-color: rgba(239,68,68,0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239,68,68,0.3);
-}
 
 /* ════════════════════════════════════════════════════════
    HABITKIT v2 — REDISSENY COMPLET
@@ -7518,14 +7511,14 @@ body.view-pages.sb-collapsed-desktop #bnav {
   .ld-task-del, .ld-task-edit, .ld-check,
   .cfg-btn, .vic-nav-btn, .ai-new-chat-btn, .ai-clear-btn,
   .tcbtn, .color-pick-btn, .flash-nav button,
-  .ld-kcard-foot button, .mc-del, .search-close,
+  .ld-kcard-foot button, .search-close,
   #search-close, .te-link-del, .te-link-open {
     position: relative !important;
   }
   .ld-task-del::after, .ld-task-edit::after, .ld-check::after,
   .cfg-btn::after, .vic-nav-btn::after, .ai-new-chat-btn::after, .ai-clear-btn::after,
   .tcbtn::after, .color-pick-btn::after, .flash-nav button::after,
-  .ld-kcard-foot button::after, .mc-del::after, #search-close::after,
+  .ld-kcard-foot button::after, #search-close::after,
   .te-link-del::after, .te-link-open::after {
     content: '';
     position: absolute;

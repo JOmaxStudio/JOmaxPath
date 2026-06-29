@@ -18,7 +18,6 @@ const CHATS_KEY    = 'jomaxpath_chats_v2';
 const CONFIG_KEY   = 'jomaxpath_config_v1';
 const VICTORIES_KEY= 'jomaxpath_victories_v1';
 const NOTES_KEY    = 'jomaxpath_notes_v1';
-const MATCH_KEY    = 'jomaxpath_matches_v1';
 
 /* ─────────────────────────────────────────
    UTILITATS
@@ -2879,7 +2878,7 @@ function saveMonthEvent() {
   const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
   const data=get(key,{});
   if (!data[_monthModalDay]) data[_monthModalDay]=[];
-  const typeColors={exam:'rgba(245,158,11,0.3)',deures:'rgba(59,130,246,0.3)',partit:'rgba(239,68,68,0.3)',other:'rgba(124,58,237,0.3)'};
+  const typeColors={exam:'rgba(245,158,11,0.3)',deures:'rgba(59,130,246,0.3)',esport:'rgba(16,185,129,0.3)',other:'rgba(124,58,237,0.3)'};
   data[_monthModalDay].push({name,time,type,color:typeColors[type]||'rgba(124,58,237,0.3)',id:Date.now().toString()});
   set(key,data);
   document.getElementById('mm-text').value='';
@@ -2903,39 +2902,6 @@ function _habitStreak(h) {
   return s;
 }
 
-/* Matches */
-function renderMatches() {
-  const list=document.getElementById('matches-list'); if (!list) return;
-  const matches=get(MATCH_KEY,[]);
-  if (matches.length===0) { list.innerHTML='<div style="color:var(--muted);font-size:12px;padding:12px 0;">Sense partits afegits.</div>'; return; }
-  list.innerHTML=matches.map((m,i)=>`<div class="match-card"><div class="mc-date">${m.date||''} ${m.time||''}</div><div class="mc-teams"><span>${m.home||'Local'}</span><span style="margin:0 8px;opacity:0.5">${m.result||'vs'}</span><span>${m.away||'Visitant'}</span></div><div style="font-size:10px;color:var(--muted)">Jornada ${m.jornada||'?'}</div><button class="mc-del" onclick="deleteMatch(${i})">✕</button></div>`).join('');
-}
-function toggleMatchForm() {
-  const f=document.getElementById('match-form');
-  if (f) f.style.display=f.style.display==='none'?'block':'none';
-}
-function saveMatch() {
-  const date=document.getElementById('mf-date')?.value;
-  const time=document.getElementById('mf-time')?.value;
-  const home=(document.getElementById('mf-home')?.value||'').trim();
-  const away=(document.getElementById('mf-away')?.value||'').trim();
-  const jornada=document.getElementById('mf-jornada')?.value;
-  const result=(document.getElementById('mf-result')?.value||'').trim();
-  if (!home||!away) { showWarningToast('⚠️ Posa els dos equips'); return; }
-  const matches=get(MATCH_KEY,[]);
-  matches.push({date,time,home,away,jornada,result,id:Date.now().toString()});
-  matches.sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
-  set(MATCH_KEY,matches); toggleMatchForm(); renderMatches(); showToast('✅ Partit afegit!');
-}
-function deleteMatch(idx) {
-  showDeleteConfirm(()=>{
-    const m=get(MATCH_KEY,[]); m.splice(idx,1); set(MATCH_KEY,m); renderMatches();
-  },{title:'ELIMINAR PARTIT',msg:"Esborraràs aquest partit del registre."});
-}
-function setMatchCasa(val) {
-  // Guarda preferència camp local/visitant per al proper partit
-  const cfg=get(CONFIG_KEY,{}); cfg.matchCasa=val; set(CONFIG_KEY,cfg);
-}
 
 /* ─────────────────────────────────────────
    TASQUES

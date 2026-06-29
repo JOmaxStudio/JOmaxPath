@@ -1471,53 +1471,18 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <div class="calendar-grid" id="calendar-grid"></div>
       </div>
       
-      <!-- Partits de la temporada -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:30px;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div class="section-title" style="margin:0;">⚽ Partits de la temporada</div>
-        <button onclick="toggleMatchForm()" id="match-add-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(239,68,68,0.2);">+ AFEGIR PARTIT</button>
-      </div>
-
-      <!-- Add/Edit form -->
-      <div id="match-form" style="display:none;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;margin-bottom:16px;animation:slideDown 0.3s ease-out;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">DATA</label>
-            <input type="date" id="mf-date" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
+      <!-- Events esportius -->
+      <div style="margin-top:30px;margin-bottom:16px;">
+        <div class="section-title" style="margin:0 0 14px 0;">🏅 Events esportius</div>
+        <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:28px;flex-shrink:0;">🏅</div>
+          <div style="flex:1;min-width:180px;">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#6ee7b7;letter-spacing:1px;margin-bottom:6px;">AFEGEIX EVENTS AL CALENDARI</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.5;">Partits, entrenaments, competicions... Afegeix-los directament al calendari setmanal o mensual amb el tipus <strong style="color:var(--text);">🏅 Esport</strong>.</div>
           </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">HORA</label>
-            <input type="time" id="mf-time" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP LOCAL</label>
-            <input type="text" id="mf-home" placeholder="Equip local..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EQUIP VISITANT</label>
-            <input type="text" id="mf-away" placeholder="Equip visitant..." style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">JORNADA</label>
-            <input type="number" id="mf-jornada" placeholder="Nº jornada" min="1" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">RESULTAT (opcional)</label>
-            <input type="text" id="mf-result" placeholder="Ex: 3-2" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;box-sizing:border-box;" />
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">CAMP:</label>
-          <button id="mf-casa-btn" onclick="setMatchCasa(true)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;cursor:pointer;">CASA ✓</button>
-          <button id="mf-fora-btn" onclick="setMatchCasa(false)" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);cursor:pointer;">FORA</button>
-        </div>
-        <input type="hidden" id="mf-edit-id" value="" />
-        <div style="display:flex;gap:8px;">
-          <button onclick="saveMatch()" style="flex:1;background:var(--red);color:white;font-weight:700;font-size:12px;padding:9px;border-radius:8px;border:none;cursor:pointer;" data-i18n="btn_save">💾 GUARDAR</button>
-          <button onclick="toggleMatchForm()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;" data-i18n="btn_cancel">Cancel·lar</button>
+          <button onclick="navTo('horari')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;font-family:'Space Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:9px 18px;border-radius:20px;cursor:pointer;white-space:nowrap;">+ AFEGIR EVENT</button>
         </div>
       </div>
-
-      <div id="matches-list"></div>
     </div><!-- End htab-content-mensual -->
 
     <!-- TAB: Hàbits -->
@@ -2636,7 +2601,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <select id="mm-type">
           <option value="exam">📝 Examen/Entrega</option>
           <option value="deures">📚 Deures</option>
-          <option value="partit">🏒 Partit</option>
+          <option value="esport">🏅 Event esportiu</option>
           <option value="other">📌 Altres</option>
         </select>
       </div>
@@ -2678,7 +2643,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <div id="global-search-bar">
   <div class="search-input-wrap">
     <span>🔍</span>
-    <input type="text" id="search-input" placeholder="Cerca tasques, events, partits..." oninput="runSearch(this.value)" />
+    <input type="text" id="search-input" placeholder="Cerca tasques, events, hàbits..." oninput="runSearch(this.value)" />
     <button id="search-close" onclick="closeSearch()">✕</button>
   </div>
   <div id="search-results"></div>
