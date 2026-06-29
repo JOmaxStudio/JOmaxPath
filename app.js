@@ -2246,7 +2246,7 @@ function applyConfig() {
 let weekOffset=0, calendarYear, calendarMonth;
 
 function renderHorari() {
-  renderWeekDates(); renderWeekGrid(); renderCalendar(); renderHorariHabits(); renderMatches();
+  renderWeekDates(); renderWeekGrid(); renderCalendar(); renderHorariHabits();
 }
 function switchHorariTab(tab) {
   document.querySelectorAll('.horari-tab').forEach(t=>t.classList.remove('active'));
@@ -2848,7 +2848,11 @@ function renderCalendar() {
   for (let d=1;d<=lastDay.getDate();d++) {
     const isToday=d===now.getDate()&&calendarMonth===now.getMonth()&&calendarYear===now.getFullYear();
     const evs=monthEvents[d]||[];
-    const evHtml=evs.slice(0,2).map(e=>`<div class="cal-event" style="background:${e.color||'rgba(124,58,237,0.3)'}">${e.name||''}</div>`).join('');
+    const evHtml=evs.slice(0,2).map(e=>{
+      const border=e.border||'#7c3aed';
+      const bg=e.color||'rgba(124,58,237,0.22)';
+      return `<div class="cal-event" style="background:${bg};border-left:3px solid ${border}">${e.emoji||'📌'} ${e.name||''}</div>`;
+    }).join('')+(evs.length>2?`<div class="cal-event-more">+${evs.length-2}</div>`:'');
     html+=`<div class="cal-day ${isToday?'today':''}" onclick="openMonthModal(${d})"><div class="cal-day-num">${d}</div>${evHtml}</div>`;
   }
   gridEl.innerHTML=html;
@@ -2866,30 +2870,60 @@ function openMonthModal(day) {
   const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
   const evs=(get(key,{})[day])||[];
   const listEl=document.getElementById('mm-list');
-  if (listEl) listEl.innerHTML=evs.length===0?'<div style="color:var(--muted);font-size:12px;">Sense events</div>':evs.map((e,i)=>`<div class="mm-event-item">${e.name} <button onclick="deleteMonthEvent(${day},${i})">✕</button></div>`).join('');
+  if (listEl) listEl.innerHTML=evs.length===0?'<div style="color:var(--muted);font-size:12px;padding:8px 0;">Cap event per aquest dia.</div>':evs.map((e,i)=>`<div class="month-event-row" style="border-left:3px solid ${e.border||'#7c3aed'}"><span class="mev-icon">${e.emoji||'📌'}</span><span class="mev-text">${e.name}</span>${e.time?`<span class="mev-time">${e.time}</span>`:''}<button class="mev-del" onclick="deleteMonthEvent(${day},${i})">✕</button></div>`).join('');
   ov.style.display='flex';
 }
 function closeMonthModal() { document.getElementById('month-modal-overlay').style.display='none'; }
+const _MTYPE_META = {
+  exam:   {emoji:'📝', color:'rgba(239,68,68,0.25)',   border:'#ef4444'},
+  deures: {emoji:'📚', color:'rgba(59,130,246,0.22)',  border:'#3b82f6'},
+  esport: {emoji:'🏅', color:'rgba(16,185,129,0.22)',  border:'#10b981'},
+  other:  {emoji:'📌', color:'rgba(124,58,237,0.22)', border:'#7c3aed'},
+};
 function saveMonthEvent() {
   const name=(document.getElementById('mm-text')?.value||'').trim();
   const time=document.getElementById('mm-time')?.value||'';
   const type=document.getElementById('mm-type')?.value||'other';
   if (!name||!_monthModalDay) { showWarningToast('⚠️ Escriu un event'); return; }
-  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
-  const data=get(key,{});
-  if (!data[_monthModalDay]) data[_monthModalDay]=[];
-  const typeColors={exam:'rgba(245,158,11,0.3)',deures:'rgba(59,130,246,0.3)',esport:'rgba(16,185,129,0.3)',other:'rgba(124,58,237,0.3)'};
-  data[_monthModalDay].push({name,time,type,color:typeColors[type]||'rgba(124,58,237,0.3)',id:Date.now().toString()});
-  set(key,data);
+  const meta = _MTYPE_META[type]||_MTYPE_META.other;
+  const id = Date.now().toString();
+  const isoDate = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_monthModalDay).padStart(2,'0')}`;
+  const ev = {name, time, type, emoji:meta.emoji, color:meta.color, border:meta.border, id, fromMonthly:true};
+
+  // Guarda al calendari mensual
+  const mkey = SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const mdata = get(mkey,{});
+  if (!mdata[_monthModalDay]) mdata[_monthModalDay]=[];
+  mdata[_monthModalDay].push(ev);
+  set(mkey, mdata);
+
+  // Sincronitza a l'horari setmanal (per ISO date)
+  const sched = get(SCHEDULE_KEY, {});
+  if (!Array.isArray(sched[isoDate])) sched[isoDate]=[];
+  sched[isoDate].push(ev);
+  set(SCHEDULE_KEY, sched);
+
   document.getElementById('mm-text').value='';
-  closeMonthModal(); renderCalendar(); showToast('✅ Event mensual afegit!');
+  openMonthModal(_monthModalDay); renderCalendar(); renderWeekDates();
+  showToast('✅ Event afegit!');
 }
 function deleteMonthEvent(day,idx) {
   showDeleteConfirm(()=>{
     const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
     const data=get(key,{});
+    const ev = (data[day]||[])[idx];
     if (data[day]) data[day].splice(idx,1);
-    set(key,data); openMonthModal(day); renderCalendar();
+    set(key,data);
+    // Elimina també de l'horari setmanal
+    if (ev?.id) {
+      const isoDate = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const sched = get(SCHEDULE_KEY,{});
+      if (Array.isArray(sched[isoDate])) {
+        sched[isoDate] = sched[isoDate].filter(e=>e.id!==ev.id);
+        set(SCHEDULE_KEY, sched);
+      }
+    }
+    openMonthModal(day); renderCalendar(); renderWeekDates();
   },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event del calendari."});
 }
 
