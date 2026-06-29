@@ -2848,12 +2848,12 @@ function renderCalendar() {
   for (let d=1;d<=lastDay.getDate();d++) {
     const isToday=d===now.getDate()&&calendarMonth===now.getMonth()&&calendarYear===now.getFullYear();
     const evs=monthEvents[d]||[];
-    const evHtml=evs.slice(0,2).map(e=>{
+    const evHtml=evs.slice(0,2).map((e,i)=>{
       const border=e.border||'#7c3aed';
       const bg=e.color||'rgba(124,58,237,0.22)';
-      return `<div class="cal-event" style="background:${bg};border-left:3px solid ${border}">${e.emoji||'📌'} ${e.name||''}</div>`;
+      return `<div class="cal-event" draggable="true" style="background:${bg};border-left:3px solid ${border}" ondragstart="_calDragStart(event,${d},${i})" ondragend="_calDragEnd(event)" onclick="event.stopPropagation();openMonthModal(${d});setTimeout(()=>editMonthEvent(${d},${i}),80)">${e.emoji||'📌'} ${e.name||''}</div>`;
     }).join('')+(evs.length>2?`<div class="cal-event-more">+${evs.length-2}</div>`:'');
-    html+=`<div class="cal-day ${isToday?'today':''}" onclick="openMonthModal(${d})"><div class="cal-day-num">${d}</div>${evHtml}</div>`;
+    html+=`<div class="cal-day ${isToday?'today':''}" ondragover="_calDragOver(event)" ondrop="_calDrop(event,${d})" onclick="openMonthModal(${d})"><div class="cal-day-num">${d}</div>${evHtml}</div>`;
   }
   gridEl.innerHTML=html;
 }
@@ -2863,17 +2863,49 @@ function calendarNextMonth() { calendarMonth++; if(calendarMonth>11){calendarMon
 let _monthModalDay=null;
 function openMonthModal(day) {
   _monthModalDay=day;
+  // reset edit mode
+  const editId=document.getElementById('mm-edit-id'); if(editId) editId.value='';
+  const saveBtn=document.getElementById('mm-save-btn'); if(saveBtn){saveBtn.textContent='+ Afegir';saveBtn.style.background='';}
+  const txtEl=document.getElementById('mm-text'); if(txtEl) txtEl.value='';
+  const timeEl=document.getElementById('mm-time'); if(timeEl) timeEl.value='';
+  const typeEl=document.getElementById('mm-type'); if(typeEl) typeEl.value='other';
   const ov=document.getElementById('month-modal-overlay'); if (!ov) return;
   const mesos=['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
   document.getElementById('mm-title').textContent=`${day} de ${mesos[calendarMonth]}`;
   document.getElementById('mm-sub').textContent=String(calendarYear);
-  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
-  const evs=(get(key,{})[day])||[];
-  const listEl=document.getElementById('mm-list');
-  if (listEl) listEl.innerHTML=evs.length===0?'<div style="color:var(--muted);font-size:12px;padding:8px 0;">Cap event per aquest dia.</div>':evs.map((e,i)=>`<div class="month-event-row" style="border-left:3px solid ${e.border||'#7c3aed'}"><span class="mev-icon">${e.emoji||'📌'}</span><span class="mev-text">${e.name}</span>${e.time?`<span class="mev-time">${e.time}</span>`:''}<button class="mev-del" onclick="deleteMonthEvent(${day},${i})">✕</button></div>`).join('');
+  _renderMonthModalList(day);
   ov.style.display='flex';
 }
-function closeMonthModal() { document.getElementById('month-modal-overlay').style.display='none'; }
+function _renderMonthModalList(day) {
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const evs=(get(key,{})[day])||[];
+  const listEl=document.getElementById('mm-list'); if(!listEl) return;
+  if(evs.length===0){listEl.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0;">Cap event per aquest dia.</div>';return;}
+  listEl.innerHTML=evs.map((e,i)=>`
+    <div class="month-event-row" style="border-left:3px solid ${e.border||'#7c3aed'}">
+      <span class="mev-icon">${e.emoji||'📌'}</span>
+      <span class="mev-text">${e.name}</span>
+      ${e.time?`<span class="mev-time">${e.time}</span>`:''}
+      <button class="mev-edit" onclick="editMonthEvent(${day},${i})" title="Editar">✏️</button>
+      <button class="mev-del" onclick="deleteMonthEvent(${day},${i})" title="Eliminar">✕</button>
+    </div>`).join('');
+}
+function closeMonthModal() {
+  document.getElementById('month-modal-overlay').style.display='none';
+  const editId=document.getElementById('mm-edit-id'); if(editId) editId.value='';
+  const saveBtn=document.getElementById('mm-save-btn'); if(saveBtn){saveBtn.textContent='+ Afegir';saveBtn.style.background='';}
+}
+function editMonthEvent(day, idx) {
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const ev=(get(key,{})[day]||[])[idx]; if(!ev) return;
+  const txtEl=document.getElementById('mm-text'); if(txtEl) txtEl.value=ev.name||'';
+  const timeEl=document.getElementById('mm-time'); if(timeEl) timeEl.value=ev.time||'';
+  const typeEl=document.getElementById('mm-type'); if(typeEl) typeEl.value=ev.type||'other';
+  const editId=document.getElementById('mm-edit-id'); if(editId) editId.value=ev.id||'';
+  const saveBtn=document.getElementById('mm-save-btn');
+  if(saveBtn){saveBtn.textContent='💾 Actualitzar';saveBtn.style.background='linear-gradient(135deg,rgba(0,180,216,0.3),rgba(124,58,237,0.2))';}
+  txtEl?.focus();
+}
 const _MTYPE_META = {
   exam:   {emoji:'📝', color:'rgba(239,68,68,0.25)',   border:'#ef4444'},
   deures: {emoji:'📚', color:'rgba(59,130,246,0.22)',  border:'#3b82f6'},
@@ -2885,27 +2917,37 @@ function saveMonthEvent() {
   const time=document.getElementById('mm-time')?.value||'';
   const type=document.getElementById('mm-type')?.value||'other';
   if (!name||!_monthModalDay) { showWarningToast('⚠️ Escriu un event'); return; }
+  const editId=document.getElementById('mm-edit-id')?.value||'';
   const meta = _MTYPE_META[type]||_MTYPE_META.other;
-  const id = Date.now().toString();
   const isoDate = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_monthModalDay).padStart(2,'0')}`;
-  const ev = {name, time, type, emoji:meta.emoji, color:meta.color, border:meta.border, id, fromMonthly:true};
-
-  // Guarda al calendari mensual
   const mkey = SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
-  const mdata = get(mkey,{});
-  if (!mdata[_monthModalDay]) mdata[_monthModalDay]=[];
-  mdata[_monthModalDay].push(ev);
-  set(mkey, mdata);
 
-  // Sincronitza a l'horari setmanal (per ISO date)
-  const sched = get(SCHEDULE_KEY, {});
-  if (!Array.isArray(sched[isoDate])) sched[isoDate]=[];
-  sched[isoDate].push(ev);
-  set(SCHEDULE_KEY, sched);
-
-  document.getElementById('mm-text').value='';
+  if (editId) {
+    // Mode edició: actualitza l'event existent pels dos stores
+    const mdata=get(mkey,{}), sched=get(SCHEDULE_KEY,{});
+    const arr=mdata[_monthModalDay]||[];
+    const idx=arr.findIndex(e=>e.id===editId);
+    if (idx!==-1) {
+      const updated={...arr[idx], name, time, type, emoji:meta.emoji, color:meta.color, border:meta.border};
+      arr[idx]=updated; mdata[_monthModalDay]=arr; set(mkey,mdata);
+      if(Array.isArray(sched[isoDate])){
+        const si=sched[isoDate].findIndex(e=>e.id===editId);
+        if(si!==-1){sched[isoDate][si]=updated; set(SCHEDULE_KEY,sched);}
+      }
+    }
+    showToast('✏️ Event actualitzat!');
+  } else {
+    // Mode afegir: crea event nou
+    const id=Date.now().toString();
+    const ev={name,time,type,emoji:meta.emoji,color:meta.color,border:meta.border,id,fromMonthly:true};
+    const mdata=get(mkey,{}); if(!mdata[_monthModalDay]) mdata[_monthModalDay]=[];
+    mdata[_monthModalDay].push(ev); set(mkey,mdata);
+    const sched=get(SCHEDULE_KEY,{}); if(!Array.isArray(sched[isoDate])) sched[isoDate]=[];
+    sched[isoDate].push(ev); set(SCHEDULE_KEY,sched);
+    showToast('✅ Event afegit!');
+  }
   openMonthModal(_monthModalDay); renderCalendar(); renderWeekDates();
-  showToast('✅ Event afegit!');
+  if(_calView==='agenda') renderAgendaView();
 }
 function deleteMonthEvent(day,idx) {
   showDeleteConfirm(()=>{
@@ -2925,6 +2967,119 @@ function deleteMonthEvent(day,idx) {
     }
     openMonthModal(day); renderCalendar(); renderWeekDates();
   },{title:'ELIMINAR EVENT',msg:"Esborraràs aquest event del calendari."});
+}
+
+/* ── Vista agenda / toggle ── */
+let _calView = 'grid';
+function toggleCalView(v) {
+  _calView = v;
+  const grid=document.getElementById('calendar-grid');
+  const agenda=document.getElementById('calendar-agenda');
+  const btnGrid=document.getElementById('cal-btn-grid');
+  const btnAgenda=document.getElementById('cal-btn-agenda');
+  if(v==='agenda'){
+    if(grid) grid.style.display='none';
+    if(agenda) agenda.style.display='block';
+    btnGrid?.classList.remove('cal-view-active');
+    btnAgenda?.classList.add('cal-view-active');
+    renderAgendaView();
+  } else {
+    if(grid) grid.style.display='';
+    if(agenda) agenda.style.display='none';
+    btnGrid?.classList.add('cal-view-active');
+    btnAgenda?.classList.remove('cal-view-active');
+    renderCalendar();
+  }
+}
+
+function renderAgendaView() {
+  const agendaEl=document.getElementById('calendar-agenda'); if(!agendaEl) return;
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const monthEvents=get(key,{});
+  const mesos=['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+  const dayNames=['Dg','Dl','Dt','Dc','Dj','Dv','Ds'];
+  const lastDay=new Date(calendarYear,calendarMonth+1,0).getDate();
+  let html='';
+  let hasAny=false;
+  for(let d=1;d<=lastDay;d++){
+    const evs=(monthEvents[d]||[]);
+    if(!evs.length) continue;
+    hasAny=true;
+    const date=new Date(calendarYear,calendarMonth,d);
+    const isToday=date.toDateString()===new Date().toDateString();
+    const dow=dayNames[date.getDay()];
+    html+=`<div class="ag-day-group">
+      <div class="ag-day-header ${isToday?'ag-today':''}">
+        <span class="ag-dow">${dow}</span>
+        <span class="ag-num">${d}</span>
+        <span class="ag-month">${mesos[calendarMonth]}</span>
+      </div>
+      <div class="ag-events">${evs.map((e,i)=>`
+        <div class="ag-event" style="border-left:3px solid ${e.border||'#7c3aed'}">
+          <span class="ag-ev-emoji">${e.emoji||'📌'}</span>
+          <span class="ag-ev-name">${e.name}</span>
+          ${e.time?`<span class="ag-ev-time">${e.time}</span>`:''}
+          <button class="ag-ev-edit" onclick="openMonthModal(${d});setTimeout(()=>editMonthEvent(${d},${i}),80)" title="Editar">✏️</button>
+          <button class="ag-ev-del" onclick="deleteMonthEventFromAgenda(${d},${i})">✕</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  if(!hasAny) html='<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px 0;">Cap event aquest mes.<br><span style="font-size:11px">Fes clic en un dia del calendari per afegir-ne.</span></div>';
+  agendaEl.innerHTML=html;
+}
+function deleteMonthEventFromAgenda(day,idx) {
+  showDeleteConfirm(()=>{
+    const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+    const data=get(key,{}); const ev=(data[day]||[])[idx];
+    if(data[day]) data[day].splice(idx,1); set(key,data);
+    if(ev?.id){
+      const isoDate=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const sched=get(SCHEDULE_KEY,{});
+      if(Array.isArray(sched[isoDate])){sched[isoDate]=sched[isoDate].filter(e=>e.id!==ev.id);set(SCHEDULE_KEY,sched);}
+    }
+    renderAgendaView(); renderWeekDates();
+  },{title:'ELIMINAR EVENT',msg:'Esborraràs aquest event del calendari.'});
+}
+
+/* ── Drag & drop entre dies ── */
+let _dragEv=null;
+function _calDragStart(e, day, idx) {
+  e.stopPropagation();
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const ev=(get(key,{})[day]||[])[idx];
+  _dragEv={day,idx,ev};
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain', ev?.id||'');
+  setTimeout(()=>e.target.style.opacity='0.4', 0);
+}
+function _calDragEnd(e) { e.target.style.opacity=''; }
+function _calDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect='move'; }
+function _calDrop(e, targetDay) {
+  e.preventDefault(); e.stopPropagation();
+  if(!_dragEv||_dragEv.day===targetDay) { _dragEv=null; return; }
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const data=get(key,{});
+  // Treu de l'origen
+  const srcArr=data[_dragEv.day]||[];
+  const [moved]=srcArr.splice(_dragEv.idx,1);
+  data[_dragEv.day]=srcArr;
+  // Afegeix al destí
+  if(!data[targetDay]) data[targetDay]=[];
+  data[targetDay].push(moved);
+  set(key,data);
+  // Sincronitza SCHEDULE_KEY: esborra del dia origen, afegeix al destí
+  if(moved?.id){
+    const sched=get(SCHEDULE_KEY,{});
+    const srcIso=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_dragEv.day).padStart(2,'0')}`;
+    const dstIso=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(targetDay).padStart(2,'0')}`;
+    if(Array.isArray(sched[srcIso])) sched[srcIso]=sched[srcIso].filter(e=>e.id!==moved.id);
+    if(!Array.isArray(sched[dstIso])) sched[dstIso]=[];
+    sched[dstIso].push(moved);
+    set(SCHEDULE_KEY,sched);
+  }
+  _dragEv=null;
+  renderCalendar(); renderWeekDates(); showToast('📅 Event mogut!');
 }
 
 function renderHorariHabits() {

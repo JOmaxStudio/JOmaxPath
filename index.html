@@ -1468,7 +1468,12 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
           <div class="calendar-month" id="calendar-month">Gener 2026</div>
           <button class="cal-nav-btn" onclick="calendarNextMonth()">›</button>
         </div>
+        <div style="display:flex;gap:6px;margin-bottom:14px;justify-content:flex-end;">
+          <button id="cal-btn-grid" onclick="toggleCalView('grid')" class="cal-view-btn cal-view-active">🗓 Calendari</button>
+          <button id="cal-btn-agenda" onclick="toggleCalView('agenda')" class="cal-view-btn">📋 Llista</button>
+        </div>
         <div class="calendar-grid" id="calendar-grid"></div>
+        <div id="calendar-agenda" style="display:none;"></div>
       </div>
       
       <!-- Events esportius -->
@@ -2605,7 +2610,8 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
           <option value="other">📌 Altres</option>
         </select>
       </div>
-      <button class="month-save-btn" onclick="saveMonthEvent()">+ Afegir</button>
+      <input type="hidden" id="mm-edit-id" value="" />
+      <button class="month-save-btn" id="mm-save-btn" onclick="saveMonthEvent()">+ Afegir</button>
     </div>
     <button class="month-close-btn" onclick="closeMonthModal()">Tancar</button>
   </div>

@@ -6193,6 +6193,70 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
   margin-top: 1px;
 }
 
+/* ── Toggle vista calendari / agenda ── */
+.cal-view-btn {
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cal-view-btn:hover { background: rgba(124,58,237,0.12); color: var(--accent2); border-color: rgba(124,58,237,0.3); }
+.cal-view-btn.cal-view-active { background: rgba(124,58,237,0.2); color: var(--accent2); border-color: rgba(124,58,237,0.4); }
+
+/* ── Vista agenda ── */
+.ag-day-group { margin-bottom: 20px; }
+.ag-day-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.ag-day-header.ag-today .ag-num { color: #38d9f5; text-shadow: 0 0 10px rgba(0,180,216,0.6); }
+.ag-dow { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; width: 20px; }
+.ag-num { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); line-height: 1; }
+.ag-month { font-size: 11px; color: var(--muted); }
+.ag-events { display: flex; flex-direction: column; gap: 6px; padding-left: 28px; }
+.ag-event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 9px 12px 9px 10px;
+  border-left: 3px solid #7c3aed;
+  transition: background 0.15s;
+}
+.ag-event:hover { background: rgba(255,255,255,0.07); }
+.ag-ev-emoji { font-size: 14px; flex-shrink: 0; }
+.ag-ev-name { flex: 1; font-size: 13px; color: var(--text); font-weight: 500; }
+.ag-ev-time { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); white-space: nowrap; }
+.ag-ev-edit, .ag-ev-del {
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; padding: 2px 4px;
+  color: var(--muted); transition: color 0.15s; opacity: 0; flex-shrink: 0;
+}
+.ag-event:hover .ag-ev-edit, .ag-event:hover .ag-ev-del { opacity: 1; }
+.ag-ev-del:hover { color: var(--red); }
+.ag-ev-edit:hover { color: var(--accent2); }
+
+/* ── Botó editar dins modal ── */
+.mev-edit {
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; padding: 2px 4px;
+  color: var(--muted); transition: color 0.15s; opacity: 0;
+}
+.month-event-row:hover .mev-edit { opacity: 1; }
+.mev-edit:hover { color: var(--accent2); }
+
 /* ══════════════════════════════════════════════════════════════
    POMODORO FULLSCREEN — CSS Grid overlay (SVG + center a grid-area 1/1)
 ══════════════════════════════════════════════════════════════ */
