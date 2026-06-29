@@ -424,11 +424,13 @@ function _sbCacheSet(key, data) { _sbCache.set(key, {data, ts: Date.now()}); }
 function _sbCacheInvalidate(prefix) { for (const k of _sbCache.keys()) { if (k.startsWith(prefix)) _sbCache.delete(k); } }
 
 let _supabaseOffline = false;
+let _connectivityChecked = false;
 
 function _updateServerStatusIndicator() {
   const el = document.getElementById('auth-server-status');
   if (!el) return;
-  el.style.display = _supabaseOffline ? 'block' : 'none';
+  // No mostrem res fins que el primer check hagi acabat (evita falsos positius)
+  el.style.display = (_connectivityChecked && _supabaseOffline) ? 'block' : 'none';
 }
 
 // SEGURETAT — Clau `anon` de Supabase (pública per disseny):
@@ -459,13 +461,19 @@ try {
     window._checkConnectivity = async function() {
       try {
         const ctrl = new AbortController();
-        const to = setTimeout(()=>ctrl.abort(), 5000);
+        const to = setTimeout(()=>ctrl.abort(), 8000);
         // Qualsevol resposta HTTP (fins i tot 401) = servidor accessible
         await fetch('https://toefrxqijvextqqngapx.supabase.co/auth/v1/health', { signal: ctrl.signal });
         clearTimeout(to);
-        if (_supabaseOffline) { _supabaseOffline = false; _updateServerStatusIndicator(); }
+        const wasOffline = _supabaseOffline;
+        _supabaseOffline = false;
+        _connectivityChecked = true;
+        if (wasOffline) _updateServerStatusIndicator();
       } catch {
-        if (!_supabaseOffline) { _supabaseOffline = true; _updateServerStatusIndicator(); }
+        const wasOnline = !_supabaseOffline;
+        _supabaseOffline = true;
+        _connectivityChecked = true;
+        if (wasOnline) _updateServerStatusIndicator();
       }
     };
     _checkConnectivity();
