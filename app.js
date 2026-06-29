@@ -4447,20 +4447,12 @@ async function deleteBoardTask(i) {
 let _pomoFocusMin=25, _pomoBreakMin=5, _pomoSessions=4;
 let _pomoCurrent=0, _pomoState='idle', _pomoSeconds=0, _pomoInterval=null;
 
-const POMO_LEVELS=[
-  {lvl:1,name:'APRENENT',xpNeeded:0},{lvl:2,name:'ESTUDIÓS',xpNeeded:10},
-  {lvl:3,name:'CONSTANT',xpNeeded:30},{lvl:4,name:'DEDICAT',xpNeeded:60},
-  {lvl:5,name:'ENFOCANT',xpNeeded:100},{lvl:6,name:'DISCIPLINAT',xpNeeded:150},
-  {lvl:7,name:'EXPERT',xpNeeded:210},{lvl:8,name:'MESTRE',xpNeeded:280},
-  {lvl:9,name:'LLEGENDA',xpNeeded:360},{lvl:10,name:'TRANSCENDENT',xpNeeded:450},
-];
-
 function renderFocus() {
   if (typeof renderPomodoroSuggestion==='function') setTimeout(renderPomodoroSuggestion, 0);
-  const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:''});
+  const data=get(POMO_KEY,{total:0,week:0,today:0,goalToday:4,todayDate:''});
   const today=new Date().toDateString();
   if (data.todayDate!==today) { data.today=0; data.todayDate=today; set(POMO_KEY,data); }
-  updatePomoDisplay(); updatePomoStats(data); updatePomoLevel(data); updatePomoDailyGoal(data);
+  updatePomoDisplay(); updatePomoStats(data); updatePomoLevel(); updatePomoDailyGoal(data);
 }
 function updatePomoDisplay() {
   const secs=_pomoSeconds>0?_pomoSeconds:_pomoFocusMin*60;
@@ -4546,12 +4538,12 @@ function _playPomoAlarm() {
 }
 function _pomoCompleteFocus() {
   clearInterval(_pomoInterval); _pomoCurrent++;
-  const data=get(POMO_KEY,{xp:0,total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
-  data.xp=(data.xp||0)+5; data.total=(data.total||0)+1; data.today=(data.today||0)+1; data.week=(data.week||0)+1;
+  const data=get(POMO_KEY,{total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
+  data.total=(data.total||0)+1; data.today=(data.today||0)+1; data.week=(data.week||0)+1;
   set(POMO_KEY,data); showToast('🍅 Pomodoro completat! +15 XP +5 🪙');
   if (typeof rpgOnPomodoro==='function') rpgOnPomodoro().then(()=>updatePomoLevel()).catch(()=>{});
   if (typeof updateMissionProgress==='function') updateMissionProgress('pomodoro').catch(()=>{});
-  updatePomoLevel(); updatePomoStats(data); updatePomoDailyGoal(data);
+  updatePomoStats(data); updatePomoDailyGoal(data);
   if (_pomoCurrent>=_pomoSessions) { showToast('🏆 Sessió completada!'); _pomoCurrent=0; }
   _pomoState='break'; _pomoSeconds=_pomoBreakMin*60;
   const btn=document.getElementById('pomo-start'); if(btn) btn.textContent='⏭ SALTAR DESCANS';
@@ -4609,28 +4601,25 @@ function updatePomoStats(data) {
   const t=document.getElementById('pomo-today'),w=document.getElementById('pomo-week'),tot=document.getElementById('pomo-total');
   if(t) t.textContent=data.today||0; if(w) w.textContent=data.week||0; if(tot) tot.textContent=data.total||0;
 }
-// Fix 5: el widget del Pomodoro reflecteix el sistema RPG GLOBAL (profiles)
-// en lloc d'un XP propi duplicat. Les dades vénen de _getProfile() (les mateixes
-// que actualitza rpgOnPomodoro: xp, level, gold).
-const POMO_LEVEL_TITLES = {1:'APRENENT',3:'CONSTANT',5:'ENFOCANT',7:'EXPERT',9:'LLEGENDA',10:'TRANSCENDENT'};
 async function updatePomoLevel() {
   let profile = null;
   try { profile = (typeof _getProfile==='function') ? await _getProfile() : null; } catch(_) {}
-  const level = profile?.level || 1;
-  const xp    = profile?.xp || 0;
-  const gold  = profile?.gold || 0;
-  const xpInLevel = xp % 100;
-  const thresholds = Object.keys(POMO_LEVEL_TITLES).map(Number).sort((a,b)=>b-a);
-  const title = POMO_LEVEL_TITLES[thresholds.find(t=>level>=t)] || 'APRENENT';
+  const level  = profile?.level || 1;
+  const xp     = profile?.xp || 0;
+  const gold   = profile?.gold || 0;
+  const title  = (typeof getLevelTitle==='function') ? getLevelTitle(level) : 'Aprenent 🌱';
+  const xpIn   = (typeof _xpInLevel==='function') ? _xpInLevel(xp, level) : (xp % 100);
+  const xpNeed = (typeof _xpForNextLevel==='function') ? _xpForNextLevel(level) : 100;
+  const pct    = Math.min(100, Math.round(xpIn / xpNeed * 100));
 
   const numEl=document.getElementById('pomo-level-num'),nameEl=document.getElementById('pomo-level-name');
   const barEl=document.getElementById('pomo-xp-bar'),txtEl=document.getElementById('pomo-xp-txt');
   const subEl=document.getElementById('pomo-xp-sub');
   if(numEl) numEl.textContent=level;
   if(nameEl) nameEl.textContent=title;
-  if(barEl) barEl.style.width=xpInLevel+'%';
-  if(txtEl) txtEl.textContent=`${xpInLevel}/100 XP`;
-  if(subEl) subEl.textContent=`🪙 ${gold} · Nivell del teu heroi (sistema únic)`;
+  if(barEl) barEl.style.width=pct+'%';
+  if(txtEl) txtEl.textContent=`${xpIn} / ${xpNeed} XP`;
+  if(subEl) subEl.textContent=`🪙 ${gold} monedes · perfil RPG global`;
 }
 function openPomoFullscreen() {
   const ov=document.getElementById('pomo-fullscreen');
