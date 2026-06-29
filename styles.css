@@ -6248,6 +6248,97 @@ body.view-pages #premium-fab { bottom: 158px !important; left: 12px !important; 
 .ag-ev-del:hover { color: var(--red); }
 .ag-ev-edit:hover { color: var(--accent2); }
 
+/* ── Color swatches ── */
+.mm-color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+.mm-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.mm-color-swatch:hover { transform: scale(1.2); }
+.mm-color-swatch.mm-color-sel {
+  border-color: #fff;
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+}
+
+/* ── Popover inline ── */
+#mm-popover {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,58,237,0.15);
+  animation: stickyPop 0.18s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.mmpop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.mmpop-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.mmpop-close:hover { color: var(--red); }
+.mmpop-input {
+  width: 100%;
+  background: var(--card2);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.mmpop-input:focus { border-color: rgba(124,58,237,0.5); }
+.mmpop-save {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,180,216,0.2));
+  border: 1px solid rgba(124,58,237,0.4);
+  color: var(--accent2);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mmpop-save:hover { background: rgba(124,58,237,0.4); }
+.mmpop-del {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.mmpop-del:hover { background: rgba(239,68,68,0.25); }
+
 /* ── Botó editar dins modal ── */
 .mev-edit {
   background: none; border: none; cursor: pointer;

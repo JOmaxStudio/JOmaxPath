@@ -2603,13 +2603,26 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <input type="time" id="mm-time" />
       </div>
       <div class="month-add-row">
-        <select id="mm-type">
+        <select id="mm-type" onchange="mmResetColor()">
           <option value="exam">📝 Examen/Entrega</option>
           <option value="deures">📚 Deures</option>
           <option value="esport">🏅 Event esportiu</option>
           <option value="other">📌 Altres</option>
         </select>
       </div>
+      <div class="mm-color-row" id="mm-color-row"></div>
+      <div class="month-add-row" style="margin-top:6px;">
+        <select id="mm-repeat" onchange="mmUpdateRepeatUI()">
+          <option value="none">🔁 Sense repetició</option>
+          <option value="daily">Cada dia</option>
+          <option value="weekly">Cada setmana</option>
+          <option value="monthly">Cada mes</option>
+        </select>
+      </div>
+      <div id="mm-repeat-until-row" style="display:none;margin-top:6px;">
+        <input type="date" id="mm-repeat-until" oninput="mmUpdateRepeatSummary()" style="width:100%;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:12px;padding:8px 12px;border-radius:10px;outline:none;box-sizing:border-box;" />
+      </div>
+      <div id="mm-repeat-summary" style="display:none;font-size:11px;color:var(--accent2);padding:6px 0;font-family:'Space Mono',monospace;"></div>
       <input type="hidden" id="mm-edit-id" value="" />
       <button class="month-save-btn" id="mm-save-btn" onclick="saveMonthEvent()">+ Afegir</button>
     </div>

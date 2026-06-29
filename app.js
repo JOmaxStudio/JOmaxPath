@@ -2851,7 +2851,7 @@ function renderCalendar() {
     const evHtml=evs.slice(0,2).map((e,i)=>{
       const border=e.border||'#7c3aed';
       const bg=e.color||'rgba(124,58,237,0.22)';
-      return `<div class="cal-event" draggable="true" style="background:${bg};border-left:3px solid ${border}" ondragstart="_calDragStart(event,${d},${i})" ondragend="_calDragEnd(event)" onclick="event.stopPropagation();openMonthModal(${d});setTimeout(()=>editMonthEvent(${d},${i}),80)">${e.emoji||'📌'} ${e.name||''}</div>`;
+      return `<div class="cal-event" draggable="true" style="background:${bg};border-left:3px solid ${border}" ondragstart="_calDragStart(event,${d},${i})" ondragend="_calDragEnd(event)" onclick="event.stopPropagation();_openEventPopover(${d},${i},this)">${e.emoji||'📌'} ${e.name||''}</div>`;
     }).join('')+(evs.length>2?`<div class="cal-event-more">+${evs.length-2}</div>`:'');
     html+=`<div class="cal-day ${isToday?'today':''}" ondragover="_calDragOver(event)" ondrop="_calDrop(event,${d})" onclick="openMonthModal(${d})"><div class="cal-day-num">${d}</div>${evHtml}</div>`;
   }
@@ -2869,6 +2869,12 @@ function openMonthModal(day) {
   const txtEl=document.getElementById('mm-text'); if(txtEl) txtEl.value='';
   const timeEl=document.getElementById('mm-time'); if(timeEl) timeEl.value='';
   const typeEl=document.getElementById('mm-type'); if(typeEl) typeEl.value='other';
+  // reset color + repeat
+  _mmSelectedColor=null; _mmInitColorRow(null);
+  const repEl=document.getElementById('mm-repeat'); if(repEl) repEl.value='none';
+  const untilRow=document.getElementById('mm-repeat-until-row'); if(untilRow) untilRow.style.display='none';
+  const summEl=document.getElementById('mm-repeat-summary'); if(summEl) summEl.style.display='none';
+  const untilEl=document.getElementById('mm-repeat-until'); if(untilEl) untilEl.value='';
   const ov=document.getElementById('month-modal-overlay'); if (!ov) return;
   const mesos=['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
   document.getElementById('mm-title').textContent=`${day} de ${mesos[calendarMonth]}`;
@@ -2902,10 +2908,140 @@ function editMonthEvent(day, idx) {
   const timeEl=document.getElementById('mm-time'); if(timeEl) timeEl.value=ev.time||'';
   const typeEl=document.getElementById('mm-type'); if(typeEl) typeEl.value=ev.type||'other';
   const editId=document.getElementById('mm-edit-id'); if(editId) editId.value=ev.id||'';
+  // init color picker with current event color
+  _mmSelectedColor=ev.border||null; _mmInitColorRow(ev.border||null);
+  // hide repeat in edit mode
+  const repEl=document.getElementById('mm-repeat'); if(repEl) repEl.value='none';
+  const untilRow=document.getElementById('mm-repeat-until-row'); if(untilRow) untilRow.style.display='none';
   const saveBtn=document.getElementById('mm-save-btn');
   if(saveBtn){saveBtn.textContent='💾 Actualitzar';saveBtn.style.background='linear-gradient(135deg,rgba(0,180,216,0.3),rgba(124,58,237,0.2))';}
   txtEl?.focus();
+  // scroll form into view
+  document.querySelector('.month-add-form')?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+/* ══ Color picker global per al modal mensual ══ */
+const _MM_PALETTE = ['#ef4444','#f97316','#eab308','#22c55e','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#64748b'];
+let _mmSelectedColor = null; // null = usa el color del tipus
+
+function _mmInitColorRow(activeColor) {
+  const row = document.getElementById('mm-color-row'); if(!row) return;
+  row.innerHTML = _MM_PALETTE.map(c=>`<button type="button" class="mm-color-swatch${c===activeColor?' mm-color-sel':''}" style="background:${c}" data-color="${c}" onclick="_mmPickColor(this,'${c}')" title="${c}"></button>`).join('');
+}
+function _mmPickColor(btn, color) {
+  _mmSelectedColor = color;
+  document.querySelectorAll('.mm-color-swatch').forEach(b=>b.classList.remove('mm-color-sel'));
+  btn?.classList.add('mm-color-sel');
+}
+function mmResetColor() { _mmSelectedColor=null; document.querySelectorAll('.mm-color-swatch').forEach(b=>b.classList.remove('mm-color-sel')); }
+
+/* ══ Repetició per al modal mensual ══ */
+function mmUpdateRepeatUI() {
+  const val=document.getElementById('mm-repeat')?.value||'none';
+  const untilRow=document.getElementById('mm-repeat-until-row');
+  if(untilRow) untilRow.style.display=val!=='none'?'block':'none';
+  mmUpdateRepeatSummary();
+}
+function mmUpdateRepeatSummary() {
+  const val=document.getElementById('mm-repeat')?.value||'none';
+  const until=document.getElementById('mm-repeat-until')?.value;
+  const summEl=document.getElementById('mm-repeat-summary');
+  if(!summEl) return;
+  if(val==='none'||!until||!_monthModalDay){summEl.style.display='none';return;}
+  const isoStart=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_monthModalDay).padStart(2,'0')}`;
+  const startDate=new Date(isoStart+'T00:00:00'), untilDate=new Date(until+'T00:00:00');
+  if(isNaN(startDate)||isNaN(untilDate)||untilDate<startDate){summEl.style.display='none';return;}
+  const msDay=86400000;
+  let count=0, label='';
+  if(val==='daily'){count=Math.floor((untilDate-startDate)/msDay)+1;label='cada dia';}
+  else if(val==='weekly'){count=Math.floor((untilDate-startDate)/(7*msDay))+1;label='cada setmana';}
+  else if(val==='monthly'){
+    count=Math.floor((untilDate.getFullYear()*12+untilDate.getMonth())-(startDate.getFullYear()*12+startDate.getMonth()))+1;
+    label='cada mes';
+  }
+  if(count>0){
+    summEl.style.display='block';
+    summEl.textContent=`↩ ${label} · ${count} event${count!==1?'s':''} fins al ${untilDate.toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
+  } else summEl.style.display='none';
+}
+function _mmGenerateRepeatDates(isoStart, repVal, until) {
+  const msDay=86400000;
+  const startDate=new Date(isoStart+'T00:00:00'), untilDate=new Date(until+'T00:00:00');
+  if(isNaN(startDate)||isNaN(untilDate)||untilDate<startDate) return [];
+  const dates=[];
+  if(repVal==='daily'){ let d=new Date(startDate); while(d<=untilDate){dates.push(_isoLocal(d));d=new Date(d.getTime()+msDay);} }
+  else if(repVal==='weekly'){ let d=new Date(startDate); while(d<=untilDate){dates.push(_isoLocal(d));d=new Date(d.getTime()+7*msDay);} }
+  else if(repVal==='monthly'){ let d=new Date(startDate); while(d<=untilDate){dates.push(_isoLocal(d));d=new Date(d.getFullYear(),d.getMonth()+1,d.getDate());} }
+  return dates;
+}
+
+/* ══ Popover inline per editar des del grid ══ */
+function _openEventPopover(day, idx, refEl) {
+  document.getElementById('mm-popover')?.remove();
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const ev=(get(key,{})[day]||[])[idx]; if(!ev) return;
+  const rect=refEl.getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.id='mm-popover';
+  const colorSwatches=_MM_PALETTE.map(c=>`<button type="button" class="mm-color-swatch${c===ev.border?' mm-color-sel':''}" style="background:${c}" data-color="${c}" onclick="event.stopPropagation();_popPickColor(this,'${c}')"></button>`).join('');
+  pop.innerHTML=`
+    <div class="mmpop-header">
+      <span style="font-size:13px;font-weight:700;color:var(--text);">${ev.emoji||'📌'} Editar</span>
+      <button class="mmpop-close" onclick="document.getElementById('mm-popover')?.remove()">✕</button>
+    </div>
+    <input type="text" id="mmpop-name" class="mmpop-input" value="${(ev.name||'').replace(/"/g,'&quot;')}" placeholder="Nom..." />
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input type="time" id="mmpop-time" class="mmpop-input" value="${ev.time||''}" style="flex:1;" />
+      <select id="mmpop-type" class="mmpop-input" style="flex:1;">
+        <option value="exam"${ev.type==='exam'?' selected':''}>📝 Examen</option>
+        <option value="deures"${ev.type==='deures'?' selected':''}>📚 Deures</option>
+        <option value="esport"${ev.type==='esport'?' selected':''}>🏅 Esport</option>
+        <option value="other"${ev.type==='other'||!ev.type?' selected':''}>📌 Altres</option>
+      </select>
+    </div>
+    <div class="mm-color-row" style="margin-top:8px;" id="mmpop-colors">${colorSwatches}</div>
+    <div style="display:flex;gap:6px;margin-top:12px;">
+      <button class="mmpop-save" onclick="event.stopPropagation();_saveFromPopover(${day},${idx})">💾 Guardar</button>
+      <button class="mmpop-del" onclick="event.stopPropagation();document.getElementById('mm-popover')?.remove();deleteMonthEvent(${day},${idx})" title="Eliminar">🗑️</button>
+    </div>`;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const top=Math.min(rect.bottom+6, vh-260);
+  const left=Math.max(8, Math.min(rect.left, vw-258));
+  pop.style.cssText=`position:fixed;top:${top}px;left:${left}px;z-index:10000;width:250px;`;
+  document.body.appendChild(pop);
+  _mmSelectedColor=ev.border||null;
+  document.getElementById('mmpop-name')?.focus();
+  document.getElementById('mmpop-name')?.select();
+  setTimeout(()=>{
+    function _popOutside(e){if(!document.getElementById('mm-popover')?.contains(e.target)){document.getElementById('mm-popover')?.remove();document.removeEventListener('mousedown',_popOutside);}}
+    document.addEventListener('mousedown',_popOutside);
+  },120);
+}
+function _popPickColor(btn, color) {
+  _mmSelectedColor=color;
+  document.querySelectorAll('#mmpop-colors .mm-color-swatch').forEach(b=>b.classList.remove('mm-color-sel'));
+  btn?.classList.add('mm-color-sel');
+}
+function _saveFromPopover(day, idx) {
+  const name=(document.getElementById('mmpop-name')?.value||'').trim();
+  if(!name){showWarningToast('⚠️ Escriu un nom');return;}
+  const time=document.getElementById('mmpop-time')?.value||'';
+  const type=document.getElementById('mmpop-type')?.value||'other';
+  const meta=_MTYPE_META[type]||_MTYPE_META.other;
+  const border=_mmSelectedColor||meta.border;
+  const color=_mmSelectedColor?(_mmSelectedColor+'38'):meta.color;
+  const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const data=get(key,{}); const arr=data[day]||[];
+  if(!arr[idx]){showWarningToast('Event no trobat');return;}
+  const updated={...arr[idx],name,time,type,emoji:meta.emoji,color,border};
+  arr[idx]=updated; data[day]=arr; set(key,data);
+  const isoDate=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const sched=get(SCHEDULE_KEY,{});
+  if(Array.isArray(sched[isoDate])){const si=sched[isoDate].findIndex(e=>e.id===updated.id);if(si!==-1){sched[isoDate][si]=updated;set(SCHEDULE_KEY,sched);}}
+  document.getElementById('mm-popover')?.remove();
+  renderCalendar(); renderWeekDates(); if(_calView==='agenda') renderAgendaView();
+  showToast('✏️ Event actualitzat!');
+}
+
 const _MTYPE_META = {
   exam:   {emoji:'📝', color:'rgba(239,68,68,0.25)',   border:'#ef4444'},
   deures: {emoji:'📚', color:'rgba(59,130,246,0.22)',  border:'#3b82f6'},
@@ -2918,32 +3054,58 @@ function saveMonthEvent() {
   const type=document.getElementById('mm-type')?.value||'other';
   if (!name||!_monthModalDay) { showWarningToast('⚠️ Escriu un event'); return; }
   const editId=document.getElementById('mm-edit-id')?.value||'';
-  const meta = _MTYPE_META[type]||_MTYPE_META.other;
-  const isoDate = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_monthModalDay).padStart(2,'0')}`;
-  const mkey = SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
+  const meta=_MTYPE_META[type]||_MTYPE_META.other;
+  const border=_mmSelectedColor||meta.border;
+  const color=_mmSelectedColor?(_mmSelectedColor+'38'):meta.color;
+  const isoStart=`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(_monthModalDay).padStart(2,'0')}`;
+  const mkey=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
 
   if (editId) {
-    // Mode edició: actualitza l'event existent pels dos stores
+    // ── Mode edició ──
     const mdata=get(mkey,{}), sched=get(SCHEDULE_KEY,{});
     const arr=mdata[_monthModalDay]||[];
     const idx=arr.findIndex(e=>e.id===editId);
     if (idx!==-1) {
-      const updated={...arr[idx], name, time, type, emoji:meta.emoji, color:meta.color, border:meta.border};
+      const updated={...arr[idx],name,time,type,emoji:meta.emoji,color,border};
       arr[idx]=updated; mdata[_monthModalDay]=arr; set(mkey,mdata);
-      if(Array.isArray(sched[isoDate])){
-        const si=sched[isoDate].findIndex(e=>e.id===editId);
-        if(si!==-1){sched[isoDate][si]=updated; set(SCHEDULE_KEY,sched);}
-      }
+      if(Array.isArray(sched[isoStart])){const si=sched[isoStart].findIndex(e=>e.id===editId);if(si!==-1){sched[isoStart][si]=updated;set(SCHEDULE_KEY,sched);}}
     }
     showToast('✏️ Event actualitzat!');
+    openMonthModal(_monthModalDay); renderCalendar(); renderWeekDates();
+    if(_calView==='agenda') renderAgendaView();
+    return;
+  }
+
+  const repVal=document.getElementById('mm-repeat')?.value||'none';
+  const until=document.getElementById('mm-repeat-until')?.value||'';
+
+  if (repVal!=='none' && until) {
+    // ── Mode repetició ──
+    const dates=_mmGenerateRepeatDates(isoStart, repVal, until);
+    if(!dates.length){showWarningToast('⚠️ Cap data generada amb aquesta configuració');return;}
+    const gid='mmrep_'+Date.now();
+    const sched=get(SCHEDULE_KEY,{});
+    dates.forEach(iso=>{
+      const d=new Date(iso+'T00:00:00');
+      const yr=d.getFullYear(), mo=d.getMonth(), day=d.getDate();
+      const mk=SCHEDULE_KEY+'_monthly_'+yr+'_'+mo;
+      const mdata=get(mk,{});
+      if(!mdata[day]) mdata[day]=[];
+      const ev={name,time,type,emoji:meta.emoji,color,border,id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),repeatGroupId:gid,fromMonthly:true};
+      mdata[day].push(ev); set(mk,mdata);
+      if(!Array.isArray(sched[iso])) sched[iso]=[];
+      sched[iso].push(ev);
+    });
+    set(SCHEDULE_KEY,sched);
+    showToast(`✅ ${dates.length} events creats!`);
   } else {
-    // Mode afegir: crea event nou
+    // ── Mode afegir únic ──
     const id=Date.now().toString();
-    const ev={name,time,type,emoji:meta.emoji,color:meta.color,border:meta.border,id,fromMonthly:true};
+    const ev={name,time,type,emoji:meta.emoji,color,border,id,fromMonthly:true};
     const mdata=get(mkey,{}); if(!mdata[_monthModalDay]) mdata[_monthModalDay]=[];
     mdata[_monthModalDay].push(ev); set(mkey,mdata);
-    const sched=get(SCHEDULE_KEY,{}); if(!Array.isArray(sched[isoDate])) sched[isoDate]=[];
-    sched[isoDate].push(ev); set(SCHEDULE_KEY,sched);
+    const sched=get(SCHEDULE_KEY,{}); if(!Array.isArray(sched[isoStart])) sched[isoStart]=[];
+    sched[isoStart].push(ev); set(SCHEDULE_KEY,sched);
     showToast('✅ Event afegit!');
   }
   openMonthModal(_monthModalDay); renderCalendar(); renderWeekDates();
