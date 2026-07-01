@@ -578,10 +578,19 @@ function switchAuthTab(tab) {
   document.getElementById('tab-register').classList.toggle('active', tab==='register');
   const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
 }
+// Permet obrir l'app directament en una secció via index.html#pagina
+// (p.ex. des de hero.html, que enllaça a index.html#horari, index.html#tasques...)
+function _navFromHash() {
+  const validPages = ['home','horari','tasques','study','stats','notes','julians','focus','examenia'];
+  const hash = (location.hash || '').replace('#','');
+  if (hash && validPages.includes(hash)) { navTo(hash); return true; }
+  return false;
+}
+
 function authSkip() {
   _hideAuthOverlay();
   if (!_currentUser) { _updateAuthUI(); }
-  renderHome();
+  if (!_navFromHash()) renderHome();
   // Onboarding la primera vegada (l'usuari tria tour ràpid o complet)
   setTimeout(()=>{ if (typeof _maybeShowOnboarding==='function') _maybeShowOnboarding(); }, 1100);
 }
@@ -6700,7 +6709,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   try { applyConfig(); } catch(e){ console.warn('applyConfig error',e); }
   try { applyStoredTheme(); } catch(e){ console.warn('applyStoredTheme error',e); }
   try { renderThemesGrid(); } catch(e){ console.warn('renderThemesGrid error',e); }
-  try { navTo('home'); } catch(e){ console.warn('navTo error',e); }
+  try { if (!(typeof _navFromHash==='function' && _navFromHash())) navTo('home'); } catch(e){ console.warn('navTo error',e); }
   // Aplica idioma DESPRÉS que tot estigui renderitzat
   setTimeout(()=>{ try { applyLanguage(); } catch(e){ console.warn('applyLanguage error',e); } }, 50);
   // Recordatoris de dates límit
