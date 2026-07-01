@@ -165,10 +165,11 @@ function navTo(page) {
   if (el) el.classList.add('page-active');
   _currentPage = page;
 
-  // Reflecteix la secció actual a la URL sense '#' (p.ex. /?p=horari), sense
-  // crear entrades noves a l'historial ni recarregar la pàgina.
+  // Reflecteix la secció actual a la URL com a ruta neta (ex. /horari), sense
+  // crear entrades noves a l'historial ni recarregar la pàgina. El servidor
+  // (_redirects) fa fallback a index.html per aquestes rutes.
   try {
-    const url = page === 'home' ? location.pathname : (location.pathname + '?p=' + encodeURIComponent(page));
+    const url = page === 'home' ? '/' : '/' + page;
     if (location.pathname + location.search !== url) history.replaceState(null, '', url);
   } catch(e) {}
 
@@ -585,12 +586,15 @@ function switchAuthTab(tab) {
   document.getElementById('tab-register').classList.toggle('active', tab==='register');
   const msg = document.getElementById('auth-msg'); if(msg) msg.textContent='';
 }
-// Permet obrir l'app directament en una secció via index.html?p=pagina
-// (p.ex. des de hero.html, que enllaça a index.html?p=horari, index.html?p=tasques...)
-// Manté compatibilitat amb l'antic format index.html#pagina per si hi ha enllaços vells.
+// Permet obrir l'app directament en una secció via una ruta neta (ex. /horari,
+// des de hero.html). Manté compatibilitat amb els formats antics
+// (?p=horari i #horari) per si hi ha enllaços vells guardats.
 function _navFromHash() {
   const validPages = ['home','horari','tasques','study','stats','notes','julians','focus','examenia'];
-  const page = new URLSearchParams(location.search).get('p') || (location.hash || '').replace('#','');
+  const path = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  const page = (path && path !== 'index.html' ? path : '')
+    || new URLSearchParams(location.search).get('p')
+    || (location.hash || '').replace('#','');
   if (page && validPages.includes(page)) { navTo(page); return true; }
   return false;
 }

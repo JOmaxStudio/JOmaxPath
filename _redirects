@@ -1,1 +1,6 @@
 /pricing.html /pricing 301
+
+# SPA fallback: qualsevol ruta neta que no sigui un fitxer real (ex. /horari,
+# /tasques, /focus, /julians) es serveix amb index.html perquè el routing
+# del client (navTo) mostri la secció correcta.
+/*    /index.html   200
