@@ -758,10 +758,10 @@ function checkUsernameAvailability() {
   _usernameCheckTimer = setTimeout(async ()=>{
     if (!_supabase) { if(icon) icon.textContent=''; if(msg) msg.textContent=''; return; }
     try {
-      const {data} = await _supabase.from('profiles').select('username').ilike('username', val).limit(1);
+      const {data} = await _supabase.rpc('username_exists', {uname: val});
       // Comprova que l'input no hagi canviat mentre esperàvem
       if ((inp?.value||'').trim() !== val) return;
-      if (data && data.length) {
+      if (data === true) {
         _lastUsernameAvailable = false;
         if(icon) icon.textContent='❌';
         if(msg){ msg.textContent='Aquest nom ja està agafat'; msg.style.color='#fca5a5'; }
@@ -804,10 +804,10 @@ async function authRegister() {
       // Comprova que el nom d'usuari no estigui agafat (case-insensitive)
       try {
         const {data: existing} = await Promise.race([
-          _supabase.from('profiles').select('username').ilike('username', username).maybeSingle(),
+          _supabase.rpc('username_exists', {uname: username}),
           new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),5000))
         ]);
-        if (existing) {
+        if (existing === true) {
           if(btn){btn.textContent='CREAR COMPTE';btn.disabled=false;}
           if(msg){ msg.textContent='❌ El nom d\'usuari "'+username+'" ja existeix. Tria\'n un altre.'; msg.style.color='#fca5a5'; }
           return;
@@ -1124,11 +1124,12 @@ async function shareBoardByCode() {
   if (!_supabase) { showWarningToast('⚠️ Necessites connexió'); return; }
   try {
     const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
-    await _supabase.from('shared_boards').upsert({
+    const {error: upErr} = await _supabase.from('shared_boards').upsert({
       code: shareCode, owner_id: _currentUser.id,
       owner_name: _userProfile?.username||'Usuari',
       board_data: board, updated: new Date().toISOString()
     });
+    if (upErr) { showErrorToast('❌ No s\'ha pogut compartir el tauler: '+upErr.message); return; }
     // Save code to local board
     const idx = boards.findIndex(b=>b.id===boardId);
     if (idx>=0) { boards[idx].shareCode = shareCode; set(BOARDS_KEY,boards); }
@@ -1159,21 +1160,18 @@ function closeShareBoardModal() {
   _pendingShareListId = null;
 }
 
-/* Cerca robusta d'usuari per username o email prefix */
+/* Cerca robusta d'usuari per username (la vista public_profiles només exposa camps públics) */
 async function _findUserProfile(target) {
   if (!_supabase || !target) return null;
   const t = target.trim();
   if (!t) return null;
-  const cols = 'id,username,avatar,hero_level';
+  const cols = 'username,avatar,hero_level';
   // 1) Match exacte case-insensitive (limit 1 per no petar amb duplicats)
-  let {data} = await _supabase.from('profiles').select(cols).ilike('username', t).limit(1);
+  let {data} = await _supabase.from('public_profiles').select(cols).ilike('username', t).limit(1);
   if (data && data.length) return data[0];
   // 2) Match parcial (comença amb)
-  const {data: partial} = await _supabase.from('profiles').select(cols).ilike('username', t+'%').limit(1);
-  if (partial && partial.length) return partial[0];
-  // 3) Match per email prefix
-  const {data: byEmail} = await _supabase.from('profiles').select(cols).ilike('email', t+'%').limit(1);
-  return (byEmail && byEmail.length) ? byEmail[0] : null;
+  const {data: partial} = await _supabase.from('public_profiles').select(cols).ilike('username', t+'%').limit(1);
+  return (partial && partial.length) ? partial[0] : null;
 }
 
 async function sendBoardInviteByUsername() {
@@ -1198,10 +1196,11 @@ async function sendBoardInviteByUsername() {
     if (!list.ownerName) list.ownerName = myUsername;
     if (!(list.members||[]).includes(myUsername)) list.members = [...(list.members||[]), myUsername];
     // Desa al núvol i local
-    await _supabase.from('shared_boards').upsert({
+    const {error: boardErr} = await _supabase.from('shared_boards').upsert({
       code: shareCode, owner_id: _currentUser.id,
       owner_name: myUsername, board_data: list, updated: new Date().toISOString()
     });
+    if (boardErr) { if(msg){ msg.textContent = '❌ No s\'ha pogut compartir la llista: '+boardErr.message; msg.style.color='#fca5a5'; } return; }
     setLists(getLists().map(l=>l.id===listId?list:l));
 
     // Notificació d'invitació
@@ -1337,7 +1336,7 @@ async function joinSharedBoard(code) {
 async function getHeroLeaderboard() {
   try {
     if (!_supabase) return [];
-    const {data} = await _supabase.from('profiles').select('username,avatar,hero_xp,hero_level').order('hero_xp',{ascending:false}).limit(10);
+    const {data} = await _supabase.from('public_profiles').select('username,avatar,hero_xp,hero_level').order('hero_xp',{ascending:false}).limit(10);
     return data||[];
   } catch { return []; }
 }
@@ -3340,10 +3339,11 @@ async function _saveList(list) {
   // Sincronitza al núvol si és compartida
   if (list.shared && list.shareCode && _supabase) {
     try {
-      const {error} = await _supabase.from('shared_boards').update({
+      // .select() per detectar rebuigs de RLS: sense error però 0 files actualitzades
+      const {data, error} = await _supabase.from('shared_boards').update({
         board_data: list, updated: new Date().toISOString()
-      }).eq('code', list.shareCode);
-      if (error) showErrorToast('❌ No s\'ha pogut sincronitzar la llista compartida. Els canvis estan guardats localment.');
+      }).eq('code', list.shareCode).select('code');
+      if (error || !data || !data.length) showErrorToast('❌ No s\'ha pogut sincronitzar la llista compartida. Els canvis estan guardats localment.');
     } catch { showErrorToast('❌ Sense connexió. Els canvis estan guardats localment.'); }
   }
 }
@@ -4745,8 +4745,10 @@ async function _persistBoard(board) {
   // Si està compartida, sincronitza al núvol perquè tots els membres ho vegin
   if (board.shareCode && _supabase) {
     try {
-      await _supabase.from('shared_boards').update({board_data:board, updated:new Date().toISOString()}).eq('code',board.shareCode);
-    } catch {}
+      // .select() per detectar rebuigs de RLS: sense error però 0 files actualitzades
+      const {data, error} = await _supabase.from('shared_boards').update({board_data:board, updated:new Date().toISOString()}).eq('code',board.shareCode).select('code');
+      if (error || !data || !data.length) showErrorToast('❌ No s\'ha pogut sincronitzar el tauler compartit. Els canvis estan guardats localment.');
+    } catch { showErrorToast('❌ Sense connexió. Els canvis estan guardats localment.'); }
   }
 }
 

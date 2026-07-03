@@ -1763,21 +1763,18 @@ function copyInviteCode(){
   navigator.clipboard.writeText(code).then(()=>showToast('📋 Codi copiat!')).catch(()=>showToast('Codi: '+code.slice(0,20)+'...'));
 }
 
-/* Cerca robusta d'usuari (exacte → prefix → email) */
+/* Cerca robusta d'usuari (exacte → prefix) via la vista public_profiles (només camps públics) */
 async function _findHeroProfile(targetUsername) {
   const sb = _getSupabase(); if (!sb) return null;
   const t = (targetUsername||'').trim();
   if (!t) return null;
-  const cols = 'id,username,avatar,hero_level,hero_xp';
+  const cols = 'username,avatar,hero_level,hero_xp';
   // 1. Exacte case-insensitive (limit 1 per no petar amb duplicats)
-  let {data} = await sb.from('profiles').select(cols).ilike('username', t).limit(1);
+  let {data} = await sb.from('public_profiles').select(cols).ilike('username', t).limit(1);
   if (data && data.length) return data[0];
   // 2. Comença amb
-  const {data: p} = await sb.from('profiles').select(cols).ilike('username', t+'%').limit(1);
-  if (p && p.length) return p[0];
-  // 3. Email prefix
-  const {data: e} = await sb.from('profiles').select(cols).ilike('email', t+'%').limit(1);
-  return (e && e.length) ? e[0] : null;
+  const {data: p} = await sb.from('public_profiles').select(cols).ilike('username', t+'%').limit(1);
+  return (p && p.length) ? p[0] : null;
 }
 
 /* ── Send friend request by username ── */
@@ -1885,7 +1882,7 @@ async function acceptFriendRequest(reqId, fromUsername, fromAvatar, fromLevel) {
     try {
       await sb.from('friend_requests').update({status:'accepted'}).eq('id', reqId);
       // Enriqueix amb el perfil real si existeix (best-effort)
-      const {data:profile} = await sb.from('profiles').select('*').ilike('username', fromUsername).limit(1);
+      const {data:profile} = await sb.from('public_profiles').select('username,avatar,hero_level,hero_xp').ilike('username', fromUsername).limit(1);
       if (profile && profile.length) {
         const p = profile[0];
         friendData = {name:p.username, avatar:p.avatar||fromAvatar||'⚔️', level:p.hero_level||fromLevel||1, xp:p.hero_xp||0, class:'Guerrer', stats:{}, addedAt:Date.now()};
@@ -1930,7 +1927,7 @@ async function syncFriendsFromServer() {
       if (friends.find(f=>f.name?.toLowerCase()===other.toLowerCase())) continue;
       let fd = {name:other, avatar:'⚔️', level:1, xp:0, class:'Guerrer', stats:{}, addedAt:Date.now()};
       try {
-        const {data:prof} = await sb.from('profiles').select('*').ilike('username', other).limit(1);
+        const {data:prof} = await sb.from('public_profiles').select('username,avatar,hero_level,hero_xp').ilike('username', other).limit(1);
         if (prof && prof.length) fd = {...fd, avatar:prof[0].avatar||'⚔️', level:prof[0].hero_level||1, xp:prof[0].hero_xp||0};
       } catch {}
       friends.push(fd); changed = true;
@@ -2133,7 +2130,7 @@ async function loadLeagues(){
     // Perfils de tots els membres per al rànquing (inclou XP setmanal)
     const profiles={};
     try{
-      const {data:profs}=await sb.from('profiles').select('username,avatar,hero_xp,hero_level,week_start_xp,week_anchor');
+      const {data:profs}=await sb.from('public_profiles').select('username,avatar,hero_xp,hero_level,week_start_xp,week_anchor');
       (profs||[]).forEach(p=>{ if(p.username) profiles[p.username.toLowerCase()]=p; });
     }catch{}
     el.innerHTML=leagues.map(lg=>renderLeagueCard(lg,profiles,me)).join('');
@@ -2269,7 +2266,7 @@ async function loadLeaderboard() {
   
   if (sb) {
     try {
-      const {data} = await sb.from('profiles')
+      const {data} = await sb.from('public_profiles')
         .select('username,avatar,hero_xp,hero_level')
         .order('hero_xp', {ascending: false})
         .limit(10);

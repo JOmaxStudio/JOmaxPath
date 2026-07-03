@@ -38,14 +38,36 @@ CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_idx ON profiles (lower(usern
 -- RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "perfils_select" ON profiles;
+DROP POLICY IF EXISTS "Public read profiles" ON profiles;
 DROP POLICY IF EXISTS "perfils_insert" ON profiles;
 DROP POLICY IF EXISTS "perfils_update" ON profiles;
-CREATE POLICY "perfils_select" ON profiles FOR SELECT USING (true);
+-- [AUDIT 2026-07-03] FUGA DE DADES: la lectura pública (USING true) exposava email, curs,
+-- gustos i dies_estudi_preferits a qualsevol amb l'anon key. Ara cada usuari només llegeix
+-- la seva fila; els camps públics d'altres usuaris s'exposen via la vista public_profiles.
+CREATE POLICY "perfils_select" ON profiles FOR SELECT USING (auth.uid() = id);
+REVOKE SELECT ON TABLE profiles FROM anon;
 -- [AUDIT 2026-06-12] INSERT restringit a usuaris autenticats (el trigger handle_new_user
 -- és SECURITY DEFINER i bypassa RLS, per tant no es veu afectat per aquest canvi)
 CREATE POLICY "perfils_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 -- [AUDIT 2026-06-12] Eliminat OR auth.uid() IS NOT NULL: era redundant i massa permissiu
 CREATE POLICY "perfils_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- [AUDIT 2026-07-03] Vista amb NOMÉS camps públics (amics, lligues, invitacions, rànquing).
+-- Mai email ni preferències d'estudi. Només per a usuaris autenticats.
+CREATE OR REPLACE VIEW public_profiles AS
+SELECT username, avatar, hero_level, hero_xp, week_start_xp, week_anchor
+FROM profiles;
+ALTER VIEW public_profiles OWNER TO postgres;
+REVOKE ALL ON TABLE public_profiles FROM public, anon;
+GRANT SELECT ON TABLE public_profiles TO authenticated;
+
+-- [AUDIT 2026-07-03] Disponibilitat de username al registre (pre-auth): només un booleà
+CREATE OR REPLACE FUNCTION username_exists(uname TEXT)
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM profiles WHERE lower(username) = lower(uname));
+$$;
+REVOKE EXECUTE ON FUNCTION username_exists(TEXT) FROM public;
+GRANT EXECUTE ON FUNCTION username_exists(TEXT) TO anon, authenticated;
 
 -- Trigger auto-crear perfil quan es registra un usuari
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -69,6 +91,12 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- [AUDIT 2026-07-03] HIGIENE: les funcions trigger no s'han de poder cridar via /rest/v1/rpc/.
+-- Els triggers continuen funcionant (EXECUTE no es comprova en disparar-se).
+REVOKE EXECUTE ON FUNCTION handle_new_user() FROM public, anon, authenticated;
+-- (idem per sync_audit_task_to_jomaxpath si existeix al projecte)
+-- REVOKE EXECUTE ON FUNCTION sync_audit_task_to_jomaxpath() FROM public, anon, authenticated;
 
 
 -- ══════════════════════════
@@ -114,8 +142,28 @@ CREATE POLICY "boards_select" ON shared_boards FOR SELECT USING (true);
 -- [AUDIT 2026-06-12] Restringit a usuaris autenticats per evitar creació anònima de boards
 CREATE POLICY "boards_insert" ON shared_boards FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 -- [AUDIT 2026-06-22] FIX SEGURETAT: restringit a propietari del board (auth.uid() IS NOT NULL
--- permetia que QUALSEVOL autenticat modifiqués taulers d'altri). Ara: owner_id::uuid = auth.uid()
-CREATE POLICY "boards_update" ON shared_boards FOR UPDATE USING (owner_id::uuid = auth.uid());
+-- permetia que QUALSEVOL autenticat modifiqués taulers d'altri).
+-- [AUDIT 2026-07-03] FIX COL·LABORACIÓ: els membres amb invitació acceptada també poden
+-- editar (abans les seves edicions fallaven en silenci — RLS retorna 0 files, no error).
+CREATE POLICY "boards_update" ON shared_boards FOR UPDATE TO authenticated
+USING (
+  owner_id::uuid = (SELECT auth.uid())
+  OR EXISTS (
+    SELECT 1 FROM board_invites bi
+    WHERE bi.board_code = shared_boards.code
+      AND bi.status = 'accepted'
+      AND bi.to_username = (SELECT p.username FROM profiles p WHERE p.id = (SELECT auth.uid()))
+  )
+)
+WITH CHECK (
+  owner_id::uuid = (SELECT auth.uid())
+  OR EXISTS (
+    SELECT 1 FROM board_invites bi
+    WHERE bi.board_code = shared_boards.code
+      AND bi.status = 'accepted'
+      AND bi.to_username = (SELECT p.username FROM profiles p WHERE p.id = (SELECT auth.uid()))
+  )
+);
 
 
 -- ══════════════════════════
