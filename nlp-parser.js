@@ -188,6 +188,19 @@ function parseNaturalLanguage(input) {
     }
   }
 
+  // Durades explícites; no substitueixen una hora de final indicada.
+  const duration = text.match(/durant\s+(una?|\d+)\s+(hor(?:a|es)|minuts?)/i);
+  if (duration && result.hora_inici && !result.hora_fi) {
+    const quantity = /^un/.test(duration[1]) ? 1 : Number(duration[1]);
+    const minutes = quantity * (/^hor/i.test(duration[2]) ? 60 : 1);
+    if (minutes > 0 && minutes < 1440) {
+      const [hour, minute] = result.hora_inici.split(':').map(Number);
+      const end = (hour * 60 + minute + minutes) % 1440;
+      result.hora_fi = `${String(Math.floor(end / 60)).padStart(2,'0')}:${String(end % 60).padStart(2,'0')}`;
+      text = text.replace(duration[0], ' ').trim();
+    }
+  }
+
   // Hora fi automàtica: +1h si hi ha inici i no fi
   if (result.hora_inici && !result.hora_fi) {
     const [h, mm] = result.hora_inici.split(':').map(Number);

@@ -2,7 +2,7 @@
 // Gestiona /api/julians (proxy segur a Google Gemini) i delega la resta a l'assets binding.
 // La clau GEMINI_API_KEY viu com a secret del Worker i mai s'exposa al navegador.
 
-const MODEL_DEFAULT = 'gemini-2.5-flash-lite';
+const MODEL_DEFAULT = 'gemini-3.5-flash-lite';
 
 export default {
   async fetch(request, env, ctx) {

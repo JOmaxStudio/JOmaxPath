@@ -160,6 +160,7 @@ function toggleDrawer() {
 let _currentPage = 'home';
 
 function navTo(page) {
+  if (!document.getElementById('page-' + page)) page = 'home';
   document.querySelectorAll('.app-page').forEach(p => p.classList.remove('page-active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('page-active');
@@ -174,10 +175,12 @@ function navTo(page) {
   } catch(e) {}
 
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  const bnavMap = {home:0, horari:1, tasques:2, study:3, focus:3, julians:3, examenia:3, notes:-1};
-  const bnavItems = document.querySelectorAll('.bnav-item');
-  if (bnavMap[page] !== undefined && bnavItems[bnavMap[page]])
-    bnavItems[bnavMap[page]].classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(item => {
+    const active = item.getAttribute('onclick')?.includes("navTo('" + page + "')") || false;
+    item.classList.toggle('active', active);
+    if (active) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  });
 
   if (typeof lsbSetActive === 'function') lsbSetActive(page);
 
@@ -990,6 +993,7 @@ function _injectFlatTasksIntoLists(flatTasks) {
     const id = (t.id || '').toString();
     if (id && existing.has(id)) return; // ja hi és → no dupliquem
     personal.tasks.push({
+      ...t,
       id: id || (Date.now().toString()+Math.random().toString(36).slice(2,6)),
       name: t.name || '', done: !!t.done,
       status: t.status || (t.done ? 'done' : 'todo'),
@@ -1028,7 +1032,8 @@ async function _syncUserData(userId) {
       // Claus amb overwrite simple (no cal merge)
       ['jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
        'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
-       'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
+       'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_notes_v2','jomaxpath_exams_v1','jomaxpath_hero_v2',
+       ...Object.keys(d).filter(k=>/^jomaxpath_schedule_monthly_\d{4}_\d{1,2}$/.test(k))].forEach(k=>{
         if(d[k]) try { localStorage.setItem(k,JSON.stringify(d[k])); } catch{}
       });
       // Llistes v3 del núvol → merge per id de llista (preserva llistes locals)
@@ -1053,110 +1058,69 @@ async function _syncUserData(userId) {
 }
 
 async function _saveUserDataToCloud(userId) {
-  if (!_supabase||!userId||userId.startsWith('local_')) return;
+  if (!_supabase||!userId||userId.startsWith('local_')) return false;
   try {
     _syncListsToFlatTasks();
     const data = {};
     ['jomaxpath_tasks','jomaxpath_lists_v3','jomaxpath_schedule','jomaxpath_habits_v2','jomaxpath_streak_v2',
      'jomaxpath_progress_v1','jomaxpath_pomo_v2','jomaxpath_boards_v1','jomaxpath_chats_v2',
-     'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_hero_v2'].forEach(k=>{
+     'jomaxpath_config_v1','jomaxpath_victories_v1','jomaxpath_notes_v1','jomaxpath_notes_v2','jomaxpath_exams_v1','jomaxpath_hero_v2',
+     ...Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).filter(k=>/^jomaxpath_schedule_monthly_\d{4}_\d{1,2}$/.test(k))].forEach(k=>{
       try { const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch{}
     });
     // Merge cloud jomaxpath_tasks: afegeix tasques del núvol que no tenim local
     // (p.ex. tasques inserides externament per un auditor) sense sobreescriure'les
-    try {
-      const {data: cloudRow} = await Promise.race([
+    {
+      const {data: cloudRow,error:readError} = await Promise.race([
         _supabase.from('user_data').select('data').eq('user_id',userId).single(),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),3000))
       ]);
+      // A failed read must not lead to replacing a cloud document we could not inspect.
+      if (readError && readError.code !== 'PGRST116') return false;
+      const cloudData=cloudRow?.data || {};
+      // Preserve keys owned by other compatible app versions.
+      Object.keys(cloudData).forEach(k=>{ if (!(k in data)) data[k]=cloudData[k]; });
       if (cloudRow?.data?.['jomaxpath_tasks']) {
         const local = data['jomaxpath_tasks'] || [];
         const localIds = new Set(local.map(t=>String(t.id)));
-        const onlyCloud = cloudRow.data['jomaxpath_tasks'].filter(t=>!localIds.has(String(t.id)));
+        const cloudListIds = new Set((cloudData['jomaxpath_lists_v3']||[]).flatMap(l=>(l.tasks||[]).map(t=>String(t.id))));
+        // Flat-only entries are external additions. Entries already represented in
+        // the prior cloud lists but absent locally were deleted, not newly created.
+        const onlyCloud = cloudRow.data['jomaxpath_tasks'].filter(t=>!localIds.has(String(t.id))&&!cloudListIds.has(String(t.id)));
         if (onlyCloud.length) {
           data['jomaxpath_tasks'] = [...local, ...onlyCloud];
           // Injecta les noves tasques externes a la llista personal i re-renderitza
           const added = _injectFlatTasksIntoLists(onlyCloud);
           if (added > 0) {
             _syncListsToFlatTasks(); // actualitza localStorage lists_v3 → tasks
+            data['jomaxpath_lists_v3']=JSON.parse(localStorage.getItem('jomaxpath_lists_v3')||'[]');
+            data['jomaxpath_tasks']=JSON.parse(localStorage.getItem('jomaxpath_tasks')||'[]');
             if (typeof renderListsCollection === 'function' && _currentPage === 'tasques') renderListsCollection();
           }
         }
       }
-    } catch {}
-    await Promise.race([
+    }
+    const {error:writeError}=await Promise.race([
       _supabase.from('user_data').upsert({user_id:userId,data,updated:new Date().toISOString()}),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('t/o')),6000))
     ]);
+    if (writeError) return false;
     const hero = get('jomaxpath_hero_v2',null);
     if (hero) _supabase.from('profiles').update({hero_xp:hero.xp||0,hero_level:hero.level||1,avatar:hero.avatar||'⚔️'}).eq('id',userId).catch(()=>{});
-  } catch{} // Silently ignore
+    return true;
+  } catch { return false; }
 }
 
 // Auto-save every 90s when logged in
 window._autoSaveInterval = setInterval(()=>{ if(_currentUser?.id&&_supabase) _saveUserDataToCloud(_currentUser.id); },90000);
 
 /* ── Share boards ── */
-async function shareBoard(boardId) {
-  if (!_currentUser) { showWarningToast('⚠️ Necessites un compte per compartir'); return; }
-  const boards = get(BOARDS_KEY,[]);
-  const board = boards.find(b=>b.id===boardId); if (!board) { showWarningToast('⚠️ Llista no trobada'); return; }
-  // Show share modal
-  _pendingShareBoardId = boardId;
-  const modal = document.getElementById('share-board-modal-overlay');
-  if (modal) {
-    document.getElementById('sbi-board-name').textContent = board.name;
-    document.getElementById('sbi-username-inp').value = '';
-    document.getElementById('sbi-msg').textContent = '';
-    // Amaga el box del codi de sessions anteriors
-    const codeBox = document.getElementById('sbi-code-box');
-    if (codeBox) codeBox.style.display = 'none';
-    modal.style.display = 'flex';
-  }
-}
-
-let _pendingShareBoardId = null;
-
-async function shareBoardByCode() {
-  const boardId = _pendingShareBoardId; if (!boardId) return;
-  const boards = get(BOARDS_KEY,[]);
-  const board = boards.find(b=>b.id===boardId); if (!board) return;
-  if (!_supabase) { showWarningToast('⚠️ Necessites connexió'); return; }
-  try {
-    const shareCode = 'BRD_'+boardId.slice(-6).toUpperCase()+'_'+Date.now().toString(36).toUpperCase().slice(-4);
-    const {error: upErr} = await _supabase.from('shared_boards').upsert({
-      code: shareCode, owner_id: _currentUser.id,
-      owner_name: _userProfile?.username||'Usuari',
-      board_data: board, updated: new Date().toISOString()
-    });
-    if (upErr) { showErrorToast('❌ No s\'ha pogut compartir el tauler: '+upErr.message); return; }
-    // Save code to local board
-    const idx = boards.findIndex(b=>b.id===boardId);
-    if (idx>=0) { boards[idx].shareCode = shareCode; set(BOARDS_KEY,boards); }
-    navigator.clipboard.writeText(shareCode).catch(()=>{});
-    // Mostra el codi de forma persistent al modal
-    const box = document.getElementById('sbi-code-box');
-    const val = document.getElementById('sbi-code-value');
-    if (val) val.textContent = shareCode;
-    if (box) box.style.display = 'block';
-    showToast('📋 Codi generat i copiat!');
-    renderSharedBoards();
-  } catch { showErrorToast('❌ Error generant codi'); }
-}
-
-function copyBoardCode() {
-  const val = document.getElementById('sbi-code-value');
-  const btn = document.getElementById('sbi-copy-btn');
-  if (!val||!val.textContent) return;
-  navigator.clipboard.writeText(val.textContent).then(()=>{
-    if (btn) { const o=btn.textContent; btn.textContent='✅ Copiat!'; setTimeout(()=>{btn.textContent=o;},1500); }
-  }).catch(()=>showToast('📋 '+val.textContent));
-}
+/* [2026-07-03] Eliminades shareBoard/shareBoardByCode/copyBoardCode: operaven sobre
+   BOARDS_KEY (model antic de taulers) i cap element viu de la UI les cridava. */
 
 function closeShareBoardModal() {
   const modal = document.getElementById('share-board-modal-overlay');
   if (modal) modal.style.display = 'none';
-  _pendingShareBoardId = null;
   _pendingShareListId = null;
 }
 
@@ -1298,11 +1262,15 @@ async function _addSharedListFromCloud(data, code) {
 async function acceptBoardInvite(inviteId, boardCode) {
   if (!_supabase) return;
   try {
-    const {data} = await _supabase.from('shared_boards').select('*').eq('code',boardCode).maybeSingle();
+    // RLS exposes a shared board to its recipient only after acceptance.
+    const {data:accepted,error:acceptError} = await _supabase.from('board_invites')
+      .update({status:'accepted'}).eq('id',inviteId).eq('board_code',boardCode).select('id').maybeSingle();
+    if (acceptError || !accepted) { showErrorToast('❌ No s’ha pogut acceptar la invitació'); return; }
+    const {data,error} = await _supabase.from('shared_boards').select('*').eq('code',boardCode).maybeSingle();
+    if (error) { showErrorToast('❌ Invitació acceptada, però no s’ha pogut carregar la llista. Torna-ho a provar.'); return; }
     if (!data) { showErrorToast('❌ Llista no trobada'); return; }
     if ((getLists()||[]).find(l=>l.shareCode===boardCode)) { showWarningToast('⚠️ Ja tens aquesta llista'); }
     else { await _addSharedListFromCloud(data, boardCode); }
-    await _supabase.from('board_invites').update({status:'accepted'}).eq('id',inviteId);
     showToast('✅ Llista de '+data.owner_name+' afegida!');
     loadBoardInvites(); renderListsCollection();
   } catch { showErrorToast('❌ Error acceptant'); }
@@ -1310,7 +1278,10 @@ async function acceptBoardInvite(inviteId, boardCode) {
 
 async function rejectBoardInvite(inviteId) {
   if (!_supabase) return;
-  try { await _supabase.from('board_invites').update({status:'rejected'}).eq('id',inviteId); } catch {}
+  try {
+    const {data,error} = await _supabase.from('board_invites').update({status:'rejected'}).eq('id',inviteId).select('id').maybeSingle();
+    if (error || !data) { showErrorToast('❌ No s’ha pogut rebutjar la invitació'); return; }
+  } catch { showErrorToast('❌ Error de connexió'); return; }
   showToast('👋 Invitació rebutjada');
   loadBoardInvites();
   updateSharedTabBadge();
@@ -1528,18 +1499,18 @@ function _dbRenderHeader(profile, rpg, streakData, pomoData, todayTasksDone, tot
   const xpPct = Math.min(100, Math.round(xpIn / Math.max(1, xpNeed) * 100));
   const title = typeof getLevelTitle === 'function' ? getLevelTitle(level) : 'Aprenent 🌱';
   const streak = streakData?.count || 0;
-  const pomos  = pomoData?.today || 0;
+  const pomos  = pomoData?.todayDate===new Date().toDateString() ? pomoData.today || 0 : 0;
   const chips = [
-    streak > 0 ? `<span class="db-hchip db-hchip-fire">🔥 ${streak} dies de ratxa</span>` : '',
-    `<span class="db-hchip db-hchip-done">✅ ${todayTasksDone || 0} fetes avui</span>`,
+    streak > 0 ? `<span class="db-hchip db-hchip-fire">🔥 ${streak} ${streak===1?'dia':'dies'} de ratxa</span>` : '',
+    `<span class="db-hchip db-hchip-done">✅ ${todayTasksDone || 0} ${todayTasksDone===1?'feta':'fetes'} avui</span>`,
     pomos > 0 ? `<span class="db-hchip db-hchip-pomo">🍅 ${pomos} pomodoros</span>` : '',
-    totalPending > 0 ? `<span class="db-hchip db-hchip-pending">📋 ${totalPending} pendents</span>` : '',
+    totalPending > 0 ? `<span class="db-hchip db-hchip-pending">📋 ${totalPending} ${totalPending===1?'pendent':'pendents'}</span>` : '',
   ].filter(Boolean).join('');
   return `
     <div class="db-hero">
       <div class="db-hero-top">
         <div class="db-hero-text">
-          <h1 class="db-greeting">${_dbGreeting(profile)}</h1>
+          <h1 class="db-greeting">${_esc(_dbGreeting(profile))}</h1>
           <span class="db-date">${_dbDateStr()}</span>
         </div>
         <div class="db-level-chip">
@@ -1560,15 +1531,26 @@ function _dbRenderHeader(profile, rpg, streakData, pomoData, todayTasksDone, tot
     </div>`;
 }
 
+function _scheduleEndMinute(event, startMinute) {
+  const end = event.timeEnd || event.endTime;
+  if (/^\d{2}:\d{2}$/.test(end || '')) {
+    const [hour,minute] = end.split(':').map(Number);
+    if (hour < 24 && minute < 60) {
+      const value = hour * 60 + minute;
+      return value < startMinute ? value + 1440 : value;
+    }
+  }
+  return startMinute + (Number(event.duration) || 60);
+}
 function _dbRenderNow(schedEvents, todayTasks) {
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = _localDateStr(now);
 
   // Proper event no passat (time és HH:MM)
   const upcomingEvent = schedEvents.find(ev => {
     const [h, m] = (ev.time || '00:00').split(':').map(Number);
-    const endMin = h * 60 + m + (ev.duration || 60);
+    const endMin = _scheduleEndMinute(ev,h * 60 + m);
     return endMin > nowMin;
   });
 
@@ -1580,8 +1562,8 @@ function _dbRenderNow(schedEvents, todayTasks) {
       <div class="db-now db-now-empty">
         <span class="db-now-empty-icon">✨</span>
         <div>
-          <p class="db-now-title">Tot al dia!</p>
-          <p class="db-now-sub">No tens res urgent ara mateix.</p>
+          <p class="db-now-title">${todayTasks.length ? 'El teu següent pas' : 'Sense activitats per ara'}</p>
+          <p class="db-now-sub">${todayTasks.length ? `Tens ${todayTasks.length} ${todayTasks.length===1?'tasca':'tasques'} per atendre.` : 'Pots planificar el dia o començar una sessió Focus.'}</p>
         </div>
       </div>`;
   }
@@ -1603,7 +1585,7 @@ function _dbRenderNow(schedEvents, todayTasks) {
           <span class="db-now-emoji">${_esc(upcomingEvent.emoji || upcomingEvent.icon || '📅')}</span>
           <div class="db-now-info">
             <p class="db-now-title">${_esc(upcomingEvent.name || upcomingEvent.text || '')}</p>
-            <p class="db-now-sub">${upcomingEvent.time}${upcomingEvent.endTime ? ' — ' + upcomingEvent.endTime : ''} · <strong>${timeLabel}</strong></p>
+            <p class="db-now-sub">${_esc(upcomingEvent.time||'')}${upcomingEvent.timeEnd || upcomingEvent.endTime ? ' — ' + _esc(upcomingEvent.timeEnd || upcomingEvent.endTime) : ''} · <strong>${timeLabel}</strong></p>
           </div>
           ${isCurrent ? `<button class="db-now-action" onclick="navTo('focus')">🍅 Pomodoro</button>` : ''}
         </div>
@@ -1633,11 +1615,11 @@ function _dbRenderTimeline(schedEvents, todayTasks) {
   const eventItems = schedEvents.map(ev => {
     const [h, m] = (ev.time || '00:00').split(':').map(Number);
     const startMin = h * 60 + m;
-    const endMin = startMin + (ev.duration || 60);
+    const endMin = _scheduleEndMinute(ev,startMin);
     const isPast = endMin < nowMin;
     const isCurrent = startMin <= nowMin && nowMin < endMin;
     const color = ev.color || '#6C63FF';
-    const endTime = ev.endTime || (
+    const endTime = ev.timeEnd || ev.endTime || (
       `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`
     );
     return `
@@ -1659,11 +1641,12 @@ function _dbRenderTimeline(schedEvents, todayTasks) {
     <div class="db-tasks-section">
       <div class="db-tasks-label">✅ TASQUES D'AVUI</div>
       ${todayTasks.slice(0, 5).map(t => `
-        <div class="db-task-item" onclick="navTo('tasques')">
+        <button class="db-task-item" onclick="navTo('tasques')">
           <span style="color:${prioColors[t.prio||3]}">●</span>
           <span class="db-task-name">${_esc(t.name || '')}</span>
+          ${t.date < _localDateStr(new Date()) ? '<span class="db-task-list">Endarrerida</span>' : ''}
           ${t.listName ? `<span class="db-task-list">${_esc(t.listName)}</span>` : ''}
-        </div>`).join('')}
+        </button>`).join('')}
     </div>` : '';
 
   const hasContent = schedEvents.length > 0 || todayTasks.length > 0;
@@ -1672,7 +1655,7 @@ function _dbRenderTimeline(schedEvents, todayTasks) {
       <div class="db-today-view">
         <div class="db-today-header">
           <h3 class="db-today-title">📅 Avui</h3>
-          <button class="db-today-link" onclick="navTo('horari')">Veure horari →</button>
+          <button class="db-today-link" onclick="navTo('horari')">Veure calendari →</button>
         </div>
         <p style="color:var(--muted);font-size:13px;padding:8px 0;">Cap event ni tasca per avui.</p>
         <button class="db-add-task-btn" onclick="navTo('tasques')">+ Afegir tasca per avui</button>
@@ -1683,7 +1666,7 @@ function _dbRenderTimeline(schedEvents, todayTasks) {
     <div class="db-today-view">
       <div class="db-today-header">
         <h3 class="db-today-title">📅 Avui</h3>
-        <button class="db-today-link" onclick="navTo('horari')">Veure horari →</button>
+        <button class="db-today-link" onclick="navTo('horari')">Veure calendari →</button>
       </div>
       <div class="db-timeline">${eventItems}</div>
       ${taskItems}
@@ -1786,7 +1769,7 @@ async function renderHome() {
 
   // Dades sync (localStorage)
   const now      = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = _localDateStr(now);
   const todayDateStr = now.toDateString();
 
   const habits     = get(HABITS_KEY, []);
@@ -1807,16 +1790,21 @@ async function renderHome() {
 
   const lists       = (typeof getLists === 'function') ? getLists() : null;
   const todayTasks  = [];
+  const upcomingTasks = [];
   let totalPending  = 0;
+  let todayTasksDone = 0;
   if (lists) {
     lists.forEach(l => (l.tasks || []).forEach(t => {
+      if (t.done && t.completed_at && _localDateStr(new Date(t.completed_at)) === todayStr) todayTasksDone++;
       if (!t.done) {
         totalPending++;
-        if (t.date === todayStr) todayTasks.push({ ...t, listName: l.name });
+        if (t.date && t.date <= todayStr) todayTasks.push({ ...t, listName: l.name });
+        if (t.date > todayStr) upcomingTasks.push({ ...t, listName: l.name });
       }
     }));
   }
   todayTasks.sort((a, b) => (a.prio || 3) - (b.prio || 3));
+  upcomingTasks.sort((a, b) => a.date.localeCompare(b.date));
 
   // Dades async (Supabase — cached)
   let rpg = null;
@@ -1826,11 +1814,13 @@ async function renderHome() {
 
   // Render
   container.innerHTML = [
-    _dbRenderHeader(profile, rpg, streakData, pomoData, 0, totalPending),
+    _dbRenderHeader(profile, rpg, streakData, pomoData, todayTasksDone, totalPending),
+    `<div class="today-actions"><button class="today-primary" onclick="navTo('focus')">Començar Focus</button><button onclick="openQuickCapture()">Afegir al dia</button></div>`,
     _dbRenderNow(schedEvents, todayTasks),
     _dbRenderTimeline(schedEvents, todayTasks),
+    upcomingTasks.length ? `<section class="db-today-view"><div class="db-today-header"><h3 class="db-today-title">Properes entregues</h3><button class="db-today-link" onclick="navTo('tasques')">Veure totes →</button></div>${upcomingTasks.slice(0,3).map(t => `<button class="upcoming-task" onclick="navTo('tasques')"><span>${_esc(t.name)}</span><time datetime="${_esc(t.date)}">${_esc(formatDateReadable(t.date))}</time></button>`).join('')}</section>` : '',
     _dbRenderHabits(habits, todayDateStr),
-    _dbRenderBottom(streakData, 0, pomoData, totalPending),
+    _dbRenderBottom(streakData, todayTasksDone, pomoData, totalPending),
   ].join('');
 
   // Exam countdown (separat, és un element fill del page-home)
@@ -2192,7 +2182,7 @@ function renderNextTask() {
   const diff = Math.round((d-today)/86400000);
   let when = '📅 '+next.date, cd='', cdColor='var(--accent2)';
   if (diff<0) { when='Endarrerida'; cd='⚠️'; cdColor='#fca5a5'; }
-  else if (diff===0) { when='Venç avui'; cd='HOY'; cdColor='#fcd34d'; }
+  else if (diff===0) { when='Venç avui'; cd='AVUI'; cdColor='#fcd34d'; }
   else if (diff===1) { when='Venç demà'; cd='1d'; cdColor='#fcd34d'; }
   else { when='En '+diff+' dies'; cd=diff+'d'; }
   document.getElementById('next-up-text').textContent = next.name + ' · ' + next.listName;
@@ -2267,8 +2257,44 @@ let weekOffset=0, calendarYear, calendarMonth;
 
 function renderHorari() {
   renderWeekDates(); renderWeekGrid(); renderCalendar(); renderHorariHabits();
+  renderCalendarDay();
+}
+function renderCalendarDay() {
+  const input = document.getElementById('calendar-day-date');
+  const container = document.getElementById('calendar-day-content');
+  if (!input || !container) return;
+  if (!input.value) input.value = _localDateStr(new Date());
+  const date = input.value;
+  const day = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'][new Date(date+'T12:00:00').getDay()];
+  const events = _schedEventsForDay(get(SCHEDULE_KEY,{}),day,date).slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const tasks = (getLists()||[]).flatMap(list=>(list.tasks||[])).filter(task=>!task.done&&task.date===date);
+  container.innerHTML = `<h3>${_esc(formatDateReadable(date))}</h3>` +
+    events.map(event=>`<button class="upcoming-task" data-day="${_esc(day)}" data-id="${_esc(event.id)}" data-date="${_esc(date)}" onclick="openDayModal(this.dataset.day,this.dataset.id,this.dataset.date)"><time>${_esc(event.time||'Sense hora')}</time><span>${_esc(event.name||event.text||'Activitat')}</span></button>`).join('') +
+    tasks.map(task=>`<button class="upcoming-task" onclick="navTo('tasques')"><span>Tasca · ${_esc(task.name)}</span></button>`).join('') +
+    (!events.length&&!tasks.length ? '<p>No hi ha activitats ni tasques per aquest dia.</p>' : '');
+}
+function openCalendarComposer(type) {
+  document.getElementById('calendar-create-menu').open = false;
+  const date = document.getElementById('calendar-day-date').value || _localDateStr(new Date());
+  if (type === 'task') {
+    navTo('tasques');
+    const list = (getLists()||[]).find(l=>!l.shared);
+    if (!list) { openQuickCapture(); return; }
+    openList(list.id);
+    openNewTaskEditor();
+    document.getElementById('te-date').value = date;
+    return;
+  }
+  const day = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'][new Date(date+'T12:00:00').getDay()];
+  openDayModal(day,null,date);
+  document.getElementById('dm-type').value = type;
+  dmUpdatePreview();
 }
 function switchHorariTab(tab) {
+  if (typeof lsbSetActive === 'function') lsbSetActive(tab === 'habits' ? 'habits' : 'horari');
+  if (tab === 'dia') renderCalendarDay();
+  if (tab === 'setmanal') renderWeekDates();
+  if (tab === 'mensual') { renderCalendar(); if (_calView === 'agenda') renderAgendaView(); }
   document.querySelectorAll('.horari-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.horari-tab-content').forEach(c=>{c.classList.remove('active');c.style.display='none';});
   document.getElementById('htab-'+tab)?.classList.add('active');
@@ -2602,6 +2628,16 @@ function dmUpdateRepeatSummary() {
 }
 
 function openDayModal(day, eventId, isoDate) {
+  // Existing monthly events retain their editor and bidirectional sync.
+  if (eventId && isoDate) {
+    const date = new Date(isoDate+'T12:00:00');
+    const monthly = get(SCHEDULE_KEY+'_monthly_'+date.getFullYear()+'_'+date.getMonth(),{});
+    const index = (monthly[date.getDate()]||[]).findIndex(event=>String(event.id)===String(eventId));
+    if (index >= 0) {
+      calendarYear=date.getFullYear(); calendarMonth=date.getMonth();
+      openMonthModal(date.getDate()); editMonthEvent(date.getDate(),index); return;
+    }
+  }
   _dayModalDay=day; _dayModalEventId=eventId;
   _dayModalIsoDate=isoDate||null;
   const ov=_dmEl('day-modal-overlay'); if(!ov){ showToast('Modal no disponible'); return; }
@@ -2649,6 +2685,9 @@ function openDayModal(day, eventId, isoDate) {
 
 function closeDayModal() {
   const ov=_dmEl('day-modal-overlay'); if(ov) ov.style.display='none';
+  renderCalendarDay();
+  renderCalendar();
+  if (_calView === 'agenda') renderAgendaView();
 }
 
 function saveDayEvent() {
@@ -2868,17 +2907,27 @@ function renderCalendar() {
   for (let d=1;d<=lastDay.getDate();d++) {
     const isToday=d===now.getDate()&&calendarMonth===now.getMonth()&&calendarYear===now.getFullYear();
     const evs=monthEvents[d]||[];
-    const evHtml=evs.slice(0,2).map((e,i)=>{
+    let evHtml=evs.slice(0,2).map((e,i)=>{
       const border=e.border||'#7c3aed';
       const bg=e.color||'rgba(124,58,237,0.22)';
       return `<div class="cal-event" draggable="true" style="background:${bg};border-left:3px solid ${border}" ondragstart="_calDragStart(event,${d},${i})" ondragend="_calDragEnd(event)" onclick="event.stopPropagation();_openEventPopover(${d},${i},this)">${e.emoji||'📌'} ${e.name||''}</div>`;
     }).join('')+(evs.length>2?`<div class="cal-event-more">+${evs.length-2}</div>`:'');
+    evHtml += _calendarScheduleExtras(d, evs);
     html+=`<div class="cal-day ${isToday?'today':''}" ondragover="_calDragOver(event)" ondrop="_calDrop(event,${d})" onclick="openMonthModal(${d})"><div class="cal-day-num">${d}</div>${evHtml}</div>`;
   }
   gridEl.innerHTML=html;
 }
-function calendarPrevMonth() { calendarMonth--; if(calendarMonth<0){calendarMonth=11;calendarYear--;} renderCalendar(); }
-function calendarNextMonth() { calendarMonth++; if(calendarMonth>11){calendarMonth=0;calendarYear++;} renderCalendar(); }
+// Read-only projection; monthly indexes for drag/edit are preserved.
+function _calendarScheduleExtras(day, monthlyEvents) {
+  const date = _localDateStr(new Date(calendarYear,calendarMonth,day));
+  const dayName = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'][new Date(calendarYear,calendarMonth,day).getDay()];
+  const ids = new Set(monthlyEvents.map(event=>event.id));
+  return _schedEventsForDay(get(SCHEDULE_KEY,{}),dayName,date).filter(event=>!ids.has(event.id)).map(event=>
+    `<button class="cal-event calendar-extra" data-date="${date}" data-day="${dayName}" data-id="${_esc(event.id)}" onclick="event.stopPropagation();openDayModal(this.dataset.day,this.dataset.id,this.dataset.date)">${_esc(event.time||'')} ${_esc(event.name||event.text||'Activitat')}</button>`
+  ).join('');
+}
+function calendarPrevMonth() { calendarMonth--; if(calendarMonth<0){calendarMonth=11;calendarYear--;} renderCalendar(); if(_calView==='agenda') renderAgendaView(); }
+function calendarNextMonth() { calendarMonth++; if(calendarMonth>11){calendarMonth=0;calendarYear++;} renderCalendar(); if(_calView==='agenda') renderAgendaView(); }
 
 let _monthModalDay=null;
 function openMonthModal(day) {
@@ -2920,6 +2969,7 @@ function closeMonthModal() {
   document.getElementById('month-modal-overlay').style.display='none';
   const editId=document.getElementById('mm-edit-id'); if(editId) editId.value='';
   const saveBtn=document.getElementById('mm-save-btn'); if(saveBtn){saveBtn.textContent='+ Afegir';saveBtn.style.background='';}
+  renderCalendarDay();
 }
 function editMonthEvent(day, idx) {
   const key=SCHEDULE_KEY+'_monthly_'+calendarYear+'_'+calendarMonth;
@@ -3185,7 +3235,8 @@ function renderAgendaView() {
   let hasAny=false;
   for(let d=1;d<=lastDay;d++){
     const evs=(monthEvents[d]||[]);
-    if(!evs.length) continue;
+    const extras = _calendarScheduleExtras(d, evs);
+    if(!evs.length && !extras) continue;
     hasAny=true;
     const date=new Date(calendarYear,calendarMonth,d);
     const isToday=date.toDateString()===new Date().toDateString();
@@ -3203,7 +3254,7 @@ function renderAgendaView() {
           ${e.time?`<span class="ag-ev-time">${e.time}</span>`:''}
           <button class="ag-ev-edit" onclick="openMonthModal(${d});setTimeout(()=>editMonthEvent(${d},${i}),80)" title="Editar">✏️</button>
           <button class="ag-ev-del" onclick="deleteMonthEventFromAgenda(${d},${i})">✕</button>
-        </div>`).join('')}
+        </div>`).join('')}${extras}
       </div>
     </div>`;
   }
@@ -3556,8 +3607,9 @@ function renderListDetail() {
   if (_listView==='list') renderListTasks(list); else renderListKanban(list);
 }
 
-function _dueChip(date) {
+function _dueChip(date, done=false) {
   if (!date) return '';
+  if(done) return `<span style="font-size:11px;color:var(--muted);">${_esc(date)}</span>`;
   const today = new Date(); today.setHours(0,0,0,0);
   const d = new Date(date+'T00:00:00');
   const diff = Math.round((d-today)/86400000);
@@ -3587,15 +3639,15 @@ function renderListTasks(list) {
     const sTotal=subs.length;
     return `
     <div class="ld-task ${t.done?'done':''}">
-      <button class="ld-check ${t.done?'on':''}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
+      <button class="ld-check ${t.done?'on':''}" aria-label="${t.done?'Marcar pendent':'Completar'}: ${_esc(t.name)}" aria-pressed="${!!t.done}" onclick="toggleListTask('${t.id}')">${t.done?'✓':''}</button>
       <div class="ld-task-prio" style="background:${prioColors[t.prio||3]}"></div>
       <div class="ld-task-body" onclick="openTaskEditor('${t.id}')" style="cursor:pointer;">
         <div class="ld-task-name">${_esc(t.name)}${t.recurrence_group_id?'<span class="task-recurrent-badge">🔄</span>':''}</div>
         ${t.desc?`<div class="ld-task-desc">${_esc((t.desc||'').slice(0,80))}${t.desc.length>80?'…':''}</div>`:''}
-        ${(t.date||t.assignee||nLinks||sTotal>0)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}${_subtaskBadge(sDone,sTotal)}</div>`:''}
+        ${(t.date||t.assignee||nLinks||sTotal>0)?`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">${_dueChip(t.date,t.done)}${_assigneeChip(t.assignee)}${nLinks?`<span style="font-size:10px;color:#7dd3fc;">🔗 ${nLinks}</span>`:''}${_subtaskBadge(sDone,sTotal)}</div>`:''}
       </div>
       <button class="ld-task-edit" onclick="openTaskEditor('${t.id}')" title="Editar">✎</button>
-      <button class="ld-task-del" onclick="deleteListTask('${t.id}')">✕</button>
+      <button class="ld-task-del" aria-label="Eliminar: ${_esc(t.name)}" onclick="deleteListTask('${t.id}')">✕</button>
     </div>`;
   }).join('');
 }
@@ -3617,7 +3669,7 @@ function renderListKanban(list) {
             return `
           <div class="ld-kcard" data-task-id="${t.id}" draggable="true" ondragstart="event.dataTransfer.setData('id','${t.id}')">
             <div class="ld-kcard-name">${_esc(t.name)}</div>
-            ${(t.date||t.assignee||sTotal>0)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date)}${_assigneeChip(t.assignee)}${_subtaskBadge(sDone,sTotal)}</div>`:''}
+            ${(t.date||t.assignee||sTotal>0)?`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">${_dueChip(t.date,t.done)}${_assigneeChip(t.assignee)}${_subtaskBadge(sDone,sTotal)}</div>`:''}
             ${sTotal>0?`<div class="kanban-card-progress"><div class="kanban-card-progress-bar"><div class="kanban-card-progress-fill" style="width:${sPct}%"></div></div></div>`:''}
             <div class="ld-kcard-foot">
               ${c.k!=='done'?`<button onclick="moveListTask('${t.id}','${c.k==='todo'?'doing':'done'}')" title="Avançar">→</button>`:`<button onclick="moveListTask('${t.id}','todo')" title="Reobrir">↺</button>`}
@@ -3761,6 +3813,27 @@ async function _executeDeleteRecurringTask(task, scope){
 
 /* ── Editor de tasca (descripció, enllaços, data, prioritat) ── */
 let _editingTaskId=null;
+let _taskEditorTrigger=null;
+function focusTaskEditor() {
+  _taskEditorTrigger = document.activeElement;
+  // Escape the page stacking context so mobile navigation cannot cover the dialog.
+  const overlay = document.getElementById('task-editor-overlay');
+  if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
+  document.getElementById('te-extra').open = false;
+  document.getElementById('te-name').focus();
+}
+function handleDialogKeydown(event, overlay, close) {
+  if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+  if (event.key !== 'Tab') return;
+  const controls = Array.from(overlay.querySelectorAll('button, input, textarea, select, summary, a[href]')).filter(el => !el.disabled && el.getClientRects().length);
+  const first = controls[0], last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+}
+document.addEventListener('keydown', event => {
+  const overlay=document.getElementById('task-editor-overlay');
+  if (!event.defaultPrevented && overlay?.style.display==='flex') handleDialogKeydown(event,overlay,closeTaskEditor);
+});
 
 function openNewTaskEditor(){
   const list=_getList(_openListId); if(!list) return;
@@ -3798,6 +3871,7 @@ function openNewTaskEditor(){
   const stc = document.getElementById('te-subtasks-container');
   if(stc) stc.innerHTML='';
   document.getElementById('task-editor-overlay').style.display='flex';
+  focusTaskEditor();
 }
 
 function openTaskEditor(taskId){
@@ -3829,6 +3903,7 @@ function openTaskEditor(taskId){
   // Subtasques (mode edició)
   renderSubtasksSection(taskId);
   document.getElementById('task-editor-overlay').style.display='flex';
+  focusTaskEditor();
 }
 function teRenderLinks(links){
   const c=document.getElementById('te-links'); if(!c) return;
@@ -3994,6 +4069,7 @@ function _generateRecurrentTasks(base, recType){
 function closeTaskEditor(){
   _editingTaskId=null;
   document.getElementById('task-editor-overlay').style.display='none';
+  if (_taskEditorTrigger?.isConnected) _taskEditorTrigger.focus();
 }
 
 /* ── Recurrència: funcions UI ── */
@@ -4105,83 +4181,11 @@ function _inputPrompt(title, placeholder, cb) {
   ov.onclick=(e)=>{if(e.target===ov)close();};
 }
 
-function _oldRenderTasques() { renderExamList(); renderPersonalKanban(); renderSharedBoards(); }
-
-function setTasksMode(mode) {
-  _tasksMode=mode;
-  document.getElementById('tasks-personal-view').style.display=mode==='personal'?'block':'none';
-  document.getElementById('tasks-shared-view').style.display=mode==='shared'?'block':'none';
-  document.querySelectorAll('.tasks-mode-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tmode-'+mode)?.classList.add('active');
-  if (mode==='shared') { renderSharedBoards(); loadBoardInvites(); }
-}
-function setPersonalView(view) {
-  _personalView=view;
-  document.getElementById('personal-list-view').style.display=view==='list'?'block':'none';
-  document.getElementById('personal-kanban-view').style.display=view==='kanban'?'block':'none';
-  document.querySelectorAll('.tvt-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tvt-'+view)?.classList.add('active');
-  if (view==='kanban') renderPersonalKanban();
-}
-function setSharedView(view) {
-  document.getElementById('shared-list-inner').style.display=view==='list'?'block':'none';
-  document.getElementById('shared-kanban-inner').style.display=view==='kanban'?'block':'none';
-  document.querySelectorAll('.tvt-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tvt-shared-'+view)?.classList.add('active');
-}
-function toggleExamForm() {
-  const f=document.getElementById('exam-form');
-  if (f) f.style.display=f.style.display==='flex'?'none':'flex';
-}
-function addExam() {
-  const name=(document.getElementById('exam-name')?.value||'').trim();
-  const date=document.getElementById('exam-date')?.value;
-  const type=document.getElementById('exam-type')?.value||'tasca';
-  const prio=parseInt(document.getElementById('exam-prio')?.value||'3');
-  if (!name) { showWarningToast('⚠️ Escriu un nom'); return; }
-  const tasks=get(TASKS_KEY,[]);
-  tasks.push({id:Date.now().toString(),name,date,type,prio,done:false,status:'todo',urgency:'green',created:Date.now()});
-  set(TASKS_KEY,tasks); document.getElementById('exam-name').value='';
-  toggleExamForm(); renderExamList(); showToast('✅ Tasca afegida!');
-}
-function renderExamList() {
-  const list=document.getElementById('exam-list'); if (!list) return;
-  const tasks=get(TASKS_KEY,[]).filter(t=>!t.board);
-  if (tasks.length===0) { list.innerHTML='<div style="color:var(--muted);font-size:12px;padding:16px 0;text-align:center;">Sense tasques. Afegeix-ne una! ↑</div>'; return; }
-  const typeIcons={deures:'📚',treball:'📄',tasca:'🗂️',personal:'🙋'};
-  const prioColors={1:'#ef4444',2:'#f59e0b',3:'#3b82f6',4:'#64748b'};
-  list.innerHTML=[...tasks].sort((a,b)=>(a.prio||3)-(b.prio||3)).map(t=>`
-    <div class="exam-item ${t.done?'done':''}" onclick="openTaskDetail('${t.id}')">
-      <div class="ei-left">
-        <div class="ei-prio-dot" style="background:${prioColors[t.prio||3]}"></div>
-        <span class="ei-icon">${typeIcons[t.type]||'🗂️'}</span>
-        <div class="ei-info"><div class="ei-name ${t.done?'done':''}">${t.name}</div>${t.date?`<div class="ei-date">📅 ${t.date}</div>`:''}</div>
-      </div>
-      <div class="ei-right">
-        <button class="ei-check ${t.done?'done':''}" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">${t.done?'✓':''}</button>
-        <button class="ei-del" onclick="event.stopPropagation();deleteTask('${t.id}')">✕</button>
-      </div>
-    </div>`).join('');
-}
-function toggleTaskDone(id) {
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===id);
-  if(t){t.done=!t.done;t.status=t.done?'done':'todo';}
-  set(TASKS_KEY,tasks); renderExamList(); renderPersonalKanban();
-  if(t?.done && window._currentUser?.id) {
-    const uid=window._currentUser.id;
-    const prioKey=t.prio===1?'task_high':t.prio===2?'task_medium':'task_low';
-    if (typeof awardXP==='function') awardXP(uid, XP_REWARDS?.[prioKey]||10, 'task').catch(()=>{});
-    const mtype=t.prio===1?'task_high':'task_done';
-    if (typeof updateMissionProgress==='function') updateMissionProgress(mtype).catch(()=>{});
-  }
-}
-function deleteTask(id) {
-  showDeleteConfirm(()=>{
-    set(TASKS_KEY,get(TASKS_KEY,[]).filter(t=>t.id!==id));
-    renderExamList(); renderPersonalKanban(); showToast('🗑️ Tasca eliminada');
-  });
-}
+/* [2026-07-03] Eliminada la pàgina antiga de tasques (setTasksMode, addExam, renderExamList,
+   renderPersonalKanban, openTaskDetail...): substituïda pel sistema unificat de llistes v3
+   amb UNA sola taxonomia (prio 1-4 + status todo/doing/done) i l'editor de tasca únic (te-). */
 function showDeleteConfirm(onConfirm, opts) {
+  const previousFocus = document.activeElement;
   const title = (opts&&opts.title)||'ELIMINAR';
   const msg   = (opts&&opts.msg)||'Estàs segur? Aquesta acció no es pot desfer.';
   const icon  = (opts&&opts.icon)||'🗑️';
@@ -4196,192 +4200,21 @@ function showDeleteConfirm(onConfirm, opts) {
       <button id="del-confirm-no" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">✕ CANCEL·LAR</button>
     </div>
   </div>`;
+  ov.setAttribute('role','dialog');
+  ov.setAttribute('aria-modal','true');
+  ov.setAttribute('aria-label',title);
+  const close = ()=>{ov.style.display='none';if(previousFocus?.isConnected)previousFocus.focus();};
   ov.style.display='flex';
-  document.getElementById('del-confirm-yes').onclick=()=>{ov.style.display='none';onConfirm();};
-  document.getElementById('del-confirm-no').onclick=()=>{ov.style.display='none';};
-  ov.onclick=(e)=>{if(e.target===ov)ov.style.display='none';};
+  document.getElementById('del-confirm-yes').onclick=()=>{close();onConfirm();};
+  document.getElementById('del-confirm-no').onclick=close;
+  ov.onclick=(e)=>{if(e.target===ov)close();};
+  ov.onkeydown=(e)=>handleDialogKeydown(e,ov,close);
+  document.getElementById('del-confirm-no').focus();
 }
 
-/* ── Kanban personal ── */
-function renderPersonalKanban() {
-  const board=document.getElementById('personal-kanban-board'); if (!board) return;
-  const tasks=get(TASKS_KEY,[]).filter(t=>!t.board);
-  const cols=[
-    {id:'todo',  name:'TO DO',       color:'#93c5fd'},
-    {id:'doing', name:'IN PROGRESS', color:'#fcd34d'},
-    {id:'done',  name:'DONE',        color:'#6ee7b7'},
-  ];
-  board.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:16px;min-height:400px;';
-  board.innerHTML=cols.map((col,ci)=>{
-    const colTasks=tasks.filter(t=>(t.status||'todo')===col.id);
-    const urgColors={green:'#6ee7b7',yellow:'#fcd34d',red:'#f87171'};
-    const cards=colTasks.map(t=>{
-      const subs=_validSubtasks(t.subtasks);
-      const subDone=subs.filter(s=>s.completed).length;
-      const subTotal=subs.length;
-      const subPct=subTotal>0?Math.round((subDone/subTotal)*100):0;
-      const progressHtml=subTotal>0?`
-        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-          ${_subtaskBadge(subDone,subTotal)}
-          <div class="kanban-card-progress-bar" style="flex:1;margin:0;"><div class="kanban-card-progress-fill" style="width:${subPct}%"></div></div>
-        </div>`:'';
-      return `
-      <div class="kanban-task-card" data-task-id="${t.id}" onclick="openTaskDetail('${t.id}')" style="background:var(--card2);border:1px solid var(--border);border-left:3px solid ${urgColors[t.urgency||'green']};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
-        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">${t.name}</div>
-        ${t.date?`<div style="font-size:10px;color:var(--muted);">📅 ${t.date}</div>`:''}
-        ${progressHtml}
-        <button onclick="event.stopPropagation();deleteTask('${t.id}')" style="position:absolute;top:6px;right:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:0;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">✕</button>
-      </div>`;}).join('');
-    return `
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid ${col.color}20;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="background:${col.color};color:#000;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;">${ci+1}</span>
-            <span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:${col.color};">${col.name}</span>
-          </div>
-          <span style="background:${col.color}22;color:${col.color};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">${colTasks.length}</span>
-        </div>
-        <div style="flex:1;min-height:120px;">${cards}</div>
-        <button onclick="openPersonalKanbanModal('${col.id}')" style="margin-top:8px;width:100%;padding:8px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'">+ Afegir tasca</button>
-      </div>`;
-  }).join('');
-}
-
-let _kanbanAddStatus='todo';
-function openPersonalKanbanModal(status) {
-  _kanbanAddStatus=status||'todo';
-  const ov=document.getElementById('board-task-modal-overlay');
-  if (ov) {
-    const titleInp=document.getElementById('bt-title-inp'); if(titleInp) titleInp.value='';
-    const dueInp=document.getElementById('bt-due-inp'); if(dueInp) dueInp.value='';
-    document.querySelectorAll('.bt-urg-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelector('.bt-urg-btn[data-u="green"]')?.classList.add('active');
-    _btUrgency='green';
-    ov.style.display='flex';
-  } else {
-    const name=prompt('Nom de la tasca:');
-    if (!name?.trim()) return;
-    const tasks=get(TASKS_KEY,[]);
-    tasks.push({id:Date.now().toString(),name:name.trim(),status:_kanbanAddStatus,done:_kanbanAddStatus==='done',prio:3,created:Date.now()});
-    set(TASKS_KEY,tasks); renderPersonalKanban(); showToast('✅ Tasca afegida!');
-  }
-}
-function selectBtUrgency(btn) {
-  document.querySelectorAll('.bt-urg-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); _btUrgency=btn.dataset.u||'green';
-}
-function saveBoardTask() {
-  const title=(document.getElementById('bt-title-inp')?.value||'').trim();
-  if (!title) { showWarningToast('⚠️ Escriu un títol'); return; }
-  const due=document.getElementById('bt-due-inp')?.value;
-  const assignee=document.getElementById('bt-assignee-inp')?.value;
-  const tasks=get(TASKS_KEY,[]);
-  tasks.push({id:Date.now().toString(),name:title,status:_kanbanAddStatus,done:_kanbanAddStatus==='done',urgency:_btUrgency,date:due,assignees:assignee?[assignee]:[],prio:3,created:Date.now()});
-  set(TASKS_KEY,tasks); closeBoardTaskModal(); renderPersonalKanban(); renderExamList(); showToast('✅ Tasca afegida!');
-}
-function closeBoardTaskModal() {
-  const ov=document.getElementById('board-task-modal-overlay'); if(ov) ov.style.display='none';
-}
-
-/* Task Detail */
-let _tdmTaskId=null;
-function openTaskDetail(id) {
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===id); if (!t) return;
-  _tdmTaskId=id; _taskDirty=false;
-  const ov=document.getElementById('task-detail-overlay'); if (!ov) return;
-  document.getElementById('tdm-title').value=t.name||'';
-  document.getElementById('tdm-desc').value=t.desc||'';
-  document.getElementById('tdm-due').value=t.date||'';
-  document.getElementById('tdm-status').value=t.status||'todo';
-  document.querySelectorAll('.tdm-status-pill').forEach(p=>p.classList.toggle('active',p.dataset.s===(t.status||'todo')));
-  document.querySelectorAll('.tdm-urg-pill').forEach(p=>p.classList.toggle('active',p.dataset.u===(t.urgency||'green')));
-  const bar=document.getElementById('tdm-urgency-bar');
-  if(bar){const uc={green:'#10b981',yellow:'#f59e0b',red:'#ef4444'};bar.style.background=uc[t.urgency||'green'];}
-  renderTdmChips('tdm-assignees-chips',t.assignees||[]);
-  renderTdmLinks(t.links||[]);
-  renderTdmNotes(t.notes||[]);
-  renderSubtasksSection(id);
-  document.getElementById('tdm-save-btn').style.display='none';
-  ov.style.display='flex';
-}
-function closeTaskDetail() {
-  if (_taskDirty&&confirm('Guardar canvis?')) tdmSaveChanges();
-  document.getElementById('task-detail-overlay').style.display='none'; _tdmTaskId=null;
-}
-function tdmMarkDirty() {
-  _taskDirty=true; document.getElementById('tdm-save-btn').style.display='block';
-}
-function tdmSetStatus(status,btn) {
-  document.querySelectorAll('.tdm-status-pill').forEach(p=>p.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.getElementById('tdm-status').value=status; tdmMarkDirty();
-}
-function tdmSetUrgency(urg,btn) {
-  document.querySelectorAll('.tdm-urg-pill').forEach(p=>p.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const bar=document.getElementById('tdm-urgency-bar');
-  if(bar){const uc={green:'#10b981',yellow:'#f59e0b',red:'#ef4444'};bar.style.background=uc[urg];} tdmMarkDirty();
-}
-function tdmAddAssignee() {
-  const inp=document.getElementById('tdm-assignee-inp'); const val=(inp?.value||'').trim(); if (!val) return;
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if (!t) return;
-  if (!t.assignees) t.assignees=[];
-  t.assignees.push(val); set(TASKS_KEY,tasks); renderTdmChips('tdm-assignees-chips',t.assignees); if(inp) inp.value='';
-}
-function renderTdmChips(cId,items) {
-  const el=document.getElementById(cId); if (!el) return;
-  el.innerHTML=items.map((item,i)=>`<span class="tdm-chip">${item} <button onclick="removeTdmChip('${cId}',${i})">✕</button></span>`).join('');
-}
-function removeTdmChip(cId,idx) {
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if (!t) return;
-  const key=cId==='tdm-assignees-chips'?'assignees':'tags';
-  if(t[key]) t[key].splice(idx,1); set(TASKS_KEY,tasks); renderTdmChips(cId,t[key]||[]);
-}
-function tdmAddLink() {
-  const url=(document.getElementById('tdm-link-url-inp')?.value||'').trim(); if (!url) return;
-  const label=(document.getElementById('tdm-link-label-inp')?.value||url).trim();
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if (!t) return;
-  if (!t.links) t.links=[];
-  t.links.push({url,label}); set(TASKS_KEY,tasks); renderTdmLinks(t.links);
-  document.getElementById('tdm-link-url-inp').value=''; document.getElementById('tdm-link-label-inp').value='';
-}
-function renderTdmLinks(links) {
-  const el=document.getElementById('tdm-links-list'); if (!el) return;
-  el.innerHTML=(links||[]).map((l,i)=>`<div class="tdm-link-row"><a href="${l.url}" target="_blank">${l.label||l.url}</a><button onclick="removeTdmLink(${i})">✕</button></div>`).join('');
-}
-function removeTdmLink(idx) {
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if(!t||!t.links) return;
-  t.links.splice(idx,1); set(TASKS_KEY,tasks); renderTdmLinks(t.links);
-}
-function addNoteToTask() {
-  const inp=document.getElementById('tdm-note-inp'); const val=(inp?.value||'').trim(); if (!val) return;
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if (!t) return;
-  if (!t.notes) t.notes=[];
-  t.notes.push({text:val,date:new Date().toLocaleDateString('ca')}); set(TASKS_KEY,tasks); renderTdmNotes(t.notes); if(inp) inp.value='';
-}
-function renderTdmNotes(notes) {
-  const el=document.getElementById('tdm-notes-list'); if (!el) return;
-  // [auto] FIX XSS: n.text i n.date escapat amb _esc() per evitar XSS emmagatzemat (audit_tasks)
-  el.innerHTML=(notes||[]).map((n,i)=>`<div class="tdm-note-row"><span class="tn-date">${_esc(n.date||'')}</span> <span>${_esc(n.text)}</span><button onclick="removeTdmNote(${i})">✕</button></div>`).join('');
-}
-function removeTdmNote(idx) {
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if(!t||!t.notes) return;
-  t.notes.splice(idx,1); set(TASKS_KEY,tasks); renderTdmNotes(t.notes);
-}
-function tdmSaveChanges() {
-  if (!_tdmTaskId) return;
-  const tasks=get(TASKS_KEY,[]); const t=tasks.find(t=>t.id===_tdmTaskId); if (!t) return;
-  t.name=document.getElementById('tdm-title')?.value||t.name;
-  t.desc=document.getElementById('tdm-desc')?.value||'';
-  t.date=document.getElementById('tdm-due')?.value||'';
-  t.status=document.getElementById('tdm-status')?.value||'todo';
-  t.done=t.status==='done';
-  const urgPill=document.querySelector('.tdm-urg-pill.active');
-  if(urgPill) t.urgency=urgPill.dataset.u;
-  set(TASKS_KEY,tasks); _taskDirty=false; document.getElementById('tdm-save-btn').style.display='none';
-  renderExamList(); renderPersonalKanban(); showToast('✅ Tasca guardada!');
-}
-function updateTaskStatusFromDetail(status) { tdmSetStatus(status,null); }
+/* [2026-07-03] Eliminats el kanban personal antic, el modal "Nova tasca al tauler" (bt-,
+   urgències Baixa/Mitjana/Alta) i el modal "Detall de tasca" (tdm-, estats+urgències duplicats):
+   tot substituït per l'editor de tasca únic (#task-editor-overlay) amb prio 1-4. */
 
 /* ── SUBTASQUES (Millora 6) ── */
 // Filtra subtasques invàlides (sense id o sense títol) que poden haver
@@ -4643,143 +4476,9 @@ async function _saveSubtaskOrder(parentId) {
   await _saveSubtasks(parentId, subtasks);
 }
 
-/* Shared boards */
-function renderSharedBoards() {
-  const grid=document.getElementById('shared-boards-grid'); if (!grid) return;
-  const boards=get(BOARDS_KEY,[]);
-  loadBoardInvites();
-  if (boards.length===0) { grid.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px;">Crea la teva primera llista! →</div>'; return; }
-  grid.innerHTML=boards.map(b=>`
-    <div class="board-card" onclick="openBoardDetail('${b.id}')" style="cursor:pointer;">
-      <div class="bc-name">${b.name}</div>
-      <div class="bc-desc">${b.desc||''}</div>
-      <div class="bc-meta">${(b.tasks||[]).length} tasques · ${(b.members||[]).length} membres ${b.sharedWith?'· <span style="color:var(--accent2);">compartida</span>':''}</div>
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        <button onclick="event.stopPropagation();openBoardDetail('${b.id}')" style="padding:5px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;border-radius:7px;font-family:'Space Mono',monospace;font-size:8px;cursor:pointer;">📂 OBRIR</button>
-        ${!b.sharedWith?`<button onclick="event.stopPropagation();shareBoard('${b.id}')" style="padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:var(--accent2);border-radius:7px;font-family:'Space Mono',monospace;font-size:8px;cursor:pointer;">📤 COMPARTIR</button>`:''}
-      </div>
-    </div>`).join('');
-}
-function openCreateBoardModal() {
-  _editingBoardId=null; _boardMembers=[];
-  const ov=document.getElementById('board-modal-overlay'); if (!ov) return;
-  document.getElementById('board-name-inp').value='';
-  document.getElementById('board-desc-inp').value='';
-  document.getElementById('board-modal-title').textContent='Nova llista compartida';
-  document.getElementById('bm-save-btn').textContent='Crear llista';
-  document.getElementById('board-members-current').innerHTML='';
-  ov.style.display='flex';
-}
-function closeBoardModal() { document.getElementById('board-modal-overlay').style.display='none'; }
-function addBoardMember() {
-  const email=(document.getElementById('board-member-add-inp')?.value||'').trim(); if(!email) return;
-  _boardMembers.push(email); document.getElementById('board-member-add-inp').value='';
-  document.getElementById('board-members-current').innerHTML=_boardMembers.map((m,i)=>`<span class="board-member-chip">${m} <button onclick="_boardMembers.splice(${i},1);document.getElementById('board-members-current').innerHTML=''">✕</button></span>`).join('');
-}
-function saveBoardModal() {
-  const name=(document.getElementById('board-name-inp')?.value||'').trim(); if (!name) { showWarningToast('⚠️ Posa un nom'); return; }
-  const boards=get(BOARDS_KEY,[]);
-  boards.push({id:Date.now().toString(),name,desc:document.getElementById('board-desc-inp')?.value||'',members:_boardMembers,tasks:[],created:Date.now()});
-  set(BOARDS_KEY,boards); closeBoardModal(); renderSharedBoards(); showToast('✅ Llista creada!');
-}
-let _openBoardId = null;
-
-async function openBoardDetail(id) {
-  const boards=get(BOARDS_KEY,[]);
-  const board=boards.find(b=>b.id===id);
-  if (!board) { showWarningToast('⚠️ Tauler no trobat'); return; }
-  _openBoardId = id;
-  const ov = document.getElementById('board-detail-overlay');
-  if (!ov) return;
-  ov.style.display='flex';
-  // Si és compartida, refresca des del núvol per veure els canvis dels altres membres
-  if (board.shareCode && _supabase) {
-    try {
-      const {data} = await _supabase.from('shared_boards').select('board_data,owner_name').eq('code',board.shareCode).maybeSingle();
-      if (data?.board_data) {
-        const idx = boards.findIndex(b=>b.id===id);
-        // Conserva metadades locals però agafa tasques/nom del núvol
-        boards[idx] = {...boards[idx], name:data.board_data.name||board.name, desc:data.board_data.desc||board.desc, tasks:data.board_data.tasks||[], members:data.board_data.members||board.members};
-        set(BOARDS_KEY, boards);
-      }
-    } catch {}
-  }
-  renderBoardDetail();
-}
-
-function closeBoardDetail() {
-  const ov = document.getElementById('board-detail-overlay');
-  if (ov) ov.style.display='none';
-  _openBoardId = null;
-}
-
-function renderBoardDetail() {
-  const boards=get(BOARDS_KEY,[]);
-  const board=boards.find(b=>b.id===_openBoardId);
-  if (!board) { closeBoardDetail(); return; }
-  const titleEl = document.getElementById('bd-title');
-  const metaEl = document.getElementById('bd-meta');
-  const listEl = document.getElementById('bd-tasks');
-  if (titleEl) titleEl.textContent = board.name;
-  if (metaEl) metaEl.textContent = (board.sharedWith?('Compartida per '+(board.ownerName||'algú')+' · '):'') + (board.tasks||[]).length + ' tasques';
-  const tasks = board.tasks||[];
-  if (listEl) {
-    if (tasks.length===0) {
-      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">Encara no hi ha tasques. Afegeix-ne una! ↓</div>';
-    } else {
-      listEl.innerHTML = tasks.map((t,i)=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:6px;">
-          <button onclick="toggleBoardTask(${i})" style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${t.done?'#10b981':'rgba(255,255,255,0.2)'};background:${t.done?'rgba(16,185,129,0.2)':'transparent'};color:#6ee7b7;cursor:pointer;flex-shrink:0;font-size:12px;">${t.done?'✓':''}</button>
-          <span style="flex:1;font-size:13px;${t.done?'text-decoration:line-through;color:var(--muted);':''}">${t.t||t.name||''}</span>
-          <button onclick="deleteBoardTask(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>
-        </div>`).join('');
-    }
-  }
-}
-
-async function _persistBoard(board) {
-  // Desa local
-  const boards=get(BOARDS_KEY,[]);
-  const idx=boards.findIndex(b=>b.id===board.id);
-  if (idx>=0) { boards[idx]=board; set(BOARDS_KEY,boards); }
-  // Si està compartida, sincronitza al núvol perquè tots els membres ho vegin
-  if (board.shareCode && _supabase) {
-    try {
-      // .select() per detectar rebuigs de RLS: sense error però 0 files actualitzades
-      const {data, error} = await _supabase.from('shared_boards').update({board_data:board, updated:new Date().toISOString()}).eq('code',board.shareCode).select('code');
-      if (error || !data || !data.length) showErrorToast('❌ No s\'ha pogut sincronitzar el tauler compartit. Els canvis estan guardats localment.');
-    } catch { showErrorToast('❌ Sense connexió. Els canvis estan guardats localment.'); }
-  }
-}
-
-async function addBoardTask() {
-  const inp = document.getElementById('bd-new-task');
-  const txt = (inp?.value||'').trim();
-  if (!txt) return;
-  const boards=get(BOARDS_KEY,[]);
-  const board=boards.find(b=>b.id===_openBoardId); if(!board) return;
-  if (!board.tasks) board.tasks=[];
-  board.tasks.push({t:txt, done:false, by:_userProfile?.username||'jo'});
-  if (inp) inp.value='';
-  await _persistBoard(board);
-  renderBoardDetail(); renderSharedBoards();
-}
-
-async function toggleBoardTask(i) {
-  const boards=get(BOARDS_KEY,[]);
-  const board=boards.find(b=>b.id===_openBoardId); if(!board||!board.tasks[i]) return;
-  board.tasks[i].done=!board.tasks[i].done;
-  await _persistBoard(board);
-  renderBoardDetail();
-}
-
-async function deleteBoardTask(i) {
-  const boards=get(BOARDS_KEY,[]);
-  const board=boards.find(b=>b.id===_openBoardId); if(!board) return;
-  board.tasks.splice(i,1);
-  await _persistBoard(board);
-  renderBoardDetail(); renderSharedBoards();
-}
+/* [2026-07-03] Eliminat el sistema antic de taulers compartits (BOARDS_KEY: renderSharedBoards,
+   openBoardDetail, addBoardTask, _persistBoard...): les dades es migren a les llistes v3
+   via _migrateLists i el flux viu és el de shared lists (renderListsCollection). */
 
 /* ─────────────────────────────────────────
    FOCUS — POMODORO
@@ -4879,6 +4578,7 @@ function _playPomoAlarm() {
 function _pomoCompleteFocus() {
   clearInterval(_pomoInterval); _pomoCurrent++;
   const data=get(POMO_KEY,{total:0,week:0,today:0,goalToday:4,todayDate:new Date().toDateString()});
+  if(data.todayDate!==new Date().toDateString()){ data.today=0; data.todayDate=new Date().toDateString(); }
   data.total=(data.total||0)+1; data.today=(data.today||0)+1; data.week=(data.week||0)+1;
   set(POMO_KEY,data); showToast('🍅 Pomodoro completat! +15 XP +5 🪙');
   if (typeof rpgOnPomodoro==='function') rpgOnPomodoro().then(()=>updatePomoLevel()).catch(()=>{});
@@ -5748,11 +5448,17 @@ function runSearch(q) {
 /* ─────────────────────────────────────────
    CONFIG
 ───────────────────────────────────────── */
+let _configPreviousFocus = null;
 function openConfig() {
   const ov=document.getElementById('config-overlay'); if(!ov) return;
+  _configPreviousFocus = document.activeElement;
   ov.style.display='flex'; renderConfigBody();
+  ov.querySelector('.config-close')?.focus();
 }
-function closeConfig() { document.getElementById('config-overlay').style.display='none'; }
+function closeConfig() {
+  document.getElementById('config-overlay').style.display='none';
+  if (_configPreviousFocus?.isConnected) _configPreviousFocus.focus();
+}
 
 async function updateUsername() {
   const inp = document.getElementById('cfg-new-username');
@@ -5817,14 +5523,14 @@ function renderConfigBody() {
     </div>
     <div id="cfgp-general" class="cfg-panel">
       <div class="cfg-section" style="margin-bottom:16px;">
-        <h4 style="margin-bottom:10px;">🌐 Idioma / Language / Idioma</h4>
+        <h4 style="margin-bottom:10px;">Idioma</h4>
         <div id="cfg-lang-switcher" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
       </div>
-      <div class="cfg-section"><h4>🚀 Objectiu principal</h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${cfg.mainGoal||''}</textarea></div>
-      <div class="cfg-section"><h4>📚 Nom de l'objectiu de progrés</h4><input id="cfg-prog-title" type="text" value="${cfg.progressTitle||''}" placeholder="Ex: Aprendre guitarra, Preparar oposicions..." style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
-      <div class="cfg-section"><h4>🔢 Total de passos</h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${cfg.progressTotal||10}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
+      <div class="cfg-section"><h4><label for="cfg-goal">Objectiu principal</label></h4><textarea id="cfg-goal" rows="3" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;">${_esc(cfg.mainGoal||'')}</textarea></div>
+      <div class="cfg-section"><h4><label for="cfg-prog-title">Nom de l'objectiu de progrés</label></h4><input id="cfg-prog-title" type="text" value="${_esc(cfg.progressTitle||'')}" placeholder="Ex: Aprendre guitarra, Preparar oposicions..." style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;box-sizing:border-box;"/></div>
+      <div class="cfg-section"><h4><label for="cfg-prog-total">Total de passos</label></h4><input id="cfg-prog-total" type="number" min="1" max="100" value="${Number(cfg.progressTotal)||10}" style="width:100px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:13px;"/></div>
       <div style="margin-top:20px;display:flex;gap:10px;">
-        <button onclick="saveConfig()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--accent),var(--cyan));border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;">✅ Guardar</button>
+        <button onclick="saveConfig()" style="flex:1;padding:12px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;">Desar els canvis</button>
         <button onclick="closeConfig()" style="padding:12px 20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;">Cancel·lar</button>
       </div>
     </div>
@@ -5872,7 +5578,7 @@ function renderConfigBody() {
           </div>
         </div>
         <div style="margin-bottom:10px;display:flex;gap:8px;">
-          <button onclick="_saveUserDataToCloud(_currentUser?.id).then(()=>showToast('☁️ Dades guardades!'))" style="flex:1;padding:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:9px;color:#6ee7b7;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;">☁️ GUARDAR AL NÚvOL</button>
+          <button onclick="saveCloudManually(this)" style="flex:1;padding:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:9px;color:#6ee7b7;cursor:pointer;font-family:inherit;font-size:13px;">Desar al núvol</button>
           <button onclick="forceSyncProfile()" style="flex:1;padding:10px;background:rgba(0,180,216,0.12);border:1px solid rgba(0,180,216,0.25);border-radius:9px;color:var(--cyan2);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;">🔄 SINCRONITZAR PERFIL</button>
         </div>
       </div>
@@ -5902,6 +5608,15 @@ function renderConfigBody() {
     renderLangSwitcher('cfg-lang-switcher');
   },50);
 }
+async function saveCloudManually(button) {
+  button.disabled=true; button.setAttribute('aria-busy','true');
+  const label=button.textContent; button.textContent='Desant…';
+  try {
+    const ok=await _saveUserDataToCloud(_currentUser?.id);
+    if(ok) showToast('Dades desades al núvol');
+    else showErrorToast('No s’han pogut desar al núvol. Les dades locals es conserven; torna-ho a provar.');
+  } finally { button.disabled=false; button.removeAttribute('aria-busy'); button.textContent=label; }
+}
 function saveApiKey() {
   const key=(document.getElementById('cfg-api-key')?.value||'').trim();
   if(key) { localStorage.setItem('jomaxpath_anthropic_key',key); showToast('✅ Clau API guardada!'); }
@@ -5910,6 +5625,8 @@ function saveApiKey() {
   if(s) { s.textContent=key?'✅ Clau guardada':'⚠️ Cap clau configurada'; s.style.color=key?'#6ee7b7':'var(--muted)'; }
 }
 function saveConfig() {
+  const totalInput=document.getElementById('cfg-prog-total');
+  if (totalInput && (!totalInput.value || !totalInput.reportValidity())) return;
   const cfg=get(CONFIG_KEY,{});
   cfg.mainGoal=document.getElementById('cfg-goal')?.value||'';
   cfg.progressTitle=document.getElementById('cfg-prog-title')?.value||'El meu objectiu';
@@ -5976,8 +5693,8 @@ function toggleNotePicker() { navTo('notes'); lsbMobileClose(); }
 
 function formatDateReadable(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  const todayStr = new Date().toISOString().split('T')[0];
-  const tomorrowStr = (() => { const t = new Date(); t.setDate(t.getDate()+1); return t.toISOString().split('T')[0]; })();
+  const todayStr = _localDateStr(new Date());
+  const tomorrowStr = (() => { const t = new Date(); t.setDate(t.getDate()+1); return _localDateStr(t); })();
   if (dateStr === todayStr) return 'Avui';
   if (dateStr === tomorrowStr) return 'Demà';
   return d.toLocaleDateString('ca-ES', { weekday:'short', day:'numeric', month:'short' });
@@ -6022,7 +5739,7 @@ function parseAndPreview(input) {
 function submitQuickCapture() {
   const inp = document.getElementById('qc-input');
   const text = (inp?.value || '').trim();
-  if (!text) { if (typeof showWarningToast === 'function') showWarningToast('⚠️ Escriu algo!'); return; }
+  if (!text) { if (typeof showWarningToast === 'function') showWarningToast('⚠️ Escriu alguna cosa!'); return; }
 
   const parsed = (typeof parseNaturalLanguage === 'function')
     ? parseNaturalLanguage(text)
@@ -6033,9 +5750,11 @@ function submitQuickCapture() {
   const prioMap = { urgent: 1, important: 2, normal: 3, low: 4 };
 
   if (parsed.type === 'note') {
-    const notes = get(NOTES_KEY, []);
-    notes.unshift({ id: Date.now().toString(), text: parsed.title, created: Date.now() });
-    set(NOTES_KEY, notes);
+    const notes = _getNotes();
+    const timestamp = new Date().toISOString();
+    notes.unshift({ id: Date.now().toString(), title: parsed.title.slice(0,60), content: parsed.title,
+      color:'purple', is_pinned:false, created_at:timestamp, updated_at:timestamp });
+    _setNotes(notes);
     showToast(`📝 Nota "${parsed.title}" guardada!`);
     if (typeof renderNotes === 'function') renderNotes();
 
@@ -6071,6 +5790,7 @@ function submitQuickCapture() {
       created: Date.now()
     });
     set(TASKS_KEY, tasks);
+    _injectFlatTasksIntoLists([tasks[tasks.length - 1]]);
     showToast(`✅ Tasca "${parsed.title}" capturada!`);
     if (typeof renderTasques === 'function') renderTasques();
   }
@@ -6172,7 +5892,7 @@ function _renderNotesList(){
     const dot=getNoteColor(n.color).dot;
     const preview=(n.content||'').replace(/[#*_`>]/g,'').replace(/\n+/g,' ').substring(0,70);
     const date=new Date(n.updated_at).toLocaleDateString('ca-ES',{day:'numeric',month:'short'});
-    return `<div class="note-item${_currentNoteId===n.id?' active':''}" onclick="openNote('${n.id}')">
+    return `<div class="note-item${_currentNoteId===n.id?' active':''}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" onclick="openNote('${n.id}')">
       <div class="note-item-header">
         <span class="note-item-dot" style="background:${dot};box-shadow:0 0 5px ${dot}55;"></span>
         <span class="note-item-title">${n.is_pinned?'📌 ':''}${_esc(n.title||'Sense títol')}</span>
@@ -6343,30 +6063,36 @@ function renderNotes(){ _migrateNotesV1(); _renderNoteColorFilter(); _renderNote
 ───────────────────────────────────────── */
 function openShortcuts() { const ov=document.getElementById('shortcuts-overlay'); if(ov) ov.style.display='flex'; }
 function closeShortcuts() { const ov=document.getElementById('shortcuts-overlay'); if(ov) ov.style.display='none'; }
-function openDevMode() { const ov=document.getElementById('dev-modal-overlay'); if(ov) ov.style.display='flex'; }
-function closeDevMode() { const ov=document.getElementById('dev-modal-overlay'); if(ov) ov.style.display='none'; }
+function _isLocalDevelopment() { return ['localhost','127.0.0.1','[::1]'].includes(location.hostname); }
+function openDevMode() {
+  if (!_isLocalDevelopment()) return;
+  const overlay=document.getElementById('devmode-overlay');
+  if (overlay) overlay.style.display='flex';
+}
+function closeDevMode() { const overlay=document.getElementById('devmode-overlay'); if(overlay) overlay.style.display='none'; }
 function submitDevMode() {
-  const email=document.getElementById('dev-email')?.value;
-  const pass=document.getElementById('dev-pass')?.value;
-  const err=document.getElementById('dev-error');
-  // Credencials comparades via hash — mai en clar al codi
-  const _DEV_H='ZGV2QGpvbWF4cGF0aC5jb206Sk9tYXgyMDI0IQ==';
-  const inputHash=btoa((email||'')+':'+(pass||''));
-  if (inputHash===_DEV_H) {
-    if(err) err.textContent=''; showToast('✅ Mode Dev activat!'); setTimeout(closeDevMode,1500);
-  } else { if(err) err.textContent='⚠️ Credencials incorrectes'; }
+  if (!_isLocalDevelopment()) return;
+  const output=document.getElementById('dev-error');
+  if (output) output.textContent='Pàgina: '+_currentPage+' · Navegador: '+(navigator.onLine?'en línia':'sense xarxa')+' · Llistes locals: '+(getLists()||[]).length;
 }
 
 /* ─────────────────────────────────────────
    KEYBOARD SHORTCUTS
 ───────────────────────────────────────── */
 document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.defaultPrevented || e.isComposing) return;
+  const editing = e.target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]');
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+    if (editing || Array.from(document.querySelectorAll('[role="dialog"]')).some(el => el.getClientRects().length)) return;
+    e.preventDefault(); openQuickCapture(); return;
+  }
+  if(editing) return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
   if(e.key==='/'&&!e.ctrlKey){e.preventDefault();openSearch();}
   if(e.key==='q'||e.key==='Q'){e.preventDefault();openQuickCapture();}
   if(e.key==='Escape'){
     closeSearch();closeQuickCapture();closeInfo();closeConfig();closeShortcuts();
-    closeClockFullscreen();closeDayModal();closeMonthModal();closeTaskDetail();
+    closeClockFullscreen();closeDayModal();closeMonthModal();
     const drawer=document.getElementById('nav-drawer');
     if(drawer?.classList.contains('open')) toggleDrawer();
     if(typeof lsbMobileClose==='function') lsbMobileClose();
@@ -6474,7 +6200,7 @@ const LANGS = {
     greeting_morning:'Bon dia', greeting_afternoon:'Bona tarda', greeting_night:'Bona nit',
     greeting_emoji_m:'👋', greeting_emoji_a:'💪', greeting_emoji_n:'🌙',
     // Nav / sidebar
-    nav_home:'Inici', nav_schedule:'Horari', nav_tasks:'Tasques', nav_notes:'Notes',
+    nav_home:'Avui', nav_schedule:'Calendari', nav_tasks:'Tasques', nav_notes:'Notes',
     nav_focus:'Focus', nav_hero:'Heroi', nav_ai:'Julians AI',
     // Seccions home
     sec_habits:'🌱 hàbits diaris', sec_streak:'Ratxa', sec_victories:'🏆 les meves victòries de la setmana',
@@ -6513,7 +6239,7 @@ const LANGS = {
     tasks_title2:'📋 Tasques a realitzar',
     qct_task:'📋 Tasca', qct_event:'📅 Event', qct_note:'📝 Nota',
     // Errors/missatges
-    pt_horari:'HORARI', pt_tasques:'TASQUES', pt_examenia:'PREPARAR EXÀMENS', pt_notes:'NOTES', pt_focus:'FOCUS',
+    pt_horari:'CALENDARI', pt_tasques:'TASQUES', pt_examenia:'PREPARAR EXÀMENS', pt_notes:'NOTES', pt_focus:'FOCUS',
     lst_my:'📋 Les meves llistes', lst_shared:'🤝 Llistes compartides', lst_new:'+ Nova llista',
     lst_empty_personal:'Encara no tens llistes.<br>Crea la teva primera! ↑', lst_empty_shared:'Encara no tens llistes compartides.<br>Crea\'n una i convida amics, o uneix-te amb un codi.',
     lst_tasks_done:'tasques fetes', lst_badge_shared:'compartida', lst_back:'← Tornar',
@@ -6528,9 +6254,9 @@ const LANGS = {
     te_title:'✎ Editar tasca', te_task:'Tasca', te_desc:'Descripció', te_links:'🔗 Enllaços', te_addlink:'+ Afegir enllaç',
     te_date:'📅 Data límit', te_prio:'Prioritat', te_assignee:'👤 Assignat a', te_save:'💾 Desar', te_cancel:'Cancel·lar',
     te_name_ph:'Nom de la tasca', te_desc_ph:'Afegeix detalls, notes, context...',
-    sub_home:'Objectiu · Progrés · Ratxa · Hàbits', sub_tasques:'Deures · Treballs · Prioritats',
+    sub_home:'Què has de fer avui?', sub_tasques:'Deures · Treballs · Prioritats',
     sub_examenia:'El teu tutor IA: penja el temari i et crea un pla d\'estudi', sub_notes:'Els teus apunts i recordatoris',
-    sub_julians:'Assistent intel·ligent · Documents', sub_focus:'Pomodoro · Pantalles · Motivació',
+    sub_julians:'Assistent intel·ligent · Documents', sub_focus:'Una tasca, una sessió, un pas endavant',
     msg_saved:'✅ Guardat!', msg_error:'❌ Error'
   },
   es: {

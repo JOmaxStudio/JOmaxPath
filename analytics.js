@@ -31,9 +31,9 @@ function _loadLocalData(days = 90) {
     const lists = JSON.parse(localStorage.getItem('jomaxpath_lists_v3') || '[]');
     lists.forEach(l => (l.tasks || []).forEach(t => {
       if (t.done) {
-        // Usem completed_at si existeix, sinó created (aproximació)
-        const ts = t.completed_at ? new Date(t.completed_at).getTime()
-                                  : (t.created || 0);
+        // Creation time is not evidence of completion time.
+        const timestamp = t.completed_at ? new Date(t.completed_at).getTime() : 0;
+        const ts = Number.isFinite(timestamp) ? timestamp : 0;
         tasks.push({ ...t, _ts: ts, listName: l.name || '' });
       }
     }));
@@ -56,6 +56,22 @@ function _loadLocalData(days = 90) {
   try { profile = JSON.parse(localStorage.getItem('jomaxpath_hero_v2') || '{}'); } catch {}
 
   return { tasks, habits, pomoData, streakData, profile, cutoff };
+}
+
+function analyticsSummary(tasks, now = Date.now()) {
+  const week = 7 * 864e5;
+  const dated = tasks.filter(task => task._ts > 0 && task._ts <= now);
+  const recent = dated.filter(task => task._ts >= now - week).length;
+  const previous = dated.filter(task => task._ts >= now - 2 * week && task._ts < now - week).length;
+  const unknown = tasks.filter(task => !task._ts).length;
+  let message = `Has completat ${recent} ${recent===1?'tasca':'tasques'} els últims 7 dies.`;
+  if (previous > 0) {
+    const change = Math.round((recent - previous) / previous * 100);
+    message += change === 0 ? ' El mateix nombre que els 7 dies anteriors.' : ` Un ${Math.abs(change)}% ${change > 0 ? 'més' : 'menys'} que els 7 dies anteriors.`;
+  }
+  if (!dated.length) message = 'Encara no hi ha tasques amb data de completat per comparar el progrés.';
+  if (unknown) message += ` ${unknown} tasques antigues no tenen data de completat i no s’inclouen als gràfics temporals.`;
+  return message;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -102,15 +118,15 @@ function _renderHeatmap(tasks) {
   const byDay = {};
   tasks.forEach(t => {
     if (!t._ts) return;
-    const day = new Date(t._ts).toISOString().slice(0, 10);
+    const day = _localDateStr(new Date(t._ts));
     byDay[day] = (byDay[day] || 0) + 1;
   });
 
   /* Genera els últims 91 dies (alineats a dilluns) */
   const days = [];
   for (let i = 90; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 864e5);
-    days.push(d.toISOString().slice(0, 10));
+    const d = new Date(); d.setDate(d.getDate()-i);
+    days.push(_localDateStr(d));
   }
 
   const maxCount = Math.max(...Object.values(byDay), 1);
@@ -128,7 +144,7 @@ function _renderHeatmap(tasks) {
     const label = new Date(day + 'T00:00:00').toLocaleDateString('ca-ES',
       { weekday: 'short', day: 'numeric', month: 'short' });
     return `<div class="heatmap-cell" style="background:${getColor(n)}"
-      title="${label}: ${n} tasca${n !== 1 ? 'ques' : ''}" aria-label="${label}"></div>`;
+      title="${label}: ${n} ${n===1?'tasca':'tasques'}" aria-label="${label}: ${n} ${n===1?'tasca':'tasques'}"></div>`;
   }).join('');
 
   /* Llegenda */
@@ -225,18 +241,17 @@ function _renderPomoChart(pomoData, period) {
   if (!ctx || !window.Chart) return;
   if (_chartPomo) { _chartPomo.destroy(); _chartPomo = null; }
 
-  /* pomoData té: today, week, total — construïm una estimació setmanal */
-  const today = pomoData.today || 0;
-  const week  = pomoData.week  || 0;
+  /* Only dated daily data and the recorded lifetime total are reliable here. */
+  const today = pomoData.todayDate===new Date().toDateString() ? pomoData.today || 0 : 0;
   const total = pomoData.total || 0;
 
-  /* Mostrem 3 barres simples com a resum */
+  /* The legacy week counter has no week boundary, so do not label it as this week. */
   _chartPomo = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Avui', 'Aquesta setmana', 'Total'],
+      labels: ['Avui', 'Total'],
       datasets: [{
-        data: [today, week, total],
+        data: [today, total],
         backgroundColor: [_C.orange, _C.accent, _C.green],
         borderRadius: 8, borderSkipped: false,
       }],
@@ -256,7 +271,7 @@ function _renderPomoChart(pomoData, period) {
    FASE 6 — HÀBITS: ratxa actual i millor
 ═══════════════════════════════════════════════════════════ */
 function _calcHabitStreaks(habit) {
-  const days = (habit.days || []).slice().sort();
+  const days = [...new Set(habit.days || [])].filter(day=>Number.isFinite(new Date(day).getTime())).sort((a,b)=>new Date(a)-new Date(b));
   if (!days.length) return { current: 0, best: 0 };
 
   let current = 0, best = 0, streak = 1;
@@ -266,7 +281,7 @@ function _calcHabitStreaks(habit) {
   for (let i = 1; i < days.length; i++) {
     const prev = new Date(days[i - 1]);
     const curr = new Date(days[i]);
-    const diff = (curr - prev) / 864e5;
+    const diff = Math.round((curr - prev) / 864e5);
     if (diff === 1) { streak++; } else { best = Math.max(best, streak); streak = 1; }
   }
   best = Math.max(best, streak);
@@ -337,10 +352,12 @@ function renderAnalytics() {
   /* Petit delay per mostrar el skeleton */
   setTimeout(() => {
     const data = _loadLocalData(period);
+    const summary = document.getElementById('analytics-summary');
+    if (summary) summary.textContent = analyticsSummary(data.tasks);
     _renderStatCards(data, period);
     _renderHeatmap(data.tasks); // sempre 90 dies
     _renderWeeklyChart(data.tasks, period);
-    _renderHoursChart(data.tasks);
+    _renderHoursChart(data.tasks.filter(task=>task._ts>=data.cutoff && task._ts<=Date.now()));
     _renderPomoChart(data.pomoData, period);
     _renderHabitsStats(data.habits);
   }, 80);

@@ -1049,7 +1049,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   <!-- Hero mini card -->
   <div class="lsb-hero-mini" onclick="window.open('hero.html','_self')" id="lsb-hero-mini">
     <div class="lsb-hero-ico" id="lsb-hero-ico">⚔️</div>
-    <div class="lsb-hero-lvl" id="lsb-hero-lvl">HEROE · NV. <span id="lsb-lvl-num">1</span></div>
+    <div class="lsb-hero-lvl" id="lsb-hero-lvl">HEROI · NV. <span id="lsb-lvl-num">1</span></div>
     <div class="lsb-hero-name-mini" id="lsb-hero-name">El teu heroi</div>
     <div class="lsb-xpbar"><div class="lsb-xpbar-fill" id="lsb-xp-fill" style="width:0%"></div></div>
     <div class="rpg-xp-detail" id="rpg-xp-detail"></div>
@@ -1062,32 +1062,19 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
   <div class="lsb-nav">
     <div class="lsb-sec" data-i18n="lsb_sec_main">PRINCIPAL</div>
-    <div class="lsb-item lsb-active" data-tip="Inici" onclick="navTo('home');lsbMobileClose()">
-      <div class="lsb-ico">🏠</div><span class="lsb-lbl" data-i18n="nav_home">Inici</span>
-    </div>
-    <div class="lsb-item" data-tip="Horari" onclick="navTo('horari');lsbMobileClose()">
-      <div class="lsb-ico">📅</div><span class="lsb-lbl" data-i18n="nav_schedule">Horari</span>
-    </div>
-    <div class="lsb-item" data-tip="Tasques" onclick="navTo('tasques');lsbMobileClose()">
-      <div class="lsb-ico">📋</div><span class="lsb-lbl" data-i18n="nav_tasks">Tasques</span>
-    </div>
-    <div class="lsb-item lsb-item-study" data-tip="Estudi" onclick="navTo('study');lsbMobileClose()">
-      <div class="lsb-ico">📚</div><span class="lsb-lbl">Estudi</span>
-    </div>
-    <div class="lsb-item" data-tip="Estadístiques" onclick="navTo('stats');lsbMobileClose()">
-      <div class="lsb-ico">📊</div><span class="lsb-lbl">Estadístiques</span>
-    </div>
+    <button type="button" class="lsb-item lsb-active" data-tip="Avui" aria-label="Avui" onclick="navTo('home');lsbMobileClose()"><div class="lsb-ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></svg></div><span class="lsb-lbl" data-i18n="nav_home">Inici</span></button>
+    <button type="button" class="lsb-item" data-tip="Calendari" aria-label="Calendari" onclick="navTo('horari');lsbMobileClose()"><div class="lsb-ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg></div><span class="lsb-lbl" data-i18n="nav_schedule">Horari</span></button>
+    <button type="button" class="lsb-item" data-tip="Tasques" aria-label="Tasques" onclick="navTo('tasques');lsbMobileClose()"><div class="lsb-ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 2 2 4-4m-6 12 2 2 4-4M12 7h9m-9 10h9"/></svg></div><span class="lsb-lbl" data-i18n="nav_tasks">Tasques</span></button>
+    <button type="button" class="lsb-item" data-tip="Focus" aria-label="Focus" onclick="navTo('focus');lsbMobileClose()"><span class="lsb-ico" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 3v-3m0 7v5l3 2"/></svg></span><span class="lsb-lbl">Focus</span></button>
+    <button type="button" class="lsb-item" data-tip="Julians" aria-label="Julians" onclick="navTo('julians');lsbMobileClose()"><span class="lsb-ico" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z"/></svg></span><span class="lsb-lbl">Julians</span></button>
+    <div class="lsb-sec">MÉS</div><button type="button" class="lsb-item" data-tip="Hàbits" aria-label="Hàbits" onclick="navTo('horari');switchHorariTab('habits');lsbMobileClose()"><span class="lsb-ico">🌱</span><span class="lsb-lbl">Hàbits</span></button>
+    <button type="button" class="lsb-item lsb-item-study" data-tip="Estudi" aria-label="Estudi" onclick="navTo('study');lsbMobileClose()"><div class="lsb-ico">📚</div><span class="lsb-lbl">Estudi</span></button>
+    <button type="button" class="lsb-item" data-tip="Estadístiques" aria-label="Estadístiques" onclick="navTo('stats');lsbMobileClose()"><div class="lsb-ico">📊</div><span class="lsb-lbl">Estadístiques</span></button>
 
     <div class="lsb-sec" data-i18n="lsb_sec_tools">EINES</div>
-    <div class="lsb-item" data-tip="Captura ràpida" onclick="openQuickCapture();lsbMobileClose()">
-      <div class="lsb-ico">⚡</div><span class="lsb-lbl" data-i18n="nav_quick">Captura ràpida</span>
-    </div>
-    <div class="lsb-item" data-tip="Notes" onclick="navTo('notes');lsbMobileClose();">
-      <div class="lsb-ico">📝</div><span class="lsb-lbl" data-i18n="nav_notes2">Notes</span>
-    </div>
-    <div class="lsb-item" data-tip="Cerca" onclick="openSearch();lsbMobileClose()">
-      <div class="lsb-ico">🔍</div><span class="lsb-lbl" data-i18n="nav_search">Cerca global</span>
-    </div>
+    <button type="button" class="lsb-item" data-tip="Captura ràpida" aria-label="Captura ràpida" onclick="openQuickCapture();lsbMobileClose()"><div class="lsb-ico">⚡</div><span class="lsb-lbl" data-i18n="nav_quick">Captura ràpida</span></button>
+    <button type="button" class="lsb-item" data-tip="Notes" aria-label="Notes" onclick="navTo('notes');lsbMobileClose();"><div class="lsb-ico">📝</div><span class="lsb-lbl" data-i18n="nav_notes2">Notes</span></button>
+    <button type="button" class="lsb-item" data-tip="Cerca" aria-label="Cerca" onclick="openSearch();lsbMobileClose()"><div class="lsb-ico">🔍</div><span class="lsb-lbl" data-i18n="nav_search">Cerca global</span></button>
   </div>
 
   <div class="lsb-bottom">
@@ -1167,19 +1154,15 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   syncHeroSidebar();
   /* Update active item on nav */
   window.lsbSetActive=function(page){
-    document.querySelectorAll('.lsb-item').forEach(el=>el.classList.remove('lsb-active'));
-    const studyPages=['study','focus','julians','examenia'];
-    const map={home:0,horari:1,tasques:2,stats:3};
-    if(studyPages.includes(page)){
-      const studyItem=document.querySelector('.lsb-item-study');
-      if(studyItem)studyItem.classList.add('lsb-active');
-    } else {
-      const idx=map[page];
-      if(idx!==undefined){
-        const items=document.querySelectorAll('#left-sidebar .lsb-item');
-        if(items[idx])items[idx].classList.add('lsb-active');
-      }
-    }
+    const destination = page === 'examenia' ? 'study' : page;
+    document.querySelectorAll('#left-sidebar .lsb-item').forEach(el => {
+      const action = el.getAttribute('onclick') || '';
+      const target = action.includes("switchHorariTab('habits')") ? 'habits' : action.match(/navTo\('([^']+)'\)/)?.[1];
+      const active = target === destination;
+      el.classList.toggle('lsb-active', active);
+      if (active) el.setAttribute('aria-current', 'page');
+      else el.removeAttribute('aria-current');
+    });
   };
 })();
 </script>
@@ -1303,26 +1286,12 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
 <!-- Bottom nav (pages mode) -->
 <nav id="bnav">
-  <div class="bnav-item active" role="button" aria-label="Inici" onclick="navTo('home');lsbMobileClose()">
-    <div class="bnav-icon">🏠</div>
-    <div class="bnav-lbl">INICI</div>
-  </div>
-  <div class="bnav-item" role="button" aria-label="Horari" onclick="navTo('horari');lsbMobileClose()">
-    <div class="bnav-icon">📅</div>
-    <div class="bnav-lbl">HORARI</div>
-  </div>
-  <div class="bnav-item" role="button" aria-label="Tasques" onclick="navTo('tasques');lsbMobileClose()">
-    <div class="bnav-icon">📋</div>
-    <div class="bnav-lbl">TASQUES</div>
-  </div>
-  <div class="bnav-item" role="button" aria-label="Estudi" onclick="navTo('study');lsbMobileClose()">
-    <div class="bnav-icon">📚</div>
-    <div class="bnav-lbl">ESTUDI</div>
-  </div>
-  <div class="bnav-item bnav-item-mes" role="button" aria-label="Més opcions" onclick="showMobileMenu()">
-    <div class="bnav-icon">☰</div>
-    <div class="bnav-lbl">MÉS</div>
-  </div>
+  <button type="button" class="bnav-item active" aria-label="Avui" onclick="navTo('home');lsbMobileClose()"><span class="bnav-icon" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></svg></span><span class="bnav-lbl">AVUI</span></button>
+  <button type="button" class="bnav-item" aria-label="Calendari" onclick="navTo('horari');lsbMobileClose()"><span class="bnav-icon" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg></span><span class="bnav-lbl">CALENDARI</span></button>
+  <button type="button" class="bnav-item" aria-label="Tasques" onclick="navTo('tasques');lsbMobileClose()"><span class="bnav-icon" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 2 2 4-4m-6 12 2 2 4-4M12 7h9m-9 10h9"/></svg></span><span class="bnav-lbl">TASQUES</span></button>
+  <button type="button" class="bnav-item" aria-label="Focus" onclick="navTo('focus');lsbMobileClose()"><span class="bnav-icon" aria-hidden="true"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 3v-3m0 7v5l3 2"/></svg></span><span class="bnav-lbl">FOCUS</span></button>
+  <button type="button" class="bnav-item" aria-label="Julians" onclick="navTo('julians');lsbMobileClose()"><span class="bnav-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z"/></svg></span><span class="bnav-lbl">JULIANS</span></button>
+  <button type="button" class="bnav-item bnav-item-mes" aria-label="Més opcions" onclick="showMobileMenu()"><span class="bnav-icon" aria-hidden="true">☰</span><span class="bnav-lbl">MÉS</span></button>
 </nav>
 
 <div class="container" role="main">
@@ -1412,14 +1381,21 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     </div>
 
     <!-- Horari Tabs -->
+    <div class="calendar-toolbar">
+      <label for="calendar-day-date">Dia seleccionat</label><input type="date" id="calendar-day-date" onchange="switchHorariTab('dia')">
+      <details class="product-details" id="calendar-create-menu"><summary>+ Crear</summary><div class="today-actions">
+        <button onclick="openCalendarComposer('task')">Tasca</button><button onclick="openCalendarComposer('class')">Classe</button><button onclick="openCalendarComposer('exam')">Examen</button><button onclick="openCalendarComposer('sport')">Esport</button><button onclick="openCalendarComposer('event')">Event</button>
+      </div></details>
+    </div>
     <div class="horari-tabs">
+      <button class="horari-tab" id="htab-dia" onclick="switchHorariTab('dia')"><span class="htab-label">Dia</span></button>
       <button class="horari-tab active" id="htab-setmanal" onclick="switchHorariTab('setmanal')">
         <span class="htab-icon">📅</span>
-        <span class="htab-label">Setmanal</span>
+        <span class="htab-label">Setmana</span>
       </button>
       <button class="horari-tab" id="htab-mensual" onclick="switchHorariTab('mensual')">
         <span class="htab-icon">🗓️</span>
-        <span class="htab-label">Mensual</span>
+        <span class="htab-label">Mes</span>
       </button>
       <button class="horari-tab" id="htab-habits" onclick="switchHorariTab('habits')">
         <span class="htab-icon">🌱</span>
@@ -1428,6 +1404,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     </div>
 
     <!-- TAB: Setmanal -->
+    <div class="horari-tab-content" id="htab-content-dia" style="display:none;"><div class="db-today-view" id="calendar-day-content"></div></div>
     <div class="horari-tab-content active" id="htab-content-setmanal">
     <!-- Next up -->
     <div id="next-up-bar" style="display:none;" class="next-up-bar">
@@ -1475,7 +1452,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <div class="calendar-grid" id="calendar-grid"></div>
         <div id="calendar-agenda" style="display:none;"></div>
       </div>
-      
+
       <!-- Events esportius -->
       <div style="margin-top:30px;margin-bottom:16px;">
         <div class="section-title" style="margin:0 0 14px 0;">🏅 Events esportius</div>
@@ -1502,7 +1479,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
             <span style="font-size:22px;position:relative;z-index:1;">+</span>
           </button>
         </div>
-        
+
         <!-- Form per afegir hàbit -->
         <div class="habitkit-form" id="habitkit-form" style="display:none;">
           <div class="habitkit-form-row">
@@ -1557,10 +1534,10 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
             <button class="habitkit-save-btn" onclick="addHabitKit()">AFEGIR HÀBIT</button>
           </div>
         </div>
-        
+
         <!-- Llista d'hàbits -->
         <div id="habitkit-list"></div>
-        
+
         <!-- Missatge si no hi ha hàbits -->
         <div id="habitkit-empty" class="habitkit-empty">
           <div style="font-size:64px;margin-bottom:16px;opacity:0.6;">🌱</div>
@@ -1595,7 +1572,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       <!-- Extres del mode compartit: unir-se per codi + invitacions -->
       <div id="shared-extras" style="display:none;">
         <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
-          <input id="join-board-code-inp" placeholder="Enganxa codi BRD_..." maxlength="30" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSharedBoard(this.value)" />
+          <input id="join-board-code-inp" placeholder="Enganxa el codi d’invitació" maxlength="30" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Space Mono',monospace;font-size:11px;outline:none;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSharedBoard(this.value)" />
           <button onclick="joinSharedBoard(document.getElementById('join-board-code-inp').value)" style="padding:9px 14px;background:rgba(0,180,216,0.15);border:1px solid rgba(0,180,216,0.3);border-radius:9px;color:var(--cyan2,#38d9f5);cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;white-space:nowrap;letter-spacing:1px;">🔗 UNIR-SE</button>
         </div>
         <div id="board-invites-section" style="display:none;margin-bottom:16px;">
@@ -1671,22 +1648,22 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <h3 style="font-size:16px;font-weight:800;margin-bottom:4px;">📝 Nou examen</h3>
         <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Omple les dades i penja el temari. El Julians et crearà un pla d'estudi personalitzat.</p>
 
-        <label class="exam-label">Nom de l'examen</label>
+        <label for="exam-w-name" class="exam-label">Nom de l'examen</label>
         <input id="exam-w-name" class="exam-input" placeholder="Ex: Examen final d'Història" maxlength="80"/>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
-            <label class="exam-label">Assignatura / tema</label>
+            <label for="exam-w-subject" class="exam-label">Assignatura / tema</label>
             <input id="exam-w-subject" class="exam-input" placeholder="Ex: Història contemporània" maxlength="60"/>
           </div>
           <div style="flex:1;min-width:140px;">
-            <label class="exam-label">Data de l'examen</label>
+            <label for="exam-w-date" class="exam-label">Data de l'examen</label>
             <input id="exam-w-date" class="exam-input" type="date"/>
           </div>
         </div>
 
-        <label class="exam-label">Temari (penja fitxers o enganxa text)</label>
-        <div class="exam-dropzone" id="exam-dropzone" onclick="document.getElementById('exam-w-files').click()">
+        <label for="exam-w-paste" class="exam-label">Temari (penja fitxers o enganxa text)</label>
+        <div class="exam-dropzone" id="exam-dropzone" role="button" tabindex="0" aria-label="Adjuntar temari" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('exam-w-files').click()}" onclick="document.getElementById('exam-w-files').click()">
           <input type="file" id="exam-w-files" multiple accept=".pdf,.docx,.pptx,.txt,.md" style="display:none;" onchange="handleExamFiles(this)"/>
           <div style="font-size:30px;margin-bottom:6px;">📎</div>
           <div style="font-size:13px;font-weight:600;">Clica per pujar PDF, Word o PowerPoint</div>
@@ -1753,7 +1730,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       <!-- Panell esquerre: llista -->
       <div class="notes-sidebar" id="notes-sidebar">
         <div class="notes-sidebar-header">
-          <input type="text" id="notes-search" class="notes-search-input"
+          <input type="text" id="notes-search" class="notes-search-input" aria-label="Cercar notes"
                  placeholder="🔍 Cerca notes..."
                  oninput="searchNotes(this.value)">
           <button onclick="createNoteV2()" class="btn-new-note">+ Nova nota</button>
@@ -1767,7 +1744,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <div id="notes-empty-state" class="notes-empty-state">
           <span style="font-size:48px;">📝</span>
           <p>Selecciona una nota o crea'n una de nova</p>
-          <button onclick="createNoteV2()" class="btn-new-note">+ Crea la teva primera nota</button>
+          <button onclick="createNoteV2()" class="btn-new-note">+ Crear una nota</button>
         </div>
         <div id="notes-editor" style="display:none;flex-direction:column;height:100%;"></div>
       </div>
@@ -1813,29 +1790,22 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
   <!-- Modal: Editor de tasca (descripció, enllaços, data, prioritat) -->
   <div id="task-editor-overlay" class="modal-overlay" onclick="if(event.target===this)closeTaskEditor()" style="display:none;">
-    <div class="board-modal" style="max-width:500px;width:94vw;max-height:90vh;overflow-y:auto;">
+    <div class="board-modal" role="dialog" aria-modal="true" aria-labelledby="task-editor-title" style="max-width:500px;width:94vw;max-height:90vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="margin:0;" data-i18n="te_title">✎ Editar tasca</h3>
-        <button onclick="closeTaskEditor()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
+        <h3 id="task-editor-title" style="margin:0;">✎ Editar tasca</h3>
+        <button onclick="closeTaskEditor()" aria-label="Tancar editor" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;min-width:44px;min-height:44px;">✕</button>
       </div>
 
-      <label class="te-label" data-i18n="te_task">Tasca</label>
+      <label for="te-name" class="te-label" data-i18n="te_task">Tasca</label>
       <input type="text" id="te-name" class="te-input" maxlength="160" data-i18n-ph="te_name_ph" placeholder="Nom de la tasca"/>
-
-      <label class="te-label" data-i18n="te_desc">Descripció</label>
-      <textarea id="te-desc" class="te-input" rows="4" maxlength="2000" data-i18n-ph="te_desc_ph" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
-
-      <label class="te-label" data-i18n="te_links">🔗 Enllaços</label>
-      <div id="te-links"></div>
-      <button onclick="teAddLink()" class="te-addlink" data-i18n="te_addlink">+ Afegir enllaç</button>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
         <div style="flex:1;min-width:130px;">
-          <label class="te-label" data-i18n="te_date">📅 Data límit</label>
+          <label for="te-date" class="te-label" data-i18n="te_date">📅 Data límit</label>
           <input type="date" id="te-date" class="te-input"/>
         </div>
         <div style="flex:1;min-width:130px;">
-          <label class="te-label" data-i18n="te_prio">Prioritat</label>
+          <label for="te-prio" class="te-label" data-i18n="te_prio">Prioritat</label>
           <select id="te-prio" class="te-input">
             <option value="1" data-i18n="prio_urgent">🔴 Urgent</option>
             <option value="2" data-i18n="prio_important">🟡 Important</option>
@@ -1845,13 +1815,13 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         </div>
       </div>
       <div style="margin-top:6px;">
-        <label class="te-label">🔔 Recordatori (opcional)</label>
+        <label for="te-reminder" class="te-label">Recordatori (opcional)</label>
         <input type="datetime-local" id="te-reminder" class="te-input"
                title="Rebràs una notificació a l'hora indicada"/>
       </div>
 
       <div id="te-assignee-wrap" style="display:none;">
-        <label class="te-label" data-i18n="te_assignee">👤 Assignat a</label>
+        <label for="te-assignee" class="te-label" data-i18n="te_assignee">👤 Assignat a</label>
         <select id="te-assignee" class="te-input"></select>
       </div>
 
@@ -1908,6 +1878,14 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         </details>
       </div>
 
+<details class="product-details" id="te-extra"><summary>Detalls i enllaços opcionals</summary>      <label for="te-desc" class="te-label" data-i18n="te_desc">Descripció</label>
+      <textarea id="te-desc" class="te-input" rows="4" maxlength="2000" data-i18n-ph="te_desc_ph" placeholder="Afegeix detalls, notes, context..." style="resize:vertical;"></textarea>
+
+      <label class="te-label" data-i18n="te_links">🔗 Enllaços</label>
+      <div id="te-links"></div>
+      <button onclick="teAddLink()" class="te-addlink" data-i18n="te_addlink">+ Afegir enllaç</button>
+
+</details>
       <!-- Subtasques (només en mode edició) -->
       <div id="te-subtasks-container"></div>
 
@@ -2033,7 +2011,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
           </div>
 
           <!-- Guardar -->
-          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Guardar canvis</button>
+          <button class="tdm-save-btn" id="tdm-save-btn" onclick="tdmSaveChanges()" style="display:none;">💾 Desar els canvis</button>
 
           <!-- Select hidden per compat -->
           <select id="tdm-status" style="display:none;" onchange="updateTaskStatusFromDetail(this.value)">
@@ -2064,7 +2042,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       </div>
       <label>Data límit</label>
       <input type="date" id="bt-due-inp" />
-      <label>Urgència</label>
+      <label>Prioritat</label>
       <div class="bt-urgency-row">
         <button class="bt-urg-btn active" data-u="green" onclick="selectBtUrgency(this)">🟢 Baixa</button>
         <button class="bt-urg-btn" data-u="yellow" onclick="selectBtUrgency(this)">🟡 Mitjana</button>
@@ -2088,6 +2066,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       <button class="info-btn" onclick="showInfo('julians')" title="Com funciona?">i</button>
     </div>
 
+    <div class="today-actions"><button onclick="navTo('examenia')">Preparar un examen</button></div>
     <div id="ai-section">
       <div id="ai-section-card">
         <div id="ai-layout">
@@ -2117,6 +2096,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
               </div>
               <button class="ai-clear-btn" onclick="clearCurrentChat()" title="Netejar xat">🗑️</button>
             </div>
+            <details class="product-details"><summary>Opcions de resposta</summary>
             <div class="ai-mode-row">
               <button class="ai-mode-btn active" id="mode-rapid"  onclick="setAIMode('rapid')">⚡ Ràpid</button>
               <button class="ai-mode-btn"         id="mode-extens" onclick="setAIMode('extens')">📝 Extens</button>
@@ -2140,6 +2120,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
               </div>
               <div id="estudi-hint" class="estudi-hint"></div>
             </div>
+            </details>
             <div class="ai-chat-messages" id="ai-messages"></div>
             <div class="ai-chip-row" id="ai-chips"></div>
             <div id="ai-doc-preview" style="display:none;padding:8px 16px;background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);display:none;align-items:center;gap:10px;flex-shrink:0;">
@@ -2175,10 +2156,96 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
     <div class="focus-two-col">
     <div class="focus-col-left">
-    <!-- Pomodoro Gamification -->
+    <!-- Pomodoro Focus Timer -->
+    <div class="pomodoro-section">
+      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_pomodoro">⏱️ focus timer — pomodoro <button class="info-btn" onclick="showInfo('pomodoro')" title="Com funciona?">i</button></div>
+
+      <details class="product-details"><summary>Personalitzar el temporitzador</summary>
+      <!-- Custom timer input -->
+      <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-treball-lbl">TREBALL</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
+            <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
+            <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+            <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
+          </div>
+        </div>
+        <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;" id="pomo-descans-lbl">DESCANS</label>
+          <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
+            <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
+          </div>
+          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;" id="pomo-auto-lbl">(auto)</span>
+        </div>
+        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;" id="pomo-aplicar-btn">APLICAR</button>
+      </div>
+      <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+
+      </details>
+      <div class="pomo-display">
+        <div class="pomo-sessions" id="pomo-sessions"></div>
+        <div class="pomo-ring-wrap">
+          <svg class="pomo-svg" viewBox="0 0 180 180">
+            <circle class="pomo-bg" cx="90" cy="90" r="80"/>
+            <circle class="pomo-arc" id="pomo-arc" cx="90" cy="90" r="80"/>
+          </svg>
+          <div class="pomo-time">
+            <div class="pomo-digits" id="pomo-digits">25:00</div>
+            <div class="pomo-label" id="pomo-lbl">FOCUS</div>
+          </div>
+        </div>
+        <div class="pomo-presets">
+          <button class="pomo-preset-btn active" id="preset-25" onclick="setPomoPreset(25,5,4)">25/5</button>
+          <button class="pomo-preset-btn" id="preset-50" onclick="setPomoPreset(50,10,4)">50/10</button>
+          <button class="pomo-preset-btn" id="preset-90" onclick="setPomoPreset(90,20,3)">90/20</button>
+          <button class="pomo-preset-btn" id="preset-cust" style="display:none;">Personalitzat</button>
+        </div>
+        <div class="pomo-controls">
+          <button class="pomo-btn start" id="pomo-start" onclick="pomoAction()">▶ INICIAR</button>
+          <button class="pomo-btn reset" onclick="pomoReset()">↺ Reiniciar</button>
+          <button class="pomo-btn" onclick="openPomoFullscreen()" title="Pantalla completa" style="padding:0 14px;font-size:16px;">⛶</button>
+        </div>
+        <div class="pomo-stats-row">
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-today">0</div><div class="pomo-stat-lbl">avui</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-week">0</div><div class="pomo-stat-lbl">setmana</div></div>
+          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-total">0</div><div class="pomo-stat-lbl">total</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spotify Focus Playlist -->
+    <div style="background:var(--card);border:1px solid rgba(30,215,96,0.25);border-radius:20px;padding:22px 24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <span style="font-size:20px;">🎵</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
+          <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
+            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
+            onkeydown="if(event.key==='Enter') loadSpotify()" />
+          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
+        </div>
+      </div>
+      <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
+        <iframe id="spotify-iframe" style="border-radius:12px;width:100%;" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+      <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
+        Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
+        <span style="font-size:10px;font-family:'Share Tech Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
+      </div>
+    </div>
+
+    </div><!-- /focus-col-left -->
+    <div class="focus-col-right">
+<details class="product-details"><summary>Progrés i recompenses</summary>    <!-- Pomodoro Gamification -->
     <div style="background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(124,58,237,0.08));border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(239,68,68,0.12),transparent 70%);pointer-events:none;"></div>
-      
+
       <!-- Level & XP -->
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
         <div id="pomo-level-badge" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(239,68,68,0.4);">
@@ -2217,90 +2284,8 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pomo-rewards-row"></div>
     </div>
 
-    <!-- Pomodoro Focus Timer -->
-    <div class="pomodoro-section">
-      <div class="section-title" style="margin-bottom:0;" data-i18n="sec_pomodoro">⏱️ focus timer — pomodoro <button class="info-btn" onclick="showInfo('pomodoro')" title="Com funciona?">i</button></div>
-      
-      <!-- Custom timer input -->
-      <div id="pomo-custom-row" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;" id="pomo-treball-lbl">TREBALL</label>
-          <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
-            <button onclick="adjustPomoCust('focus',-5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">−</button>
-            <span id="pomo-cust-focus" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--accent2);min-width:32px;text-align:center;">25</span>
-            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
-            <button onclick="adjustPomoCust('focus',5)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">+</button>
-          </div>
-        </div>
-        <div style="color:var(--muted);font-size:18px;font-weight:300;">→</div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px;" id="pomo-descans-lbl">DESCANS</label>
-          <div style="display:flex;align-items:center;gap:4px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:4px 8px;">
-            <span id="pomo-cust-break" style="font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#6ee7b7;min-width:32px;text-align:center;">5</span>
-            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);">min</span>
-          </div>
-          <span style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;" id="pomo-auto-lbl">(auto)</span>
-        </div>
-        <button onclick="applyPomoCustom()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;" id="pomo-aplicar-btn">APLICAR</button>
-      </div>
-      <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;" id="pomo-ratio-lbl">Ràtio: 1:5 · 5 min de descans per cada 25 de treball</div>
+</details>
 
-      <div class="pomo-display">
-        <div class="pomo-sessions" id="pomo-sessions"></div>
-        <div class="pomo-ring-wrap">
-          <svg class="pomo-svg" viewBox="0 0 180 180">
-            <circle class="pomo-bg" cx="90" cy="90" r="80"/>
-            <circle class="pomo-arc" id="pomo-arc" cx="90" cy="90" r="80"/>
-          </svg>
-          <div class="pomo-time">
-            <div class="pomo-digits" id="pomo-digits">25:00</div>
-            <div class="pomo-label" id="pomo-lbl">FOCUS</div>
-          </div>
-        </div>
-        <div class="pomo-presets">
-          <button class="pomo-preset-btn active" id="preset-25" onclick="setPomoPreset(25,5,4)">25/5</button>
-          <button class="pomo-preset-btn" id="preset-50" onclick="setPomoPreset(50,10,4)">50/10</button>
-          <button class="pomo-preset-btn" id="preset-90" onclick="setPomoPreset(90,20,3)">90/20</button>
-          <button class="pomo-preset-btn" id="preset-cust" style="display:none;">✏️ CUSTOM</button>
-        </div>
-        <div class="pomo-controls">
-          <button class="pomo-btn start" id="pomo-start" onclick="pomoAction()">▶ INICIAR</button>
-          <button class="pomo-btn reset" onclick="pomoReset()">↺ RESET</button>
-          <button class="pomo-btn" onclick="openPomoFullscreen()" title="Pantalla completa" style="padding:0 14px;font-size:16px;">⛶</button>
-        </div>
-        <div class="pomo-stats-row">
-          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-today">0</div><div class="pomo-stat-lbl">avui</div></div>
-          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-week">0</div><div class="pomo-stat-lbl">setmana</div></div>
-          <div class="pomo-stat"><div class="pomo-stat-val" id="pomo-total">0</div><div class="pomo-stat-lbl">total</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Spotify Focus Playlist -->
-    <div style="background:var(--card);border:1px solid rgba(30,215,96,0.25);border-radius:20px;padding:22px 24px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:8px;flex:1;">
-          <span style="font-size:20px;">🎵</span>
-          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgb(30,215,96);letter-spacing:2px;">SPOTIFY FOCUS</span>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex:2;min-width:200px;">
-          <input id="spotify-url-input" type="text" placeholder="Enganxa l'URL de Spotify..."
-            style="flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;outline:none;"
-            onkeydown="if(event.key==='Enter') loadSpotify()" />
-          <button onclick="loadSpotify()" style="background:rgba(30,215,96,0.15);border:1px solid rgba(30,215,96,0.35);color:rgb(30,215,96);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">▶ CARREGAR</button>
-        </div>
-      </div>
-      <div id="spotify-frame-wrap" style="display:none;border-radius:12px;overflow:hidden;">
-        <iframe id="spotify-iframe" style="border-radius:12px;width:100%;" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-      </div>
-      <div id="spotify-placeholder" style="text-align:center;padding:16px 0;color:var(--muted);font-size:12px;">
-        Enganxa l'URL d'una playlist, àlbum o cançó de Spotify<br>
-        <span style="font-size:10px;font-family:'Share Tech Mono',monospace;opacity:0.6;">open.spotify.com/playlist/... · album/... · track/...</span>
-      </div>
-    </div>
-
-    </div><!-- /focus-col-left -->
-    <div class="focus-col-right">
     <!-- Victories -->
     <div class="victories-section">
       <div class="section-title" style="margin-bottom:16px;" data-i18n="sec_victories">🏆 les meves victòries de la setmana <button class="info-btn" onclick="showInfo('victories')" title="Com funciona?">i</button></div>
@@ -2314,7 +2299,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         <div class="victory-input-row"><span class="victory-num">🥈</span><input class="victory-input" id="v2" placeholder="Segona victòria..." /></div>
         <div class="victory-input-row"><span class="victory-num">🥉</span><input class="victory-input" id="v3" placeholder="Tercera victòria..." /></div>
       </div>
-      <button class="victories-save-btn" onclick="saveVictories()">💾 GUARDAR VICTÒRIES</button>
+      <button class="victories-save-btn" onclick="saveVictories()">💾 DESAR VICTÒRIES</button>
       <div id="victories-list" style="margin-top:6px;"></div>
     </div>
 
@@ -2363,6 +2348,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     </div>
 
     <!-- Stat cards -->
+    <p id="analytics-summary" class="analytics-summary" role="status"></p>
     <div id="stats-cards" class="stats-cards-grid"></div>
 
     <!-- Heatmap -->
@@ -2391,9 +2377,9 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         </div>
       </div>
       <div class="analytics-card">
-        <div class="analytics-card-title">Hora del dia més productiva</div>
+        <div class="analytics-card-title">Hores de completat de tasques</div>
         <div style="position:relative;height:200px;">
-          <canvas id="hours-chart" role="img" aria-label="Hores productives"></canvas>
+          <canvas id="hours-chart" role="img" aria-label="Tasques completades per hora"></canvas>
         </div>
       </div>
       <div class="analytics-card">
@@ -2403,7 +2389,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
         </div>
       </div>
       <div class="analytics-card">
-        <div class="analytics-card-title">Rachas d'hàbits</div>
+        <div class="analytics-card-title">Ratxes d’hàbits</div>
         <div id="habits-stats"></div>
       </div>
     </div>
@@ -2441,8 +2427,8 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 </div>
 
 <!-- Modals -->
-<div id="day-modal-overlay" onclick="if(event.target===this)closeDayModal()">
-  <div id="day-modal">
+<div id="day-modal-overlay" onkeydown="handleDialogKeydown(event,this,closeDayModal)" onclick="if(event.target===this)closeDayModal()">
+  <div id="day-modal" role="dialog" aria-modal="true" aria-labelledby="day-modal-title">
     <!-- Header -->
     <div class="dm-header">
       <h4 id="day-modal-title">Afegir al dia</h4>
@@ -2470,7 +2456,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
     <!-- Títol + autocomplete -->
     <div class="modal-field dm-title-wrap">
-      <label>TÍTOL</label>
+      <label for="dm-text">Títol</label>
       <input type="text" id="dm-text" placeholder="Nom de l'event..." autocomplete="off"
              oninput="dmUpdatePreview();dmSuggestNames(this.value)"
              onkeydown="if(event.key==='Enter')saveDayEvent()" />
@@ -2480,18 +2466,18 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
     <!-- Hores -->
     <div class="dm-time-row">
       <div class="modal-field">
-        <label>HORA INICI</label>
+        <label for="dm-time-start">Hora d'inici</label>
         <input type="time" id="dm-time-start" onchange="dmAutoEndTime();dmUpdatePreview()" />
       </div>
       <div class="modal-field">
-        <label>HORA FI</label>
+        <label for="dm-time-end">Hora de finalització</label>
         <input type="time" id="dm-time-end" onchange="dmSaveDuration();dmUpdatePreview()" />
       </div>
     </div>
 
     <!-- Tipus -->
     <div class="modal-field">
-      <label>TIPUS</label>
+      <label for="dm-type">Tipus</label>
       <select id="dm-type" onchange="dmUpdatePreview()">
         <option value="class">📚 Classe</option>
         <option value="exam">📝 Examen</option>
@@ -2502,6 +2488,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       </select>
     </div>
 
+    <details class="product-details"><summary>Icona i color</summary>
     <!-- Emoji picker -->
     <div class="modal-field">
       <label>EMOJI</label>
@@ -2534,6 +2521,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
       </div>
     </div>
 
+    </details>
     <!-- Repetició -->
     <div class="modal-field">
       <label>REPETICIÓ</label>
@@ -2585,25 +2573,25 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 
     <!-- Botons -->
     <div class="modal-btns">
-      <button class="modal-save" onclick="saveDayEvent()">💾 Guardar</button>
+      <button class="modal-save" onclick="saveDayEvent()">💾 Desar</button>
       <button id="dm-delete-btn" class="modal-cancel dm-delete" onclick="deleteTimedEvent()" style="display:none;">🗑️ Eliminar</button>
       <button class="modal-cancel" onclick="closeDayModal()">Cancel·lar</button>
     </div>
   </div>
 </div>
 
-<div id="month-modal-overlay" onclick="if(event.target===this)closeMonthModal()">
-  <div id="month-modal">
+<div id="month-modal-overlay" onkeydown="handleDialogKeydown(event,this,closeMonthModal)" onclick="if(event.target===this)closeMonthModal()">
+  <div id="month-modal" role="dialog" aria-modal="true" aria-labelledby="mm-title">
     <h4 id="mm-title">Dia</h4>
     <div class="modal-date-sub" id="mm-sub"></div>
     <div class="month-event-list" id="mm-list"></div>
     <div class="month-add-form">
       <div class="month-add-row">
-        <input type="text" id="mm-text" placeholder="Afegir event..." onkeydown="if(event.key==='Enter')saveMonthEvent()" />
-        <input type="time" id="mm-time" />
+        <input type="text" id="mm-text" aria-label="Títol de l'event" placeholder="Afegir event..." onkeydown="if(event.key==='Enter')saveMonthEvent()" />
+        <input type="time" id="mm-time" aria-label="Hora de l'event" />
       </div>
       <div class="month-add-row">
-        <select id="mm-type" onchange="mmResetColor()">
+        <select id="mm-type" aria-label="Tipus d'event" onchange="mmResetColor()">
           <option value="exam">📝 Examen/Entrega</option>
           <option value="deures">📚 Deures</option>
           <option value="esport">🏅 Event esportiu</option>
@@ -2734,28 +2722,13 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 </button>
 <div id="premium-soon-toast">⚡ &nbsp;Properament disponible</div>
 
-<!-- Dev Mode Modal -->
-<div id="devmode-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;">
-  <div id="devmode-panel" style="background:#0d0d1a;border:1px solid rgba(124,58,237,0.4);border-radius:20px;padding:36px 32px;width:min(420px,92vw);position:relative;box-shadow:0 0 60px rgba(124,58,237,0.2);">
-    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:18px;">⚡ Versió Desenvolupador</div>
-    <h2 style="font-size:22px;font-weight:800;margin:0 0 6px;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Accés restringit</h2>
-    <p style="font-size:13px;color:#64748b;margin:0 0 24px;line-height:1.6;">Introdueix les credencials per activar totes les funcions Premium.</p>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
-      <div>
-        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Correu</label>
-        <input id="dev-email" type="email" placeholder="dev@jomaxpath.com" style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('dev-pass').focus()"/>
-      </div>
-      <div>
-        <label style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px;">Clau secreta</label>
-        <input id="dev-pass" type="password" placeholder="••••••••••••" style="width:100%;box-sizing:border-box;background:#161625;border:1px solid rgba(124,58,237,0.25);border-radius:10px;color:#e2e8f0;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;outline:none;" onkeydown="if(event.key==='Enter')submitDevMode()"/>
-      </div>
-    </div>
-    <div id="dev-error" style="font-size:12px;color:#fca5a5;font-family:'Space Mono',monospace;margin-bottom:12px;min-height:16px;"></div>
-    <div style="display:flex;gap:10px;">
-      <button id="dev-submit-btn" onclick="submitDevMode()" style="flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#00b8d9);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Accedir</button>
-      <button onclick="closeDevMode()" style="padding:12px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#64748b;font-size:14px;cursor:pointer;">Cancel·lar</button>
-    </div>
-    <div id="dev-active-badge" style="display:none;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#6ee7b7;text-align:center;">✅ Mode Desenvolupador actiu</div>
+<!-- Local development diagnostics. No account permissions are granted. -->
+<div id="devmode-overlay" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeDevMode()">
+  <div id="devmode-panel" class="board-modal" style="max-width:420px;width:92vw;">
+    <h2>Diagnòstic local</h2>
+    <p>Comprova l’estat de l’aplicació en desenvolupament.</p>
+    <p id="dev-error" role="status"></p>
+    <div class="today-actions"><button id="dev-submit-btn" onclick="submitDevMode()">Comprovar</button><button onclick="closeDevMode()">Tancar</button></div>
   </div>
 </div>
 <!-- Julians FAB -->
@@ -2767,11 +2740,11 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
 <!-- <button id="config-btn" onclick="openConfig()" title="Configuració">⚙️</button> -->
 
 <!-- Config panel -->
-<div id="config-overlay" onclick="if(event.target===this)closeConfig()">
-  <div id="config-panel">
+<div id="config-overlay" onkeydown="handleDialogKeydown(event,this,closeConfig)" onclick="if(event.target===this)closeConfig()">
+  <div id="config-panel" role="dialog" aria-modal="true" aria-label="Configuració">
     <div class="config-header">
       <h2>⚙️ Configuració</h2>
-      <button class="config-close" onclick="closeConfig()">×</button>
+      <button class="config-close" aria-label="Tancar configuració" onclick="closeConfig()">×</button>
     </div>
     <div class="config-body" id="config-body"></div>
   </div>
@@ -2850,7 +2823,7 @@ body.lsb-mobile-open #left-sidebar{transform:translateX(0)!important;width:var(-
   <!-- Controls (no propagate click) -->
   <div id="pomo-fs-controls" onclick="event.stopPropagation()">
     <button class="pomo-fs-btn primary" id="pomo-fs-start" onclick="pomoFsAction()">▶ INICIAR</button>
-    <button class="pomo-fs-btn" onclick="pomoFsReset()">↺ RESET</button>
+    <button class="pomo-fs-btn" onclick="pomoFsReset()">↺ Reiniciar</button>
   </div>
 
   <!-- Música -->
@@ -3087,12 +3060,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update lsb-hero-mini for collapsed mode AI icon
   const lsbMini = document.querySelector('.lsb-hero-mini');
   // Keep as is since it shows hero info
-  
+
   // Julians sidebar nav icon
   document.querySelectorAll('.lsb-item[onclick*="julians"] .lsb-ico').forEach(el => {
     el.innerHTML = '<img src="julians-ai.png" style="width:18px;height:18px;border-radius:50%;object-fit:cover;" alt="Julians AI"/>';
   });
-  
+
   // Fix lsb-hero-mini to not navigate to hero (the mini card shows XP/name)
   // The HERO navigation should ONLY be via the hero card in sidebar
 });
@@ -3562,7 +3535,7 @@ function showMobileMenu() {
     <div class="mobile-drawer-content">
       <div class="mobile-drawer-handle"></div>
       <div class="mobile-drawer-title">MÉS SECCIONS</div>
-      <div class="mobile-drawer-grid">
+      <div class="mobile-drawer-grid"><button onclick="navTo('horari');switchHorariTab('habits');closeMobileMenu()"><span>🌱</span><span>HÀBITS</span></button>
         <button onclick="navTo('examenia');closeMobileMenu()">
           <span>📚</span><span>EXÀMENS</span>
         </button>
@@ -3575,11 +3548,11 @@ function showMobileMenu() {
         <button onclick="openQuickCapture&&openQuickCapture();closeMobileMenu()">
           <span>⚡</span><span>RÀPID</span>
         </button>
-        <button onclick="navTo('home');closeMobileMenu()">
-          <span>📊</span><span>STATS</span>
+        <button onclick="navTo('stats');closeMobileMenu()">
+          <span>📊</span><span>ESTADÍSTIQUES</span>
         </button>
-        <button onclick="document.querySelector('.lsb-bot-item[onclick*=\"config\"]')?.click();closeMobileMenu()">
-          <span>⚙️</span><span>CONFIG</span>
+        <button onclick="openConfig();closeMobileMenu()">
+          <span>⚙️</span><span>CONFIGURACIÓ</span>
         </button>
       </div>
     </div>
@@ -4677,4 +4650,72 @@ body.theme-rose     #bnav { border-top-color: rgba(190,24,93,0.22) !important; }
   .study-stat-divider { display: none; }
 }
 
+</style>
+
+<style id="product-foundations">
+/* Shared product controls. Keep theme colors and data-specific colors intact. */
+:root { --control-height:44px; --shadow-panel:0 8px 28px rgba(0,0,0,.16); }
+.page-title-text h2 { font-family:inherit !important; font-size:22px !important; letter-spacing:-.4px !important; text-transform:none !important; }
+.page-title-text p { font-family:inherit !important; font-size:13px !important; letter-spacing:normal !important; line-height:1.5; }
+body.theme-blanc .page-title-text p { color:#526277 !important; }
+body.theme-blanc .db-hchip-fire { color:#854d0e; }
+body.theme-blanc .db-hchip-done { color:#047857; }
+body.theme-blanc .db-hchip-pomo { color:#b91c1c; }
+body.theme-blanc .lsb-hero-lvl { color:#854d0e !important; }
+body.theme-blanc .lsb-hero-name-mini { color:#526277 !important; }
+body.theme-blanc .db-date, body.theme-blanc .db-xp-txt { color:#526277; }
+.db-date { text-transform:none; }
+button.db-task-item { width:100%; border:0; border-radius:var(--radius-control); background:transparent; color:var(--text); font:inherit; min-height:44px; text-align:left; }
+button.db-task-item:hover { background:var(--card2); }
+.board-modal .te-label, .exam-label { font-family:inherit; font-size:13px; font-weight:600; letter-spacing:normal; text-transform:none; color:var(--text); margin:16px 0 8px; }
+.modal-field label { font-family:inherit; font-size:13px; font-weight:600; letter-spacing:normal; text-transform:none; color:var(--text); }
+.te-input, .exam-input, .habitkit-input, .notes-search-input, .ld-add-row input[type=text], .ld-prio-select {
+  min-height:var(--control-height); font-family:inherit; font-size:14px;
+  border-radius:var(--radius-control); color:var(--text); background:var(--card2);
+  border:1px solid var(--border); line-height:1.5;
+}
+.te-input::placeholder, .exam-input::placeholder, .habitkit-input::placeholder, .notes-search-input::placeholder { color:var(--muted); opacity:1; }
+.list-back-btn, .ld-action-btn, .ld-add-btn, .btn-new-note, .exam-tab, .exam-save-list-btn, .exam-generate-btn {
+  min-height:var(--control-height); border-radius:var(--radius-control); font-family:inherit;
+  font-size:14px; font-weight:600; letter-spacing:normal; text-transform:none;
+}
+.ld-add-btn, .btn-new-note, .exam-generate-btn { background:var(--accent); color:#fff; border:1px solid var(--accent); box-shadow:none; }
+.exam-wizard, .exam-plan-content, .quiz-q, .analytics-summary, .product-details {
+  border-radius:var(--radius-card); border-color:var(--border); background:var(--card);
+}
+button:disabled, input:disabled, select:disabled, textarea:disabled { opacity:.55; cursor:not-allowed; }
+button[aria-busy=true] { cursor:progress; }
+input[aria-invalid=true], textarea[aria-invalid=true], select[aria-invalid=true] { border-color:var(--red); }
+.exam-card:focus-within .exam-card-del { opacity:1; }
+#config-body .cfg-tab { min-height:44px; font-family:inherit !important; font-size:13px !important; padding:10px 8px !important; flex:1 0 auto !important; }
+#config-body > div:has(> .cfg-tab) { flex-wrap:wrap; overflow-x:visible !important; }
+#config-panel .config-close { min-width:44px; min-height:44px; }
+#cfg-themes-grid .tsel { font-family:inherit; color:var(--text); }
+#cfg-themes-grid .tsel span { font-family:inherit !important; font-size:13px !important; letter-spacing:normal !important; color:var(--text) !important; }
+#config-body input, #config-body textarea { min-height:44px; font-family:inherit; font-size:16px !important; }
+#nav-drawer:not(.open), #mobile-drawer:not(.open) { visibility:hidden; }
+@media(max-width:768px) { body:not(.lsb-mobile-open) #left-sidebar { visibility:hidden; } }
+@media(hover:none) { .exam-card-del { opacity:1; } }
+@media(max-width:600px) {
+  .te-input, .exam-input, .habitkit-input, .notes-search-input, .ld-add-row input[type=text], .ld-prio-select { font-size:16px; }
+  .ld-add-row { flex-wrap:wrap; }
+}
+@media(min-width:769px) {
+  body.view-pages.sb-open-desktop .container { margin-left:var(--sb-w) !important; width:calc(100% - var(--sb-w)) !important; }
+  body.view-pages.sb-collapsed-desktop .container { margin-left:var(--sb-wc) !important; width:calc(100% - var(--sb-wc)) !important; }
+}
+@media(min-width:769px) and (max-width:1024px) {
+  body.view-pages.sb-open-desktop .container, body.view-pages.sb-collapsed-desktop .container { margin-left:var(--sb-wc) !important; width:calc(100% - var(--sb-wc)) !important; }
+}
+#left-sidebar button.lsb-item { width:calc(100% - 16px); text-align:left; font:inherit; border:0; background:transparent; }
+#left-sidebar button.lsb-item:hover { background:var(--card2); }
+#left-sidebar button.lsb-item.lsb-active { background:rgba(124,58,237,.15); color:var(--accent2); }
+#bnav button.bnav-item { background:transparent; border:0; color:var(--muted); font:inherit; cursor:pointer; min-width:0; }
+#bnav .bnav-lbl { font-size:9px; }
+.product-details { border:1px solid var(--border); border-radius:var(--radius-card); padding:var(--space-3); margin-bottom:var(--space-4); background:var(--card); }
+.product-details > summary { cursor:pointer; padding:var(--space-2); color:var(--text); font-size:13px; min-height:44px; }
+.product-details[open] > summary { margin-bottom:var(--space-3); }
+#page-focus .focus-col-left, #page-focus .focus-col-right { min-width:0; }
+@media(max-width:600px) { .today-actions button { flex:1; } #bnav .bnav-item { padding:6px 2px; min-width:0; } .mobile-drawer-grid button { min-width:0; overflow-wrap:anywhere; } }
+@media(prefers-reduced-motion:reduce) { .today-actions button, .product-details { transition:none; } }
 </style>

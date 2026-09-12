@@ -5,3 +5,7 @@ download
 *.sql
 *.md
 .git
+scripts
+logs
+.claude
+_git_push.bat
